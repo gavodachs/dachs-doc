@@ -61,13 +61,13 @@ brackets) or key-value pairs.  Currently, there is only one section, db.
 Within that section, you can set
 
 * dsn -- the "path" to the database, in the format <host>:<port>:<db>.
-  Example: ``ara.ari.uni-heidelberg.de:5432:test``
+  Example: ``computer.doma.in:5432:test``
 * user -- the user through which the db is accessed.  Example:
-  ``msdemlei``
+  ``me``
 * password -- the password of user.  Example: ``mySecretPassword``
 * allRoles -- a comma seperated list of database user ids that will get
   all privileges on newly created schemas and tables.  Example:
-  ``msdemlei, admin1, ustampa``.
+  ``me, admin1, devel``.
 * readRoles -- a comma seperated list of database user ids that will
   get usage/read access on newly created schemas and tables.  Example:
   ``gavo,op0``
@@ -78,18 +78,23 @@ like this:
 ::
 
   [db]
-  dsn: serpens:5432:test
-  user: msdemlei
+  dsn: computer.doma.in:5432:test
+  user: me
   password: mySecretPassword
-  allRoles: msdemlei, admin1, ustampa
+  allRoles: me, admin1, devel
   readRoles: gavo,op0
 
+If you provide web services, you should at least have one non-privileged
+account (gavo in this case).  Web services should always use a
+gavosettings-File of their own, logging them in as that non-privileged
+user.
 
 Importing a resource
 ====================
 
 To import a resource into the database, you should first make a
-subdirectory of your gavo inputs directory (GAVO_HOME/inputs).  The
+subdirectory of your gavo inputs directory (GAVO_HOME/inputs), the
+resource directory.  The
 recommended layout within this directory is:
 
 * res/ -- a directory containing the resource descriptor plus
@@ -103,8 +108,8 @@ recommended layout within this directory is:
 * README -- a short description of the source: what it is, where it came
   from, etc.
 
-After unpacking the raw data, you need to come up with a resource
-descriptor.  More on this below.  Once you have that, call
+After unpacking the raw data, you need to create a resource
+descriptor (see `Resource Descriptors`_).  Once you have that, call
 
 ::
 
@@ -112,6 +117,468 @@ descriptor.  More on this below.  Once you have that, call
 
 do start parsing and uploading the data.
 
-You can give gavoimp a couple of options; see ``gavoimp --help``.
+You can give gavoimp a couple of options, mostly to aid in debugging; 
+see ``gavoimp --help``.
+
+Resource Descriptors
+====================
+
+The resource descriptors (suggested extension: .vord, for VO resource
+descriptor) are XML files speficying both the syntax and the semantics
+of a source.
+
+Since they have to express quite a bit, they're a a little cumbersome.
+We may want to write wrappers for standard cases.  Let's see.
+
+The main source of information on the gory details of RDs should be the
+schema file which should be lavishly commented (ahem).  The following is
+meant as  a high-level introduction, but also covers topics that don't
+really fit into the schema file.  In short: You'll need to inspect both
+for the full story.  Start working with examples :-)
+
+The root element defines the directory most other paths are relative to,
+like this:
+
+::
+
+  <ResourceDescriptor srcdir="&master-name;/raw">
+
+(it's usually a good idea to define a couple of entities in RDs,
+master-name being one: that should be the name of your resource
+directory).
+
+Roughly, an RD mainly consists of one or more data sections.  A data
+section describes one source (or set of sources) with a homogenous
+structure (i.e., they share a "common data model").   
+
+A Data section contains a grammar element describing how to parse the
+input file in terms of preterminals and literals, and a Semantics
+element that explains how to interpret the preterminals from the Grammar
+section. The term "preterminal" here corresponds to nonterminal symbols
+that directly expand into the terminal data, i.e., they give names to
+certain sequences of terminal tokens.
+
+The mappings from preterminals to token sequences (actually, strings)
+are called rowdicts in the document.  The semantics describe how these
+rowdicts are transformed into records.  These map names (column names
+for data bases, field names for VOTables) to parsed values -- rowdicts
+only have strings as values, records contain ints, floats, DateTime
+objects, strings, whatever.
+
+Grammars
+********
+
+Depending on what the input is, we want different types of grammars.
+Thus, there are various grammar elements, but each Data element only has
+exactly one of them.  Currently defined are:
+
+* NullGrammar -- when you don't want to do any parsing at all.  You'll
+  want that if you just need to define a table through a resource
+  descriptor.  The product table (see `The Products Interface`_) is an 
+  example of why this is necessary: No single resource can "own" it, but 
+  something needs to own it.
+* CFGrammar -- when you need context free grammars.  This is based on
+  pyparsing and is currently unmaintained, mainly because I have no
+  source that actually needs it.
+* REGrammar -- when regular expressions plus a bit will do.  These are
+  what you'll want to use for text tables.  Basically, you specify some
+  way to tokenize your input and REs for the individual tokens.
+* KeyValueGrammar -- used for files that give key-value pairs, one file
+  per row
+* FitsGrammar -- used for fits files.  Currently, only the fields of the
+  primary header are used, but once I have fits tables, it shouldn't be
+  hard to retrofit that.
+
+All grammars support macros (see Macros_).
+
+Tokenizers available to REGrammars
+..................................
+
+We currently have three types of tokenizers (given in the type attribute of the element):
+
+* split -- the content matches a separator between the fields (each row is processed by re.split()
+* match -- the content matches an entire row, the fields being a groups defined. This probably is convenient with the {}-notation: (.{4}) (.{8}) (.{3}) would match a table with 4, 8, and 3 wide fields, separated by single spaces. Since this is so common, we'll probably provide an abbreviated syntax for this.
+* colranges -- the content is a whitespace-seperated list of columns or
+  column ranges (#-style comments allowed).  Example: 1 4-5 10-20 produces
+  three tokens, one from column 1 (the start of the string), one
+  consisting of the characters at positions 4 and 5 (note the difference
+  to python slice notation: the end of the range is *included*), and one
+  of length 11, spanning columns 10 through 20.
+
+Macros
+******
+
+Unfortunately, the input data isn't always in the format we'd like it to
+have.  Some of these issues can be solved by giving literalForms (see
+Semantics_) and the like, but frequently manipulations involve more than
+one token or require.  To get a halfway declarative way of defining
+these, macros are used.  Macros take a set of arguments and work on
+rowdicts.  Their effects are reflected in rowdicts.
+
+To understand macros, let's look at two examples:
+
+::
+
+			<Macro name="mapValue" sourceName="maidanak/res/maydanak_targets.txt">
+				<arg name="value" source="OBJECT"/>
+				<arg name="destination" value="ARI_OBJC"/>
+			</Macro>
+
+Here, we specify that a macro called mapValue is to be applied to the
+rowdicts.  This specific macro needs a file specifying the mapping,
+which is given as a "construction argument" sourceName.
+
+During the application of the macro, it takes two arguments, the value
+to be mapped and a destination field.  Macro arguments can have two
+sources -- either a literal, were the value given is directly passed to
+the macro (the argument is the same for all rowdicts), or the value of a
+preterminal.  In the former case, you use the value attribute, in the
+latter, the source.  Thus, the macro above always has ARI_OBJC as value
+for its destination argument, whereas the value argument is taken from
+the OBJECT field of the rowdict.
+
+::
+
+			<Macro name="handleEquatorialPosition">
+				<arg name="alpha" source="ALPHA"/>
+				<arg name="delta" source="DELTA"/>
+			</Macro>
+
+This specification says: "Take the values of ALPHA and DELTA in the
+rowdict and pass them as arguments alpha and delta to the macro
+handleEquatorialPosition".  As a result in this case, you'll have new fields
+alphaFloat, deltaFloat, c_x, c_y, c_z, and htmid in the rowdict -- this
+is not visible from the macro definiton but is hardcoded in the macro.
+
+Macros live in gavo/parsing/macros.py.  The following is documentation
+generated from there.  To figure out what arguments to give in XML,
+look at the constructors in the test cases.  Their second argument gives
+the arguments in triples, where the first is the argument name, the
+second is a field name (attribute source), and the last is a constant
+(attribute value).  So, if the constructor is called like this:
+
+::
+
+  	>>> r = ReSubstitutor(None, [("destination", "", "fixed"),
+	... ("data", "broken", ""), ("srcRe", "", r"(.) \(([^)]*)\)"),
+	... ("destRe", "", r"\2 \1")])
+
+the corresponding XML would be
+
+::
+
+  <Macro name="subsRe">
+		<arg name="destination" value="fixed"/>
+		<arg name="data" source="broken"/>
+		<arg name="srcRe" value="(.) \(([^)]*)\)"/>
+		<arg name="destRe" value="\2 \1"/>
+  </Macro>
+
+You may want to update the docs by replacing them with
+the output of ``python gavo/parsing/macros.py docs`` now and then.  If
+you're in vi in a source checkout, you can go to the next headline and
+then say ``:.,/.. END AUTO/!python ../gavo/parsing/macros.py docs``.
+
+
+combineTimestamps
+.................
+
+::
+
+  is a macro that takes a date and a time in various formats
+  and produces a mx.DateTime object from it.
+  
+  Use its result like
+  <Field dest="someTimestamp" dbtype="timestamp" source="myTimestamp"
+  	literalForm="do not touch"/>
+  
+  (where myTimestamp was the value of destination).
+  
+  Arguments:
+  
+  * destination -- the name of the field the result is to be put in
+  * date -- a date literal
+  * time -- a time literal
+  * dateFormat -- format of date using strptime(3)-compatible conversions
+  * timeFormat -- format of time using strptime(3)-compatible conversions
+  
+  >>> m = TimestampCombiner(None, [("destination", "", "stamp"),
+  ...   ("date", "date", ""), ("dateFormat", "", "%d.%m.%Y"),
+  ...   ("time", "time", ""), ("timeFormat", "", "%H:%M:%S")])
+  >>> rec = {"date": "4.6.1969", "time": "4:22:33"}
+  >>> m(rec)
+  >>> rec["stamp"].strftime()
+  'Wed Jun  4 04:22:33 1969'
+  >>> m = TimestampCombiner(None, [("destination", "", "stamp"),
+  ...   ("date", "date", ""), ("dateFormat", "", "%d.%m.%Y"),
+  ...   ("time", "time", ""), ("timeFormat", "", "!!secondsSinceMidnight")])
+  >>> rec = {"date": "4.6.1969", "time": "32320"}
+  >>> m(rec)
+  >>> rec["stamp"].strftime()
+  'Wed Jun  4 08:58:40 1969'
+  
+
+concat
+......
+
+::
+
+  is a macro that concatenates values from various rows and puts
+  the resulting value in destinationRow.
+  
+  Construction Argument:
+  
+  * joiner -- a string used to glue the individual values together.  Optional,
+    defaults to the empty string.
+  
+  Arguments:
+  
+  * destination -- a name under which the concatenated value should be stored
+  * sources -- a comma seperated list of source field names
+  
+  >>> v = ValueCatter(None, joiner="<>", argTuples=[("destination", "", "cat"),
+  ... ("sources", "", "src1,src2,src3")])
+  >>> r = {"src1": "opener", "src2": "catfood", "src3": "can"}
+  >>> v(r)
+  >>> r["cat"]
+  'opener<>catfood<>can'
+  
+
+handleEquatorialPosition
+........................
+
+::
+
+  is a macro that compute several derived quantities from 
+  sexagesimal equatorial coordinates.
+  
+  Specifically, it generates alphaFloat, deltaFloat as well as
+  c_x, c_y, c_z (cartesian coordinates of the intersection of the 
+  direction vector with the unit sphere) and htmind (an HTM index
+  for the position -- needs to be fleshed out a bit).
+  
+  TODO: Equinox handling (this will probably be handled through an
+  optional arguments srcEquinox and destEquinox, both J2000.0 by default).
+  
+  Arguments: 
+   
+   * alpha -- sexagesimal right ascension as hour angle
+   * delta -- sexagesimal declination as dms
+   * alphaSepChar (optional) -- seperator for alpha, defaults to whitespace
+   * deltaSepChar (optional) -- seperator for delta, defaults to whitespace
+  
+  The field structure generated here is reflected in 
+  __common__/positionfields.template.  If you change anything here,
+  change it there, too.  And use that template when you use this macro.
+  
+  >>> m = EquatorialPositionConverter(None, [("alpha", "alphaRaw", ""),
+  ... ("delta", "deltaRaw", "")])
+  >>> r = {"alphaRaw": "00 02 32", "deltaRaw": "+45 30.6"}
+  >>> m(r)
+  >>> str(r["alphaFloat"]), str(r["deltaFloat"]), str(r["c_x"]), str(r["c_y"])
+  ('0.633333333333', '45.51', '0.700741955529', '0.00774614323406')
+  >>> m = EquatorialPositionConverter(None, [("alpha", "alphaRaw", ""),
+  ... ("delta", "deltaRaw", ""), ("alphaSepChar", "", "-"), 
+  ... ("deltaSepChar", "", ":")])
+  >>> r = {"alphaRaw": "10-37-19.544070", "deltaRaw": "+35:34:20.45713"}
+  >>> m(r)
+  >>> str(r["alphaFloat"]), str(r["deltaFloat"]), str(r["c_z"])
+  ('159.331433625', '35.5723492028', '0.581730502028')
+  >>> r = {"alphaRaw": "4-38-54", "deltaRaw": "-12:7.4"}
+  >>> m(r)
+  >>> str(r["alphaFloat"]), str(r["deltaFloat"])
+  ('69.725', '-12.1233333333')
+  
+
+interpolateStrings
+..................
+
+::
+
+  is a macro that exposes %-type string interpolations.
+  
+  Arguments:
+  
+  * destination: name of the field the result should be put in
+  * format: a format with %-conversions (see the python manual.
+    Note, however, that rowdict values usually are strings).
+  * sources: a comma-seperated list of preterminal names.  The
+    values of these preterminals constitute the tuple to fill
+    the conversions from.
+  
+  Clearly, you have to have as many items in sources as you have conversions 
+  in format.
+  >>> s = StringInterpolator(None, [("destination", "", "baz"), 
+  ... ("format", "", "no %s in %s"), ("sources", "", "bar,foo")])
+  >>> r = {"foo": "42", "bar": "23"}
+  >>> s(r); r["baz"]
+  'no 23 in 42'
+  
+
+mapToNone
+.........
+
+::
+
+  is a macro that maps a certain literal to None.
+  
+  In general, this isn't necessary since you can define null values in fields.
+  However, when another macro needs Nones to signify null values, you need
+  this macro, because macros are applied before fields are even looked at.
+  
+  Arguments:
+  
+  * colName -- the name of the column to operate on
+  * nullvalue -- the value that should be mapped to Null
+  
+  >>> n = NullValuator(None, [("colName", "", "foo"), ("nullvalue", "",
+  ... "EMPTY")])
+  >>> r = {"foo": "bar", "baz": "bang"}
+  >>> n(r); r["foo"]
+  'bar'
+  >>> r["foo"] = "EMPTY"
+  >>> n(r); print r["foo"]
+  None
+  
+
+mapValue
+........
+
+::
+
+  is a macro that translates vaules via a utils.NameMap
+  
+  Construction arguments:
+  
+  * sourceName -- an inputsDir-relative path to the NameMap source file,
+  * logFailures (optional) -- if somehow true, non-resolved names will 
+    be logged
+  
+  Arguments:
+  
+  * value -- the value to be mapped.
+  * destination -- the field the mapped value should be written into.
+  
+  If an object cannot be resolved, a null value is entered (i.e., you
+  shouldn't get an exception out of this macro but can weed out "bad"
+  records through notnull-conditions later if you wish).
+  
+  Destination may of course be the source field (though that messes
+  up idempotency of macro expansion, which shouldn't usually hurt).
+  
+  The format of the mapping file is
+  
+  <target key><tab><source keys>
+  
+  where source keys is a whitespace-seperated list of values that should
+  be mapped to target key (sorry the sequence's a bit unusual).
+  
+  A source key must be encoded quoted-printable.  This usually doesn't
+  matter except when it contains whitespace (a blank becomes =20) or equal
+  signs (which become =3D).
+  
+
+setProdtblValues
+................
+
+::
+
+  is a macro that provides all values requried for the product table.
+  
+  See the documentation on the product interface.
+  
+  Arguments:
+  * prodtblKey -- the value that identifies the product in the product table
+    (usually, but not always, it's the path to the product)
+  * prodtblOwner -- the owner of the record
+  * prodtblEmbargo -- date when the resource will become freely accessible
+  * prodtblPath -- path to the product
+  * prodtblFsize -- size of the product (optional)
+  
+  This has to reflect any changes to gavo.inputsDir/products/products.vord.
+  
+
+subsRe
+......
+
+::
+
+  is a macro that exposes re.sub.
+  
+  In short, you can substitue PCRE-compatible regular expressions in a
+  string, complete with backreferences and all.  Don't overdo it.
+  
+  Arguments:
+  
+  * destination -- the name of the field the result should be put in
+  * data -- the value the re should be applied to
+  * srcRe -- the source regular expression
+  * destRe -- the replacement pattern
+  
+  >>> m = ReSubstitutor(None, [("destination", "", "fixed"),
+  ... ("data", "broken", ""), ("srcRe", "", r"(.) \(([^)]*)\)"),
+  ... ("destRe", "", r"\2 \1")])
+  >>> r = {"broken": "r (Gunn)"}
+  >>> m(r); r["fixed"]
+  'Gunn r'
+  >>> r = {"broken": "Any ol' junk"}
+  >>> m(r); r["fixed"]
+  "Any ol' junk"
+  
+
+
+.. END AUTO
+
+
+
+Semantics
+*********
+
+The semantics contain one or more record defintions, where each of these
+mainly consists of field definitions.
+
+Field Definitions
+.................
+
+The field definition defines a single field within a table. It is
+described by the following attributes (only the ones marked with [*] are
+strictly necessary):
+
+* dest -- a name that is used as an identifier for this column (should be an SQL identifier) [*]
+* source -- the source from which to fill the column. This can be a simple name, which is then used as the preterminal the field is fed from. If the value of source starts with an @, the rest is interpreted as the name of a field computer, which is called when the value of the field is required (see below).
+* dbtype -- the type of the value. We use the sql type system and map it to the others involved (python, votable). Defaults to real.
+* default -- a literal used as a default value.
+* unit -- the unit of the value, given as given in http://vizier.u-strasbg.fr/doc/catstd-3.2.htx, defaults to empty.
+* optional -- if true (in any capitalization), empty values (Python: None, SQL: NULL) are allowed for this field, defaults to True.
+* ucd -- a description of the field content, as per http://www.ivoa.net/Documents/latest/UCDlist.html.
+* description -- human-digestable text that describes the contents of this field.
+* nullvalue -- a literal that is interpreted as SQL NULL.
+* literalForm -- an identifier that tells ImportTools's type converter
+  about special literal forms (e.g. hour angle for float, weird date
+  formats). These identifiers are defined in typeconversion.py.
+  Probably the most important one is "do not touch" which instructs the
+  type converter to leave the value alone.  This is important when,
+  e.g., macros or field computers already deliver python types as
+  values.  These typically do not appreciate being treated as strings.
+
+
+Row interfaces
+==============
+
+Row interfaces work a bit like java interfaces in that they define
+certain columns that have to be present in tables to make them suitable
+for standard queries. XXX document usage XXX
+
+The Products interface
+**********************
+
+The Positions interface
+***********************
+
+
+
+TODO: Fields, @-expansions, row processors, schema, meta, recreateAfter,
+common elements...
+
 
 .. vi:et:tw=72:

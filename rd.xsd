@@ -1,0 +1,134 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+
+	<xsd:annotation>
+		<xsd:documentation xml:lang="en">
+			The specification for GAVO resource descriptors.
+
+			If you don't speak schema, use the comments (a.k.a. annotations)...
+		</xsd:documentation>
+	</xsd:annotation>
+
+	<xsd:element name="ResourceDescriptor" type="RdType"/>
+
+	<xsd:complexType name="RdType">
+		<xsd:sequence>
+			<xsd:element name="schema" type="xsd:string"/>
+			<xsd:element name="Data" type="DataType" minOccurs="1" 
+				maxOccurs="unbounded"/>
+			<xsd:element name="script" type="ScriptType" minOccurs="0"/>
+			<xsd:element name="recreateAfter" type="DependType" minOccurs="0"/>
+		</xsd:sequence>
+		<xsd:attribute name="srcdir" type="xsd:string"/>
+	</xsd:complexType>
+
+	<xsd:complexType name="DataType">
+		<xsd:sequence>
+			<xsd:choice>
+				<xsd:element name="CFGrammar" type="CFGrammarType"/>
+				<xsd:element name="REGrammar" type="REGrammarType"/>
+				<xsd:element name="FitsGrammar" type="FitsGrammarType"/>
+				<xsd:element name="KeyValueGrammar" type="KeyValueGrammarType"/>
+				<xsd:element name="NullGrammar" type="NullGrammarType"/>
+			</xsd:choice>
+			<xsd:element name="Semantics" type="SemanticsType"/>
+		</xsd:sequence>
+		<xsd:attribute name="sourcePat"/>
+		<xsd:attribute name="source"/>
+		<xsd:attribute name="id"/>
+		<xsd:attribute name="encoding" default="iso-8859-1"/>
+	</xsd:complexType>
+
+	<xsd:complexType name="GrammarType" abstract="true">
+		<xsd:sequence>
+			<xsd:element name="Macro" type="MacroType" maxOccurs="unbounded"/>
+			<xsd:element name="macrodef" type="MacrodefType" maxOccurs="unbounded"/>
+			<!-- XXX TODO: row processors -->
+		</xsd:sequence>
+	</xsd:complexType>
+
+	<xsd:complexType name="NullGrammarType">
+		<xsd:complexContent>
+			<xsd:extension base="GrammarType"/>
+		</xsd:complexContent>
+	</xsd:complexType>
+
+	<xsd:complexType name="KeyValueGrammarType">
+		<xsd:complexContent>
+			<xsd:extension base="GrammarType"/>
+		</xsd:complexContent>
+	</xsd:complexType>
+
+	<xsd:complexType name="FitsGrammarType">
+		<xsd:complexContent>
+			<xsd:extension base="GrammarType">
+				<xsd:attribute name="qnd" type="xsd:string"/>
+			</xsd:extension>
+		</xsd:complexContent>
+	</xsd:complexType>
+
+	<xsd:complexType name="RuleGrammarType" abstract="true">
+		<xsd:complexContent>
+			<xsd:extension base="GrammarType">
+				<xsd:sequence>
+					<xsd:element name="rules" type="xsd:string"/>
+				</xsd:sequence>
+			</xsd:extension>
+		</xsd:complexContent>
+	</xsd:complexType>
+
+	<xsd:complexType name="REGrammarType">
+		<xsd:complexContent>
+			<xsd:extension base="RuleGrammarType">
+				<xsd:sequence>
+					<xsd:element name="tokenizer" type="TokenizerType"/>
+					<xsd:element name="tokenSequence" type="xsd:string"/>
+				</xsd:sequence>
+			</xsd:extension>
+		</xsd:complexContent>
+	</xsd:complexType>
+
+	<xsd:complexType name="CFGrammarType">
+		<xsd:complexContent>
+			<xsd:extension base="RuleGrammarType">
+			</xsd:extension>
+		</xsd:complexContent>
+	</xsd:complexType>
+
+	<xsd:complexType name="ScriptType">
+		<xsd:complexContent>
+			<xsd:extension base="xsd:anyType"/>
+		</xsd:complexContent>
+	</xsd:complexType>
+
+	<xsd:complexType name="DependType">
+		<xsd:complexContent>
+			<xsd:extension base="xsd:anyType"/>
+		</xsd:complexContent>
+	</xsd:complexType>
+
+	<xsd:complexType name="MacroType">
+		<xsd:complexContent>
+			<xsd:extension base="xsd:anyType"/>
+		</xsd:complexContent>
+	</xsd:complexType>
+
+	<xsd:complexType name="MacrodefType">
+		<xsd:complexContent>
+			<xsd:extension base="xsd:anyType"/>
+		</xsd:complexContent>
+	</xsd:complexType>
+
+	<xsd:complexType name="TokenizerType">
+		<xsd:complexContent>
+			<xsd:extension base="xsd:anyType"/>
+		</xsd:complexContent>
+	</xsd:complexType>
+
+	<xsd:complexType name="SemanticsType">
+		<xsd:complexContent>
+			<xsd:extension base="xsd:anyType"/>
+		</xsd:complexContent>
+	</xsd:complexType>
+
+</xsd:schema>
