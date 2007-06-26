@@ -1,6 +1,6 @@
 HTMLTARGET=ara:/var/www/docs/python-gavo
 
-ALL_HTML=userman.html querulator_devel.html
+ALL_HTML=userman.html querulator_devel.html querulator_user.html
 
 %.html: %.rstx
 	rst2html $< >$@

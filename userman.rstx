@@ -37,6 +37,10 @@ sources reside, ancillary data is kept, etc.  By default, this is
 ``/var/gavo``.  If you want something else, set the environment variable
 ``$GAVO_HOME``.
 
+Within that directory, you almost certainly need some data files: static
+files for the web server, interface definitions, etc.  An archive for
+that is in preparation, you'll just untar it in place.
+
 The tools will write a log (by default ``$GAVO_HOME/logs/gavoops``).  It
 may be a good idea to keep that log on a local file system and not share
 it with other instances, not the least because we do not provide for any
@@ -567,13 +571,134 @@ Row interfaces
 
 Row interfaces work a bit like java interfaces in that they define
 certain columns that have to be present in tables to make them suitable
-for standard queries. XXX document usage XXX
+for standard queries.   You basically say something like "this table
+describes things with positions" or "this table describes files
+(products)".
+
+You don't just put stuff into the database, you want to get them out as
+well.  The interfaces allow clients to rely on the presence of certain
+fields with a defined semantics.
+
+As far as resource descriptors are concerned, the interfaces are defined
+through XML fragments targetted for Records and usually macros preparing
+the data.  The XML fragments reside in ``gavo.inputsDir/__common__``.
+To use one of these, you usually have to define entities refering to
+them and then put the entities to the appropriate places.
+
+Btw, when some instruction tells you to do this or that in your
+"internal subset", what is meant is that you need to put something like
+
+::
+
+<!DOCTYPE GavoResourceDescriptor [
+	... anything that's here is the internal subset ...
+]>
+
+at the top of your XML file (right after an XML declaration, if you have
+one).
+
+Note that I'll probably change the declaration of interfaces at some
+point -- they shouldn't be spilled all over the place.  Instead, we
+probably want to have one single place in which there's everything an
+interface wants, field definitions, macros, additional tables and so on.
 
 The Products interface
 **********************
 
+The products interface is defined in productfields.template.  Refer to
+this file for a list of defined fields and usage information.
+
+Tables providing products must also enter their data into the product
+table, a system-global table mapping keys to files (which is usually
+trivial, since the product key is the path in most of the cases).
+The main point of the product table is to allow programs to check the
+ownership status (i.e., who owns the thing and when will it become free) 
+of a product without needing more information than the key.  The
+definition of this producttable is in producttable.template.  The
+producttable entity needs to be in a Semantics element (it expands into
+a Record element).  It also needs to be lexically above the parent table
+element.  This ensures that products are entered into the product table
+first and are available for being referenced in the productfields
+interface.
+
+In sum, a resource descriptor for a table containing products should
+look something like this:
+
+::
+
+  <?xml version="1.0" encoding="utf-8"?>
+
+  <!DOCTYPE GavoResourceDescriptor [
+    <!ENTITY producttable SYSTEM "producttable">
+    <!ENTITY productfields SYSTEM "productfields">
+    <!ENTITY prodtbl-sourcetable "XXXXXXXXXXX">
+  ]>
+
+
+  <ResourceDescriptor srcdir="XXXXXXXXXXX">
+    
+    <Data...>
+      <Grammar...>
+        <Macro name="setProdtblValues">
+          <arg name="prodtblKey" value="@inputRelativePath"/>
+          <arg name="prodtblOwner" value="XXXXXX"/>
+          <arg name="prodtblEmbargo" value="XXXX-12-31"/>
+          <arg name="prodtblPath" value="@inputRelativePath"/>
+          <arg name="prodtblFsize" value="@inputSize"/>
+        </Macro>
+        ...
+      </Grammar>
+      <Semantics>
+        &producttable;
+
+        <Record table="...">
+          ... Field definitions ...
+
+          &productfields;
+        </Record>
+      </Semantics>
+    </Data>
+  </ResourceDescriptor>
+
+
 The Positions interface
 ***********************
+
+The positions interface applies to anything that has a position.  Its
+definition is contained in positionfields.template.  Note that client
+software may assume processed positions are given in J2000.0
+coordinates.  If you ignore this, you'll have to live with the
+consequences.
+
+A short documentation is contained in the template file.  A resource
+descriptor containing positions might look like this:
+
+::
+
+  <?xml version="1.0" encoding="utf-8"?>
+
+  <!DOCTYPE GavoResourceDescriptor [
+    <!ENTITY positionfields SYSTEM "positionfields">
+  ]>
+
+  ...
+      <Grammar ...>
+        ...
+        <Macro name="handleEquatorialPosition">
+          <arg name="alpha" source="ALPHA RAW"/>
+          <arg name="delta" source="DELTA RAW"/>
+        </Macro>
+        ...
+      </Grammar>
+     
+      ...
+
+        <Record table="data">
+          ...
+          &productfields;
+        </Record>
+  ...
+
 
 
 

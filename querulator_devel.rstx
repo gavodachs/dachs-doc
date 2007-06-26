@@ -10,30 +10,30 @@ Query Flow
 ----------
 
 Queries are accepted by the server interface.  Currently, that's a CGI
-web/querulator.py.  It is responsible for building a Context
-instance (gavo/web/querulator/context.py).  While constructing a
-context, some predefined queries are recognized; this will usually
-insert new query keys into the context.
+web/querulator.py.  It is responsible for building a Context instance
+(gavo/web/querulator/context.py) -- this part should be the only thing
+that changes when the access method changes.
 
-querulator.py then dispatches the query based on the REQUEST_PATH.
+Querulator.py then dispatches the query based on the REQUEST_PATH.
 Usually, this will lead to the construction of a Template instance
 (defined in gavo/web/querulator/forms.py), during which the embedded SQL
-will be parsed.  The template is then passed
-on the the actual query handler, which typically resides in
-gavo/web/querulator/queryrun.
+will be parsed.  The template is then passed on the the actual query
+handler, which typically resides in gavo/web/querulator/queryrun.
 
 When generating an HTML form, the template's asHtml method is used.  It,
 in turn, asks all nodes created during SQL parsing to return HTML for
 their form elements.  This is mostly trivial, except for the actual
-conditions.  These call methods in htmlgenfuncs that return HTML
-fragments.
+(processed) conditions, which are instances of condgens.CondGen and
+return the HTML for the form.
 
-When responding to a query, the template's asSql method is used.  This
-method checks if certain standard keys are present in the context (like
-RA, DEC, SR for a cone search).  If that is the case, SQL for these
-queries is added as a conjunction to the query from the template.  In
-any case the SQL query is run and the handlers (_formatAsHtml,
-_formatAsTar etc.) format the result before returning it to the
+When responding to a query, the template's asSql method is used, which
+again calls the asSql methods of the nodes in the SQL statement's parse
+tree.  This time, any CondGens that find their keys produce SQL, all
+others produce empty strings.  CondGens may, at this point, process the
+actual input values.
+The query is only ran by the handlers (_formatAsHtml,
+_formatAsTar etc.) that may add additional select items or conditions
+(e.g. for rights management), format the result and return it to the
 web framework.
 
 
@@ -43,15 +43,8 @@ Contexts
 A context a a class that is passed around and contains all information
 the services need to know about the environment -- in other words, apart
 from context.py, nothing in gavo/web/querulator should have any
-knowledge of the interface used to query the database.
-
-The construction of contexts is a bit more sophisticated than just
-fiddling out the query parameters and the logged user, since certain
-predefined queries may want to introduce new keys (e.g., read
-Simbad objects and create coordinates for cone searches).  The way this
-works is that for each predefined set of arguments, there is a function
-registred in context._predefinedQueryHandlers that examine the context
-if they need to become active.  If applicable, they change the context
-as appropriate.
+knowledge of the interface used to query the database.  This means that
+at some point, the DB connection should be moved into context (since we
+don't need to open it each time we're called when we're persistent).
 
 .. vi:et:tw=72:
