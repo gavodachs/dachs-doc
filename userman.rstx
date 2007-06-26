@@ -37,9 +37,19 @@ sources reside, ancillary data is kept, etc.  By default, this is
 ``/var/gavo``.  If you want something else, set the environment variable
 ``$GAVO_HOME``.
 
-Within that directory, you almost certainly need some data files: static
-files for the web server, interface definitions, etc.  An archive for
-that is in preparation, you'll just untar it in place.
+Static Files
+************
+
+Within that directory, you need some data files: static files for the
+web server, interface definitions, etc.  In an svn checkout, you can go
+to the resources subdirectory, say "make install" (while having
+GAVO_HOME defined if you don't like /var/gavo) and be done if you have
+rsync (you should, it's a fine and useful piece of softwar).  Otherwise,
+we provide a tar file of the necessary data that you can just untar in
+$GAVO_HOME.
+
+Logging
+*******
 
 The tools will write a log (by default ``$GAVO_HOME/logs/gavoops``).  It
 may be a good idea to keep that log on a local file system and not share
@@ -48,8 +58,37 @@ kind of locking on that file.  To do that, set the environment variable
 GAVO_LOGDIR to a directory you want the logs in.  That directory should,
 of course, only be writable by you.
 
+If you insist, it wouldn't be hard to make the tools log to syslog.
+
+Database Setup
+**************
+
 To make things work, you will also need to set up a database and create
 at least one Settings_ file.
+
+Currently, we only support postgres.  You'll need a postgres
+installation.  You should have one user that may create tables and even
+schemas, so you probably need a dedicated database.
+
+We can't help you much with postgres (if you have an administrator, she
+should know how to set a database and the necessary users for you), but 
+with a more or less usual installation something like the following should 
+work:
+
+::
+
+  sudo -u postgres createdb gavo  # creates the database that'll hold your data
+  # create the user that feeds the db...
+  sudo -u postgres createuser -P -ADS gavo-admin
+  # and a user that usually has no write privileges
+  sudo -u postgres createuser -P -ADS gavo
+
+Note down both passwords, you will need them when setting up your
+gavosettings files.
+
+Note that running a database server always is a potential security
+liability.  You should make sure you understand what your pg_hba.conf
+says.
 
 Settings
 ========
@@ -92,6 +131,34 @@ If you provide web services, you should at least have one non-privileged
 account (gavo in this case).  Web services should always use a
 gavosettings-File of their own, logging them in as that non-privileged
 user.
+
+If you followed the instructions above, your private .gavosettings file
+should look like this:
+
+::
+
+  [db]
+  dsn: localhost:5432:gavo
+  user: gavo-admin
+  password: (whatever you've noted above)
+  allRoles: gavo-admin
+  readRoles: gavo
+
+You'll need a gavosettings file for the querulator later; you might put
+it under $GAVO_HOME/web/gavosettings and make it readable to the
+webserver and your group only.  If your web server runs on the machine
+with the database (which is recommended until you know your way around), 
+it would look like this:
+
+::
+
+  [db]
+  dsn: localhost:5432:gavo
+  user: gavo
+  password: (whatever you've noted above)
+
+Note that you don't need any role specifications here since the
+querulator will never write to the database.
 
 Importing a resource
 ====================
