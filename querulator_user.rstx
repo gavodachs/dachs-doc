@@ -1,0 +1,331 @@
+=============================
+The Querulator -- user manual
+=============================
+
+Installation
+============
+
+TBD
+
+Overview
+========
+
+The Querlator works on templates.  These are basically HTML files you
+can generate in any way you like (it's probably a good idea to use some
+kind of static templating).  Within these HTML files, you can have an
+embedded query that looks somewhat like
+
+::
+
+  <?query SELECT
+  {{localid||string}},
+  {{raRaw||string}},
+  {{decRaw||string}},
+  {{pm||real}},
+  {{pmpa||real}},
+  {{spectral||string}},
+  {{mag||string}},
+  {{alphaFloat \|\| ' ' \|\| deltaFloat|Open in aladin|aladinquery}},
+  {{remarks||string}}
+  FROM cns4.data WHERE 
+  {{Proper motion from|pm BETWEEN BetweenCondGen()}} AND
+  {{Position angle|pmpa BETWEEN BetweenCondGen()}} AND
+  {{Spectral data like|spectral LIKE PatternField(10)}}
+  ?>
+
+Basically, you have an SQL statement (the grammar used to parse this
+isn't a full SQL grammar, so you might have to complain to the author to
+get support for some construct you need).  In order to support
+auto-generation of query forms and responses from this, there is some
+embedded markup: Select items and processed conditions.
+
+Select items
+++++++++++++
+
+Select items are in enclosed in double curly braces and consist of three
+fields, seperated by a vertical bar (the vertical bar is a meta
+character and needs to be escaped with a backslash if you need it in the
+SQL expression or the title).  The
+first is a (fairly arbitrary) sql expression that defines the data
+to be formatted, the second is a column title (if the SQL expression
+refers to a single column, you may leave that empty and the 
+column title defined by the resource descriptor will be used if
+available), the third is a formatting hint.
+
+The formatting hint tells querulator how to present the given piece of
+information.  Quite a bit of it is only relevant to HTML output.
+Formatting hints are defined by gavo.web.querulator.queryrun.Formatter
+-- refer to its documentation for the most recent information.
+Meanwhile, here's a list of relevant formatting hints:
+
+* date -- takes a date or timestamp and produces a date (without time)
+  in ISO format
+* juliandate -- takes a date or timestamp and produces a (full) julian
+  date
+* product -- takes a product key and produces a link to access it
+* aladinload -- takes ra and dec in J2000.0 floats and produces a link
+  to open it in aladin
+* url -- takes some string and formats it as a link if outputting to
+  HTML
+* string -- takes some string and escapes it for the desired output.
+  This should work fine for integers
+* real -- formats real numbers
+
+Processed conditions
+++++++++++++++++++++
+
+While you can use literal SQL conditions in your WHERE clauses, it's
+usually much more interesting to do processed conditions.  These are
+again enclosed in double curly braces and have to parts, seperated by
+one vertical bar.
+
+The first is a textual description of the condition.  These should be
+unique within a document, since right now, these names serve to generate
+form keys.
+
+The second part is again an SQL expression with the special hack that as
+a rule, the second operand constructs a condition generator.  Some
+condition generators produce their own operators, so these don't even
+have an operator and a first operand.  The purpose of these condition
+generators is to come up with an HTML form element at form creation time
+and to generate the appropriate SQL at query time.
+
+The following is a list of available condition generators.  To recreate
+it from the current sources, get a source checkout edit the source of
+this file, go to the next headline and say 
+``:.,/\.\. END AUTO/!python ../gavo/web/querulator/condgens.py docs``
+
+
+BetweenCondGen
+..............
+
+::
+
+  is a condition generator for generic ranges.
+  
+  In SQL, this becomes a BETWEEN expression if both upper and lower
+  bounds are given, falling back to simple comparsions otherwise.
+  
+  BeetweenConds take no arguments.
+  
+  Example:
+  
+  pm BETWEEN BetweenCondGen()
+  
+
+Choice
+......
+
+::
+
+  is a condition generator for multiple choice boxes.
+  
+  If the operator is one accepting sets (like IN), you will be able
+  to select multiple items.
+  
+  Arguments:
+  
+  * choices --a sequence of 2-tuples of (value, title), where value is 
+    what the form recipient gets and title is what the user sees.
+  * size -- an int saying how many rows are visible (optional).
+  
+  Examples:
+  
+  filter = Choice([("Filter 1", "Johnson U"), ("Filter 2", "Johnson B")])
+  
+    will create a pull-down box to select the two Johnson filters, and
+    the DB will be queried for "Filter 1" if Johnson U is selected, and
+    for "Filter 2" if Johnson B is selected.
+  
+  filter in Choice([("Filter 1", "Johnson U"), ("Filter 2", "Johnson B")], 
+    size=2)
+  
+    is the same, only you'll be seeing both choices at the same time.
+  	Additionally, since there's an "in" operator governing the condGen,
+  	you can select both entries (which is an implicit "OR").
+  
+
+ChoiceFromDb
+............
+
+::
+
+  is a condition generator for building choice boxes from database
+  queries.
+  
+  If the operator before the ChoiceFromDb wants sets as the second
+  operand ("IN"), you will be able to select multiple items.
+  
+  Arguments:
+  
+  * query -- an SQL query the result rows of which make up the choices.
+  * prependAny -- prepends an "ANY" entry to the list of choices.  That
+    is not strictly necessary because deselecting all entries would
+    have the same effect, but it may be nice anyway (XXX doesn't quite
+    work as expected right now) (optional, default False)
+  * size -- as for Choice
+  
+  Example:
+  
+  objects in ChoiceFromDb("select distinct objects from observations.frames")
+  
+
+Date
+....
+
+::
+
+  is a condition generator for dates.
+  
+  The main effect of using this rather than a StringField is that
+  you get a nice little help in the legend.
+  
+  Date takes no arguments.
+  
+  Example:
+  
+  obsDate = Date()
+  
+
+DateRange
+.........
+
+::
+
+  is a condition generator for date ranges.
+  
+  This currently is just a BetweenCondGen, with an amended legend.
+  
+  Example:
+  
+  date between DateRange()
+  
+
+FloatField
+..........
+
+::
+
+  is a condition generator for float fields.
+  
+  Argument:
+  
+  * default -- an intial value to set into the field (optional, default "")
+  
+  At some point, I might add input validation, so use this when you
+  actually expect floats.
+  
+
+IntField
+........
+
+::
+
+  is a condition generator for integer fields.
+  
+  IntFields have no arguments.
+  
+  At some point, I might add input validation, so use this when you
+  actually expect ints.
+  
+
+OperatorCondGen
+...............
+
+::
+
+  is a condition generator for a generic SQL operator with one
+  operand.
+  
+  It is not useful in itself (it's abstract, if you will), so don't
+  use it.
+  
+  (Technical information:)
+  The default implementation assumes you only have one key called
+  name.  If that is not true for your case, you need to override
+  at least _getSqlOperand and asCondition.
+  
+
+PatternField
+............
+
+::
+
+  is a StringField with built-in help for SQL patterns.
+  
+  Arguments:
+  
+  * size -- as for StringField
+  * doc -- is ignored
+  
+  Example:
+  
+  specType like PatternField(size=7)
+  
+
+SexagConeSearch
+...............
+
+::
+
+  is a CondGen that does a cone search on sexagesimal coordinates.
+  
+  These assume the table supports the product interface, i.e., has c_x, c_y, c_z
+  field.
+  
+  Instead of coordinates, you can also give Simbad identifiers.
+  
+  Example:
+  
+  SexagConeSearch() -- and that's the only way to use it.
+  
+
+SimpleChoice
+............
+
+::
+
+  is a condition generator for simple choice boxes.
+  
+  Choice boxes are simple if (a) they're always "pull down", i.e., you'll
+  only see one entry and (b) what you select is what the db sees.
+  
+  Argument:
+  
+  * choice -- a sequence of items listed in the choice box
+  
+  Example:
+  
+  obsType = SimpleChoice(["SCIENCE", "CALIB", "BIAS", "FLAT"])
+  
+
+StringField
+...........
+
+::
+
+  is a condition generator for just any odd value.
+  
+  Use this if you have no reason to do otherwise.
+  
+  Arguments:
+  
+  * size -- the width of the field in chars (optional, default 30)
+  * doc -- stuff to put into legend (optional, default "")
+  
+  Examples:
+  
+  specType = StringField(size=4)
+  
+  flag = StringField(size=1, doc="a for left, b for center, c for right")
+  
+
+
+.. END AUTO
+
+
+
+
+
+
+.. vi:tw=72:et:
