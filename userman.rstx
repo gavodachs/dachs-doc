@@ -44,7 +44,7 @@ Within that directory, you need some data files: static files for the
 web server, interface definitions, etc.  In an svn checkout, you can go
 to the resources subdirectory, say "make install" (while having
 GAVO_HOME defined if you don't like /var/gavo) and be done if you have
-rsync (you should, it's a fine and useful piece of softwar).  Otherwise,
+rsync (you should, it's a fine and useful piece of software).  Otherwise,
 we provide a tar file of the necessary data that you can just untar in
 $GAVO_HOME.
 

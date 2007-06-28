@@ -5,12 +5,119 @@ The Querulator -- user manual
 Installation
 ============
 
-TBD
+The querulator is contained in the gavo package that also provides a
+data ingestor that you should use to provide the data querulator works
+on.  First, follow the installation instructions given in the `gavo user
+manual<userman.html>`_.
 
-Overview
-========
+After the basic gavo installation, you should have a subdirectory
+``web_static`` in your GAVO_HOME.  There also should be a script qurun
+in a location dependent on your installation.  You need to locate it --
+good places too look for it include
+``/usr/lib/python<python-version>/site-packages/gavo`` and the same for
+/usr/local/lib.
 
-The Querlator works on templates.  These are basically HTML files you
+Configuring Postgres
+********************
+
+Postgres configuration for querulator only requires an appropriate
+gavosettings file to connect querulator to the database with low
+privileges.  If you followed the instructions in the gavo package
+user manual, you will have a working one in
+``$GAVO_HOME/web/gavosettings``.
+
+Configuring Apache
+******************
+
+Querulator right now is a CGI, and you should be able to make it work
+with most any webserver.  Here, we only describe what to do with apache.
+
+You need to tell apache how to find querulator and what to do with it,
+and you need to make apache tell the querulator what URLs apache will
+give it.  The following configuration can be top-level or within a
+virtual server.
+
+First, tell apache about the script, e.g.,
+
+::
+
+  ScriptAlias /ql /usr/lib/python2.4/site-packages/gavo/web/qurun
+
+This would let the querulator appear under ``/ql`` (we'll call this the
+QU_ROOT).  You can use any valid path as QU_ROOT.  
+
+The path to qurun must, of course, match the path to qurun you established
+above.
+ 
+Then you need to tell querulator about your environment, which you
+should do via a location directive to apache:
+
+::
+
+  <Location /ql>
+      SetEnv GAVO_HOME /var/gavo  # or whatever
+      SetEnv GAVOSETTINGS /var/gavo/web/gavosettings # or whatever
+      SetEnv QU_ROOT /ql
+      SetEnv QU_STATIC /qstatic
+  </Location>
+
+If you chose a QU_ROOT different from /ql, you need to change this, of
+course.
+
+XXXX TODO tell about QSTATIC and location of static data
+
+You may want to restrict access to your database.  Apart from the
+ownership management of products, querulator leaves this to apache, so
+you can use basically anything that apache supports.  The URIs the
+querulator uses have the structure ``QU_ROOT/<op>/<template-path>``,
+so to restrict access to certain templates, you could use something like
+
+::
+
+  <LocationMatch "/ql/.*/observatories">
+    Deny from All
+    Satisfy Any
+    Require valid-user
+    AuthType Basic                                
+    AuthName "Protected VO Resources"                
+    AuthUserFile /etc/apache2/htpasswd
+  </LocationMatch>
+
+That would require people to log on if they wanted to use any part of
+the querulator requiring access to a template beyond observatories.
+
+Note that ``AuthType Basic`` isn't much of a secure solution (at least
+without running https).  Ask your local apache guru for more details.
+
+After restarting apache, you should now be able to access
+<your-server-url>/ql.  The script will complain about an I/O error --
+that is because you have not defined the top-level query directory.
+
+Defining queries
+================
+
+Queries are defined using Templates_ in the querulator.  These templates
+are just files that can be organized in subdirectories.  Queries within
+a subdirectory can link to one another using the querysel macro, so
+they're supposed to be related, e.g., give various views on the same
+dataset.
+
+The querulator looks for the queries below the directory
+``$GAVO_HOME/web/querulator/templates``.  Create that directory, and
+you'll see the I/O error mentioned at the end of the last section
+disappear: The querulator now says that there are not queries here and
+no further queries.
+
+"Queries here" would be templates in the current directory, "further
+queries" lead to subdirectories of the current directory.  Make a
+subdirectory, say, "sandbox", reload, and you'll see it appear under
+"further queries".  Put a template in there, and you'll see it under
+"queries available here".
+
+Templates
+=========
+
+The Querulator works on templates.  These are basically HTML files you
 can generate in any way you like (it's probably a good idea to use some
 kind of static templating).  Within these HTML files, you can have an
 embedded query that looks somewhat like

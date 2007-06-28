@@ -5,24 +5,45 @@
 		<xsd:documentation xml:lang="en">
 			The specification for GAVO resource descriptors.
 
-			If you don't speak schema, use the comments (a.k.a. annotations)...
+			If you don't speak schema, use the comments.
+
+			Since the annotation element is quite verbose, I've used xml
+			comments for now.  Those that should become annotations are
+			marked with a asterisk.  They should be transformed into
+			annotation/documentation elements in place or, if immediately
+			following an empty element, within that element.
 		</xsd:documentation>
 	</xsd:annotation>
 
 	<xsd:element name="ResourceDescriptor" type="RdType"/>
 
 	<xsd:complexType name="RdType">
+		<!--* The root element.  
+		-->
 		<xsd:sequence>
 			<xsd:element name="schema" type="xsd:string"/>
+				<!--* gives the database schema the tables should be created in.
+				If missing, the public schema will be used. -->
 			<xsd:element name="Data" type="DataType" minOccurs="1" 
 				maxOccurs="unbounded"/>
-			<xsd:element name="script" type="ScriptType" minOccurs="0"/>
-			<xsd:element name="recreateAfter" type="DependType" minOccurs="0"/>
+			<xsd:element name="script" type="ScriptType" minOccurs="0"
+				maxOccurs="unbounded"/>
+				<!--* contains raw SQL to be executed in order of appearance
+				of the elements after the resource has been imported. -->
+			<xsd:element name="recreateAfter" type="DependType" minOccurs="0"
+				maxOccurs="unbounded"/>
+				<!--* contains the srcdir of another resource (as inputsDir-relative
+				name) that should be recreated after the resource has been imported.
+				-->
 		</xsd:sequence>
 		<xsd:attribute name="srcdir" type="xsd:string"/>
+		<!--* is an inputsDir-relative path (should be a name only) that
+		is the root of most further path specifications -->
 	</xsd:complexType>
 
 	<xsd:complexType name="DataType">
+		<!--* is a descriptor for the data coming from one source.
+		-->
 		<xsd:sequence>
 			<xsd:choice>
 				<xsd:element name="CFGrammar" type="CFGrammarType"/>
@@ -31,9 +52,12 @@
 				<xsd:element name="KeyValueGrammar" type="KeyValueGrammarType"/>
 				<xsd:element name="NullGrammar" type="NullGrammarType"/>
 			</xsd:choice>
+				<!--* the grammar used to parse the source file. -->
 			<xsd:element name="Semantics" type="SemanticsType"/>
+				<!--* the semantics used to interpred the parsed results. -->
 		</xsd:sequence>
 		<xsd:attribute name="sourcePat"/>
+			<!--* a shell pattern to identify the sources to be parsed -->
 		<xsd:attribute name="source"/>
 		<xsd:attribute name="id"/>
 		<xsd:attribute name="encoding" default="iso-8859-1"/>
