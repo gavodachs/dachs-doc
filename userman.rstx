@@ -10,7 +10,8 @@ Installation
 ============
 
 The preferred way to run python-gavo is on a dpkg-based system (apt-get
-yaddayadda).
+yaddayadda -- actually, packaging and setting up a repository still
+needs to be done).
 
 If this is not an option for you, you can install python-gavo based on
 easy_install.  You first need a working python installation that can
@@ -28,6 +29,23 @@ tar.gz, unpack it somewhere, cd into resulting directory and then say
 root; refer to the `setuptools
 documentation <http://peak.telecommunity.com/DevCenter/EasyInstall>`_ if
 necessary).
+
+Q3C
+***
+
+If at some point you have large data sets (more than 20000 rows, say)
+and you want to do positional searches on them (cone search, crossmatch,
+siap and such), you will want the Q3C library by Sergey Koposov et al,
+http://www.sai.msu.su/~megera/oddmuse/index.cgi/SkyPixelization.  It's
+not particularly tricky to install, but you should skip it for now.
+
+To install it, get the source from the web site given above.  You need a
+couple of dependencies (on debian etch systems, that would at least be
+libpam-dev, libreadline-dev, and postgresql-server-dev-8.1).  Then
+follow the instructions in the q3c distribution.
+
+To use q3c, see inputs/__common__/q3cscript.template and the querulator
+docs.
 
 Setup
 =====
