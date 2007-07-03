@@ -788,7 +788,7 @@ descriptor containing positions might look like this:
 
 
 TODO: Fields, @-expansions, row processors, schema, meta, recreateAfter,
-common elements...
+common elements, constraints, scripts, ownding conditions
 
 
 .. vi:et:tw=72:
