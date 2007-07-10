@@ -263,7 +263,7 @@ exactly one of them.  Currently defined are:
 
 * NullGrammar -- when you don't want to do any parsing at all.  You'll
   want that if you just need to define a table through a resource
-  descriptor.  The product table (see `The Products Interface`_) is an 
+  descriptor.  The product table (see `Products`_) is an 
   example of why this is necessary: No single resource can "own" it, but 
   something needs to own it.
 * CFGrammar -- when you need context free grammars.  This is based on
@@ -342,9 +342,9 @@ is not visible from the macro definiton but is hardcoded in the macro.
 Macros live in gavo/parsing/macros.py.  The following is documentation
 generated from there.  To figure out what arguments to give in XML,
 look at the constructors in the test cases.  Their second argument gives
-the arguments in triples, where the first is the argument name, the
-second is a field name (attribute source), and the last is a constant
-(attribute value).  So, if the constructor is called like this:
+the arguments in triples, where the first item is the argument name, the
+second is a field name (attribute "source"), and the last is a constant
+(attribute "value").  So, if the constructor is called like this:
 
 ::
 
@@ -363,262 +363,15 @@ the corresponding XML would be
 		<arg name="destRe" value="\2 \1"/>
   </Macro>
 
-You may want to update the docs by replacing them with
-the output of ``python gavo/parsing/macros.py docs`` now and then.  If
-you're in vi in a source checkout, you can go to the next headline and
-then say ``:.,/.. END AUTO/!python ../gavo/parsing/macros.py docs``.
+Currently defined macros are:
+
+.. !!python ../gavo/parsing/macros.py docs
 
 
-combineTimestamps
-.................
+Constraints
+***********
 
-::
-
-  is a macro that takes a date and a time in various formats
-  and produces a mx.DateTime object from it.
-  
-  Use its result like
-  <Field dest="someTimestamp" dbtype="timestamp" source="myTimestamp"
-  	literalForm="do not touch"/>
-  
-  (where myTimestamp was the value of destination).
-  
-  Arguments:
-  
-  * destination -- the name of the field the result is to be put in
-  * date -- a date literal
-  * time -- a time literal
-  * dateFormat -- format of date using strptime(3)-compatible conversions
-  * timeFormat -- format of time using strptime(3)-compatible conversions
-  
-  >>> m = TimestampCombiner(None, [("destination", "", "stamp"),
-  ...   ("date", "date", ""), ("dateFormat", "", "%d.%m.%Y"),
-  ...   ("time", "time", ""), ("timeFormat", "", "%H:%M:%S")])
-  >>> rec = {"date": "4.6.1969", "time": "4:22:33"}
-  >>> m(rec)
-  >>> rec["stamp"].strftime()
-  'Wed Jun  4 04:22:33 1969'
-  >>> m = TimestampCombiner(None, [("destination", "", "stamp"),
-  ...   ("date", "date", ""), ("dateFormat", "", "%d.%m.%Y"),
-  ...   ("time", "time", ""), ("timeFormat", "", "!!secondsSinceMidnight")])
-  >>> rec = {"date": "4.6.1969", "time": "32320"}
-  >>> m(rec)
-  >>> rec["stamp"].strftime()
-  'Wed Jun  4 08:58:40 1969'
-  
-
-concat
-......
-
-::
-
-  is a macro that concatenates values from various rows and puts
-  the resulting value in destinationRow.
-  
-  Construction Argument:
-  
-  * joiner -- a string used to glue the individual values together.  Optional,
-    defaults to the empty string.
-  
-  Arguments:
-  
-  * destination -- a name under which the concatenated value should be stored
-  * sources -- a comma seperated list of source field names
-  
-  >>> v = ValueCatter(None, joiner="<>", argTuples=[("destination", "", "cat"),
-  ... ("sources", "", "src1,src2,src3")])
-  >>> r = {"src1": "opener", "src2": "catfood", "src3": "can"}
-  >>> v(r)
-  >>> r["cat"]
-  'opener<>catfood<>can'
-  
-
-handleEquatorialPosition
-........................
-
-::
-
-  is a macro that compute several derived quantities from 
-  sexagesimal equatorial coordinates.
-  
-  Specifically, it generates alphaFloat, deltaFloat as well as
-  c_x, c_y, c_z (cartesian coordinates of the intersection of the 
-  direction vector with the unit sphere) and htmind (an HTM index
-  for the position -- needs to be fleshed out a bit).
-  
-  TODO: Equinox handling (this will probably be handled through an
-  optional arguments srcEquinox and destEquinox, both J2000.0 by default).
-  
-  Arguments: 
-   
-   * alpha -- sexagesimal right ascension as hour angle
-   * delta -- sexagesimal declination as dms
-   * alphaSepChar (optional) -- seperator for alpha, defaults to whitespace
-   * deltaSepChar (optional) -- seperator for delta, defaults to whitespace
-  
-  The field structure generated here is reflected in 
-  __common__/positionfields.template.  If you change anything here,
-  change it there, too.  And use that template when you use this macro.
-  
-  >>> m = EquatorialPositionConverter(None, [("alpha", "alphaRaw", ""),
-  ... ("delta", "deltaRaw", "")])
-  >>> r = {"alphaRaw": "00 02 32", "deltaRaw": "+45 30.6"}
-  >>> m(r)
-  >>> str(r["alphaFloat"]), str(r["deltaFloat"]), str(r["c_x"]), str(r["c_y"])
-  ('0.633333333333', '45.51', '0.700741955529', '0.00774614323406')
-  >>> m = EquatorialPositionConverter(None, [("alpha", "alphaRaw", ""),
-  ... ("delta", "deltaRaw", ""), ("alphaSepChar", "", "-"), 
-  ... ("deltaSepChar", "", ":")])
-  >>> r = {"alphaRaw": "10-37-19.544070", "deltaRaw": "+35:34:20.45713"}
-  >>> m(r)
-  >>> str(r["alphaFloat"]), str(r["deltaFloat"]), str(r["c_z"])
-  ('159.331433625', '35.5723492028', '0.581730502028')
-  >>> r = {"alphaRaw": "4-38-54", "deltaRaw": "-12:7.4"}
-  >>> m(r)
-  >>> str(r["alphaFloat"]), str(r["deltaFloat"])
-  ('69.725', '-12.1233333333')
-  
-
-interpolateStrings
-..................
-
-::
-
-  is a macro that exposes %-type string interpolations.
-  
-  Arguments:
-  
-  * destination: name of the field the result should be put in
-  * format: a format with %-conversions (see the python manual.
-    Note, however, that rowdict values usually are strings).
-  * sources: a comma-seperated list of preterminal names.  The
-    values of these preterminals constitute the tuple to fill
-    the conversions from.
-  
-  Clearly, you have to have as many items in sources as you have conversions 
-  in format.
-  >>> s = StringInterpolator(None, [("destination", "", "baz"), 
-  ... ("format", "", "no %s in %s"), ("sources", "", "bar,foo")])
-  >>> r = {"foo": "42", "bar": "23"}
-  >>> s(r); r["baz"]
-  'no 23 in 42'
-  
-
-mapToNone
-.........
-
-::
-
-  is a macro that maps a certain literal to None.
-  
-  In general, this isn't necessary since you can define null values in fields.
-  However, when another macro needs Nones to signify null values, you need
-  this macro, because macros are applied before fields are even looked at.
-  
-  Arguments:
-  
-  * colName -- the name of the column to operate on
-  * nullvalue -- the value that should be mapped to Null
-  
-  >>> n = NullValuator(None, [("colName", "", "foo"), ("nullvalue", "",
-  ... "EMPTY")])
-  >>> r = {"foo": "bar", "baz": "bang"}
-  >>> n(r); r["foo"]
-  'bar'
-  >>> r["foo"] = "EMPTY"
-  >>> n(r); print r["foo"]
-  None
-  
-
-mapValue
-........
-
-::
-
-  is a macro that translates vaules via a utils.NameMap
-  
-  Construction arguments:
-  
-  * sourceName -- an inputsDir-relative path to the NameMap source file,
-  * logFailures (optional) -- if somehow true, non-resolved names will 
-    be logged
-  
-  Arguments:
-  
-  * value -- the value to be mapped.
-  * destination -- the field the mapped value should be written into.
-  
-  If an object cannot be resolved, a null value is entered (i.e., you
-  shouldn't get an exception out of this macro but can weed out "bad"
-  records through notnull-conditions later if you wish).
-  
-  Destination may of course be the source field (though that messes
-  up idempotency of macro expansion, which shouldn't usually hurt).
-  
-  The format of the mapping file is
-  
-  <target key><tab><source keys>
-  
-  where source keys is a whitespace-seperated list of values that should
-  be mapped to target key (sorry the sequence's a bit unusual).
-  
-  A source key must be encoded quoted-printable.  This usually doesn't
-  matter except when it contains whitespace (a blank becomes =20) or equal
-  signs (which become =3D).
-  
-
-setProdtblValues
-................
-
-::
-
-  is a macro that provides all values requried for the product table.
-  
-  See the documentation on the product interface.
-  
-  Arguments:
-  * prodtblKey -- the value that identifies the product in the product table
-    (usually, but not always, it's the path to the product)
-  * prodtblOwner -- the owner of the record
-  * prodtblEmbargo -- date when the resource will become freely accessible
-  * prodtblPath -- path to the product
-  * prodtblFsize -- size of the product (optional)
-  
-  This has to reflect any changes to gavo.inputsDir/products/products.vord.
-  
-
-subsRe
-......
-
-::
-
-  is a macro that exposes re.sub.
-  
-  In short, you can substitue PCRE-compatible regular expressions in a
-  string, complete with backreferences and all.  Don't overdo it.
-  
-  Arguments:
-  
-  * destination -- the name of the field the result should be put in
-  * data -- the value the re should be applied to
-  * srcRe -- the source regular expression
-  * destRe -- the replacement pattern
-  
-  >>> m = ReSubstitutor(None, [("destination", "", "fixed"),
-  ... ("data", "broken", ""), ("srcRe", "", r"(.) \(([^)]*)\)"),
-  ... ("destRe", "", r"\2 \1")])
-  >>> r = {"broken": "r (Gunn)"}
-  >>> m(r); r["fixed"]
-  'Gunn r'
-  >>> r = {"broken": "Any ol' junk"}
-  >>> m(r); r["fixed"]
-  "Any ol' junk"
-  
-
-
-.. END AUTO
-
-
+XXX TBD
 
 Semantics
 *********
@@ -634,7 +387,11 @@ described by the following attributes (only the ones marked with [*] are
 strictly necessary):
 
 * dest -- a name that is used as an identifier for this column (should be an SQL identifier) [*]
-* source -- the source from which to fill the column. This can be a simple name, which is then used as the preterminal the field is fed from. If the value of source starts with an @, the rest is interpreted as the name of a field computer, which is called when the value of the field is required (see below).
+* source -- the source from which to fill the column. This can be a
+  simple name, which is then used as the preterminal the field is fed
+  from. If the value of source starts with an @, the rest is interpreted
+  as the name of a field computer, which is called when the value of the
+  field is required (see `At Expansions`_).
 * dbtype -- the type of the value. We use the sql type system and map it to the others involved (python, votable). Defaults to real.
 * default -- a literal used as a default value.
 * unit -- the unit of the value, given as given in http://vizier.u-strasbg.fr/doc/catstd-3.2.htx, defaults to empty.
@@ -644,151 +401,273 @@ strictly necessary):
 * nullvalue -- a literal that is interpreted as SQL NULL.
 * literalForm -- an identifier that tells ImportTools's type converter
   about special literal forms (e.g. hour angle for float, weird date
-  formats). These identifiers are defined in typeconversion.py.
+  formats). These identifiers are discussed below
   Probably the most important one is "do not touch" which instructs the
   type converter to leave the value alone.  This is important when,
   e.g., macros or field computers already deliver python types as
   values.  These typically do not appreciate being treated as strings.
 
 
-Row interfaces
-==============
+Literal Forms
+.............
 
-Row interfaces work a bit like java interfaces in that they define
-certain columns that have to be present in tables to make them suitable
-for standard queries.   You basically say something like "this table
-describes things with positions" or "this table describes files
-(products)".
+In addition to the special "do not touch" discussed above, literal forms
+avaliable for a Field's literalForm attribute include:
 
-You don't just put stuff into the database, you want to get them out as
-well.  The interfaces allow clients to rely on the presence of certain
-fields with a defined semantics.
+.. !!python ../gavo/parsing/typeconversion.py docs "'"
 
-As far as resource descriptors are concerned, the interfaces are defined
-through XML fragments targetted for Records and usually macros preparing
-the data.  The XML fragments reside in ``gavo.inputsDir/__common__``.
-To use one of these, you usually have to define entities refering to
-them and then put the entities to the appropriate places.
+At Expansions
+.............
 
-Btw, when some instruction tells you to do this or that in your
-"internal subset", what is meant is that you need to put something like
+In particular values introspecting on the parsing process (like finding
+out the name of the source file) are handled through at expansions. The
+reason there aren't macros for the things mentioned here is a technical
+one -- macros shouldn't need to know the things the at-expansions
+insert.   At expansions can be used in the value attributes of Fields
+and Macros.
+
+To use an at expansion, simply say something like <Field
+value="@someexp"/>, i.e. a value with an @ in front.  If you really ever
+need a literal @ in front of a "real" value, type the @ twice.
+
+The following at expansions are known:
+
+.. !!python ../gavo/parsing/importparser.py docs "'"
+
+Shared Tables
+.............
+
+In general, if a resource has a Record element with a table name in it,
+it will assume it "owns" this table, i.e., it will manipulate the table
+as it sees fit, up to and including dropping it.  This is not desirable
+if a table contains material from more than one resource.  Though it's
+frequently a good idea to solve this thorough a view-only resource as
+discussed in the section on `Dependent Resources`_, this would be at least
+inconvenient if it is not known in advance what resources the table
+material may come from.  The classic example is the product table.
+
+For cases like these, you can have Shared Tables.  These are defined
+using the SharedRecord element.  This works like the usual RecordDef in
+that it contains Field elements, but differs in two aspects:
+
+- They will never create a table and never drop it
+- They require an owning condition enabling the importer to know which
+  items it should delete when recreating the table.
+
+Owning conditions
+'''''''''''''''''
+
+The onwingCondition element has two attributes.  The first, colName,
+gives the name of a column to match in the shared table, the second,
+value, the value this column must have to mark it as generated by the
+resource.  The importer will delete all rows matching this owning
+condition from the shared table when it re-imports the resource.  For
+example, an owning condition like
 
 ::
 
-<!DOCTYPE GavoResourceDescriptor [
-	... anything that's here is the internal subset ...
-]>
+  <owningCondition colName="sourceTable" value="foo.bar"/>
 
-at the top of your XML file (right after an XML declaration, if you have
-one).
+translate into SQL like
 
-Note that I'll probably change the declaration of interfaces at some
-point -- they shouldn't be spilled all over the place.  Instead, we
-probably want to have one single place in which there's everything an
-interface wants, field definitions, macros, additional tables and so on.
+::
 
-The Products interface
-**********************
+  DELETE * from <shared table> WHERE sourceTable='foo.bar'
 
-The products interface is defined in productfields.template.  Refer to
-this file for a list of defined fields and usage information.
+Dealing with shared tables
+''''''''''''''''''''''''''
 
-Tables providing products must also enter their data into the product
-table, a system-global table mapping keys to files (which is usually
-trivial, since the product key is the path in most of the cases).
-The main point of the product table is to allow programs to check the
-ownership status (i.e., who owns the thing and when will it become free) 
-of a product without needing more information than the key.  The
-definition of this producttable is in producttable.template.  The
-producttable entity needs to be in a Semantics element (it expands into
-a Record element).  It also needs to be lexically above the parent table
-element.  This ensures that products are entered into the product table
-first and are available for being referenced in the productfields
-interface.
+Each shared table needs an owning resource.  As a rule, that owning
+resource will not enter any data of its own.  Here is the resource
+definition for the product table as an example:
 
-In sum, a resource descriptor for a table containing products should
-look something like this:
+::
+
+.. !!sed -e 's/^/  /' ../resources/inputs/products/products.vord
+
+Since the record definition of a shared table is present in all
+resource descriptors contributing to the table, it is likely
+that you want to define a new interface for whatever you want to do.  
+It would then take care of keeping the definitions in sync.
+However, you need to change the python source to do that.  If you don't
+want to do that, you can get by using entities.  If you want to go that
+way, contact the authors, and we'll tell you how to go about it.
+
+
+Dependent Resources
+*******************
+
+It is not an uncommon situation that resource A needs to be updated when
+resource B changes.  When that happens, you can use the recreateAfter
+element, which is expected as a direct child of ResourceDescriptor.  
+It has one attribute, the name of a project (which is the name of the
+directory relative to gavo.inputsDir).  This may look like this.
+
+::
+
+  <recreateAfter project="lensdemo"/>
+
+With this specification, the importer will, after finishing its work on
+the resource, enter the named directory and call "make" there.  If you
+follow the recommended setup, this will cause the recreation of the
+named resource's table(s).
+
+As an example, supposed we have various tables having quite a few
+fields in common without warranting an interface of their own.  You may
+want to create a view over them.  To do this, write a resource
+descriptor like
 
 ::
 
   <?xml version="1.0" encoding="utf-8"?>
 
-  <!DOCTYPE GavoResourceDescriptor [
-    <!ENTITY producttable SYSTEM "producttable">
-    <!ENTITY productfields SYSTEM "productfields">
-    <!ENTITY prodtbl-sourcetable "XXXXXXXXXXX">
-  ]>
-
-
-  <ResourceDescriptor srcdir="XXXXXXXXXXX">
-    
-    <Data...>
-      <Grammar...>
-        <Macro name="setProdtblValues">
-          <arg name="prodtblKey" value="@inputRelativePath"/>
-          <arg name="prodtblOwner" value="XXXXXX"/>
-          <arg name="prodtblEmbargo" value="XXXX-12-31"/>
-          <arg name="prodtblPath" value="@inputRelativePath"/>
-          <arg name="prodtblFsize" value="@inputSize"/>
-        </Macro>
-        ...
-      </Grammar>
+  <ResourceDescriptor srcdir="lensdemo">
+    <schema>views</schema>
       <Semantics>
-        &producttable;
-
-        <Record table="...">
-          ... Field definitions ...
-
-          &productfields;
+        <Record table="lenses2" create="False">
+          <Field dest="date" dbtype="date" 
+            tablehead="Creation Date" ucd="time.creation"/>
+          <Field dest="date_obs" dbtype="date" 
+            tablehead="Obs. Date"/>
+          <Field dest="type" dbtype="varchar(10)" 
+            optional="false" nullvalue="None" tablehead="Obs. Type" 
+            ucd="meta.code.class" 
+            description="Type of observation (science, flat, bias, calib...)"/>
+          <Field dest="object" dbtype="text" 
+            nullvalue="" tablehead="Target Object" 
+            description="Object being observed, Simbad-resolvable form"
+            ucd="meta.id;meta.main"/>
+          <Field dest="raw_object" source="OBJECT" dbtype="text" 
+            tablehead="Target Object (Header)" description=
+            "Object being observed, from fits header (unreliable)"/>
+          <Field dest="telescope" source="TELESCOP" dbtype="text" 
+            tablehead="Telescope" ucd="instr.tel"/>
+          <Field dest="startTime" source="startTime" dbtype="timestamp"
+            literalForm="do not touch" tablehead="UT of obs. start"
+            ucd="time.start" unit="yr"/>
+          <Field dest="filter" source="FILTER" dbtype="text" 
+            tablehead="Filter" ucd="instr.filter"/>
+          <Field dest="exposure" source="EXPTIME" dbtype="float" 
+            tablehead="Exp. time" ucd="time.interval;obs.exposure"
+            unit="s"/>
+          <implements name="products"/>
         </Record>
       </Semantics>
     </Data>
+
+    <script type="postCreation">
+      -DROP VIEW views.lenses2
+      CREATE VIEW views.lenses2 AS ((SELECT date, date_obs, type, object, \
+        raw_object, datapath, telescope, startTime, filter, exposure, owner,\
+        embargo, fsize FROM maidanak.rawframes)\
+        UNION ( SELECT date, date_obs, type, object, raw_object, datapath, \
+        telescope, startTime, filter, exposure, owner, embargo, fsize \
+        FROM apo.frames)\
+        UNION ( SELECT date, date_obs, type, object, raw_object, datapath,\
+        telescope, startTime, filter, exposure, owner, embargo, fsize \
+        FROM liverpool.rawframes))
+      GRANT SELECT ON views.lenses2 TO gavo
+    </script>
+
   </ResourceDescriptor>
 
+Let this file reside in gavo.inputsDir/views/views.vord.
 
-The Positions interface
-***********************
+It defines a set of fields (the create="false" in the opening
+RecordDef tag inhibits the creation of the table lenses2 -- this is
+necessary here because we'll use that name later for our view) to
+provide the information necessary to format the field appropriately
+later on.  
 
-The positions interface applies to anything that has a position.  Its
-definition is contained in positionfields.template.  Note that client
-software may assume processed positions are given in J2000.0
-coordinates.  If you ignore this, you'll have to live with the
-consequences.
+In the script (see `Scripts`_), we create a view over some tables
+created elsewhere.  This view will be dropped whenever one of the tables
+is dropped, since gavoimp always drops CASCADE.  It therefore needs to 
+be re-made when one of the tables is re-made.  To make sure it is,
+create a Makefile in alongside the resource descriptor, containing
 
-A short documentation is contained in the template file.  A resource
-descriptor containing positions might look like this:
+:
+
+  update:
+    gavoimp res/apo.vord
+
+(as usual with make files, make sure the white space in front of gavoimp
+is a Tab and not a space).  You can then simply say
 
 ::
 
-  <?xml version="1.0" encoding="utf-8"?>
+  <recreateAfter project="views"/>
 
-  <!DOCTYPE GavoResourceDescriptor [
-    <!ENTITY positionfields SYSTEM "positionfields">
-  ]>
+in each of the resource descriptors for maidanak, apo, and liverpool.
 
-  ...
-      <Grammar ...>
-        ...
-        <Macro name="handleEquatorialPosition">
-          <arg name="alpha" source="ALPHA RAW"/>
-          <arg name="delta" source="DELTA RAW"/>
-        </Macro>
-        ...
-      </Grammar>
-     
-      ...
+Scripts
+*******
 
-        <Record table="data">
-          ...
-          &productfields;
-        </Record>
-  ...
+Some things simply aren't worth abstracting away.  Therefore, you can
+embed raw code in resource descriptors.  Clearly, you should only do
+that when there's no better choice, in particular if you you
+non-portable SQL and the like.  All script elements have one attribute,
+type.  It identifies what kind of script we're dealing with and when to
+run it.  Right now, there's only one type, postCreation.
+
+SQL scripts
+...........
+
+In general, try to write portable SQL in scripts, and always remember
+that at some point you may want to export your data to, say, VOTables
+and they may never see SQL.  So, only do database housekeeping stuff in
+these scripts (I'm aware that the two advices sort of contradict each
+other).
+
+Anyway, SQL scripts are executed one line at a time.  Lines can be
+continued by ending them with a backslash (\).  If there is a minus
+("-") in front of a line, errors will be ignored, otherwise a line
+causing an error aborts the entire script.
+
+SQL scripts may come in various script elements, but right now only one
+is defined:
+
+* postCreation -- the script is executed after all tables are imported.
 
 
+Interfaces
+**********
+
+Row interfaces work a bit like java interfaces in that they define
+certain columns the presence of which is guaranteed, and possibly
+further aspects of a resource's appearance in the database like entries
+in certain tables.   You basically say something like "this table
+describes things with positions" or "this table describes files
+(products)".
+
+The reason for defining interfaces is that you don't just put stuff into
+the database, you want to get them out as well.  The interfaces allow
+clients to rely on certain data structures for tables satisfying an
+interface.
+
+In a resource descriptor, you declare that you implement an interface
+using the impements element within the Record definition of the table
+that should implement the interface.  For example, you'd say
+
+::
+
+  	<Semantics>
+			<Record table="frames">
+				<Field dest="date" source="DATE" dbtype="date" 
+        [...]
+				<implements name="positions"/>
+				<implements name="products"/>
+			</Record>
+    [...]
+
+to have the frames table implement both the positions and the products
+interface.
+
+The following interfaces are defined:
+
+.. !!python ../gavo/interfaces.py docs
 
 
-TODO: Fields, @-expansions, row processors, schema, meta, recreateAfter,
-common elements, constraints, scripts, ownding conditions
+TODO: row processors, schema, meta, constraints,
 
 
 .. vi:et:tw=72:
