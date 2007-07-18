@@ -44,8 +44,7 @@ couple of dependencies (on debian etch systems, that would at least be
 libpam-dev, libreadline-dev, and postgresql-server-dev-8.1).  Then
 follow the instructions in the q3c distribution.
 
-To use q3c, see inputs/__common__/q3cscript.template and the querulator
-docs.
+To automatically create the necessary indices, use the `q3cpositions`_ interface.
 
 Setup
 =====
@@ -273,15 +272,115 @@ exactly one of them.  Currently defined are:
   what you'll want to use for text tables.  Basically, you specify some
   way to tokenize your input and REs for the individual tokens.
 * KeyValueGrammar -- used for files that give key-value pairs, one file
-  per row
+  per row.
+* ColumnGrammar -- used for ASCII tables, somewhat analogous to the
+  byte-by-byte descriptions Vizier uses.
 * FitsGrammar -- used for fits files.  Currently, only the fields of the
   primary header are used, but once I have fits tables, it shouldn't be
-  hard to retrofit that.
+  hard to retrofit access to other headers.
 
 All grammars support macros (see Macros_).
 
-Tokenizers available to REGrammars
-..................................
+ColumnGrammars
+..............
+
+ColumnGrammars expose preterminals as ranges of character indices, where
+counting starts with 1 and ranges are inclusive.  You can also give a
+single number, and you'll get a character.  The basic unit is always a
+single physical line.
+
+ColumnGrammars have the following attributes:
+
+* topIgnoredLines -- skip that many lines at the top (for table headings
+  and similar detritus.
+* booster -- this allows using a C program to stand in for the grammar.
+  This is only interesting for large data sets.  There's a perliminary
+  implementation for these, but it's still very rough.
+
+Note that ColumnGrammars support symbolic names if you give them in
+Macros.  If everything in a preterminal is whitespace, a NULL value is
+returned.
+
+As an example, consider
+
+::
+
+  <ColumnGrammar topIgnoredLines="1">
+    <Macro name="linearMap" destination="mag" factor="1e-3">
+      <arg name="val" source="14-18"/>
+    </Macro>
+  </ColumnGrammar>
+
+A file containing
+
+::
+
+  12345678901234567890
+  x-55 55.7689 34233 a
+  x-43 43.3483       b
+  
+would then produce two records.  Within the first, the preterminal
+``mag`` would have the value 34.233, the preterminal 1-4 would be "X-55"
+the preterminal 20 would be a, etc.  In the second record, ``mag`` would
+be ``NULL``, as would be 13-14, 15, etc., because all of them only
+contain whitespace.
+
+FitsGrammars
+............
+
+These grammars expose the primary FITS header keywords as preterminals.
+Contrary to other grammars, the values of the preterminals are not
+always strings, which may cause trouble when applying macros.  This
+could be solved using type conversion macros if necessary.
+
+FitsGrammars have one attribute
+
+* qnd -- if True, a quick-and-dirty header parser will be used.  It
+  only works for the primary header but is much faster for
+  gzipped FITS files.  If your FITS files are not compressed, don't
+  bother with it.
+
+FitsGrammars currently do not support fits tables or the like.  If they
+do at some point, the header keywords will be available in the document
+record when not in docIsRow mode (in other words, FitsGrammars only make
+sense in docIsRow mode at the moment).
+
+KeyValueGrammars
+................
+
+These grammars parse files organized in key-value pairs, i.e., files
+that somewhat look like this:
+
+::
+
+  field1: bla
+  field2= 23  # or something
+
+KeyValueGrammars have the following attributes:
+
+* kvSeperators -- a string containing the admissable seperator
+  characters between key and value (default: colon and equals sign).
+  Note that whitespace around key and value is ignored.
+* pairSeperators -- a string containing characters that seperate
+  individual key-value pairs (default: Linefeed)
+* commentPattern -- a regular expression defining comments (default:
+  ``"(?m)#.$*"``)
+
+Note that KeyValueGrammars currently only work in docIsRow mode.  It is
+unclear if and how they will ever support multiple rows in one file.
+
+CFGrammars
+..........
+
+Don't use these for now.  If you think you need context free grammars to
+parse your source, contact the author.
+
+REGrammars
+..........
+
+Don't use these for now.  They work, but I don't like the way they do.
+If you really need them, contact the the author, and we'll try to figure out a
+good way of describing them.
 
 We currently have three types of tokenizers (given in the type attribute of the element):
 
@@ -308,10 +407,10 @@ To understand macros, let's look at two examples:
 
 ::
 
-			<Macro name="mapValue" sourceName="maidanak/res/maydanak_targets.txt">
-				<arg name="value" source="OBJECT"/>
-				<arg name="destination" value="ARI_OBJC"/>
-			</Macro>
+      <Macro name="mapValue" sourceName="maidanak/res/maydanak_targets.txt">
+        <arg name="value" source="OBJECT"/>
+        <arg name="destination" value="ARI_OBJC"/>
+      </Macro>
 
 Here, we specify that a macro called mapValue is to be applied to the
 rowdicts.  This specific macro needs a file specifying the mapping,
@@ -328,10 +427,10 @@ the OBJECT field of the rowdict.
 
 ::
 
-			<Macro name="handleEquatorialPosition">
-				<arg name="alpha" source="ALPHA"/>
-				<arg name="delta" source="DELTA"/>
-			</Macro>
+      <Macro name="handleEquatorialPosition">
+        <arg name="alpha" source="ALPHA"/>
+        <arg name="delta" source="DELTA"/>
+      </Macro>
 
 This specification says: "Take the values of ALPHA and DELTA in the
 rowdict and pass them as arguments alpha and delta to the macro
@@ -348,19 +447,19 @@ second is a field name (attribute "source"), and the last is a constant
 
 ::
 
-  	>>> r = ReSubstitutor(None, [("destination", "", "fixed"),
-	... ("data", "broken", ""), ("srcRe", "", r"(.) \(([^)]*)\)"),
-	... ("destRe", "", r"\2 \1")])
+    >>> r = ReSubstitutor(None, [("destination", "", "fixed"),
+  ... ("data", "broken", ""), ("srcRe", "", r"(.) \(([^)]*)\)"),
+  ... ("destRe", "", r"\2 \1")])
 
 the corresponding XML would be
 
 ::
 
   <Macro name="subsRe">
-		<arg name="destination" value="fixed"/>
-		<arg name="data" source="broken"/>
-		<arg name="srcRe" value="(.) \(([^)]*)\)"/>
-		<arg name="destRe" value="\2 \1"/>
+    <arg name="destination" value="fixed"/>
+    <arg name="data" source="broken"/>
+    <arg name="srcRe" value="(.) \(([^)]*)\)"/>
+    <arg name="destRe" value="\2 \1"/>
   </Macro>
 
 Currently defined macros are:
@@ -650,13 +749,13 @@ that should implement the interface.  For example, you'd say
 
 ::
 
-  	<Semantics>
-			<Record table="frames">
-				<Field dest="date" source="DATE" dbtype="date" 
+    <Semantics>
+      <Record table="frames">
+        <Field dest="date" source="DATE" dbtype="date" 
         [...]
-				<implements name="positions"/>
-				<implements name="products"/>
-			</Record>
+        <implements name="positions"/>
+        <implements name="products"/>
+      </Record>
     [...]
 
 to have the frames table implement both the positions and the products
