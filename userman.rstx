@@ -505,7 +505,17 @@ strictly necessary):
   type converter to leave the value alone.  This is important when,
   e.g., macros or field computers already deliver python types as
   values.  These typically do not appreciate being treated as strings.
-
+* verbLevel -- an integer, usually between 0 and 30, giving the
+  "importance" of the column for VOTables and the like.  Protocols like
+  Simple Cone Search have parameters like ``VERB``, where ``VERB=1``
+  requests a maximally terse output, ``VERB=3`` a maximally verbose
+  output.  In that spirit, columns are usually only included in VOTables
+  when their ``verbLevel<=VERB*10``.  Similar rules will apply to
+  protocols other than SCS.  The default is 30, which means that
+  the column is only included in the most verbose VOTables.
+* references -- this is used in SQL data definition and follows the SQL
+  syntax.
+* primary -- declares this field as belonging to the primary key.
 
 Literal Forms
 .............
