@@ -64,32 +64,26 @@ First, tell apache about the script, e.g.,
   ScriptAlias /ql /usr/lib/python2.4/site-packages/gavo/web/qurun
 
 This would let the querulator appear under ``/ql`` (we'll call this the
-QU_ROOT).  You can use any valid path as QU_ROOT.  
+rootURL).  You can use any valid path as rootURL.
 
-The path to qurun must, of course, match the path to qurun you established
-above.
- 
-Then you need to tell querulator about your environment, which you
-should do via a location directive to apache:
+The above choices (/qstatic, /ql) are what is set in the built-in
+settings of gavo.  If you want to set different paths, reflect your
+choice in the staticURL and rootURL items in the web section of your
+gavo.rc.
+
+If you can't or won't have your gavo.rc in /etc, you can pass the
+GAVOSETTINGS environment variable through SetEnv like this:
 
 ::
 
   <Location /ql>
-      SetEnv GAVO_HOME /var/gavo  # or whatever
-      SetEnv GAVOSETTINGS /var/gavo/web/gavosettings # or whatever
-      SetEnv QU_ROOT /ql
-      SetEnv QU_STATIC /qstatic
+    SetEnv GAVOSETTINGS /some/weird/location/gavo.cf
   </Location>
-
-If you chose a QU_ROOT different from /ql, you need to change this, of
-course.
-
-The QU_STATIC setting must, of course, match what you set up above.
 
 You may want to restrict access to your database.  Apart from the
 ownership management of products, querulator leaves this to apache, so
 you can use basically anything that apache supports.  The URIs the
-querulator uses have the structure ``QU_ROOT/<op>/<template-path>``,
+querulator uses have the structure ``rootURL/<op>/<template-path>``,
 so to restrict access to certain templates, you could use something like
 
 ::
@@ -124,13 +118,15 @@ The configuration section should look like this:
   <Location /ql>
     SetHandler python-program
     PythonHandler gavo.web.querulator.querulator::handler
-    SetEnv GAVO_HOME /var/gavo
-    SetEnv GAVOSETTINGS /var/gavo/web/gavosettings
-    SetEnv QU_ROOT /ql
-    SetEnv QU_STATIC /qstatic
   </Location>
 
-Access control would work like in the CGI case.
+Path customization and access control would work like in the CGI case.
+
+Note that if your gavo.cf is at a nonstandard location (i.e., not in
+/etc/gavo.cf), the apache process must see the GAVOSETTINGS environment
+variable.  The SetEnv trick above doesn't help here because the
+querulator will see that variable only when it already has attempted to
+load /etc/gavo.cf.
 
 Defining queries
 ================
