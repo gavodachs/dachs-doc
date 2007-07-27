@@ -68,7 +68,7 @@ $GAVO_HOME.
 Logging
 *******
 
-The tools will write a log (by default ``$GAVO_HOME/logs/gavoops``).  It
+The tools will write a log (by default ``rootDir/logs/gavoops``).  It
 may be a good idea to keep that log on a local file system and not share
 it with other instances, not the least because we do not provide for any
 kind of locking on that file.  To do that, set the environment variable
@@ -81,7 +81,7 @@ Database Setup
 **************
 
 To make things work, you will also need to set up a database and create
-at least one Settings_ file.
+at least one profile file (see `The profiles Section`_).
 
 Currently, we only support postgres.  You'll need a postgres
 installation.  You should have one user that may create tables and even
@@ -101,81 +101,149 @@ work:
   sudo -u postgres createuser -P -ADS gavo
 
 Note down both passwords, you will need them when setting up your
-gavosettings files.
+database profiles.
 
 Note that running a database server always is a potential security
 liability.  You should make sure you understand what your pg_hba.conf
 says.
 
-Settings
-========
+Configuration
+*************
 
-Most operations will eventually lead to database accesses.  The tools
-will get access information from a gavosettings file.  By default, it is
-searched in ``$HOME/.gavosettings`` (or ``/no_home/.gavosettings`` if
-``HOME`` is not defined).  You can override the path to this file via
-the environment variable GAVOSETTINGS.
+You can adapt the gavo environment through a configuraton file.  It is
+located by default in ``/etc/gavo.rc``.  You can change that location
+using the GAVOSETTINGS environment variable (or ``defaultSettingsPath`` in
+``config.py``, though that will break on updates).  You can override
+global settings in your private settings file, ``~/.gavorc`` (you can
+override that location through GAVOCUSTOM).
 
-This file contains ini-style configuration, i.e., sections (in square
-brackets) or key-value pairs.  Currently, there is only one section, db.
-Within that section, you can set
+The built-in configuration looks like this:
+
+::
+
+.. !!python -c "from gavo import config;print config._builtinConfig" | sed -e 's/^/  /'
+
+You see that gavorcs have a roughly INI-style format with sections in
+square brackets and keys beyond them.  To override a setting, you need
+to have the same key in the same section.
+
+Most of the settings either not very relevant or are covered in the sections
+dealing the the configured items.  Let's just look at three sections:
+
+The DEFAULT Section
+...................
+
+The keys in here can be accessed from other sections as ``%(key)s``.
+
+This mainly sets paths.  The most important is ``rootDir``, a directory
+most other paths are relative to.  This is the one you'll most likely
+want to change.  If you, e.g., wanted to have a private gavo tree, you
+could put 
+
+::
+
+  [DEFAULT]
+  rootDir: /home/user/gavo
+
+into your ~/.gavorc.
+
+The other paths in this section are relative to rootDir, but absolute
+paths are legal, too.
+
+You may want to set tempDir and cacheDir to a directory local to your
+maching if rootDir is mounted via a network.  Also note that we do
+no synchronization for writing to the log (and never will -- we will
+provide syslog based logging if necessary), so you may want to tweak
+this too to keep actions from seperate users seperate.
+
+The db Section
+..............
+
+In the db section, some global properties of the database access layer
+are defined.  Currently, the most releveant one is profilePath.  This is
+a colon-separated list of rootDir-relative paths in which we look for
+database profiles (expansion of home directories is supported).  The
+first match in any of these directories wins.  This is useful when you
+have a test setup and a production setup -- just say ``include dsn`` in
+the common profiles (by default in configDir) and have separate dsn
+files in the ~/.gavo directories of the accounts feeding the test and
+production databases.
+
+The profiles Section
+....................
+
+The profile section maps profile names to file names.  These file names
+are relative to any of the directories in db.profilePath.
+
+The file names contain a specification of the access to the database in
+(unfortunately yet another, but simple) language.  Each line in 
+such a profile is either a comment (starting with #), an assignment
+(with "=") or an instruction (consisting of a command and arguments,
+separated by whitespace).
+
+Keywords available for assignment are
 
 * dsn -- the "path" to the database, in the format <host>:<port>:<db>.
   Example: ``computer.doma.in:5432:test``
 * user -- the user through which the db is accessed.  Example:
   ``me``
 * password -- the password of user.  Example: ``mySecretPassword``
-* allRoles -- a comma seperated list of database user ids that will get
-  all privileges on newly created schemas and tables.  Example:
-  ``me, admin1, devel``.
-* readRoles -- a comma seperated list of database user ids that will
-  get usage/read access on newly created schemas and tables.  Example:
-  ``gavo,op0``
 
-A gavosettings file that sets all mentioned parameters would then look
-like this:
+Commands available are
 
-::
+* include -- read assignments and instructions from the profile given in
+  the argument
+* addAllRole -- add the database role in the argument (that has to be
+  known to the database) to the list of roles that get full access ("ALL
+  PRIVILEGES") to any database object created.
+* addReadRole -- add the database role in the argument to the list of
+  roles that get read access (select or usage privilege) to any database
+  object created.
 
-  [db]
-  dsn: computer.doma.in:5432:test
-  user: me
-  password: mySecretPassword
-  allRoles: me, admin1, devel
-  readRoles: gavo,op0
+A typical setup with two users admin, devel feeding the database, a user
+gavo querying the database (e.g., used for querulator) and a user
+sqlguest that queries only particular, public tables, could look like
+this (all files located in configDir, e.g., /var/gavo/etc):
 
-If you provide web services, you should at least have one non-privileged
-account (gavo in this case).  Web services should always use a
-gavosettings-File of their own, logging them in as that non-privileged
-user.
-
-If you followed the instructions above, your private .gavosettings file
-should look like this:
+A file dsn:
 
 ::
 
-  [db]
-  dsn: localhost:5432:gavo
-  user: gavo-admin
-  password: (whatever you've noted above)
-  allRoles: gavo-admin
-  readRoles: gavo
+  dsn= computer.doma.in:5432:test
 
-You'll need a gavosettings file for the querulator later; you might put
-it under $GAVO_HOME/web/gavosettings and make it readable to the
-webserver and your group only.  If your web server runs on the machine
-with the database (which is recommended until you know your way around), 
-it would look like this:
+A file feed, as mentioned in the default config:
 
 ::
 
-  [db]
-  dsn: localhost:5432:gavo
-  user: gavo
-  password: (whatever you've noted above)
+  user=devel
+  password=mySecretPassword
+  addAllRole devel
+  addAllRole admin
+  addReadRole: gavo
 
-Note that you don't need any role specifications here since the
-querulator will never write to the database.
+A file feedpublic, to load public tables:
+
+::
+
+  include(feed)
+  addReadRole sqlguest
+
+A file trustedquery (for querulator):
+
+::
+
+  include dsn
+  user=gavo
+  password=dontMention
+
+A file untrustedquery (for a public SQL query interface):
+
+::
+
+  include dsn
+  user=sqlguest
+  password=whyBother?
+
 
 Importing a resource
 ====================
