@@ -799,9 +799,12 @@ Scripts
 Some things simply aren't worth abstracting away.  Therefore, you can
 embed raw code in resource descriptors.  Clearly, you should only do
 that when there's no better choice, in particular if you you
-non-portable SQL and the like.  All script elements have one attribute,
+non-portable SQL and the like.  All script elements must have one attribute,
 type.  It identifies what kind of script we're dealing with and when to
 run it.  Right now, there's only one type, postCreation.
+
+Scripts should have a second attribute, name.  Its value is up to you
+and is only used for display purposes.
 
 SQL scripts
 ...........
@@ -816,6 +819,29 @@ Anyway, SQL scripts are executed one line at a time.  Lines can be
 continued by ending them with a backslash (\).  If there is a minus
 ("-") in front of a line, errors will be ignored, otherwise a line
 causing an error aborts the entire script.
+
+Note that, when suppressing errors, you'll usually want to enclose the
+optionally-failing statements into a BEGIN/END pair of their own.  The
+reason is that many
+errors will cause the transaction to end.  The consequences of this
+depend on the database interface used and are practically never what you
+want.  Putting the statement(s) into transactions of their own leads to
+predictable behavior.
+
+Another problem is the creation of database objects.  Since the script
+runner doesn't check what objects you create, these will typically not
+have the privileges set they way you defined in your profiles.  To work
+around this, say
+
+::
+
+	%%%TABLERIGHTS("<table name>")%%%
+	%%%SCHEMARIGHTS("<schema name>")%%%
+
+whenever you create a table or schema, respectively.
+  
+
+
 
 SQL scripts may come in various script elements, but right now only one
 is defined:
