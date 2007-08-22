@@ -1,4 +1,4 @@
-HTMLTARGET=ara:/var/www/docs/python-gavo
+HTMLTARGET=vo:/var/www/docs/python-gavo
 
 ALL_HTML=userman.html querulator_devel.html querulator_user.html
 

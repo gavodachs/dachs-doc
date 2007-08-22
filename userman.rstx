@@ -46,6 +46,18 @@ follow the instructions in the q3c distribution.
 
 To automatically create the necessary indices, use the `q3cpositions`_ interface.
 
+psycopg2
+********
+
+psycopg2 is an alternative binding for postgresql.  It's faster than the
+default pgsql that you get by setup.py.  If you want to use it, you'll
+have to install mxDateTime and psycopg2 manually, and then say
+interface=psycopg2 in your /etc/gavo.rc.
+
+We're aware this isn't nice.  If you really use these tools and want
+psycopg2, contact us and we'll improve this situation (which isn't
+actually hard, but a bit messy).
+
 Setup
 =====
 
@@ -183,11 +195,13 @@ separated by whitespace).
 
 Keywords available for assignment are
 
-* dsn -- the "path" to the database, in the format <host>:<port>:<db>.
-  Example: ``computer.doma.in:5432:test``
-* user -- the user through which the db is accessed.  Example:
-  ``me``
-* password -- the password of user.  Example: ``mySecretPassword``
+* host -- the host the database resides on.  Leave empty for a Unix
+  socket connection. 
+* port -- the port the database listens on.  Leave empty for default
+  5432.
+* database -- the database your tables live in.
+* user -- the user through which the db is accessed.  
+* password -- the password of user.
 
 Commands available are
 
@@ -209,12 +223,15 @@ A file dsn:
 
 ::
 
-  dsn= computer.doma.in:5432:test
+  host = computer.doma.in
+  port = 5432
+  database = test
 
 A file feed, as mentioned in the default config:
 
 ::
 
+  include dsn
   user=devel
   password=mySecretPassword
   addAllRole devel
@@ -225,7 +242,7 @@ A file feedpublic, to load public tables:
 
 ::
 
-  include(feed)
+  include feed
   addReadRole sqlguest
 
 A file trustedquery (for querulator):
