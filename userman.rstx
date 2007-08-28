@@ -428,7 +428,8 @@ FitsGrammars have one attribute
 FitsGrammars currently do not support fits tables or the like.  If they
 do at some point, the header keywords will be available in the document
 record when not in docIsRow mode (in other words, FitsGrammars only make
-sense in docIsRow mode at the moment).
+sense in docIsRow mode at the moment, and it will always be the default
+for them).
 
 KeyValueGrammars
 ................
@@ -477,6 +478,15 @@ We currently have three types of tokenizers (given in the type attribute of the 
   consisting of the characters at positions 4 and 5 (note the difference
   to python slice notation: the end of the range is *included*), and one
   of length 11, spanning columns 10 through 20.
+
+docIsRow
+........
+
+For certain types of files (Key-Value-Pairs, FITS files), usually an
+entire file will map to a table row.  In these cases, set the attribute
+docIsRow="true" on the grammar.  This works for all grammar types.  For
+KeyValueGrammars and FitsGrammars, it is the default.  Thus, unless
+you're doing funny things, you probably do not need to worry about it.
 
 Macros
 ******
@@ -668,6 +678,9 @@ translate into SQL like
 
   DELETE * from <shared table> WHERE sourceTable='foo.bar'
 
+You can use @-expansions in owning conditions (and will frequently need
+to).
+
 Dealing with shared tables
 ''''''''''''''''''''''''''
 
@@ -835,8 +848,8 @@ around this, say
 
 ::
 
-	%%%TABLERIGHTS("<table name>")%%%
-	%%%SCHEMARIGHTS("<schema name>")%%%
+	@@@TABLERIGHTS("<table name>")@@@
+	@@@SCHEMARIGHTS("<schema name>")@@@
 
 whenever you create a table or schema, respectively.
   
