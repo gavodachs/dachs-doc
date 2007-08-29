@@ -634,9 +634,14 @@ To use an at expansion, simply say something like <Field
 value="@someexp"/>, i.e. a value with an @ in front.  If you really ever
 need a literal @ in front of a "real" value, type the @ twice.
 
+Some at expansions don't need to know about the parsing process but
+instead only require information present in the resource desrciptor
+itself.  These are marked below and can be used in a few spots outside 
+of Records (in particular in owningConditions).
+
 The following at expansions are known:
 
-.. !!python ../gavo/parsing/importparser.py docs "'"
+.. !!python ../gavo/parsing/parsehelpers.py docs "'"
 
 Shared Tables
 .............
@@ -678,7 +683,7 @@ translate into SQL like
 
   DELETE * from <shared table> WHERE sourceTable='foo.bar'
 
-You can use @-expansions in owning conditions (and will frequently need
+You can use general @-expansions in owning conditions (and will frequently need
 to).
 
 Dealing with shared tables
