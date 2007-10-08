@@ -30,8 +30,11 @@ root; refer to the `setuptools
 documentation <http://peak.telecommunity.com/DevCenter/EasyInstall>`_ if
 necessary).
 
+Optional components
+*******************
+
 Q3C
-***
+...
 
 If at some point you have large data sets (more than 20000 rows, say)
 and you want to do positional searches on them (cone search, crossmatch,
@@ -47,16 +50,50 @@ follow the instructions in the q3c distribution.
 To automatically create the necessary indices, use the `q3cpositions`_ interface.
 
 psycopg2
-********
+........
 
 psycopg2 is an alternative binding for postgresql.  It's faster than the
 default pgsql that you get by setup.py.  If you want to use it, you'll
 have to install mxDateTime and psycopg2 manually, and then say
-interface=psycopg2 in your /etc/gavo.rc.
+interface=psycopg2 in the [db] section your /etc/gavo.rc.
 
-We're aware this isn't nice.  If you really use these tools and want
+We are aware this isn't nice.  If you really use these tools and want
 psycopg2, contact us and we'll improve this situation (which isn't
 actually hard, but a bit messy).
+
+VOPlot
+......
+
+The software can generate code to load VOTable into VOPlot, a Java
+applet for working with VOTables.  Due to the applet security model, the
+applet has to originate from the server that will deliver the data, and
+so you will need to install VOPlot locally if you want to use this
+feature.
+
+Do do this, `download VOPlot
+<http://vo.iucaa.ernet.in/~voi/voplot.htm>`_ and unpack the distribution
+at a convenient place.  In the resulting folder, you'll find a
+subdirectory binaries/VOPlot.  Copy that and (less importantly)
+docs/user_guide to some location your webserver can serve from, e.g.,
+
+::
+
+  mkdir /var/www/htdocs/VOPlot
+  cp -r binaries/VOPlot  /var/www/htdocs/VOPlot/bin
+  cp -r docs/user_guide/  /var/www/htdocs/VOPlot/doc
+
+
+Assuming that /var/www/htdocs corresponds to the root of your webserver,
+you can then tell the GAVO software where it can find VOPlot in your
+/etc/gavo.rc (see below):
+
+::
+
+  [web]
+  voPlotEnable: True
+  voplotCodeBase: /VOPlot/bin
+  voplotUserman: /VOPlot/doc
+
 
 Setup
 =====
@@ -102,22 +139,44 @@ schemas, so you probably need a dedicated database.
 We can't help you much with postgres (if you have an administrator, she
 should know how to set a database and the necessary users for you), but 
 with a more or less usual installation something like the following should 
-work:
+work (nothing of this is hardwired, but if you need a different setup,
+you'll need to adjust the DB configuration files mentioned below):
 
 ::
 
   sudo -u postgres createdb gavo  # creates the database that'll hold your data
   # create the user that feeds the db...
-  sudo -u postgres createuser -P -ADS gavo-admin
+  sudo -u postgres createuser -P -ADSr gavoadmin
   # and a user that usually has no write privileges
-  sudo -u postgres createuser -P -ADS gavo
+  sudo -u postgres createuser -P -ADSR gavo
+  # and a user for "scratch tables" writable from the world
+  sudo -u postgres createuser -P -ADSR untrusted
 
-Note down both passwords, you will need them when setting up your
+Note down the passwords you enter, you will need them when setting up your
 database profiles.
 
 Note that running a database server always is a potential security
 liability.  You should make sure you understand what your pg_hba.conf
-says.
+(it's in the config directory of your postgres installation, on debian
+that would be ``/etc/postgresql/<version>/main/``)
+says.  As a minimum, you should have a line like
+
+::
+
+  local   gavo        gavo,gavoadmin,untrusted          md5
+
+in there; it allows password authentication for the three users above
+from the local machine.  If you wanted to feed or query the database from remote
+machines, you'd have to provide similar lines for those machines; for
+details, see the postgres documentation.
+
+Finally, you need to let the various roles you just created access the 
+database; you do this using the command line interface to postgres:
+
+::
+
+  sudo -u postgres psql gavo
+  GRANT ALL ON DATABASE gavo TO gavoadmin;
 
 Configuration
 *************
@@ -216,7 +275,7 @@ Commands available are
 
 A typical setup with two users admin, devel feeding the database, a user
 gavo querying the database (e.g., used for querulator) and a user
-sqlguest that queries only particular, public tables, could look like
+untrusted that queries only particular, public tables, could look like
 this (all files located in configDir, e.g., /var/gavo/etc):
 
 A file dsn:
@@ -243,7 +302,7 @@ A file feedpublic, to load public tables:
 ::
 
   include feed
-  addReadRole sqlguest
+  addReadRole untrusted
 
 A file trustedquery (for querulator):
 
@@ -258,7 +317,7 @@ A file untrustedquery (for a public SQL query interface):
 ::
 
   include dsn
-  user=sqlguest
+  user=untrusted
   password=whyBother?
 
 
@@ -307,7 +366,7 @@ The main source of information on the gory details of RDs should be the
 schema file which should be lavishly commented (ahem).  The following is
 meant as  a high-level introduction, but also covers topics that don't
 really fit into the schema file.  In short: You'll need to inspect both
-for the full story.  Start working with examples :-)
+for the full story.  Start working with examples.
 
 The root element defines the directory most other paths are relative to,
 like this:
