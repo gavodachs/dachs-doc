@@ -1,0 +1,153 @@
+==========================================
+Development notes for the GAVO Data Center
+==========================================
+
+This is basically a heap of stuff I intend to amend with informal docs
+on what I'm doing to the software.  While I hope that at some point
+it'll grow into a useful introduction to further developing the stuff,
+right now it's a random collection that may even contain wrong
+information.  Caveat emptor.
+
+
+The New Web Structure
+---------------------
+
+The new web structure is based on resource descriptors.  These define
+data, adapters and services.  A service is a combination of a
+(possibly optional) input adapter, a core, and optional output adapters.
+
+Adapters are basically DataDefinitions, i.e., they generate tables using
+grammars.  For input adapters, these grammars will typically be context
+grammars, for output adapters, table grammars.
+
+Cores can be many things.  Right now, there is a core for computed
+tables and one for the simple image access protocol.  Further cores will
+be added for SCS, a querulator-like service, etc.
+
+The service code will ask either the input adapter or the core for the
+input keys it requires and presents the user with a form for these input
+keys.  The input keys are typically generated from a context grammar on input
+adapters.
+
+Cores should usually have some way of returning input keys as well,
+unless they definitely require a full-fledged table that needs to be
+provided by an input adapter.  In that way, "naked" cores can make up a
+service.  To do that, they have to provide a method getInputFields
+returning a sequence of datadef.DataField instances describing what
+input fields they need.
+
+
+Services
+--------
+
+I'm trying to develop service.Service into a generic container for
+querying the data holdings.  The rough idea is that whatever comes from
+the web is first transformed into a data set (probably mostly
+constisting of a document record only), then stuffed into a core service
+that does the actual query and afterwards possibly modified again by
+output filters.  
+
+This is reflected in Service.getResult: It gets inputData from an
+inputFilter (which will usually be an adapter with a ContextGrammar),
+or, lacking one, by stuffing the input into a makeshift DataSet with a
+document record keeping the arguments we got from the web (and possibly
+a bit more). Let's call this the inputTable.
+
+Then, the core is run on this data set -- each core must
+bring its run method that takes the inputTable and returns a twisted
+Deferred object.  The callback for this object is set to _parseResult,
+which in turn builds whatever is defined as the output table by the
+service, which again may be filtered by an outputFilter.
+
+The inputFilter of a service has to support:
+
+* a getInputFields method returning datadef.DataField fields for every
+	input it needs (we'll need to think about "bulk data" later, but I
+	guess we may get by using file upload-like things).
+* a datadef.DataTransformer interface
+
+
+The core of a service has to provide:
+
+* a run method that receives an InternalDataset instance and returns
+	something.
+* a parse method that receives whatever run returns and returns an
+	InternalDataset.
+
+
+Interfaces
+----------
+
+One nice architectural feature would be to have interfaces actually
+implement functionality -- a positional interface could tell how to run
+cone searches on it, etc.  I haven't yet done this, because in effect
+we'd like to have another indirection here: various interfaces could
+implement SIAP-like queries, etc.  Also, we'd have to keep interfaces
+around at runtime.  While it's quite clear that interfaces would always
+be tied to table definitions (I should rename RecordDef at some
+point...), the actual localization of the interfaces requires some
+thought.
+
+
+Memoization
+-----------
+
+The resourcecache module should be the central point for all kinds of
+memoization/caching issues.  To keep dependencies and risks of
+recursive imports low, it is the providing modules' responsibility to
+register caching functions.  The idea is that, e.g., importparser wants
+a cache of resource descriptors.  It should then call
+
+resourcecache.makeCache("getRd", getRd)
+
+Clients would then call
+
+resourcecache.getRd(id).
+
+This mechanism for now is restricted to items that come with a unique
+id (the argument).  It would be easy to extend this to multiple-argument
+functions, but I don't think that's a good idea -- the "identities" of
+the cached objects should be kept simple.
+
+No provision is made to prevent accidental overwriting of function names.
+
+This scheme has the central flaw that you need to make sure that you or
+somebody else actually imports the module defining the resource you want
+to access -- however, you may never actually grab a name from that
+namespace in the rest of the module.
+
+
+Scrap
+-----
+
+To get a value from a rowdict and a recordDef, use the getValueIn method of
+datadef.DataField.  This way, you'll have consistent semantics of source and 
+value.  You may pass in an @-expanding function, but if you're sure there are
+not @s or you don't want them expanded, it doesn't hurt if you don't.
+
+
+Warts
+-----
+
+The whole system has lots and lots of warts, and the main thing I can
+say in the way of justification is that most of the time, I didn't
+really know where the whole thing was to be going.  At the few times I
+really knew what I was going for, I, admittedly, went for q'n'd
+"solutions" quite frequently.
+
+Grep for XXX in the sources to find (sometimes minor) warts.  Here, I'll
+collect some higher level warts:
+
+* Table names have a horribly defined semantics.  They are used as table
+	names in SQL, as ids and, in the context of web services, as function
+	designators ("output").  At least the last function is incompatible
+	with the others (because more than one "output" will be present within
+	a schema).  We should untangle this, probably introducing a "function"
+	attribute for RecordDef and allowing tables without names.
+* ...and RecordDef is a lousy name for what really is a table
+	definition.
+* The whole business of passing InternalDataSets around when processing
+	web queries and usually just using the first table in them is a pain.
+	I think DataSets should have a designated "interesting" table when
+	something insists on having a single table, and instances where things
+	insist on that should be dramatically reduced in the first place.
