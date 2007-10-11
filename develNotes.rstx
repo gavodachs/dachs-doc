@@ -8,6 +8,35 @@ it'll grow into a useful introduction to further developing the stuff,
 right now it's a random collection that may even contain wrong
 information.  Caveat emptor.
 
+Testing
+-------
+
+I'm a big fan of doctests.  Pity there are so few of them in the code
+right now.
+
+I'll write pyunit-based test code to the tests subdirectory.  I haven't
+yet decided how I'll integrate those and the docstests.
+
+Many of the tests will require database connectivity.  I'll try and
+design the tests so they don't need resources apart from the
+availability of a test db profile.  I have this set up on my private
+machine like this:
+
+::
+
+	[profiles]
+	test:test
+
+in ~/.gavorc and
+
+::
+
+	database=gavo
+	user=msdemlei
+
+in ~/.gavo/etc -- of course, for this to work, you need a postgresql
+engine running on your machine with a database gavo in which your role
+is superuser (well, has sufficient rights...).
 
 The New Web Structure
 ---------------------
@@ -85,9 +114,14 @@ we'd like to have another indirection here: various interfaces could
 implement SIAP-like queries, etc.  Also, we'd have to keep interfaces
 around at runtime.  While it's quite clear that interfaces would always
 be tied to table definitions (I should rename RecordDef at some
-point...), the actual localization of the interfaces requires some
+point...), the actual location of the interfaces requires some
 thought.
 
+Meanwhile, all interfaces have the getNodes method, which is nifty for
+testing -- it (almost) returns a list of datadef.DataField instances for
+the fields defined in the interface.  See tests/testsiap.py for an
+example of testing against an interface if you're lazy and don't want an
+actual table implementing the interface.
 
 Memoization
 -----------
@@ -115,6 +149,31 @@ This scheme has the central flaw that you need to make sure that you or
 somebody else actually imports the module defining the resource you want
 to access -- however, you may never actually grab a name from that
 namespace in the rest of the module.
+
+All caches can be cleared by calling clearCaches.  This only affects
+caches make via makeCache.  There probably should be similar mechanisms
+for other shared resources, since we want to be able to respond to
+"reload"-like requests.
+
+
+Coordinate Systems
+------------------
+
+This is a very weak point right know.  All those transforms aren't
+rocket science, but still need to be worked out.
+
+Cartesian Coordinates
+'''''''''''''''''''''
+
+For many geometrical operations, we use cartesian coordinates (a.k.a.
+c_x, c_y, c_z).  These correspond to the point at which the radius
+vector to RA, Dec crosses the unit sphere.  These coordinates have many
+desirable properties (e.g., there are no "stich" lines for them).
+
+The cartesian coordinates are oriented such that the x axis is aligned
+with alpha=0, the y axis with alpha=90 degrees or 6 hours, and the z
+axis with delta=90 degrees.  Most of this is implemented in coords.py.
+
 
 
 Scrap
