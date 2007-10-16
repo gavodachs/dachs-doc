@@ -174,6 +174,59 @@ The cartesian coordinates are oriented such that the x axis is aligned
 with alpha=0, the y axis with alpha=90 degrees or 6 hours, and the z
 axis with delta=90 degrees.  Most of this is implemented in coords.py.
 
+If you're doing more with this that just compute it and hand it over to
+the DB engine, you may want to use the Vector3 class in coords.  I wrote
+it when I tried to do siap-style matches using cartesians.  Since that
+doesn't work, the class is, as it were, orphaned right now.
+
+
+SIAP
+----
+
+Our plan for coping with the nasty stitching and the degeneracy at the
+poles with polar coordinates and SIAP is as follows:
+
+Every table supporting siap queries has two fields, primaryBox and
+secondaryBox; in SQL both are of the type BOX, and I have a local class
+Box in coords that these may be converted from/to.  
+
+For "harmless" areas, only primaryBox is non-NULL and contains a
+bounding box for the area in RA and DEC.  A field that covers the stitch
+line at 360/0 has a secondaryBox; the primary box is left of the stich
+line (i.e., box.x1<360, box.x0=360), the secondary box is right of the
+stitch line (i.e., box.x1=0, box.x0>0).
+
+The ROI works analogously.
+
+With this plan, the SIAP conditions become (in Postgres notation):
+
+* COVERS: primaryBox ~ roiPrimary AND (secondaryBox IS NULL OR
+  secondaryBox ~ roiSecondary)
+* ENCLOSED: roiPrimary ~ primaryBox AND (roiSecondary IS NULL OR
+	roiSecondary ~ secondaryBox)
+* CENTER: roiCenter ~ primaryBox OR roiCenter ~ secondaryBox
+* OVERLAPS: primaryBox && roiPrimary OR (
+	secondaryBbox AND secondaryBox && roiSecondary) OR (
+	secondaryBbox AND secondaryBox && roiPrimary) OR (
+	roiSecondary AND roiSecondary && primaryBox)
+
+There's code in siap.py that computes these boxes.
+
+
+Databases
+---------
+
+The code started out using pypgsql, but after handling multimillon-row
+datasets, I largely gave up on it, instead going for psycopg2.  Most
+things still should work with both interfaces.  However, psycopg2
+by default uses python's native DateTime rather that egenix' mxDateTime.
+psycopg2 needs to be compiled with mxDateTime support, or bad things
+will happen.
+
+Currently, the main thing that doesn't work for pypgsql is SIAP.  I use
+boxes in there and only adapt them for psycopg2.  It probabaly wouldn't
+be hard to retrofit it to pypgsql, but I can't see much sense in doing
+this.
 
 
 Scrap
