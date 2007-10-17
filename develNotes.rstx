@@ -8,6 +8,23 @@ it'll grow into a useful introduction to further developing the stuff,
 right now it's a random collection that may even contain wrong
 information.  Caveat emptor.
 
+Parsing Anything
+----------------
+
+Here's a short version of what to do to come from almost any data to a
+table; for an example with complete, handmade resource
+descriptor, see votabletest.VotableTest:
+
+#. Set up a DataTransformer to parse the data.  You can either read
+	 it from an XML file within a resource descriptor or build it by hand.
+#. Constuct a resource.InternalDataSet.  It takes the data descriptor
+   you created, table.Table (unless you want a weird sort of table) and
+   the data you want parsed.  This can be a file, a table, a file name
+	 and possibly other things parsed.  This can be a file, a table, a
+   file name and possibly other things.  Note, however, that the input
+   given must match the grammar on your DataTransformer.
+
+
 Testing
 -------
 
@@ -65,6 +82,103 @@ service.  To do that, they have to provide a method getInputFields
 returning a sequence of datadef.DataField instances describing what
 input fields they need.
 
+
+Metadata
+--------
+
+Within the framework, there are two main sources of metadata.  For one,
+the fields (via datadef.DataField) of a table or a document record carry
+metadata on their types, ucds, etc.
+
+Metadata pertaining to other entities than fields is kept with these
+entities, viz., ResourceDescriptor, DataDescriptor, DataSet, Table, and
+RecordDef, instances.  All these mix in the parsing.meta.MetaMixin
+providing getMeta and addMeta methods.
+
+It is the metadata containers' responsibility to choose their parents
+and children.  They or their parents have to call the setMetaParent
+method.
+
+MetaMixin helps a bit: When the setMetaParent method is called, it
+calls the registerAsMetaParent() method that can be overridden to
+register the object as a parent to all children.  In this way the meta
+relations within a ResourceDescriptor are established after construction
+is finished.
+
+
+Describing Metadata
+'''''''''''''''''''
+
+We don't have types on metadata, and thus metadata is (at least at
+first) flat.  To introduce hierarchy, there is attachment of
+metadata to (hierarchically organized) entities (see `Getting
+Metadata`_) and there is paths.  By convention, items in paths are
+seperated by dots, such that something like curation.creator.name would
+be a valid key.  The metadata machinery doesn't know of this convention,
+though, it's entirely a matter of templates and "user code".
+
+Here's a list of keys I use, mostly referring to the metadata papers
+from IVOA or local (leading underscore) metadata:
+
+* _type -- on DataSets, this becomes the type attribute of the VOTable.
+* _query_status -- on DataSets, this can be used to communicate the
+	value of an INFO element in the VOTable (see SIAP spec).
+* _legal -- human-readable unstructured information on the legal 
+  status of the data.
+* _infolink -- a URL pointing to further unstructured human-readable
+  information to the data content
+
+Getting Metadata
+''''''''''''''''
+
+Metadata are accessed by name (or "key", if you will).
+
+The getMeta method usually follows the enclosure hierarchy up, meaning
+that if a meta item is not found in the current instance, it will ask
+its parent for that item, and so on.  If no parent is known, the meta
+information contained in the configuration will be consulted.  If all
+fails, None is returned.  As an example, querying metadata on a Table
+will ask DataSet (XXX shouldn't it ask the RecordDef?  Right now, that
+won't work because Tables don't get RecordDefs but fieldDefs XXX),
+DataDescriptor, RecordDef and finally config.
+
+If you require metadata exactly for the item you are querying, call
+getMeta(key, propagate=False).
+
+
+Setting Metadata
+''''''''''''''''
+
+You can programmatically set metadata on any metadata container by
+calling container.addMeta(args).  You can pass addMeta a dictionary as
+first argument.  This dictionary will be copied and amended with any
+keyword arguments to arrive at the constructor arguments for a MetaItem
+instance.   If no dictionary is passed, only keyword arguments are used. 
+Supported keywords include:
+
+* name (required): the name of the meta item.  For conventional names,
+  see above.
+* content (required): a string.
+* format (default None): a string giving how the content is to be
+  interpreted.  Currently defined are "literal" and "plain".  Literal
+  values are not touched and rendered in pre elements in HTML.  Plain
+  values are whitespace-normalized and get p tags in HTML.  In the
+  future, we will probably support ReStructured text.
+* compute, combine -- XXX Document
+
+Note that content should be a unicode string as soon as it contains
+non-ascii characters.
+
+VOTables
+--------
+
+
+table.Table instances are primarily meant to be serialized into VOTable
+tables.  Since most of the metadata of tables will be contained in the
+parent DataSet's docRec, PARAM elements of tables will be taken from
+there.
+
+However, Tables are meta containers and can contain meta information.
 
 Services
 --------
