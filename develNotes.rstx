@@ -25,6 +25,22 @@ descriptor, see votabletest.VotableTest:
    given must match the grammar on your DataTransformer.
 
 
+Conversion of Types and Values
+------------------------------
+
+Internally, the software obviously uses the python type system, but the
+"official" interface is defined in terms of PostgresSQL's (one should
+try to keep it down to SQL's).  The knowledge of how to transform the
+types should be kept in gavo.typesystems to keep things maintainable.
+
+With values, it's much more of a pain, even more, because some given
+value may be represented differently in, say, HTML than in a VOTable.
+
+For VOTables, the software tries to infer the proper representation from
+the sql type, the python type, ucds and units, for HTML it uses
+displayHints.
+
+
 Testing
 -------
 
