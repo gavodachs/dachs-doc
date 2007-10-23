@@ -71,33 +71,6 @@ in ~/.gavo/etc -- of course, for this to work, you need a postgresql
 engine running on your machine with a database gavo in which your role
 is superuser (well, has sufficient rights...).
 
-The New Web Structure
----------------------
-
-The new web structure is based on resource descriptors.  These define
-data, adapters and services.  A service is a combination of a
-(possibly optional) input adapter, a core, and optional output adapters.
-
-Adapters are basically DataDefinitions, i.e., they generate tables using
-grammars.  For input adapters, these grammars will typically be context
-grammars, for output adapters, table grammars.
-
-Cores can be many things.  Right now, there is a core for computed
-tables and one for the simple image access protocol.  Further cores will
-be added for SCS, a querulator-like service, etc.
-
-The service code will ask either the input adapter or the core for the
-input keys it requires and presents the user with a form for these input
-keys.  The input keys are typically generated from a context grammar on input
-adapters.
-
-Cores should usually have some way of returning input keys as well,
-unless they definitely require a full-fledged table that needs to be
-provided by an input adapter.  In that way, "naked" cores can make up a
-service.  To do that, they have to provide a method getInputFields
-returning a sequence of datadef.DataField instances describing what
-input fields they need.
-
 
 Metadata
 --------
@@ -185,9 +158,9 @@ Supported keywords include:
 Note that content should be a unicode string as soon as it contains
 non-ascii characters.
 
+
 VOTables
 --------
-
 
 table.Table instances are primarily meant to be serialized into VOTable
 tables.  Since most of the metadata of tables will be contained in the
@@ -196,8 +169,37 @@ there.
 
 However, Tables are meta containers and can contain meta information.
 
+
+The New Web Structure
+---------------------
+
+The new web structure is based on resource descriptors.  These define
+data, adapters and services.  A service is a combination of a
+(possibly optional) input adapter, a core, and optional output adapters.
+
+Adapters are basically datadef.DataTransformers, i.e., they generate
+tables using grammars.  For input adapters, these grammars will
+typically be context grammars, for output adapters, table grammars.
+
+Cores can be many things.  Right now, there is a core for computed
+tables and one for the simple image access protocol.  Further cores will
+be added for SCS, a querulator-like service, etc.
+
+The service code will ask either the input adapter or the core for the
+input keys it requires and presents the user with a form for these input
+keys.  The input keys are typically generated from a context grammar on input
+adapters.
+
+Cores should usually have some way of returning input keys as well,
+unless they definitely require a full-fledged table that needs to be
+provided by an input adapter.  In that way, "naked" cores can make up a
+service.  To do that, they have to provide a method getInputFields
+returning a sequence of datadef.DataField instances describing what
+input fields they need.
+
+
 Services
---------
+''''''''
 
 I'm trying to develop service.Service into a generic container for
 querying the data holdings.  The rough idea is that whatever comes from
@@ -234,6 +236,22 @@ The core of a service has to provide:
 	InternalDataset.
 
 
+Default Output Filter
+'''''''''''''''''''''
+
+Services should have the default output filter.  It looks at the
+input key "output".  There should be a dict in there giving the output
+format (basically VOTable or HTML).  If it is HTML, the default output
+filter only keeps columns that have a displayHint.  If it is VOTable,
+the default output filter also looks at VERB, which may be 1 (maximally
+terse) through 3 (maximally verbose).  Only fields with
+verbLevel<=VERB*10 and displayHint!="suppress" are retained in the output.
+
+Fields with no explicit verbLevel are assumed to have verbLevel 30, so
+they'll only appear in maximally verbose tables.  You'll definitely want
+to set explicit verbLevels if you plan to use the default output filter.
+
+
 Interfaces
 ----------
 
@@ -252,6 +270,7 @@ testing -- it (almost) returns a list of datadef.DataField instances for
 the fields defined in the interface.  See tests/testsiap.py for an
 example of testing against an interface if you're lazy and don't want an
 actual table implementing the interface.
+
 
 Memoization
 -----------
@@ -277,8 +296,7 @@ No provision is made to prevent accidental overwriting of function names.
 
 This scheme has the central flaw that you need to make sure that you or
 somebody else actually imports the module defining the resource you want
-to access -- however, you may never actually grab a name from that
-namespace in the rest of the module.
+to access.
 
 All caches can be cleared by calling clearCaches.  This only affects
 caches make via makeCache.  There probably should be similar mechanisms
