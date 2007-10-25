@@ -192,6 +192,11 @@ mappers will be called in reverse order of registration, so you can
 override default behaviour, and you should register the most special
 mappers last.
 
+Mapper factories may decide to alter the type they're returning (in
+fact, for things like date they'll in all likelihood need to).  To do
+that, change the datatype and arraysize attributes.  After the mappers
+have run, nothing will look at the dbtype any more.
+
 To add new default mappers, add one in votable.py and call
 _registerDefaultMF on them.
 
@@ -296,6 +301,19 @@ testing -- it (almost) returns a list of datadef.DataField instances for
 the fields defined in the interface.  See tests/testsiap.py for an
 example of testing against an interface if you're lazy and don't want an
 actual table implementing the interface.
+
+
+User management
+---------------
+
+The rights model used here is simple: There are users and groups, where
+for each user there's a group and vice versa.  Access restrictions are
+stated in terms of groups, and users can belong to groups.  Access to a
+protected resource is given to any user that belongs to that group.
+
+Users and groups are stored in two database tables generated from
+user.vord.  Admittedly, it's overkill to use the gavo framework for
+these tables, but there you are.
 
 
 Memoization
@@ -437,3 +455,44 @@ collect some higher level warts:
 	I think DataSets should have a designated "interesting" table when
 	something insists on having a single table, and instances where things
 	insist on that should be dramatically reduced in the first place.
+
+
+Lessons learnt
+--------------
+
+There's an old saying "Get your data structures right, and the rest of
+the program will write itself".  This couldn't be more true here, and
+unfortunately, I didn't get them right, mostly, because I started out
+doing something utterly useless.  
+
+Anyway, I think one should set out doing a "pure python" model of a
+VOTable, i.e., a set of classes modelling *easily accessible* and
+*easily constructable* (possibly along the lines of stan?) data tables
+containing all the information necessary to build a VOTable.  The
+VOTable data model isn't all that bad.  Also, when it comes to
+generating VOTables according to DAL protocols, having abstracted away
+LINK, INFO, and PARAM is a major pain.
+
+These VOTables should be able to exist standalone, but having
+descriptors containing standard metadata certainly is a good idea.  I'm
+still not sure how I'd do this.  Resource descriptors like I have them
+here are too fat, anyway.
+
+And, think of the metadata from the very start.  Having to glue them on
+later is a pain.  I guess that's less of a problem once there are
+self-contained Tables that don't (necessarily) refer to external
+objects.
+
+Also, in your data trees, make sure you always have a parent reference.
+
+The managed-attribute things (record.Record) probably were not a good
+idea.  I liked the idea because it *may* help when parsing from XML
+(that is what they still are used for almost exclusively), but I never
+actually used the stuff.  Having accessor methods generated
+automatically is nice, but if you absolutely want this, do it properly
+and use metaclasses.
+
+You can *either* have a common interface for HTML and VOTables *or* use
+automated form generating and validating libraries.  The simple reason
+is that forms libraries (like formal) insist on redisplaying the form,
+and that's not acceptable for standard services like SIAP or SCS.
