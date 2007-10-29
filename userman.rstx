@@ -95,13 +95,24 @@ you can then tell the GAVO software where it can find VOPlot in your
   voplotUserman: /VOPlot/doc
 
 
+wcstools
+........
+
+To support cutout services, you need getfits from the wcstools package
+available at http://tdc-www.harvard.edu/software/wcstools/.   After
+building wcstools, the binary is in <build-dir>/bin/getfits.
+
+The system expects the binary getfits in inputsDir/cutout/bin/getfits,
+you can optionally add a platform suffix.
+
+
 Setup
 =====
 
 The tools want a "root directory" for GAVO, a directory in which the
 sources reside, ancillary data is kept, etc.  By default, this is
 ``/var/gavo``.  If you want something else, set the environment variable
-``$GAVO_HOME``.
+``$GAVO_HOME`` or (probably better) adapt your /etc/gavorc.
 
 Static Files
 ************
@@ -319,6 +330,22 @@ A file untrustedquery (for a public SQL query interface):
   include dsn
   user=untrusted
   password=whyBother?
+
+
+
+Binaries
+********
+
+For extended functionality, the system uses external binaries.
+If your GAVO_ROOT is accessible from more than one machine and the
+machines have different architectures, this may be a problem, because
+one platform may not be able to execute another platform's binaries.
+
+To fix this, set platform in the DEFAULTS section of your config file.
+You can then rename any platform-dependent executable
+base-<platform>, and if on the respective platform, that binary will be
+used. This also works for computed resources using binaries.  
+
 
 
 Importing a resource

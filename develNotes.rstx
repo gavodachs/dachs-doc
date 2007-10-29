@@ -214,18 +214,14 @@ typically be context grammars, for output adapters, table grammars.
 
 Cores can be many things.  Right now, there is a core for computed
 tables and one for the simple image access protocol.  Further cores will
-be added for SCS, a querulator-like service, etc.
+be added for SCS, a querulator-like service, etc.  Cores must have a run
+method receiving an input table.  They must return a twisted.deferred
+the fires an output table or a file-like object that can immediately be
+delivered in cases where it generates a single file.
 
-The service code will ask either the input adapter or the core for the
-input keys it requires and presents the user with a form for these input
-keys.  The input keys are typically generated from a context grammar on input
-adapters.
-
-Cores should usually have some way of returning input keys as well,
-unless they definitely require a full-fledged table that needs to be
-provided by an input adapter.  In that way, "naked" cores can make up a
-service.  To do that, they have to provide a method getInputFields
-returning a sequence of datadef.DataField instances describing what
+Usually, there will be ContextGrammars in front of cores.  However, when
+a core defines a method getInputFields, it can work "naked".  The method
+must return a sequence of datadef.DataField instances describing what
 input fields they need.
 
 
