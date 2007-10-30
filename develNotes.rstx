@@ -17,12 +17,43 @@ descriptor, see votabletest.VotableTest:
 
 #. Set up a DataTransformer to parse the data.  You can either read
 	 it from an XML file within a resource descriptor or build it by hand.
+	 There's an example for how that's done in tests/votabletest.py
 #. Constuct a resource.InternalDataSet.  It takes the data descriptor
    you created, table.Table (unless you want a weird sort of table) and
    the data you want parsed.  This can be a file, a table, a file name
-	 and possibly other things parsed.  This can be a file, a table, a
-   file name and possibly other things.  Note, however, that the input
-   given must match the grammar on your DataTransformer.
+	 and possibly other things parsed.   Note, however, that the input
+   given must match the grammar on your DataTransformer.  By default,
+	 this will create all tables.  If you only want a subset of tables
+	 created, pass a sequence of their names in tablesToBuild.
+
+
+Internally, the system does the following:
+
+#. DataSet calls its _fillTables method that will create a tableMaker
+   instance for each desired table.
+#. DataSet then calls its _parseSources method.[#booster]_ 
+#. _parseSources iterates of DataSet._iterParseContexts.  A parse
+   context is a wrapper for obtaining input to grammars and exporting
+   the parsed data (see resource.ParseContext).
+#. _parseSources calls each parse context's parse method
+#. It, in turn, calls the grammar's parse method with itself as
+   argument.
+#. grammar.parse first calls the _getDocdict method of its concrete
+   implementation and passes the result on to the parse context's
+   processDocdict method, or, if the grammars docIsRow attribute is
+   true, to its own handleRowdict method (see below)
+#. grammar.parse then iterates over the implementation's _iterRows.
+   The result is passed to grammar.handleRowdict.
+#. handleRowdict arranges for row processors to run, expands macros and
+   hands over the resulting row dictionary/ies over to the parse context's 
+   processRowdict method
+#. This then uses ParseContext._buildRecord to build a record with
+   correct python types.  Here, validation and constraint checking takes
+   place.
+#. Finally, processRowdict calls the addData method of every table it
+   knows as a destination.
+ 
+I know this is horribly overengineered.
 
 
 Conversion of Types and Values
@@ -492,3 +523,9 @@ You can *either* have a common interface for HTML and VOTables *or* use
 automated form generating and validating libraries.  The simple reason
 is that forms libraries (like formal) insist on redisplaying the form,
 and that's not acceptable for standard services like SIAP or SCS.
+
+.. [#booster]  DataSet._parseSources can take an
+   optional parseSwitcher that you can pass in when you construct a
+   DataSet directly.  The parseSwitcher, if defined, can override the parse
+   method of the grammar, which is used for parser boosting (e.g., when
+   filling the table through copy statements).
