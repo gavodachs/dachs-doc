@@ -345,8 +345,13 @@ contains information on the query.  You can then use:
 
 * render="resulttable" -- inserts the generated default table in result
   templates (this will usually be in a div tag).
+* render="warnTrunc" -- gives a warning if the query was truncated in
+  the context tag.
 * data="querypars" -- puts the query parameters as given by the user 
   into the scope [slot].
+* data="queryseq" -- puts a sequence of user-submitted query parameters
+  into the the scope.  There's a parpair renderer that can handle these
+  pairs.
 * data="inputRec" -- puts the document record of the query (i.e. the
   "global" processed query parameters) in scope.  What's in there can
   be seen by looking at the fields in the input adapter's data
