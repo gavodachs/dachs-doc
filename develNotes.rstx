@@ -310,6 +310,19 @@ they'll only appear in maximally verbose tables.  You'll definitely want
 to set explicit verbLevels if you plan to use the default output filter.
 
 
+Validation
+++++++++++
+
+XXX Standard validation: make a values child for field,  yadda
+
+If some code implementing a service can't go on, it should raise some
+subclass of formal.FieldError with an explanation and the responsible
+field name if at all possible.  web.resourcebased.Form catches such
+errors during the parsing of the input (i.e.~interpretation of the form
+data) and (hopefully) during the actual run of the service.  Any other
+errors right now lead to 500s.
+
+
 Templates
 +++++++++
 
@@ -327,38 +340,6 @@ XML template (i.e., the instances need to do resolution of the relative
 paths in the resource descriptors themselves), if not, the
 defaultDocFactory attribute of the instance is used.  There is a mixin
 implementing this functionality in gavo.web.common.CustomTemplateMixin.
-
-Within these templates, use the following data and renderer items:
-
-Forms
------
-In forms, you can use render="form genForm" to insert the generated
-default form in form templates (this will usually be in a div tag).
-
-
-Query Results
--------------
-
-For query results, put data="result" on the root element of your
-document.  This puts the query result in scope, and this object also
-contains information on the query.  You can then use:
-
-* render="resulttable" -- inserts the generated default table in result
-  templates (this will usually be in a div tag).
-* render="warnTrunc" -- gives a warning if the query was truncated in
-  the context tag.
-* data="querypars" -- puts the query parameters as given by the user 
-  into the scope [slot].
-* data="queryseq" -- puts a sequence of user-submitted query parameters
-  into the the scope.  There's a parpair renderer that can handle these
-  pairs.
-* data="inputRec" -- puts the document record of the query (i.e. the
-  "global" processed query parameters) in scope.  What's in there can
-  be seen by looking at the fields in the input adapter's data
-  definition [slot].
-
-The items in data elements marked with [slot] should be used with
-rend="mapping" and <slot name=...>.
 
 
 Interfaces

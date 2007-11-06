@@ -994,4 +994,137 @@ The following interfaces are defined:
 TODO: row processors, schema, meta, constraints,
 
 
+Meta Information
+================
+
+Stuff to be put into the VO needs lots of meta information.  Meta
+information is typically provided in resource descriptors, and there in
+the  ResourceDescriptor, Data, and Record elements.  These can carry
+meta elements the content of which becomes the value belonging to a
+certain meta key.  You can set a format attribute to one of the
+following values:
+
+* literal (the default) -- no processing will be done on the value.
+* plain -- string values will be whitespace-normalized, empty lines will
+  be converted into paragraph separators in formats that support that.
+* restructured -- string values will be interpreted as Restructured
+  Text.
+
+You can also use the compute attribute.  The value is a call to an
+@-expansion (without the leading @).
+
+We don't enforce any meta names, so you can put anything into meta.
+However, you *should* use the keys defined in [RMI]_ (registration depends
+on it), and it's advisable to use names with leading underscorces for
+key not mentioned in RMI.
+
+Recommended local keys (some of them are used in the default template)
+include:
+
+* _ legal -- human-readable copyright information, usage conditions, and
+  the like.
+ 
+
+
+The Web Interface
+=================
+
+XXX Todo
+
+Templates
+*********
+
+The templates referred to in service definitions are valid XHTML.  Data
+is filled in through namespaced elements and attributes.  Right now,
+there is only one namespace, viz., http://nevow.com/ns/nevow/0.1.  It
+contains names understood by nevow (the web framework we build on)
+proper.  You should define that namespace on your html element, like
+this:
+
+::
+
+  <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+     "http://www.w3.org/TR/html4/loose.dtd">
+  <html xmlns:n="http://nevow.com/ns/nevow/0.1">
+  ...
+  </html>
+
+In the following, I assume you chose n as the prefix, as in the example
+definition.
+
+The most important names in there are:
+
+* n:data -- puts some data in a "context"
+* n:render -- chooses how that data is being rendered
+* n:slot -- select some data from an appropriate context
+
+Common Renderers
+................
+
+* meta -- renders a meta item (see `Meta Information`_) given in the child as text, as in
+  ``<p n:render="meta">curation.publisher</p>``.
+* render="metahtml" -- as render="meta", only the meta item will be
+  rendered as html (this is useful when the meta item can contain rich
+  text)
+* render="rootlink" -- works on things having a href or src attribute.  This
+  attribute will get nevowRoot prepended.  You
+  should use this whenever you give an absolute link within the service,
+  e.g., to a style sheet or a different service, like this:  
+  ``<link href="/formal.css" type="text/css" rel="stylesheet"
+  n:render="rootlink"/>`` to make things work when the service doesn't
+  run on the server root.
+
+Form Templates
+..............
+
+In From templates, , you can use render="form genForm" to insert the generated
+default form in form templates (this will usually be in a div tag), like
+this:
+
+::
+
+		<div id="form" n:render="form genForm"/>
+  
+
+Result Templates
+................
+
+For query results, put data="result" on the root element of your
+document.  This puts the query result in scope, and this object also
+contains information on the query.  You can then access the following
+data:
+
+* data="querypars" -- puts the query parameters as given by the user 
+  into the scope [slot].
+* data="queryseq" -- puts a sequence of user-submitted query parameters
+  into the the scope.  There's a parpair renderer that can handle these
+  pairs.
+* data="resultmeta" -- puts a dictionary of meta information on the
+  result in the context.  XXX explain what's in there (itemsMatched, etc).
+* data="inputRec" -- puts the document record of the query (i.e. the
+  "global" processed query parameters) in scope.  What's in there can
+  be seen by looking at the fields in the input adapter's data
+  definition [slot].
+
+The items in data elements marked with [slot] should be used with
+rend="mapping" and <slot name=...>.
+
+The following additional renderers are available:
+
+* render="resulttable" -- inserts the generated default table in result
+  templates (this will usually be in a div tag).
+* render="warnTrunc" -- gives a warning if the query was truncated in
+  the context tag.
+* render="parpair" -- renders a key-value pair.  This may be handy for
+  queryseq data.
+* render="warnTrunc" -- this only works when data="query" and will
+  render a warning if a query was truncated due to reaching the match
+  limit.
+
+
+References
+==========
+
+.. [RMI] Hanish et al, `Resource Metadata for the Virtual Observatory <http://www.ivoa.net/Documents/latest/RM.html>`_
+
 .. vi:et:tw=72:
