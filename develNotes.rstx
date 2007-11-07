@@ -34,7 +34,11 @@ Internally, the system does the following:
 #. DataSet then calls its _parseSources method.[#booster]_ 
 #. _parseSources iterates of DataSet._iterParseContexts.  A parse
    context is a wrapper for obtaining input to grammars and exporting
-   the parsed data (see resource.ParseContext).
+   the parsed data (see resource.ParseContext).  
+#. In this iteration, a LiteralParser is passed to each ParseContext. 
+   Use typeconversion.LiteralParser for that.  The literal parser is the
+   place to worry about encodings and such things.  See the user manual
+   for other things the literal parser can do.
 #. _parseSources calls each parse context's parse method
 #. It, in turn, calls the grammar's parse method with itself as
    argument.
@@ -316,11 +320,20 @@ Validation
 XXX Standard validation: make a values child for field,  yadda
 
 If some code implementing a service can't go on, it should raise some
-subclass of formal.FieldError with an explanation and the responsible
+subclass of gavo.ValidationError with an explanation and the responsible
 field name if at all possible.  web.resourcebased.Form catches such
 errors during the parsing of the input (i.e.~interpretation of the form
 data) and (hopefully) during the actual run of the service.  Any other
 errors right now lead to 500s.
+
+In the later stages of processing, fields will usually be present that
+are not present in the input form.  If errors corresponding to these
+fields are raised, formal won't be able to display the message at the
+appropriate field.  As a quick fix, Service provides a
+translateFieldName method that takes a field name and tries to map it to
+an originating field.  Right now, it uses a table coded in the resource
+descriptor (nameMap element) for that, but that's only a temporary hack.
+We should come up with something residing in the adapters.
 
 
 Templates
@@ -551,10 +564,10 @@ actually used the stuff.  Having accessor methods generated
 automatically is nice, but if you absolutely want this, do it properly
 and use metaclasses.
 
-You can *either* have a common interface for HTML and VOTables *or* use
-automated form generating and validating libraries.  The simple reason
-is that forms libraries (like formal) insist on redisplaying the form,
-and that's not acceptable for standard services like SIAP or SCS.
+It was a bad idea to stuff information on how a field should be parsed
+(source, literalForm, nullLiteral) into the same field definition
+describing the field itself.  At the very least, the fields used for
+parsing should be joined in a subelement of field.
 
 .. [#booster]  DataSet._parseSources can take an
    optional parseSwitcher that you can pass in when you construct a

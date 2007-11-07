@@ -672,13 +672,13 @@ strictly necessary):
   from. If the value of source starts with an @, the rest is interpreted
   as the name of a field computer, which is called when the value of the
   field is required (see `At Expansions`_).
-* dbtype -- the type of the value. We use the sql type system and map it to the others involved (python, votable). Defaults to real.
+* dbtype -- the type of the value. We use the sql type system and 
+  map it to the others involved (python, votable). Defaults to real.
 * default -- a literal used as a default value.
 * unit -- the unit of the value, given as given in http://vizier.u-strasbg.fr/doc/catstd-3.2.htx, defaults to empty.
 * optional -- if true (in any capitalization), empty values (Python: None, SQL: NULL) are allowed for this field, defaults to True.
 * ucd -- a description of the field content, as per http://www.ivoa.net/Documents/latest/UCDlist.html.
 * description -- human-digestable text that describes the contents of this field.
-* nullvalue -- a literal that is interpreted as SQL NULL.
 * literalForm -- an identifier that tells ImportTools's type converter
   about special literal forms (e.g. hour angle for float, weird date
   formats). These identifiers are discussed below
@@ -697,6 +697,18 @@ strictly necessary):
 * references -- this is used in SQL data definition and follows the SQL
   syntax.
 * primary -- declares this field as belonging to the primary key.
+
+FieldDef elements may have a Values subelement.  These define legal
+values and have the following attributes:
+
+* min, max -- minimum and maximum of acceptable values.  If given, they
+  have to be literals of the type given in datadef.
+* nullLiteral -- a literal that maps to a null value on parsing.
+
+They may have option subelements enumerating legal values (as literals
+in the option element's content).  If both options and min and max are
+given, the option element take precedence (i.e., min and max are
+ignored).
 
 Literal Forms
 .............
@@ -1023,6 +1035,9 @@ include:
 
 * _ legal -- human-readable copyright information, usage conditions, and
   the like.
+* _title -- a title for presentation purposes (where it deviates from
+  the RMI title).
+* _intro -- a more verbose description of the entity.
  
 
 
