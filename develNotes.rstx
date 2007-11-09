@@ -146,7 +146,8 @@ from IVOA or local (leading underscore) metadata:
 
 * _type -- on DataSets, this becomes the type attribute of the VOTable.
 * _query_status -- on DataSets, this can be used to communicate the
-	value of an INFO element in the VOTable (see SIAP spec).
+	value of an INFO element in the VOTable (see SIAP spec).  These must
+  be meta.InfoItem instances.
 * _legal -- human-readable unstructured information on the legal 
   status of the data.
 * _infolink -- a URL pointing to further unstructured human-readable
@@ -169,6 +170,11 @@ DataDescriptor, RecordDef and finally config.
 If you require metadata exactly for the item you are querying, call
 getMeta(key, propagate=False).
 
+While MetaItems are generally supposed to be stringified to be used and
+will do all the format &c magic if they are, you can access the content
+attribute and get the "raw" value.  This mechanism currently is used to
+get Info items into VOTables.
+
 
 Setting Metadata
 ++++++++++++++++
@@ -182,7 +188,8 @@ Supported keywords include:
 
 * name (required): the name of the meta item.  For conventional names,
   see above.
-* content (required): a string.
+* content (required): a string or something that at least doesn't blow
+  up if stringified
 * format (default None): a string giving how the content is to be
   interpreted.  Currently defined are "literal" and "plain".  Literal
   values are not touched and rendered in pre elements in HTML.  Plain
@@ -353,6 +360,26 @@ XML template (i.e., the instances need to do resolution of the relative
 paths in the resource descriptors themselves), if not, the
 defaultDocFactory attribute of the instance is used.  There is a mixin
 implementing this functionality in gavo.web.common.CustomTemplateMixin.
+
+
+Dispatching
++++++++++++
+
+Requests come in through dispatcher.ArchiveService.  This parses the
+query URI in its locateChild method.  All resource based services have
+URIs like ``<path-to-rd>/<service>/<action>``.  ArchiveService decides
+on action what child to return, using the rederClasses dictionary.  This
+should map to rend.Page subclasses, the service pages.
+
+For now, ArchiveService will create a new class using whatever is in
+renderClasses.  I guess we might save time if we'd reuse those classes
+as appropriate, but let's not go that way as long as the thing is fast
+enough.
+
+On instanciatioon, the service page receives the current context and the
+segments pertaining to its rd an service in one go.  Use the
+web.common.parseServicePath function to get the rd and the service name from
+this.
 
 
 Interfaces

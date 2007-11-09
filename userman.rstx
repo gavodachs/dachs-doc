@@ -1038,8 +1038,11 @@ include:
 * _title -- a title for presentation purposes (where it deviates from
   the RMI title).
 * _intro -- a more verbose description of the entity.
+* _infolink -- a link to static information on the service, the result,
+  or whatever.
+* _query_status -- an InfoItem for SIAP-like error reporting (you can't
+  currently generate these using resource descriptors)
  
-
 
 The Web Interface
 =================
