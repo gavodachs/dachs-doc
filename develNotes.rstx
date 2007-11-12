@@ -16,15 +16,15 @@ table; for an example with complete, handmade resource
 descriptor, see votabletest.VotableTest:
 
 #. Set up a DataTransformer to parse the data.  You can either read
-	 it from an XML file within a resource descriptor or build it by hand.
-	 There's an example for how that's done in tests/votabletest.py
+   it from an XML file within a resource descriptor or build it by hand.
+   There's an example for how that's done in tests/votabletest.py
 #. Constuct a resource.InternalDataSet.  It takes the data descriptor
    you created, table.Table (unless you want a weird sort of table) and
    the data you want parsed.  This can be a file, a table, a file name
-	 and possibly other things parsed.   Note, however, that the input
+   and possibly other things parsed.   Note, however, that the input
    given must match the grammar on your DataTransformer.  By default,
-	 this will create all tables.  If you only want a subset of tables
-	 created, pass a sequence of their names in tablesToBuild.
+   this will create all tables.  If you only want a subset of tables
+   created, pass a sequence of their names in tablesToBuild.
 
 
 Internally, the system does the following:
@@ -92,15 +92,15 @@ machine like this:
 
 ::
 
-	[profiles]
-	test:test
+  [profiles]
+  test:test
 
 in ~/.gavorc and
 
 ::
 
-	database=gavo
-	user=msdemlei
+  database=gavo
+  user=msdemlei
 
 in ~/.gavo/etc -- of course, for this to work, you need a postgresql
 engine running on your machine with a database gavo in which your role
@@ -146,7 +146,7 @@ from IVOA or local (leading underscore) metadata:
 
 * _type -- on DataSets, this becomes the type attribute of the VOTable.
 * _query_status -- on DataSets, this can be used to communicate the
-	value of an INFO element in the VOTable (see SIAP spec).  These must
+  value of an INFO element in the VOTable (see SIAP spec).  These must
   be meta.InfoItem instances.
 * _legal -- human-readable unstructured information on the legal 
   status of the data.
@@ -292,17 +292,17 @@ service, which again may be filtered by an outputFilter.
 The inputFilter of a service has to support:
 
 * a getInputFields method returning datadef.DataField fields for every
-	input it needs (we'll need to think about "bulk data" later, but I
-	guess we may get by using file upload-like things).
+  input it needs (we'll need to think about "bulk data" later, but I
+  guess we may get by using file upload-like things).
 * a datadef.DataTransformer interface
 
 
 The core of a service has to provide:
 
 * a run method that receives an InternalDataset instance and returns
-	something.
+  something.
 * a parse method that receives whatever run returns and returns an
-	InternalDataset.
+  InternalDataset.
 
 
 Default Output Filter
@@ -494,12 +494,12 @@ With this plan, the SIAP conditions become (in Postgres notation):
 * COVERS: primaryBox ~ roiPrimary AND (secondaryBox IS NULL OR
   secondaryBox ~ roiSecondary)
 * ENCLOSED: roiPrimary ~ primaryBox AND (roiSecondary IS NULL OR
-	roiSecondary ~ secondaryBox)
+  roiSecondary ~ secondaryBox)
 * CENTER: roiCenter ~ primaryBox OR roiCenter ~ secondaryBox
 * OVERLAPS: primaryBox && roiPrimary OR (
-	secondaryBbox AND secondaryBox && roiSecondary) OR (
-	secondaryBbox AND secondaryBox && roiPrimary) OR (
-	roiSecondary AND roiSecondary && primaryBox)
+  secondaryBbox AND secondaryBox && roiSecondary) OR (
+  secondaryBbox AND secondaryBox && roiPrimary) OR (
+  roiSecondary AND roiSecondary && primaryBox)
 
 There's code in siap.py that computes these boxes.
 
@@ -542,18 +542,18 @@ Grep for XXX in the sources to find (sometimes minor) warts.  Here, I'll
 collect some higher level warts:
 
 * Table names have a horribly defined semantics.  They are used as table
-	names in SQL, as ids and, in the context of web services, as function
-	designators ("output").  At least the last function is incompatible
-	with the others (because more than one "output" will be present within
-	a schema).  We should untangle this, probably introducing a "function"
-	attribute for RecordDef and allowing tables without names.
+  names in SQL, as ids and, in the context of web services, as function
+  designators ("output").  At least the last function is incompatible
+  with the others (because more than one "output" will be present within
+  a schema).  We should untangle this, probably introducing a "function"
+  attribute for RecordDef and allowing tables without names.
 * ...and RecordDef is a lousy name for what really is a table
-	definition.
+  definition.
 * The whole business of passing InternalDataSets around when processing
-	web queries and usually just using the first table in them is a pain.
-	I think DataSets should have a designated "interesting" table when
-	something insists on having a single table, and instances where things
-	insist on that should be dramatically reduced in the first place.
+  web queries and usually just using the first table in them is a pain.
+  I think DataSets should have a designated "interesting" table when
+  something insists on having a single table, and instances where things
+  insist on that should be dramatically reduced in the first place.
 
 
 Lessons learnt
