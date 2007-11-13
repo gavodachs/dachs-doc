@@ -207,7 +207,15 @@ VOTables
 table.Table instances are primarily meant to be serialized into VOTable
 tables.  Since most of the metadata of tables will be contained in the
 parent DataSet's docRec, PARAM elements of tables will be taken from
-there. XXX TODO: there's also INFO and LINK.  Have some convention as to
+there and will be located in the RESOURCE element that contains the
+table(s). 
+
+There's currently no provision for having PARAMS to VOTABLE elements
+(these would probably reside in the resource descriptor) or TABLE
+elements (this would require a special attribute of table.Table, I
+guess).
+
+XXX TODO: there's also INFO and LINK.  Have some convention as to
 what goes where.
 
 However, Tables are meta containers and can contain meta information.
