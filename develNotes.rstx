@@ -376,7 +376,7 @@ XXX Standard validation: make a values child for field,  yadda
 If some code implementing a service can't go on, it should raise some
 subclass of gavo.ValidationError with an explanation and the responsible
 field name if at all possible.  web.resourcebased.Form catches such
-errors during the parsing of the input (i.e.~interpretation of the form
+errors during the parsing of the input (i.e., interpretation of the form
 data) and (hopefully) during the actual run of the service.  Any other
 errors right now lead to 500s.
 
@@ -388,6 +388,12 @@ translateFieldName method that takes a field name and tries to map it to
 an originating field.  Right now, it uses a table coded in the resource
 descriptor (nameMap element) for that, but that's only a temporary hack.
 We should come up with something residing in the adapters.
+
+Macros and processors an, while processing, set an attribute errorField.
+This should contain the name of the argument they are processing.  If
+some error occurs, it will be caught in RowFunction.__call__, which in
+turn will change the error to a ValidatonError with the appropriate
+source field.
 
 
 Templates
