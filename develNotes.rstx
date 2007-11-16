@@ -255,24 +255,23 @@ The New Web Structure
 =====================
 
 The new web structure is based on resource descriptors.  These define
-data, adapters and services.  A service is a combination of a
-(possibly optional) input adapter, a core, and optional output adapters.
+data, adapters and services.  A service is a combination of an
+input adapter (certain cores bring a default one), a core, and 
+optional output adapters.
 
 Adapters are basically datadef.DataTransformers, i.e., they generate
 tables using grammars.  For input adapters, these grammars will
 typically be context grammars, for output adapters, table grammars.
 
-Cores can be many things.  Right now, there is a core for computed
-tables and one for the simple image access protocol.  Further cores will
-be added for SCS, a querulator-like service, etc.  Cores must have a run
-method receiving an input table.  They must return a twisted.deferred
-the fires an output table or a file-like object that can immediately be
-delivered in cases where it generates a single file.
+The way a query ideally is processed is roughly like this:
 
-Usually, there will be ContextGrammars in front of cores.  However, when
-a core defines a method getInputFields, it can work "naked".  The method
-must return a sequence of datadef.DataField instances describing what
-input fields they need.
+::
+
+  query interface (http, smtp, ...) <-> service 
+                                        / | \
+                                + ------  V   --------+
+                                V        core         V
+                        (input adapter)          (output adapter)
 
 
 Services
@@ -285,32 +284,72 @@ constisting of a document record only), then stuffed into a core service
 that does the actual query and afterwards possibly modified again by
 output filters.  
 
-This is reflected in Service.getResult: It gets inputData from an
-inputFilter (which will usually be an adapter with a ContextGrammar),
-or, lacking one, by stuffing the input into a makeshift DataSet with a
-document record keeping the arguments we got from the web (and possibly
-a bit more). Let's call this the inputTable.
+A service is constructed with a resource descriptor and a dictionary
+containing initial values for the fields it contains -- however, this
+is usually done by parsing a resource descriptor.
 
-Then, the core is run on this data set -- each core must
-bring its run method that takes the inputTable and returns a twisted
-Deferred object.  The callback for this object is set to _parseResult,
-which in turn builds whatever is defined as the output table by the
-service, which again may be filtered by an outputFilter.
+A service has to support the following methods:
 
-The inputFilter of a service has to support:
+* getInputFields() -> seq of InputKeys -- provided so the interface can set up
+  forms and the like.
+* getInputData(rawInput) -> DataSet -- receives the input to the
+  inputAdapter's Grammar (usually a dict) and returns the input data set
+* run(inputData, queryMeta) -> DataSet -- returns a
+  web.common.CoreResult instance containing (hopefully) everything to
+  build an answer to the query.
+* getOutputFields(queryMeta) -> seq of DataFields -- returns the colums
+  of the primary table of the result.  This is provided for the benefit
+  of services that may have to declare in advance the data structure
+  they return.  It takes a QueryMeta instance because the fields
+  returned in general depend on the query; it will be different
+  depending on output filters, verbosity, and even between VOTables and
+  HTML.
 
-* a getInputFields method returning datadef.DataField fields for every
-  input it needs (we'll need to think about "bulk data" later, but I
-  guess we may get by using file upload-like things).
-* a datadef.DataTransformer interface
+The return values of getInputData and run may be twisted deferreds (for
+getInputData, this is necessary because getting the input data may
+involve database operations or web queries).
 
 
-The core of a service has to provide:
+Cores
++++++
 
-* a run method that receives an InternalDataset instance and returns
-  something.
-* a parse method that receives whatever run returns and returns an
-  InternalDataset.
+A core is something that receives a DataSet and produces one.  In
+between, they may issue database queries, run a program, whatever.
+Cores must have the following method:
+
+* run(inputData, queryMeta) -> thing
+
+The thing returned is either a twisted.deferred firing a DataSet or a
+pair of (headers, file-like object) if whatever is to be delivered is
+not really a table.  InputData is a DataSet (unfortunately, there
+currently is no way for a core to describe the structure it expects in
+that DataSet), queryMeta is a common.QueryMeta instance.
+
+Many cores can run "naked", i.e., without an explicit input adapter.  To
+enable that, they have to be able to stand in for an input adapter,
+i.e., they have to provide methods
+
+* getInputFields() -> seq of InputKeys -- this is necessary to enable
+  service to specify what fields to display in a form and to construct a
+  data descriptor to process the input data (which, in this case, is of
+  course trivial.
+
+In the typical case of a database based core, you'll usually want to use
+the condition descriptor infrastructure (currently in standardcores,
+CondDesc and friends, but that's probably going to move).  A condition
+descriptor is an object that controls zero or more data fields, can
+describe them and can build SQL queries given values (usually coming
+from the docRec of a service's inputTable).
+
+CondDescs must support the following methods:
+
+* getInputFields() -> seq of DataField instances -- the embedding core
+  will return the union of all theses sequences from its getInputFields
+* getQueryFrags(inPars, sqlPars, queryMeta) -> frag -- receives the
+  input parameters and a QueryMeta instance and returns a fragment
+  suitable for where clauses in SQL statements.  It will add the
+  parameters within this statement to sqlPars (which is passed so the
+  implementations can check for free keys).
 
 
 Default Output Filter
