@@ -1052,6 +1052,11 @@ descriptor.  XXX yadda.
 
 ... To include all default fields (which are those that have a queriable
 type and not a displayHint suppress), say <condDesc/> in the service or
+input adapter.Most aspects of the web interface are configured in the
+resource descriptor.  XXX yadda.
+
+... To include all default fields (which are those that have a queriable
+type and not a displayHint suppress), say <condDesc/> in the service or
 input adapter.
 
 Templates
