@@ -332,6 +332,18 @@ A file untrustedquery (for a public SQL query interface):
   password=whyBother?
 
 
+The Web Section
+...............
+
+* serverURL: the scheme and host under which the service is visible
+  (like, http://vo.foo.org)
+* nevowRoot: a serverURL-relative URL to the place the nevow service
+  appears in the server.
+* errorPage: debug or something else -- whether to show a traceback on
+  the net or not.
+* staticURL: a serverURL-relative URL to static the data (for
+  querulator)
+
 
 Binaries
 ********
