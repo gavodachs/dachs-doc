@@ -26,6 +26,8 @@ descriptor, see votabletest.VotableTest:
    this will create all tables.  If you only want a subset of tables
    created, pass a sequence of their names in tablesToBuild.
 
+If you need to do anything fancy like bypass grammar, you could
+check out servicelist.updateServiceList.
 
 Internally, the system does the following:
 
@@ -278,17 +280,24 @@ Services
 ++++++++
 
 I'm trying to develop service.Service into a generic container for
-querying the data holdings.  The rough idea is that whatever comes from
-the web is first transformed into a data set (probably mostly
-constisting of a document record only), then stuffed into a core service
+querying the data holdings.  The rough idea is that whatever comes in
+from a frontend is first transformed into a data set (probably mostly
+constisting of a document record only), then stuffed into a core
 that does the actual query and afterwards possibly modified again by
-output filters.  
+output filters.
+
+A service does, however, not talk directly to the user.  Each service is
+embedded in a front end so that it could, in principle, be used not only
+via HTTP but also via SMTP, XMP or whatever.  Right now, of cource, we
+mainly deal with error reporting (VO vs. Web).
 
 A service is constructed with a resource descriptor and a dictionary
 containing initial values for the fields it contains -- however, this
 is usually done by parsing a resource descriptor.
 
-A service has to support the following methods:
+You probably will not subclass Service.
+
+A service has provides the following methods:
 
 * getInputFields() -> seq of InputKeys -- provided so the interface can set up
   forms and the like.
@@ -447,6 +456,19 @@ must not override ``renderHTTP`` and must not try anything like
 they would do in ``renderHTTP`` in a ``startRender`` method and call the
 ``startRender`` method of their superclass when they would normally the
 ``renderHTTP`` of the superclass.
+
+Publication
++++++++++++
+
+Publications are handled via the publications list field of
+service.Service.  Its values are dictionaries with at least the keys
+``type`` (with values vo or web), ``id`` (the short identification for
+the VO, less than 17 chars, though we don't enforce this), and
+``render`` (the renderer used, i.e., the last item in the service path).
+
+These dictionaries end up in gavo.web.servicelist.makeRecord when
+gavopublish runs and are turned into records for the services.services
+table.
 
 
 Interfaces
