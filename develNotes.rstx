@@ -434,6 +434,20 @@ segments pertaining to its rd an service in one go.  Use the
 web.common.parseServicePath function to get the rd and the service name from
 this.
 
+Access control
+++++++++++++++
+
+Services can be "protected" by setting their requiredGroup field.
+ServiceBasedRenderer will then check in its renderHTTP method if
+proper authentication is provided.
+
+For renderers inheriting from ServiceBasedRenderer this means that they
+must not override ``renderHTTP`` and must not try anything like
+``super(cls, self).renderHTTP(...)``.  Instead, they should do whatever
+they would do in ``renderHTTP`` in a ``startRender`` method and call the
+``startRender`` method of their superclass when they would normally the
+``renderHTTP`` of the superclass.
+
 
 Interfaces
 ==========
