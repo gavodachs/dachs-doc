@@ -716,11 +716,23 @@ values and have the following attributes:
 * min, max -- minimum and maximum of acceptable values.  If given, they
   have to be literals of the type given in datadef.
 * nullLiteral -- a literal that maps to a null value on parsing.
+* multiOk -- boolean; if true, queries to these fields may contain
+  more than one value and will match any of these values.
 
 They may have option subelements enumerating legal values (as literals
 in the option element's content).  If both options and min and max are
 given, the option element take precedence (i.e., min and max are
 ignored).
+
+Values can also have a formdb attribute.  currently, this has to be raw
+SQL fitting into a "SELECT DISTINCT" query.  As an example, you could say 
+
+::
+
+  <Values fromdb="filter FROM mytable"/>
+
+It is likely that I'll allow complete SELECT statements later.
+
 
 Literal Forms
 .............
@@ -1063,13 +1075,15 @@ Most aspects of the web interface are configured in the resource
 descriptor.  XXX yadda.
 
 ... To include all default fields (which are those that have a queriable
-type and not a displayHint suppress), say <condDesc/> in the service or
-input adapter.Most aspects of the web interface are configured in the
-resource descriptor.  XXX yadda.
+type, a verbLevel of less than 21 and a displayHint different from
+suppress), say ``<autoCondDescs/>`` in the service or input adapter.  
 
-... To include all default fields (which are those that have a queriable
-type and not a displayHint suppress), say <condDesc/> in the service or
-input adapter.
+To include a single field, say ``<condDesc name="fieldName">``.  This
+will choose an appropriate widget in HTML forms.  In particular, an
+enumerated data field (see `Field Definitions`_) will be shown as a
+drop-down box, floats, dates and strings will become inputs with
+vizier-like expressions.
+
 
 Templates
 *********
