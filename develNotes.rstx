@@ -29,6 +29,22 @@ descriptor, see votabletest.VotableTest:
 If you need to do anything fancy like bypass grammar, you could
 check out servicelist.updateServiceList.
 
+Here's an example of getting data out of a DB via a resource descriptor.
+I guess it's still too gruesome, so I'll hide it behind yet another
+level of abstraction (yikes!):
+
+::
+
+	rd = resourcecache.getRd("__system__/services/services")
+	dd = rd.getDataById("servicelist").copy()
+	targetTable = dd.getRecordDefByName("services")
+	dd.set_Grammar(rowsetgrammar.RowsetGrammar(targetTable.get_items()))
+	data = sqlsupport.SimpleQuerier().query(
+		"SELECT * FROM %s"%(targetTable.get_table())).fetchall()
+	return resource.InternalDataSet(dd, dataSource=data, 
+		tablesToBuild=[targetTable.get_table()]).getPrimaryTable()
+
+
 Internally, the system does the following:
 
 #. DataSet calls its _fillTables method that will create a tableMaker
@@ -461,14 +477,16 @@ Publication
 +++++++++++
 
 Publications are handled via the publications list field of
-service.Service.  Its values are dictionaries with at least the keys
-``type`` (with values vo or web), ``id`` (the short identification for
-the VO, less than 17 chars, though we don't enforce this), and
-``render`` (the renderer used, i.e., the last item in the service path).
+service.Service plus a lot of meta data.  Its values are dictionaries
+with at least the keys ``render`` (the renderer used, i.e., the last
+item in the service path) and ``type``.  The value of type has to be an
+element of a locally controlled vocabulary defined in gavo.web.registry.
+Values include "web" (something that provides a web form), "siap" (a
+siap compliant service).
 
 These dictionaries end up in gavo.web.servicelist.makeRecord when
-gavopublish runs and are turned into records for the services.services
-table.
+gavopublish runs and are turned into records for the tables described by
+``__system__/services/services.vord``.
 
 
 Interfaces
