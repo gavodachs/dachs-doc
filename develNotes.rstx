@@ -303,9 +303,10 @@ that does the actual query and afterwards possibly modified again by
 output filters.
 
 A service does, however, not talk directly to the user.  Each service is
-embedded in a front end so that it could, in principle, be used not only
-via HTTP but also via SMTP, XMP or whatever.  Right now, of cource, we
-mainly deal with error reporting (VO vs. Web).
+embedded in a front end (I guess I'll call it renderer) so that it
+could, in principle, be used not only via HTTP but also via SMTP, XMP or
+whatever.  Right now, of cource, we mainly deal with error reporting (VO
+vs. Web).
 
 A service is constructed with a resource descriptor and a dictionary
 containing initial values for the fields it contains -- however, this
