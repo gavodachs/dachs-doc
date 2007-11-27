@@ -464,15 +464,11 @@ Access control
 ++++++++++++++
 
 Services can be "protected" by setting their requiredGroup field.
-ServiceBasedRenderer will then check in its renderHTTP method if
-proper authentication is provided.
 
-For renderers inheriting from ServiceBasedRenderer this means that they
-must not override ``renderHTTP`` and must not try anything like
-``super(cls, self).renderHTTP(...)``.  Instead, they should do whatever
-they would do in ``renderHTTP`` in a ``startRender`` method and call the
-``startRender`` method of their superclass when they would normally the
-``renderHTTP`` of the superclass.
+Service-based renderers should be constructed through
+resourcebased.getServiceRend and then get (currently, sigh,
+http-basic-based) protection automatically.  Everything else will have
+to use something in web.creds instead.
 
 Publication
 +++++++++++
