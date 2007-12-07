@@ -1,0 +1,119 @@
+digraph G { 
+	overlap="scale";
+	orientation="protrait";
+	rank="sink";
+	rankdir="LR";
+	size="8,11";
+
+subgraph cluster_siaprenderer {
+	label = siaprenderer;
+	SiapRenderer;
+}
+
+subgraph cluster_resourcebased {
+	label = "resourcebased";
+	"rb.Form";
+	GavoFormMixin;
+	ResourceBasedRenderer -> DataBasedRenderer;
+	ResourceBasedRenderer -> ServiceBasedRenderer;
+	VoTableResponse;
+	HtmlResponse;
+	BaseResponse -> HtmlResponse;
+	BaseResponse -> VoTableResponse;
+	ServiceBasedRenderer -> BaseResponse;
+}
+
+subgraph "cluster_web.common" {
+	label = "web.common";
+	CustomErrorMixin;
+	GavoRenderMixin;
+	QueryMeta;
+	CoreResult;
+	CustomTemplateMixin;
+}
+
+subgraph cluster_core {
+	label = "web.core";
+	Core;
+}
+
+subgraph cluster_dispatcher {
+	label = "web.dispatcher";
+	ErrorPageDebug -> ErrorPage;
+	ArchiveService;
+}
+
+subgraph cluster_gwidgets {
+	label = "web.gwidgets";
+	OutputOptins;
+	DbOptions;
+	FormalDict;
+	SimpleSelectChoice;
+	MultichoiceBase -> MultiselectChoice -> SimpleMultiSelectChoice;
+}
+
+subgraph cluster_htmltable {
+	label = "web.htmltable";
+	FormatterFactory;
+	HtmlTableFragment;
+}
+
+subgraph cluster_product {
+	label = "web.product";
+	Product;
+}
+
+subgraph cluster_standardcores {
+	label = "web.standardcores";
+	CondDesc;
+	CondDesc -> CondDescFromRd;
+	QueryingCore;
+	ComputedCore;
+	QueryingCore -> DbBasedCore;
+}
+
+subgraph cluster_record {
+	Record;
+}
+
+subgraph cluster_standardcores {
+	label = "web.standardcores";
+	DbBasedCore;
+}
+
+subgraph cluster_formal {
+	label = "nevow formal";
+	ResourceMixin;
+}
+
+subgraph "cluster_nevow.rend" {
+	label = "nevow rend";
+	Page;
+	Fragment;
+}
+
+	CustomErrorMixin -> SiapRenderer;
+	"rb.Form" -> SiapRenderer;
+	GavoFormMixin -> 	"rb.Form";
+	ServiceBasedRenderer -> 	"rb.Form";
+	ResourceMixin -> 	GavoFormMixin;
+	GavoRenderMixin -> 	ResourceBasedRenderer;
+	Page -> 	ResourceBasedRenderer;
+	CustomTemplateMixin -> 	ResourceBasedRenderer;
+
+	Page -> ErrorPageDebug;
+	CustomTemplateMixin -> ArchiveService;
+	GavoRenderMixin -> ArchiveService;
+	Page -> ArchiveService;
+
+	Fragment -> HtmlTableFragment;
+
+	DbBasedCore -> Product;
+
+	Record -> CondDesc;
+	Record -> Core;
+
+	Core->QueryingCore;
+	Core->ComputedCore;
+
+}
