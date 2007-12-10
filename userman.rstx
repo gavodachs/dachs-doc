@@ -1066,7 +1066,47 @@ include:
   or whatever.
 * _query_status -- an InfoItem for SIAP-like error reporting (you can't
   currently generate these using resource descriptors)
- 
+
+
+Metadata
+========
+
+Metadata is given in meta elements in the resource descriptor or in the
+meta section of the config file.  Metadata queries are cascaded, i.e.,
+handed "upwards" until something can satisfy them.  The meta items in
+the config file are always toplevel and thus give a "fallback".  Take
+care what you put there.
+
+Metadata is always a mapping from a string and mostly goes to a simple
+string.  In resource descriptors, you can specify a format for metadata.
+This currently can be plain (which causes whitespace to be normalized
+at usage time; thus, you'll probably want this as soon
+as there's a line break in the value) or literal (the default, leaving
+all whitespace as it is).
+
+The standard metadata keys are taken from Dublin core and
+[RMI]_.  There are a few local metadata keys, and with custom templates
+you can also use your own metadata keys.
+
+Here is a list of the standard metadata keys used by the registry and/or
+web infrastructure:
+
+* contributor [DC]
+* coverage [DC]  -- not currently evaluated
+* creator [DC]
+* date [DC] -- not used, since date information always comes from other
+  sources
+* description [DC]
+* format [DC] -- not currently evaluated
+* identifier [DC] -- not used, always computed from shortName
+* language [DC]
+* publisher [DC]
+* relation [DC] -- not currently evaluated
+* rights [DC]
+* source [DC] -- not currently evaluated
+* subject [DC]
+* title [DC]
+* type [DC]
 
 The Web Interface
 =================

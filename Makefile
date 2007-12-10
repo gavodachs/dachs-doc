@@ -15,3 +15,6 @@ install: html
 
 clean:
 	rm -f $(ALL_HTML)
+
+classes.ps: classes.dot
+	dot -T ps < $< > $@
