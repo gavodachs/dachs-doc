@@ -1,6 +1,7 @@
 HTMLTARGET=vo:/var/www/docs/python-gavo
 
-ALL_HTML=userman.html querulator_devel.html querulator_user.html develNotes.html
+ALL_HTML=userman.html querulator_devel.html querulator_user.html \
+	develNotes.html data_checklist.html
 
 %.html: %.rstx
 	../bin/expandRstx.py < $< | rst2html >$@

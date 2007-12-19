@@ -1,0 +1,404 @@
+Data needed from data providers
+===============================
+
+* title
+* suggestion for a short name (less than 16 characters)
+* creator name (possibly logo)
+* possibly a version
+* subjects (see below)
+* description (a couple of lines max.)
+* possibly source (a bibcode for a publication on the stuff)
+* referenceURL (a URL with more info on the data.  If none is provided,
+  the DC software will insert the URL of the query page, which is
+  usually not what you want)
+* possibly facility (organization the data was obtained at)
+* possibly instrument (instrument the data was obtained with)
+* possibly coverage (that's obviously a difficult concept, so let's
+  ignore that for the time being)
+* copyright information (whom to reference, terms of use, etc.)
+
+Subjects
+--------
+
+I'd suggest to select keywords from the list of journal keywords; at the
+time of writing, these included:
+
+General
+'''''''
+
+* Editorials notices
+* Errata, addenda
+* Extraterrestrial intelligence
+* History and philosophy of astronomy
+* Miscellaneous
+* Obituaries, biographies
+* Publications, bibliography
+* Sociology of Astronomy
+* Standards
+
+Physical data and processes
+'''''''''''''''''''''''''''
+
+* Astrobiology
+* Astrochemistry
+* Acceleration of particles
+* Accretion, accretion disks
+* Atomic data
+* Atomic processes
+* Black hole physics
+* Chaos
+* Conduction
+* Convection
+* Dense matter
+* Diffusion
+* Elementary particles
+* Equation of state
+* Gravitation
+* Gravitational lensing
+* Gravitational waves
+* Hydrodynamics
+* Instabilities
+* Line: formation
+* Line: identification
+* Line: profiles
+* Magnetic fields
+* Magnetohydrodynamics (MHD)
+* Masers
+* Molecular data
+* Molecular processes
+* Neutrinos
+* Nuclear reactions, nucleosynthesis, abundances
+* Plasmas
+* Polarization
+* Radiation mechanisms: general
+* Radiation mechanisms: non-thermal
+* Radiation mechanisms: thermal
+* Radiative transfer
+* Relativity
+* Scattering
+* Shock waves
+* Stellar dynamics
+* Turbulence
+* Waves
+
+Astronomical instrumentation, methods and techniques
+''''''''''''''''''''''''''''''''''''''''''''''''''''
+
+* Atmospheric effects
+* Balloons
+* Instrumentation: adaptive optics
+* Instrumentation: detectors
+* Instrumentation: high angular resolution
+* Instrumentation: interferometers
+* Instrumentation: miscellaneous
+* Instrumentation: photometers
+* Instrumentation: polarimeters
+* Instrumentation: spectrographs
+* Light pollution
+* Methods: analytical
+* Methods: data analysis
+* Methods: laboratory
+* Methods: miscellaneous
+* Methods: N-body simulations
+* Methods: numerical
+* Methods: observational
+* Methods: statistical
+* Site testing
+* Space vehicles
+* Space vehicles: instruments
+* Techniques: high angular resolution
+* Techniques: image processing
+* Techniques: interferometric
+* Techniques: miscellaneous
+* Techniques: photometric
+* Techniques: polarimetric
+* Techniques: radar astronomy
+* Techniques: radial velocities
+* Techniques: spectroscopic
+* Telescopes
+
+Astronomical data bases
+'''''''''''''''''''''''
+
+* Astronomical data bases: miscellaneous
+* Atlases
+* Catalogs
+* Surveys
+
+Astrometry and celestial mechanics
+''''''''''''''''''''''''''''''''''
+
+* Astrometry
+* Celestial mechanics
+* Eclipses
+* Ephemerides
+* Occultations
+* Reference systems
+* Time
+
+The Sun
+'''''''
+
+* Sun: abundances
+* Sun: activity
+* Sun: atmosphere
+* Sun: chromosphere
+* Sun: corona
+* Sun: coronal mass ejections (CMEs)
+* Sun: evolution
+* Sun: faculae, plages
+* Sun: filaments
+* Sun: flares
+* Sun: fundamental parameters
+* Sun: general
+* Sun: granulation
+* Sun: helioseismology
+* Sun: infrared
+* Sun: interior
+* Sun: magnetic fields
+* Sun: oscillations
+* Sun: particle emission
+* Sun: photosphere
+* Sun: prominences
+* Sun: radio radiation
+* Sun: rotation
+* (Sun:) solar-terrestrial relations
+* (Sun:) solar wind
+* (Sun:) sunspots
+* Sun: transition region
+* Sun: UV radiation
+* Sun: X-rays, gamma rays
+
+Solar system
+''''''''''''
+
+* Comets: general
+* Comets: individual: ...
+* Earth
+* Interplanetary medium
+* Kuiper Belt
+* Meteors, meteoroids
+* Minor planets, asteroids
+* Moon
+* Oort Cloud
+* Planets: rings
+* Planets and satellites: general
+* Planets and satellites: formation
+* Planets and satellites: individual: ...
+* (alphabetic order)
+* Solar system: formation
+* Solar system: general
+
+Stars
+'''''
+
+* Stars: abundances
+* Stars: activity
+* Stars: AGB and post-AGB
+* Stars: atmospheres
+* (Stars:) binaries (including multiple): close
+* (Stars:) binaries: eclipsing
+* (Stars:) binaries: general
+* (Stars:) binaries: spectroscopic
+* (Stars:) binaries: symbiotic
+* (Stars:) binaries: visual
+* (Stars:) blue stragglers
+* Stars: carbon
+* Stars: chemically peculiar
+* Stars: chromospheres
+* (Stars:) circumstellar matter
+* Stars: coronae
+* Stars: distances
+* Stars: dwarf novae
+* Stars: early-type
+* Stars: emission-line, Be
+* Stars: evolution
+* Stars: flare
+* Stars: formation
+* Stars: fundamental parameters (classification, colors, luminosities, masses, radii, temperatures, etc.)
+* Stars: general
+* (Stars:) Hertzsprung-Russell (HR) and C-M
+* diagrams
+* Stars: horizontal-branch
+* Stars: imaging
+* Stars: individual: ...
+* Stars: interiors
+* Stars: kinematics
+* Stars: late-type
+* Stars: low-mass, brown dwarfs
+* Stars: luminosity function, mass function
+* Stars: magnetic fields
+* Stars: mass-loss
+* Stars: neutron
+* (Stars:) novae, cataclysmic variables
+* Stars: oscillations (including pulsations)
+* Stars: peculiar (except chemically peculiar)
+* (Stars:) planetary systems
+* (Stars:) planetary systems: formation
+* (Stars:) planetary systems: protoplanetary disks
+* Stars: Population II
+* Stars: pre-main sequence
+* (Stars:) pulsars: general
+* (Stars:) pulsars: individual ...
+* Stars: rotation
+* (Stars:) starspots
+* Stars: statistics
+* (Stars:) subdwarfs
+* (Stars:) supergiants
+* (Stars:) supernovae: general
+* (Stars:) supernovae: individual: ...
+* (Stars: variables:) Cepheids
+* (Stars: variables:) $\delta$ Sct
+* Stars: variables: general
+* Stars: variables: RR Lyr
+* (Stars:) white dwarfs
+* Stars: winds, outflows
+* Stars: Wolf-Rayet
+
+Interstellar medium (ISM), nebulae
+''''''''''''''''''''''''''''''''''
+* ISM: abundances
+* ISM: atoms
+* ISM: bubbles
+* ISM: clouds
+* (ISM:) cosmic rays
+* (ISM:) dust, extinction
+* (ISM:) evolution
+* ISM: general
+* (ISM:) HII regions
+* (ISM:) Herbig-Haro objects
+* ISM: individual objects: ...
+* (except planetary nebulae)
+* ISM: jets and outflows
+* ISM: kinematics and dynamics
+* ISM: lines and bands
+* ISM: magnetic fields
+* ISM: molecules
+* (ISM:) planetary nebulae: general
+* (ISM:) planetary nebulae: individual: ...
+* (ISM:) reflection nebulae
+* ISM: structure
+* ISM: supernova remnants
+
+The Galaxy
+''''''''''
+* Galaxy: abundances
+* Galaxy: bulge
+* Galaxy: center
+* Galaxy: disk
+* Galaxy: evolution
+* Galaxy: formation
+* Galaxy: fundamental parameters
+* Galaxy: general
+* (Galaxy:) globular clusters: general
+* (Galaxy:) globular clusters: individual: ...
+* Galaxy: halo
+* Galaxy: kinematics and dynamics
+* Galaxy: nucleus
+* (Galaxy:) open clusters and associations:
+* general
+* (Galaxy:) open clusters and associations:
+* individual: ...
+* (Galaxy:) solar neighbourhood
+* Galaxy: stellar content
+* Galaxy: structure
+
+Galaxies
+''''''''
+
+* Galaxies: abundances
+* Galaxies: active
+* (Galaxies:) BL Lacertae objects: general
+* (Galaxies:) BL Lacertae objects:
+* individual: ...
+* Galaxies: bulges
+* Galaxies: clusters: general
+* Galaxies: clusters: individual: ...
+* (Galaxies:) cooling flows
+* Galaxies: distances and redshifts
+* Galaxies: dwarf
+* Galaxies: elliptical and lenticular, cD
+* Galaxies: evolution
+* Galaxies: formation
+* Galaxies: fundamental parameters
+* (classification, colors, luminosities,
+* masses, radii, etc.)
+* Galaxies: general
+* Galaxies: halos
+* Galaxies: high-redshift
+* Galaxies: individual: ...
+* Galaxies: interactions
+* (Galaxies:) intergalactic medium
+* Galaxies: irregular
+* Galaxies: ISM
+* Galaxies: jets
+* Galaxies: kinematics and dynamics
+* (Galaxies:) Local Group
+* Galaxies: luminosity function, mass function
+* (Galaxies:) Magellanic Clouds
+* Galaxies: magnetic fields
+* Galaxies: nuclei
+* Galaxies: peculiar
+* Galaxies: photometry
+* (Galaxies:) quasars: absorption lines
+* (Galaxies:) quasars: emission lines
+* (Galaxies:) quasars: general
+* (Galaxies:) quasars: individual: ...
+* Galaxies: Seyfert
+* Galaxies: spiral
+* Galaxies: starburst
+* Galaxies: star clusters
+* Galaxies: statistics
+* Galaxies: stellar content
+* Galaxies: structure
+
+Cosmology
+'''''''''
+
+* (Cosmology:) cosmic microwave background
+* (Cosmology:) cosmological parameters
+* Cosmology: miscellaneous
+* Cosmology: observations
+* Cosmology: theory
+* (Cosmology:) dark matter
+* (Cosmology:) diffuse radiation
+* (Cosmology:) distance scale
+* (Cosmology:) early Universe
+* (Cosmology:) large-scale structure of Universe
+
+Sources as a function of wavelength
+'''''''''''''''''''''''''''''''''''
+
+* Gamma rays: bursts
+* Gamma rays: observations
+* Gamma rays: theory
+* Infrared: galaxies
+* Infrared: general
+* Infrared: ISM
+* Infrared: solar system
+* Infrared: stars
+* Radio continuum: galaxies
+* Radio continuum: general
+* Radio continuum: ISM
+* Radio continuum: solar system
+* Radio continuum: stars
+* Radio lines: galaxies
+* Radio lines: general
+* Radio lines: ISM
+* Radio lines: solar system
+* Radio lines: stars
+* Submillimeter
+* Ultraviolet: galaxies
+* Ultraviolet: general
+* Ultraviolet: ISM
+* Ultraviolet: solar system
+* Ultraviolet: stars
+* X-rays: binaries
+* X-rays: bursts
+* X-rays: diffuse background
+* X-rays: galaxies
+* X-rays: galaxies: clusters
+* X-rays: general
+* X-rays: individuals: ...
+* X-rays: ISM
+* X-rays: stars
