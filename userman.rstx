@@ -663,7 +663,39 @@ Currently defined macros are:
 Constraints
 ***********
 
-XXX TBD
+To keep out "broken" records, you can formulate constraints.
+Constraints can be formulated at the level of dictionaries and assert
+certain properties of these.  If you embed a constraints element into a
+grammar, rowdicts will be checked, if you embed them into a Record,
+records will be checked.
+
+A constraint consists of one or more conditions.  The constraint to
+satisfies if any of the conditions evaluate to true.  The following
+conditions are defined:
+
+.. !! python ../gavo/parsing/conditions.py docs
+
+A constraint should have a name attribute -- if a constraint fails to
+satisfy, this name is given in the message.
+
+If a constraint fails to satisfy, the record in question will be
+skipped.  You can build a constraint with the fatal attribute which will
+raise a ValidationError that will typically stop processing.
+
+To use constraints, embed a constraints element into a Record or Grammar 
+element:
+
+::
+
+    <constraints>
+      <constraint name="subject given">
+        <condition type="keyPresent" name="subject"/>
+      </constraint>
+      <constraint name="broken record present" fatal="True">
+        <condition type="valueNotEqual" name="status" value="ok"/>
+      </constraint>
+    </constraints>
+
 
 Semantics
 *********
