@@ -359,6 +359,32 @@ base-<platform>, and if on the respective platform, that binary will be
 used. This also works for computed resources using binaries.  
 
 
+The Portal
+**********
+
+The root URL of the data center should return a page that explains what
+the site is all about and ideally list what's available.  The template
+for this page is
+located in root.html in templateDir (which defaults to
+GAVO_ROOT/web/templates and is defined in the web section of config).
+A list of services in alphabetic order can be obtained using something
+like
+
+::
+
+		<div id="servicelist" n:data="chunkedServiceList" n:render="sequence">
+			<n:invisible n:pattern="item" n:render="mapping">
+				<h3><n:slot name="char"/>...</h3>
+				<ul n:data="chunk" n:render="sequence">
+					<li n:pattern="item" n:render="mapping">
+						<a n:render="serviceURL"/>
+						<span n:render="ifprotected">[P]</span>
+					</li>
+				</ul>
+			</n:invisible>
+		</div>
+
+
 
 Importing a resource
 ====================
