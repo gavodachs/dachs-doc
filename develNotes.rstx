@@ -624,6 +624,25 @@ be hard to retrofit it to pypgsql, but I can't see much sense in doing
 this.
 
 
+Test Plan
+=========
+
+(mostly ARI-specific)
+
+Before any commit, run trunk/tests/runtests.sh (this will start a local
+postgres used just for testing).  It runs unit tests independent of any
+DB content.
+
+trunk/utils/roughtest.py requires the configured dc service to run and
+depends on ARI-local data.  Run it if you're developing at ARI, build
+your own if you're anywhere else.
+
+When you changed anything on the registry, run
+trunk/utils/registryrest.py.  It also contains ARI-specific stuff.
+
+Then mirror the stuff using ~/gavo/mirror.sh.  Restart the DC on
+alnilam, run roughtest.py on tucana.  If all is well, do the commit.
+
 Scrap
 =====
 
