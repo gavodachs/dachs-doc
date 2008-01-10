@@ -1,0 +1,134 @@
+DirectGrammars and Boosters
+===========================
+
+/!\ Boosters only work with psycopg newer than 2.0.5.  This is not the
+default version in etch, so you'll need to use a backport for boosters.
+They do not work at all with pypgsql.
+
+A DirectGrammar is some program that gets called by the ingestor and
+outputs binary COPY material to be dumped into the table to stdout.
+Note that, by these restrictions, direct grammars can only operate on
+single tables; data sets containing more than one Record cannot have
+direct grammars.  The record definition of the table to be filled in
+this way must have onDisk="true".
+
+This program can in principle be anything you like, but usually they are
+written in C using the boosterskel infrastructure
+(resources/src/boosterskel.c).  This infrastructure yields programs that
+expect to be called with a single argument, the source file to operate
+on.
+
+To use a booster, say
+
+::
+
+  <DirectGrammar cbooster="path"/>
+
+in your data descriptor.  Path is interpreted resdir-relative.
+
+Writing a booster
+-----------------
+
+To write a booster, first define the table.  You can already specify the
+DirectGrammar as noted above.  Then call gavomkboost with the id or the
+path to the resource descriptor and the id of the data, e.g.
+
+::
+
+  gavomkboost ppmx/res/ppmx data
+
+This will write template code to stdout.  Place it anywhere (use the
+convention of putting it in res/boosterfunc.c unless you have a good
+reason to do otherwise).
+
+The template code starts like this:
+
+::
+
+  #include <math.h>
+  #include "boosterskel.h"
+
+  #define QUERY_N_PARS 33
+
+  enum outputFields {
+    fi_localid,              /* Identifier, text */
+    fi_pmra,                 /* PM (alpha), real */
+    fi_pmde,                 /* PM (delta), real */
+
+You can add includes as you need them.  The definition of QUERY_N_PARS
+(which is the number of columns in the table) is essential and must not
+be edited or removed, since the function building the booster greps it out of
+the source code to communicate this value to the booster boilerplate.
+
+Then the code contains an enumeration of the field indices; the names are
+simple fi_ and the field destination lowercased.  If you only use these
+names to access fields, the cut'n'paste effort on changes of the table
+structure should be manageable.
+
+While you shouldn't need to change any of this, you have to change the
+function that follows:
+
+::
+
+  Field *getTuple(char *inputLine)
+  {
+    static Field vals[QUERY_N_PARS];
+
+    parseWhatever(inputLine, F(fi_localid), start, end);
+    parseFloat(inputLine, F(fi_pmra), start, end);
+    parseFloat(inputLine, F(fi_pmde), start, end);
+    parseFloat(inputLine, F(fi_raerr), start, end);
+
+Here, it's your job to assign the proper values to the Fields in val.
+Field is defined as follows:
+
+::
+
+  typedef struct Field_s {
+    valType type;
+    int length; /* ignored for anything but VAL_TEXT */
+    union {
+      char *c_ptr;
+      double c_double;
+      float c_float;
+      int32_t c_int32;
+      int8_t c_int8;
+    } val;
+  } Field;
+
+where type is one of
+
+::
+
+  typedef enum valType_e {
+    VAL_NULL,
+    VAL_BOOL,
+    VAL_CHAR,
+    VAL_INT,
+    VAL_FLOAT,
+    VAL_DOUBLE,
+    VAL_TEXT,
+    VAL_JDATE,
+  } valType;
+
+You can, and frequently will, fill the stuff by hand.  There are,
+however, a couple of functions that care about some standard situations,
+in particular when parsing column-structured text files:
+
+* void linearTransform(Field *field, double offset, double factor) --
+  changes field in place to offset+factor*oldValue.  Handles NULL
+  correctly, silently does nothing for anything non-numeric
+* void parseFloatWithMagicNULL(char *src, Field *field, int start, int
+  len, char *magicVal) -- parses a float from src[start:start+len] into
+  field, writing NULL when magicVal is found in the field.
+* void parseDouble(char *src, Field *field, int start, int len) --
+  parses a double from src[start:start+len] into field, writing NULL if it's empty
+* void parseInt(char *src, Field *field, int start, int len) -- parses a
+  32-bit in into field.
+* void parseBlankBoolean(char *src, Field *field, int srcInd) -- parses
+  a boolean such that field becomes true when src[srcInd] is nonempty.
+* void parseString(char *src, Field *field, int start, int len, char
+  *space) -- copies len bytes starting at start from src into space (you
+  are responsible for allocating that!) and stuffs the whole thing into
+  field.
+* void parseChar(char *src, Field *field, int srcInd) -- guess.
