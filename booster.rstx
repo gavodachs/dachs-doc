@@ -26,6 +26,23 @@ To use a booster, say
 
 in your data descriptor.  Path is interpreted resdir-relative.
 
+Input Formats
+-------------
+
+By default a booster expects to read from a text file.  Currently, the
+maximum line length is set to 4000 (INPUT_LINE_MAX in boosterskel.c).
+
+To handle binary data of fixed record length, set the recordSize
+attribute on the DirectGrammar element:
+
+::
+
+  <DirectGrammar cbooster="path" recordSize="300"/>
+
+Note that  recordSizes larger than INPUT_LINE_MAX will cause a buffer
+overflow.
+
+
 Writing a booster
 -----------------
 
