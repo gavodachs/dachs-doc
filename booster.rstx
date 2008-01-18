@@ -42,19 +42,31 @@ attribute on the DirectGrammar element:
 Note that  recordSizes larger than INPUT_LINE_MAX will cause a buffer
 overflow.
 
+Aonther type of booster reads from text files, but the fields are not
+defined by extent but by seperator characters.  For the booster
+environment, this doesn't make any difference, so you don't need to
+declare it.  The booster itself should be generated using the -s flag to
+gavomkboost
+
+
 
 Writing a booster
 -----------------
 
 To write a booster, first define the table.  You can already specify the
-DirectGrammar as noted above.  Then call gavomkboost with the id or the
+DirectGrammar as noted above.  
+
+Then call gavomkboost with the id or the
 path to the resource descriptor and the id of the data, e.g.
 
 ::
 
   gavomkboost ppmx/res/ppmx data
 
-This will write template code to stdout.  Place it anywhere (use the
+This will write template code for a column-based source to stdout.  See
+below on what to do when your source has a different format.
+
+Place the template code anywhere (use the
 convention of putting it in res/boosterfunc.c unless you have a good
 reason to do otherwise).
 
@@ -149,3 +161,27 @@ in particular when parsing column-structured text files:
   are responsible for allocating that!) and stuffs the whole thing into
   field.
 * void parseChar(char *src, Field *field, int srcInd) -- guess.
+
+
+Boosters reading from binary data
+---------------------------------
+
+Your booster can also read from binary data.  You are mainly on your own
+in terms of segmentation, but for entering values, you can use the
+following macros:
+
+* MAKE_NULL(fi) -- makes fi NULL
+* MAKE_DOUBLE(fi, value) -- make fi a double with value
+* MAKE_FLOAT(fi, value) -- 
+* MAKE_SHORT(fi, value) -- 
+* MAKE_CHAR(fi, value) --
+* MAKE_CHAR_NULL(fi, value, nullvalue) -- makes fi a char with value
+  unless value==nullvalue; in that case, fi becomes a NULL
+
+
+Boosters reading from seperated data
+------------------------------------
+
+When your data comes in irregular fields split by a certain character,
+XXX
+
