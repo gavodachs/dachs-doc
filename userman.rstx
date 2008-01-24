@@ -502,9 +502,6 @@ ColumnGrammars have the following attributes:
 
 * topIgnoredLines -- skip that many lines at the top (for table headings
   and similar detritus.
-* booster -- this allows using a C program to stand in for the grammar.
-  This is only interesting for large data sets.  There's a perliminary
-  implementation for these, but it's still very rough.
 
 Note that ColumnGrammars support symbolic names if you give them in
 Macros.  If everything in a preterminal is whitespace, a NULL value is
@@ -533,6 +530,60 @@ would then produce two records.  Within the first, the preterminal
 the preterminal 20 would be a, etc.  In the second record, ``mag`` would
 be ``NULL``, as would be 13-14, 15, etc., because all of them only
 contain whitespace.
+
+
+CustomGrammars
+..............
+
+These allow hand-written python classes to stand in as a grammar.  To
+use a CustomGrammar, say something like
+
+::
+
+ 		<CustomGrammar module="res/grammar" imageDimension="1000"
+			firstMagpat="8" magpatFile="data/offsets" sourcePat="data/MAGPAT*"/>
+
+This will look for a module grammar.py in the res subdirectory of the
+resource directory as specified in the resource descriptor.  This module
+has to define a function
+
+::
+
+  getGrammar(parentDD, userAttrs, initvals) -> grammar object
+
+parentDD is the data descriptor the grammar belongs to, userAttrs is a
+dictionary mapping the keywords given in the grammar declaration to
+their (string) values, and initvals is a dictionary mapping the standard
+grammar items (e.g., macro) to their values.  The object returned must
+as least have parse(parseContext) and _setupParse(parseContext) methods.
+
+Usually, however, you should inherit the grammar from
+customgrammar.UserGrammar like this:
+
+::
+
+  class LCGrammar(customgrammar.UserGrammar):
+    def __init__(self, parentDD, userAttrs, initvals):
+      super(LCGrammar, self).__init__(parentDD, userAttrs, initvals)
+
+This will give you attributes parentDD and userAttrs of your grammar
+object to play with.
+
+You can then override the _iterRows(parseContext) method if necessary,
+_getDocdict and _setupParse are other interesting hooks).  It should be
+a generator returning dictionaries mapping the keys defined in the
+associated record(s) to string values.
+
+By defining CustomGrammars in this way, you get macro processing for
+free.
+
+With custom grammars, the token attribute of data definitions are
+frequently useful.  Normally, you get one parse context per file
+matched, and you cannot pass directories.  A token given in the data
+descriptor declaration (<Data token="foo/bar">) is passed literally
+without inspection and is available as the sourceName attribute of the
+parseContext.
+
 
 FitsGrammars
 ............
