@@ -1325,6 +1325,17 @@ The following additional renderers are available:
   limit.
 
 
+Common Error Conditions
+=======================
+
+* "primary key <whatever> could not be added" -- this is most likely due
+  to duplicate entries with the same values for the primary key.  To
+  find out which these are, import the table without the primary
+  definition and then do a query like ``select counts.f1, counts.f1 from
+  (select f1, f2, count(*) as size from mytable group by f1,f2) as 
+  counts where counts.size>1`` -- this would be for a primary key
+  consisting of f1 and f2 on mytable.
+
 References
 ==========
 
