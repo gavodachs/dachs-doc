@@ -1047,10 +1047,18 @@ Scripts
 
 Some things simply aren't worth abstracting away.  Therefore, you can
 embed raw code in resource descriptors.  Clearly, you should only do
-that when there's no better choice, in particular if you you
+that when there's no better choice, in particular if you use
 non-portable SQL and the like.  All script elements must have one attribute,
 type.  It identifies what kind of script we're dealing with and when to
-run it.  Right now, there's only one type, postCreation.
+run it.  Known types include:
+
+ * preCreation -- SQL executed before a DataDescriptor is being handled.
+ * postCreation -- SQL executed after a DataDescriptor or a
+   ResourceDescriptor (whatever element contains the script) is
+   imported.
+ * processTable -- a python function with access to the data descriptor
+   dataDesc and the dbapi2 connection connection that can postprocess
+   or fill a table using python statements.
 
 Scripts should have a second attribute, name.  Its value is up to you
 and is only used for display purposes.
