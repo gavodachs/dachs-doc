@@ -155,7 +155,7 @@ you'll need to adjust the DB configuration files mentioned below):
 
 ::
 
-  sudo -u postgres createdb gavo  # creates the database that'll hold your data
+  sudo -u postgres createdb --encoding=UTF-8 gavo  # creates the database that'll hold your data
   # create the user that feeds the db...
   sudo -u postgres createuser -P -ADSr gavoadmin
   # and a user that usually has no write privileges
@@ -188,6 +188,10 @@ database; you do this using the command line interface to postgres:
 
   sudo -u postgres psql gavo
   GRANT ALL ON DATABASE gavo TO gavoadmin;
+
+For the individual tables, rights to gavo and untrusted are granted by
+gavoimp, so you do not need to specify any rights for them.
+
 
 Configuration
 *************
@@ -569,7 +573,7 @@ customgrammar.UserGrammar like this:
 This will give you attributes parentDD and userAttrs of your grammar
 object to play with.
 
-You can then override the _iterRows(parseContext) method if necessary,
+You can then override the _iterRows(parseContext) method (if necessary,
 _getDocdict and _setupParse are other interesting hooks).  It should be
 a generator returning dictionaries mapping the keys defined in the
 associated record(s) to string values.
@@ -584,6 +588,8 @@ descriptor declaration (<Data token="foo/bar">) is passed literally
 without inspection and is available as the sourceName attribute of the
 parseContext.
 
+The current resource directory can be obtained from
+self.parentDD.rD.get_resdir().
 
 FitsGrammars
 ............
@@ -926,7 +932,7 @@ definition for the product table as an example:
 
 ::
 
-.. !!sed -e 's/^/  /' ../resources/inputs/products/products.vord
+.. !!sed -e 's/^/  /' ../resources/inputs/__system__/products/products.vord
 
 Since the record definition of a shared table is present in all
 resource descriptors contributing to the table, it is likely
