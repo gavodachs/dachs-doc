@@ -1150,7 +1150,7 @@ The following interfaces are defined:
 .. !!python ../gavo/interfaces.py docs
 
 
-TODO: row processors, schema, meta, constraints,
+TODO: row processors, schema, constraints,
 
 
 Meta Information
@@ -1187,29 +1187,78 @@ include:
 * _intro -- a more verbose description of the entity.
 * _infolink -- a link to static information on the service, the result,
   or whatever.
-* _query_status -- an InfoItem for SIAP-like error reporting (you can't
-  currently generate these using resource descriptors)
+* _type -- will add a type attribute to a VOTable resource.
 
 
-Metadata
-========
+Metadata is either given in 
 
-Metadata is given in meta elements in the resource descriptor or in the
-meta section of the config file.  Metadata queries are cascaded, i.e.,
+* meta elements in the resource descriptor or in the
+* meta section of the config file.  
+
+Meta elements can be nested, e.g., like this:
+
+::
+
+  <meta name="contact">
+    <meta name="name">GAVO data center</meta>
+    <meta name="telephone">++49 6221 541837</name>
+  </meta>
+
+This results in the keys contact.name and contact.telephone being
+filled.  You can give repeated values for the same key.  These will be
+entered into a sequence.
+
+Meta sections in the config file are
+written as key/value pairs like this:
+
+::
+
+  subject: Catalogues
+  subject: Galaxy Clusters
+  coverage.spectral.minimumWavelength: 300nm
+  coverage.spectral.maximumWavelength: 4nm
+
+Setting the same item twice builds a sequence of meta items.  To build a
+sequence of compounds, give an empty root.  If, in the example above,
+you wanted to add a second coverage.spectral item, you could say:
+
+::
+  coverage.spectral:
+  coverage.spectral.minimumWavelength: 2km
+  coverage.spectral.maximumWavelength: 75m
+
+
+Metadata queries are cascaded, i.e.,
 handed "upwards" until something can satisfy them.  The meta items in
 the config file are always toplevel and thus give a "fallback".  Take
 care what you put there.
 
-Metadata is always a mapping from a string and mostly goes to a simple
-string.  In resource descriptors, you can specify a format for metadata.
-This currently can be plain (which causes whitespace to be normalized
-at usage time; thus, you'll probably want this as soon
-as there's a line break in the value) or literal (the default, leaving
-all whitespace as it is).
+In resource descriptors, you can specify a format for metadata.
+This currently can be plain (the default; this causes whitespace to be
+normalized), literal (leaving all whitespace as it is), or rst (which
+causes the content to be interpreted as restructured text.
 
 The standard metadata keys are taken from Dublin core and
 [RMI]_.  There are a few local metadata keys, and with custom templates
 you can also use your own metadata keys.
+
+There are a few shortcuts to represent common types of compound metadata
+in one meta item.  Right now, the most useful probably is a link that,
+for rendering purposes, may be furnished with a title.  This could look
+like this:
+
+::
+
+  <meta name="_related" type="link" title="The accompanying paper">
+    http://arxiv.org/whatever</meta>
+
+or, in config-style, if _related is registered as a link (which it is):
+
+::
+
+  _related: http://arxiv.org/whatever
+  _related.title: The accompanying paper
+
 
 Here is a list of the standard metadata keys used by the registry and/or
 web infrastructure:
@@ -1230,6 +1279,10 @@ web infrastructure:
 * subject [DC]
 * title [DC]
 * type [DC]
+* _related
+* _copyright
+* XXX list more
+
 
 The Web Interface
 =================

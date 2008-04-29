@@ -138,29 +138,40 @@ RecordDef, instances.  All these mix in the parsing.meta.MetaMixin
 providing getMeta and addMeta methods.
 
 It is the metadata containers' responsibility to choose their parents
-and children.  They or their parents have to call the setMetaParent
-method.
+and children.  For this purpose, they have have to call a child's
+setMetaParent method when they notice a Meta-carrying child is being
+added.
 
-MetaMixin helps a bit: When the setMetaParent method is called, it
-calls the registerAsMetaParent() method that can be overridden to
-register the object as a parent to all children.  In this way the meta
-relations within a ResourceDescriptor are established after construction
-is finished.
+Our Metadata implementation has to deal with
+
+* Sequences of metadata -- there may be more than one item for a keyword,
+	e.g. for "subject".
+* Compound metadata -- items may consist of various sub-items (e.g.,
+	coverage, creator)
+* There may be sequences of compound objects
+* The metadata should be sanely serializable into at least plain text,
+	html, and VOResource
+* At least XML and key/value pairs should be supported as input
+* Handover: Metadata containers are hierarchical -- a service might be
+	derived from a data set, which in turn sits within a resource descriptor.
+	If the service doesn't have a piece of metadata, it has to hand over
+	the question to its parent.  
+* To keep the complexity of the meta trees down, we want certain types
+  common types of metadata; for example, we generally don't want
+  the title to be metadata for a link but rather keep it in the link
+  meta value itself.
+
+This results in a rather messy implementation and an interface that's
+not really optimal.
 
 
 Describing Metadata
 +++++++++++++++++++
 
-We don't have types on metadata, and thus metadata is (at least at
-first) flat.  To introduce hierarchy, there is attachment of
-metadata to (hierarchically organized) entities (see `Getting
-Metadata`_) and there is paths.  By convention, items in paths are
-seperated by dots, such that something like curation.creator.name would
-be a valid key.  The metadata machinery doesn't know of this convention,
-though, it's entirely a matter of templates and "user code".
-
-Here's a list of keys I use, mostly referring to the metadata papers
-from IVOA or local (leading underscore) metadata:
+Metadata is organized by mapping keys to values.  Keys are
+dot-seperated "atoms" (i.e., sequences of letters); most of them are
+defined in RMI.  In addition, the system uses quite a number of
+"internal" keys, designated by leading underscores.  They include:
 
 * _type -- on DataSets, this becomes the type attribute of the VOTable.
 * _query_status -- on DataSets, this can be used to communicate the
@@ -171,6 +182,8 @@ from IVOA or local (leading underscore) metadata:
 * _infolink -- a URL pointing to further unstructured human-readable
   information to the data content
 
+
+
 Getting Metadata
 ++++++++++++++++
 
@@ -180,7 +193,11 @@ The getMeta method usually follows the enclosure hierarchy up, meaning
 that if a meta item is not found in the current instance, it will ask
 its parent for that item, and so on.  If no parent is known, the meta
 information contained in the configuration will be consulted.  If all
-fails, None is returned.  As an example, querying metadata on a Table
+fails, a default is returned (which is set via a keyword argument that
+again defaults to None) or, if the raiseOnFail keyword argument
+evaluates to true, a gavo.NoMetaKey exception is raised.
+
+As an example for propagation, querying metadata on a Table
 will ask DataSet (XXX shouldn't it ask the RecordDef?  Right now, that
 won't work because Tables don't get RecordDefs but fieldDefs XXX),
 DataDescriptor, RecordDef and finally config.
@@ -188,35 +205,50 @@ DataDescriptor, RecordDef and finally config.
 If you require metadata exactly for the item you are querying, call
 getMeta(key, propagate=False).
 
-While MetaItems are generally supposed to be stringified to be used and
-will do all the format &c magic if they are, you can access the content
-attribute and get the "raw" value.  This mechanism currently is used to
-get Info items into VOTables.
+For metadata that has structure, getMeta will raise a gavo.MetaCardError
+when there is more than one matching meta item.  For these, you will
+usually use a builder, which will usually be a subclass of
+meta.metaBuilder.  web.common.HtmlMetaBuilder is an example of how such
+a thing may look like, for simple cases you may get by using
+ModelBasedBulder (see the registry code for examples).
+
+The builders are passed to a MetaMixin's buildRepr(metakey, builder)
+method that returns whatever the builder's getResult method returns.
 
 
 Setting Metadata
 ++++++++++++++++
 
 You can programmatically set metadata on any metadata container by
-calling container.addMeta(args).  You can pass addMeta a dictionary as
-first argument.  This dictionary will be copied and amended with any
-keyword arguments to arrive at the constructor arguments for a MetaItem
-instance.   If no dictionary is passed, only keyword arguments are used. 
-Supported keywords include:
+calling container.addMeta(key, value), where both key and value are
+(unicode-compatible) strings.  You can build any hierarchy in this way, 
+provided you stick with typeless meta values or can do with the default
+types.  Those are set by key in meta._typesForKeys.
 
-* name (required): the name of the meta item.  For conventional names,
-  see above.
-* content (required): a string or something that at least doesn't blow
-  up if stringified
-* format (default None): a string giving how the content is to be
-  interpreted.  Currently defined are "literal" and "plain".  Literal
-  values are not touched and rendered in pre elements in HTML.  Plain
-  values are whitespace-normalized and get p tags in HTML.  In the
-  future, we will probably support ReStructured text.
-* compute, combine -- XXX Document
+To build sequences, call addMeta repeatedly.  To have a sequence of
+containers, call addMeta with None or an empty string as value, like 
+this:
 
-Note that content should be a unicode string as soon as it contains
-non-ascii characters.
+m.addMeta("p.q", "x")
+m.addMeta("p.r", "y")
+m.addMeta("p", None)
+m.addMeta("p.q", "u")
+m.addMeta("p.r", "v")
+
+More complex structures require direct construction of MetaValues.  Use
+the makeMetaValue factory for this.  This function takes a value (default
+empty), and possibly a key and/or type arguments.  All additional
+arguments depend on the meta type desired.
+
+The type argument selects and an entry in the meta._typesForKeys table
+that specifies that, e.g., _related meta items always are links.  You
+can also give the type directly (which overrides any specification
+through a key).
+
+This can look like this:
+
+m.addMeta("info", meta.makeMetaValue("content", type="info",
+  infoName="someInfo", infoValue="GIVEN"))
 
 
 VOTables
