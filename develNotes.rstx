@@ -744,12 +744,24 @@ idea.  I liked the idea because it *may* help when parsing from XML
 (that is what they still are used for almost exclusively), but I never
 actually used the stuff.  Having accessor methods generated
 automatically is nice, but if you absolutely want this, do it properly
-and use metaclasses.
+and use metaclasses.  Also, think about how you'll copy these records
+from the beginning.  And think about inheritence, the additionalFields
+hack sucks bad.
 
 It was a bad idea to stuff information on how a field should be parsed
 (source, literalForm, nullLiteral) into the same field definition
 describing the field itself.  At the very least, the fields used for
 parsing should be joined in a subelement of field.
+
+The separation between core and renderer is ok, though it's a bit
+misfigured.  The interface between the two could use some work.  But:
+*Both* cores and renderers should be able to define condDescs -- this
+would do away with that silent nonsense.  This might also be a way to
+get rid of those stupid output filters.  They were not a good idea.
+Maybe some kind of general transformer for whatever a core hands to a
+renderer might work at some point, but then one again needs to be
+careful not to make the prediction what output fields are generated
+impossible.
 
 .. [#booster]  DataSet._parseSources can take an
    optional parseSwitcher that you can pass in when you construct a
