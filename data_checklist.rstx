@@ -1,406 +1,140 @@
-Data needed from data providers
-===============================
+Metadata for publication in GAVO's Data Center
+==============================================
 
-* title
-* suggestion for a short name (less than 16 characters)
-* creator name (possibly logo)
-* possibly a version
-* subjects (see below)
-* description (a couple of lines max.)
-* possibly source (a bibcode for a publication on the stuff)
-* referenceURL (a URL with more info on the data.  If none is provided,
-  the DC software will insert the URL of the query page, which is
-  usually not what you want)
-* possibly facility (organization the data was obtained at)
-* possibly instrument (instrument the data was obtained with)
-* possibly coverage (that's obviously a difficult concept, so let's
-  ignore that for the time being)
-* copyright information (whom to reference, terms of use, etc.)
+To make your data visible to other astronomers and the general public,
+the umbrella organization of the VO, the IVOA_, runs a registry of
+services.  To feed it meaningful data, and also to enable users of your
+service to find out whose data they are using, we ask you to provide
+data as specified below (and, of course, as applicable).  You are most
+welcome to get back to us if you have questions.
 
-Subjects
---------
+The italicized text in the explanations is taken from [RMI]_.
 
-While the `Vocabulary explorer
-<http://explicator.dcs.gla.ac.uk/WebVocabularyExplorer/>`_ may help,
-we suggest to select keywords from the list of journal keywords; at the
-time of writing, these included:
+:Title:
+  A short phrase (preferably less than 6 words) giving people an idea
+  what the service is about.  This will be the title and the headline on
+  forms, etc.  *Title should be an unabbreviated form (e.g., Hubble
+  Space Telescope) rather than an acronym unless the acronym is so well
+  known as to be part of standard usage.*
 
-General
-'''''''
+:Short Name:
+  This should be an abbreviation of less than 16 characters.  If you
+  can't think of anything sensible, don't worry, we'll make one up for
+  you.  *The ShortName will be used where brief annotations for the
+  resource name are desired, such as in GUIs that might refer to many
+  resources in a compact display. [...] ShortName strings are limited to
+  a maximum of sixteen characters.  Care should be taken to define
+  illuminating ShortNames indicating either where the resource comes
+  from or what data collection it provides.  ShortNames are not required
+  to be unique.  Indeed, a resource provider may use the same ShortName
+  for several related resources (e.g., different services that access
+  the same collection), or the same ShortName might be used by different
+  providers for common/mirrored resources.*
 
-* Editorials notices
-* Errata, addenda
-* Extraterrestrial intelligence
-* History and philosophy of astronomy
-* Miscellaneous
-* Obituaries, biographies
-* Publications, bibliography
-* Sociology of Astronomy
-* Standards
 
-Physical data and processes
-'''''''''''''''''''''''''''
+:Creator Name:
+  Well, your name and the names of your collaborators.  If you have a
+  logo, be sure to pass it to us.  Some GUIs display logos in their
+  result listings, and that increases visiblity dramatically...
+  *An entity primarily responsible for making the content of the resource.
+  Examples of a Creator include a person or an organisation.  Users of
+  the resource should include Creator in subsequent credits and
+  acknowledgments. [..] If the resource is a data collection or service
+  accessing a collection, then Creator fields should list the scientists
+  responsible for the original data collection.  Typically, this would
+  be list of authors associated with the defining published paper for
+  the collection. [...] Full names should be given, not just surnames.*
 
-* Astrobiology
-* Astrochemistry
-* Acceleration of particles
-* Accretion, accretion disks
-* Atomic data
-* Atomic processes
-* Black hole physics
-* Chaos
-* Conduction
-* Convection
-* Dense matter
-* Diffusion
-* Elementary particles
-* Equation of state
-* Gravitation
-* Gravitational lensing
-* Gravitational waves
-* Hydrodynamics
-* Instabilities
-* Line: formation
-* Line: identification
-* Line: profiles
-* Magnetic fields
-* Magnetohydrodynamics (MHD)
-* Masers
-* Molecular data
-* Molecular processes
-* Neutrinos
-* Nuclear reactions, nucleosynthesis, abundances
-* Plasmas
-* Polarization
-* Radiation mechanisms: general
-* Radiation mechanisms: non-thermal
-* Radiation mechanisms: thermal
-* Radiative transfer
-* Relativity
-* Scattering
-* Shock waves
-* Stellar dynamics
-* Turbulence
-* Waves
+:Version:
+  Optional. If you think you will make "data releases" and old "releases" might be
+  required to stick around, giving a version is a good idea.  In those
+  cases, you should talk to us, since we might need to plan how old
+  releases might be kept.  For most cases, we believe this versioning
+  adds largely unnecessary overhead (until a service is very
+  successful and in some way changes behaviour, that is).
 
-Astronomical instrumentation, methods and techniques
-''''''''''''''''''''''''''''''''''''''''''''''''''''
+:Subjects:
+  *A list of the topics, object types, or other descriptive keywords
+  about the resource. [...] To support keyword-based searches of
+  registry contents, the Subject element should be as specific as
+  possible and include as many relevant terms as possible.* If at all
+  possible, the subjects should come from a controlled vocabulary.  We
+  recommend you first check the `IVOA Vocabulary Explorer`_, but
+  both `Astronomy Journal Keywords`_ and `Vizier Keywords`_ will do fine
+  if you already have those.
 
-* Atmospheric effects
-* Balloons
-* Instrumentation: adaptive optics
-* Instrumentation: detectors
-* Instrumentation: high angular resolution
-* Instrumentation: interferometers
-* Instrumentation: miscellaneous
-* Instrumentation: photometers
-* Instrumentation: polarimeters
-* Instrumentation: spectrographs
-* Light pollution
-* Methods: analytical
-* Methods: data analysis
-* Methods: laboratory
-* Methods: miscellaneous
-* Methods: N-body simulations
-* Methods: numerical
-* Methods: observational
-* Methods: statistical
-* Site testing
-* Space vehicles
-* Space vehicles: instruments
-* Techniques: high angular resolution
-* Techniques: image processing
-* Techniques: interferometric
-* Techniques: miscellaneous
-* Techniques: photometric
-* Techniques: polarimetric
-* Techniques: radar astronomy
-* Techniques: radial velocities
-* Techniques: spectroscopic
-* Telescopes
+:Description:
+  *Thorough text descriptions are particularly encouraged in order to
+  make text-based searches against the registries maximally useful.
+  Description should emphasize what the resource is about, as other
+  matters such as who created it, when it was created, and where it is
+  located are described elsewhere in the resource metadata.*   This
+  should not be a complete article, but *at most* something like an
+  abstract.  In general, we feel a few lines would be optimal here.
+  For anything more, see Reference URL below.
 
-Astronomical data bases
-'''''''''''''''''''''''
+:Source:
+  Optional. Some paper describing what you did to arrive at your data, if you
+  already have published one.  Preferable, we'd like to see a bibcode
+  here.  For online publications, use referenceURL.
 
-* Astronomical data bases: miscellaneous
-* Atlases
-* Catalogs
-* Surveys
+:Reference URL:
+  If you have substantial amounts of documentation, you should provide
+  a URL to that document here.  You're welcome to host these documents
+  at our data center (where, we hope, it might be longer-lived than on
+  some private web page, for example).  If you don't give us a reference
+  URL, the DC software will insert the URL of the query page, which is
+  usually not what you want.
 
-Astrometry and celestial mechanics
-''''''''''''''''''''''''''''''''''
+:Facility:
+  Optional.  *The observatory or facility where the data was obtained.
+  Some resources are likely to hold data from multiple observatories.
+  If just a few, this could be a list; if very many, just say "many".
+  Theoretical data will not originate with an observatory, but rather
+  might be characterized by the computational facility used to create
+  them (NCSA, SDSC, etc.).  Facility should be used only to describe
+  entities that specifically produce or manage data.  Observatory names
+  are the most common values.*  Actually, facilities can receive
+  identifiers that in turn makes more information about a facility
+  accessible within the VO.  GAVO can give you such an identifier if you
+  want.
+  
+:Instrument:
+  Optional. *Can be a specific instrument name (Wide Field/Planetary
+  Camera 2) or generic instrument type (CCD camera).  Theoretical data
+  is produced by a computer code, and the name of the code could be
+  specified.*
 
-* Astrometry
-* Celestial mechanics
-* Eclipses
-* Ephemerides
-* Occultations
-* Reference systems
-* Time
+:Coverage:
+  Optional.  This is supposed to reflect what part of the sky, the
+  electromagnetic spectrum, etc., the data is talking about.  If you
+  feel you want to specify coverage, talk to us; the topic is too
+  complicated to discuss here.
 
-The Sun
-'''''''
+:Copyright information:
+  If you have any special wishes ("if you use..., please
+  acknowledge..."), or if you want to restrict what people can do with
+  your data, this would go here.  GAVO offers "embargoed" publication
+  where, for a limited time, only persons having a password can access
+  data files or a service.  If this is interesting for you, talk to us.
 
-* Sun: abundances
-* Sun: activity
-* Sun: atmosphere
-* Sun: chromosphere
-* Sun: corona
-* Sun: coronal mass ejections (CMEs)
-* Sun: evolution
-* Sun: faculae, plages
-* Sun: filaments
-* Sun: flares
-* Sun: fundamental parameters
-* Sun: general
-* Sun: granulation
-* Sun: helioseismology
-* Sun: infrared
-* Sun: interior
-* Sun: magnetic fields
-* Sun: oscillations
-* Sun: particle emission
-* Sun: photosphere
-* Sun: prominences
-* Sun: radio radiation
-* Sun: rotation
-* (Sun:) solar-terrestrial relations
-* (Sun:) solar wind
-* (Sun:) sunspots
-* Sun: transition region
-* Sun: UV radiation
-* Sun: X-rays, gamma rays
+:Service profile:
+  Certain VO protocols have a notion of "verbosity", giving more or less
+  fields depending on the query.  For data giving enough columns, it
+  would be nice if you gave us your assessment of the "importance" of a
+  column, going from 1 (most important, data is worthless without this
+  column) to 30 (only very specific and exotic applications will need
+  this column).
+  
 
-Solar system
-''''''''''''
+.. _Astronomy Journal Keywords: http://www.edpsciences.org/journal/statique/doc/aa_keywords.html
+.. _IVOA: http://www.ivoa.net
+.. _IVOA Vocabulary Explorer: http://explicator.dcs.gla.ac.uk/WebVocabularyExplorer/
+.. _Vizier Keywords: http://vizier.u-strasbg.fr/doc/ADCkwds.htx
 
-* Comets: general
-* Comets: individual: ...
-* Earth
-* Interplanetary medium
-* Kuiper Belt
-* Meteors, meteoroids
-* Minor planets, asteroids
-* Moon
-* Oort Cloud
-* Planets: rings
-* Planets and satellites: general
-* Planets and satellites: formation
-* Planets and satellites: individual: ...
-* (alphabetic order)
-* Solar system: formation
-* Solar system: general
 
-Stars
-'''''
+Bibliography
+------------
 
-* Stars: abundances
-* Stars: activity
-* Stars: AGB and post-AGB
-* Stars: atmospheres
-* (Stars:) binaries (including multiple): close
-* (Stars:) binaries: eclipsing
-* (Stars:) binaries: general
-* (Stars:) binaries: spectroscopic
-* (Stars:) binaries: symbiotic
-* (Stars:) binaries: visual
-* (Stars:) blue stragglers
-* Stars: carbon
-* Stars: chemically peculiar
-* Stars: chromospheres
-* (Stars:) circumstellar matter
-* Stars: coronae
-* Stars: distances
-* Stars: dwarf novae
-* Stars: early-type
-* Stars: emission-line, Be
-* Stars: evolution
-* Stars: flare
-* Stars: formation
-* Stars: fundamental parameters (classification, colors, luminosities, masses, radii, temperatures, etc.)
-* Stars: general
-* (Stars:) Hertzsprung-Russell (HR) and C-M
-* diagrams
-* Stars: horizontal-branch
-* Stars: imaging
-* Stars: individual: ...
-* Stars: interiors
-* Stars: kinematics
-* Stars: late-type
-* Stars: low-mass, brown dwarfs
-* Stars: luminosity function, mass function
-* Stars: magnetic fields
-* Stars: mass-loss
-* Stars: neutron
-* (Stars:) novae, cataclysmic variables
-* Stars: oscillations (including pulsations)
-* Stars: peculiar (except chemically peculiar)
-* (Stars:) planetary systems
-* (Stars:) planetary systems: formation
-* (Stars:) planetary systems: protoplanetary disks
-* Stars: Population II
-* Stars: pre-main sequence
-* (Stars:) pulsars: general
-* (Stars:) pulsars: individual ...
-* Stars: rotation
-* (Stars:) starspots
-* Stars: statistics
-* (Stars:) subdwarfs
-* (Stars:) supergiants
-* (Stars:) supernovae: general
-* (Stars:) supernovae: individual: ...
-* (Stars: variables:) Cepheids
-* (Stars: variables:) $\delta$ Sct
-* Stars: variables: general
-* Stars: variables: RR Lyr
-* (Stars:) white dwarfs
-* Stars: winds, outflows
-* Stars: Wolf-Rayet
-
-Interstellar medium (ISM), nebulae
-''''''''''''''''''''''''''''''''''
-* ISM: abundances
-* ISM: atoms
-* ISM: bubbles
-* ISM: clouds
-* (ISM:) cosmic rays
-* (ISM:) dust, extinction
-* (ISM:) evolution
-* ISM: general
-* (ISM:) HII regions
-* (ISM:) Herbig-Haro objects
-* ISM: individual objects: ...
-* (except planetary nebulae)
-* ISM: jets and outflows
-* ISM: kinematics and dynamics
-* ISM: lines and bands
-* ISM: magnetic fields
-* ISM: molecules
-* (ISM:) planetary nebulae: general
-* (ISM:) planetary nebulae: individual: ...
-* (ISM:) reflection nebulae
-* ISM: structure
-* ISM: supernova remnants
-
-The Galaxy
-''''''''''
-* Galaxy: abundances
-* Galaxy: bulge
-* Galaxy: center
-* Galaxy: disk
-* Galaxy: evolution
-* Galaxy: formation
-* Galaxy: fundamental parameters
-* Galaxy: general
-* (Galaxy:) globular clusters: general
-* (Galaxy:) globular clusters: individual: ...
-* Galaxy: halo
-* Galaxy: kinematics and dynamics
-* Galaxy: nucleus
-* (Galaxy:) open clusters and associations:
-* general
-* (Galaxy:) open clusters and associations:
-* individual: ...
-* (Galaxy:) solar neighbourhood
-* Galaxy: stellar content
-* Galaxy: structure
-
-Galaxies
-''''''''
-
-* Galaxies: abundances
-* Galaxies: active
-* (Galaxies:) BL Lacertae objects: general
-* (Galaxies:) BL Lacertae objects:
-* individual: ...
-* Galaxies: bulges
-* Galaxies: clusters: general
-* Galaxies: clusters: individual: ...
-* (Galaxies:) cooling flows
-* Galaxies: distances and redshifts
-* Galaxies: dwarf
-* Galaxies: elliptical and lenticular, cD
-* Galaxies: evolution
-* Galaxies: formation
-* Galaxies: fundamental parameters
-* (classification, colors, luminosities,
-* masses, radii, etc.)
-* Galaxies: general
-* Galaxies: halos
-* Galaxies: high-redshift
-* Galaxies: individual: ...
-* Galaxies: interactions
-* (Galaxies:) intergalactic medium
-* Galaxies: irregular
-* Galaxies: ISM
-* Galaxies: jets
-* Galaxies: kinematics and dynamics
-* (Galaxies:) Local Group
-* Galaxies: luminosity function, mass function
-* (Galaxies:) Magellanic Clouds
-* Galaxies: magnetic fields
-* Galaxies: nuclei
-* Galaxies: peculiar
-* Galaxies: photometry
-* (Galaxies:) quasars: absorption lines
-* (Galaxies:) quasars: emission lines
-* (Galaxies:) quasars: general
-* (Galaxies:) quasars: individual: ...
-* Galaxies: Seyfert
-* Galaxies: spiral
-* Galaxies: starburst
-* Galaxies: star clusters
-* Galaxies: statistics
-* Galaxies: stellar content
-* Galaxies: structure
-
-Cosmology
-'''''''''
-
-* (Cosmology:) cosmic microwave background
-* (Cosmology:) cosmological parameters
-* Cosmology: miscellaneous
-* Cosmology: observations
-* Cosmology: theory
-* (Cosmology:) dark matter
-* (Cosmology:) diffuse radiation
-* (Cosmology:) distance scale
-* (Cosmology:) early Universe
-* (Cosmology:) large-scale structure of Universe
-
-Sources as a function of wavelength
-'''''''''''''''''''''''''''''''''''
-
-* Gamma rays: bursts
-* Gamma rays: observations
-* Gamma rays: theory
-* Infrared: galaxies
-* Infrared: general
-* Infrared: ISM
-* Infrared: solar system
-* Infrared: stars
-* Radio continuum: galaxies
-* Radio continuum: general
-* Radio continuum: ISM
-* Radio continuum: solar system
-* Radio continuum: stars
-* Radio lines: galaxies
-* Radio lines: general
-* Radio lines: ISM
-* Radio lines: solar system
-* Radio lines: stars
-* Submillimeter
-* Ultraviolet: galaxies
-* Ultraviolet: general
-* Ultraviolet: ISM
-* Ultraviolet: solar system
-* Ultraviolet: stars
-* X-rays: binaries
-* X-rays: bursts
-* X-rays: diffuse background
-* X-rays: galaxies
-* X-rays: galaxies: clusters
-* X-rays: general
-* X-rays: individuals: ...
-* X-rays: ISM
-* X-rays: stars
+.. [RMI]  Hanisch, R., et al, "Resource Metadata for the Virtual
+   Observatory", http://www.ivoa.net/Documents/latest/RM.html
