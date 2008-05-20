@@ -79,12 +79,12 @@ The italicized text in the explanations is taken from [RMI]_.
   here.  For online publications, use referenceURL.
 
 :Reference URL:
-  If you have substantial amounts of documentation, you should provide
-  a URL to that document here.  You're welcome to host these documents
-  at our data center (where, we hope, it might be longer-lived than on
-  some private web page, for example).  If you don't give us a reference
-  URL, the DC software will insert the URL of the query page, which is
-  usually not what you want.
+  If you have substantial amounts of documentation on your data, you
+  should provide a URL to that document here.  You're welcome to host
+  these documents at our data center (where, we hope, it might be
+  longer-lived than on some private web page, for example).  If you
+  don't give us a reference URL, the DC software will insert the URL of
+  the query page, which is usually not what you want.
 
 :Facility:
   Optional.  *The observatory or facility where the data was obtained.
@@ -126,6 +126,14 @@ The italicized text in the explanations is taken from [RMI]_.
   column) to 30 (only very specific and exotic applications will need
   this column).
   
+
+Other issues
+------------
+
+If you have any wishes concerning the appearance of your service (on the
+Web or within the VO), just let us know.  We can do a lot of
+customization and even if we can't, we'd stil like to know about it.
+
 
 .. _Astronomy Journal Keywords: http://www.edpsciences.org/journal/statique/doc/aa_keywords.html
 .. _IVOA: http://www.ivoa.net
