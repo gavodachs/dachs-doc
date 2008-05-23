@@ -11,6 +11,7 @@ LATEXOPTS=--documentoptions=12pt,a4paper
 
 %.dvi: %.tex
 	latex $<
+	rm $*.log
 
 %.ps: %.dvi
 	dvips $<
