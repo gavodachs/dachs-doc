@@ -31,6 +31,7 @@ install: html
 
 clean:
 	rm -f $(ALL_HTML)
+	rm -f *.log *.aux *.out *.pdf
 
 classes.ps: classes.dot
 	dot -T ps < $< > $@
