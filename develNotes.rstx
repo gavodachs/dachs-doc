@@ -45,6 +45,17 @@ level of abstraction (yikes!):
 		tablesToBuild=[targetTable.get_table()]).getPrimaryTable()
 
 
+A shortcut to just adapt the DataSet ``data`` to a DataSet with a 
+primary table consisting of ``fields``:
+
+::
+
+  resource.InternalDataSet(resource.makeRowsetDataDesc(rd, fields),
+    dataSource=data)
+
+If fields already has the sources set up correctly, you should pass
+``mungeFields=False``.
+
 Internally, the system does the following:
 
 #. DataSet calls its _fillTables method that will create a tableMaker
@@ -305,9 +316,18 @@ The New Web Structure
 =====================
 
 The new web structure is based on resource descriptors.  These define
-data, adapters and services.  A service is a combination of an
-input adapter (certain cores bring a default one), a core, and 
-optional output adapters.
+data, adapters and services.  A service is a combination of a renderer,
+a core, and optionally input and output adapters.
+
+A core is a machinery that takes a DataSet as input (mostly, only the
+docRec will be used, which typically contains the query parameters).  If
+at all sensible, cores should return DataSets, since that is what most
+renderers expect.
+
+The renderer provides the interface to the client.  This can be Form
+for something that outputs an HTML form and returns and HTML table.
+Other renderers include ones of DAL protocols (like SIAP), JPEG images
+or plain text.
 
 Adapters are basically datadef.DataTransformers, i.e., they generate
 tables using grammars.  For input adapters, these grammars will
@@ -317,9 +337,10 @@ The way a query ideally is processed is roughly like this:
 
 ::
 
-  query interface (http, smtp, ...) <-> service 
-                                        / | \
-                                + ------  V   --------+
+  query interface (http, dal, ...) <-> service 
+                                        ^ ^ ^
+                                        | | \
+                                + -----/  V  `--------+
                                 V        core         V
                         (input adapter)          (output adapter)
 
@@ -327,41 +348,29 @@ The way a query ideally is processed is roughly like this:
 Services
 ++++++++
 
-I'm trying to develop service.Service into a generic container for
-querying the data holdings.  The rough idea is that whatever comes in
-from a frontend is first transformed into a data set (probably mostly
-constisting of a document record only), then stuffed into a core
-that does the actual query and afterwards possibly modified again by
-output filters.
-
-A service does, however, not talk directly to the user.  Each service is
-embedded in a front end (I guess I'll call it renderer) so that it
-could, in principle, be used not only via HTTP but also via SMTP, XMP or
-whatever.  Right now, of cource, we mainly deal with error reporting (VO
-vs. Web).
-
-A service is constructed with a resource descriptor and a dictionary
-containing initial values for the fields it contains -- however, this
-is usually done by parsing a resource descriptor.
+Services primarily know the fields the user is expected to provide and
+that the renderer should return.  In addition, they carry most of the
+metadata necessary for publication (although much of it may really be
+in the resource descriptor by meta delegation).
 
 You probably will not subclass Service.
 
-A service has provides the following methods:
+A service provides the following methods:
 
-* getInputFields() -> seq of InputKeys -- provided so the interface can set up
-  forms and the like.
+* getInputFields() -> seq of InputKeys -- what the user must/may give
+  as the service input.
 * getInputData(rawInput) -> DataSet -- receives the input to the
   inputAdapter's Grammar (usually a dict) and returns the input data set
 * run(inputData, queryMeta) -> DataSet -- returns a
-  web.common.CoreResult instance containing (hopefully) everything to
+  web.common.SvcResult instance containing (hopefully) everything to
   build an answer to the query.
-* getOutputFields(queryMeta) -> seq of DataFields -- returns the colums
-  of the primary table of the result.  This is provided for the benefit
-  of services that may have to declare in advance the data structure
-  they return.  It takes a QueryMeta instance because the fields
-  returned in general depend on the query; it will be different
-  depending on output filters, verbosity, and even between VOTables and
-  HTML.
+* getCurOutputFields(queryMeta) -> seq of DataFields -- returns the colums
+  of the primary table of the result.  This is given so (a) cores 
+  capable of returning specific fields only (e.g., DbBasedCores) can
+  ask a service what data to query and (b) so the registry interface
+  or renderers wanting to know the structure of the data in advance
+  (SOAP!) can obtain this information.  This depends on queryMeta since
+  the verbLevel can change what fields are returned.
 
 The return values of getInputData and run may be twisted deferreds (for
 getInputData, this is necessary because getting the input data may
@@ -377,20 +386,23 @@ Cores must have the following method:
 
 * run(inputData, queryMeta) -> thing
 
-The thing returned is either a twisted.deferred firing a DataSet or a
-pair of (headers, file-like object) if whatever is to be delivered is
-not really a table.  InputData is a DataSet (unfortunately, there
+The thing returned is either 
+
+* a twisted.deferred firing a DataSet or 
+* a pair of (headers, file-like object) if whatever is to be delivered is
+  not really a table or
+* a string.  
+
+InputData is a DataSet (unfortunately, there
 currently is no way for a core to describe the structure it expects in
 that DataSet), queryMeta is a common.QueryMeta instance.
 
-Many cores can run "naked", i.e., without an explicit input adapter.  To
-enable that, they have to be able to stand in for an input adapter,
-i.e., they have to provide methods
+Cores must have avInputKeys and avOutputKeys sets.  These contain
+strings naming input and output parameters the core supports.
 
-* getInputFields() -> seq of InputKeys -- this is necessary to enable
-  service to specify what fields to display in a form and to construct a
-  data descriptor to process the input data (which, in this case, is of
-  course trivial.
+If at all possible, the should also give getInputFields and
+getOutputFields methods returning record.DataFieldLists.  Several
+renderers may depend on these.
 
 In the typical case of a database based core, you'll usually want to use
 the condition descriptor infrastructure (currently in standardcores,
@@ -413,17 +425,14 @@ CondDescs must support the following methods:
 Default Output Filter
 +++++++++++++++++++++
 
-Services should have the default output filter.  It looks at the
-input key "output".  There should be a dict in there giving the output
-format (basically VOTable or HTML).  If it is HTML, the default output
-filter only keeps columns that have a displayHint.  If it is VOTable,
-the default output filter also looks at VERB, which may be 1 (maximally
-terse) through 3 (maximally verbose).  Only fields with
-verbLevel<=VERB*10 and displayHint!="suppress" are retained in the output.
+With DbBasedCores, the typical case is that the DataSet returned gives
+exactly the fields the service ordered.  In that case, when constructing
+the SvcResult, the core's DataSet is taken as the SvcResult's original.
 
-Fields with no explicit verbLevel are assumed to have verbLevel 30, so
-they'll only appear in maximally verbose tables.  You'll definitely want
-to set explicit verbLevels if you plan to use the default output filter.
+If, however, the field keys are different, a transformation will
+be set up based on the service's outputFields.  If any outputField
+declared as non-optional is not found in a coreResult's row, a
+ValiationError will be raised.
 
 
 Validation
