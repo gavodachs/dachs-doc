@@ -47,19 +47,17 @@ couple of dependencies (on debian etch systems, that would at least be
 libpam-dev, libreadline-dev, and postgresql-server-dev-8.1).  Then
 follow the instructions in the q3c distribution.
 
-To automatically create the necessary indices, use the `q3cpositions`_ interface.
+To automatically create the necessary indices, use the q3cpositions interface.
 
 psycopg2
 ........
 
-psycopg2 is an alternative binding for postgresql.  It's faster than the
-default pgsql that you get by setup.py.  If you want to use it, you'll
-have to install mxDateTime and psycopg2 manually, and then say
-interface=psycopg2 in the [db] section your /etc/gavo.rc.
+psycopg2 is the binding of choice for postgresql (pgsql might still
+work, but what support is left is definitely scheduled for removal).
 
-We are aware this isn't nice.  If you really use these tools and want
-psycopg2, contact us and we'll improve this situation (which isn't
-actually hard, but a bit messy).
+However, the default psycopg2 distribution does not support queries with
+timeouts.  You must install a patched package provided with the
+distribution.
 
 VOPlot
 ......
@@ -114,16 +112,6 @@ sources reside, ancillary data is kept, etc.  By default, this is
 ``/var/gavo``.  If you want something else, set the environment variable
 ``$GAVO_HOME`` or (probably better) adapt your /etc/gavorc.
 
-Static Files
-************
-
-Within that directory, you need some data files: static files for the
-web server, interface definitions, etc.  In an svn checkout, you can go
-to the resources subdirectory, say "make install" (while having
-GAVO_HOME defined if you don't like /var/gavo) and be done if you have
-rsync (you should, it's a fine and useful piece of software).  Otherwise,
-we provide a tar file of the necessary data that you can just untar in
-$GAVO_HOME.
 
 Logging
 *******
@@ -143,15 +131,26 @@ Database Setup
 To make things work, you will also need to set up a database and create
 at least one profile file (see `The profiles Section`_).
 
-Currently, we only support postgres.  You'll need a postgres
-installation.  You should have one user that may create tables and even
-schemas, so you probably need a dedicated database.
+Currently, we only support postgres.  You should have one user that may
+create tables and schemas, so you probably need a dedicated database.
+
+The data center software accesses the database in various functions.
+These are mapped to profiles which correspond to access information
+(basically, the DSN, user, and password).  There are three of them:
+
+* feed -- the "admin" profile, used for feeding tables into the normal
+  database, for user management, credentials checking and the like.
+* trustedquery -- this profile is used for queries generated  by the DC
+  software (though usually on behalf of a user).  The corresponding DB
+  role can access all "normal" tables, privilege management is supposed
+  to happen throught the web interface.
+* untrustedquery -- the profile used for user-contributed SQL.  Only
+  tables expressly opened up are accessible to it.
 
 We can't help you much with postgres (if you have an administrator, she
-should know how to set a database and the necessary users for you), but 
-with a more or less usual installation something like the following should 
-work (nothing of this is hardwired, but if you need a different setup,
-you'll need to adjust the DB configuration files mentioned below):
+should know how to set a database and the necessary users for you).  You
+can adapt all those names, but would need to change the default
+configuration files then.  Otherwise, do the following:
 
 ::
 
@@ -216,6 +215,7 @@ to have the same key in the same section.
 Most of the settings either not very relevant or are covered in the sections
 dealing the the configured items.  Let's just look at three sections:
 
+
 The DEFAULT Section
 ...................
 
@@ -255,6 +255,20 @@ the common profiles (by default in configDir) and have separate dsn
 files in the ~/.gavo directories of the accounts feeding the test and
 production databases.
 
+In addition, you can supply a comma separated list of database roles in
+maintainers.  There are roles that get gavoadmin-like privileges on all
+tables created by the system.  This is provided so people working on the
+system do not need to go through the gavoadmin account to do DB
+housekeeping.  Note that when you change maintainers, you *must*
+keep gavoadmin in it unless you know excatly what you do.  The DC 
+software will revoke all kinds of privileges from its own feeder if
+gavoadmin isn't part of maintainers, which will be a mess to fix.
+
+queryRoles and adqlRoles correspond to the roles defined during db
+setup.  Again, you can supply more than one such role, but you must at
+least give those defined in the trustedquery and untrustedquery
+profiles.
+
 The profiles Section
 ....................
 
@@ -281,17 +295,9 @@ Commands available are
 
 * include -- read assignments and instructions from the profile given in
   the argument
-* addAllRole -- add the database role in the argument (that has to be
-  known to the database) to the list of roles that get full access ("ALL
-  PRIVILEGES") to any database object created.
-* addReadRole -- add the database role in the argument to the list of
-  roles that get read access (select or usage privilege) to any database
-  object created.
 
-A typical setup with two users admin, devel feeding the database, a user
-gavo querying the database (e.g., used for querulator) and a user
-untrusted that queries only particular, public tables, could look like
-this (all files located in configDir, e.g., /var/gavo/etc):
+A typical setup could look like this
+(all files located in configDir, e.g., /var/gavo/etc):
 
 A file dsn:
 
@@ -301,39 +307,29 @@ A file dsn:
   port = 5432
   database = test
 
-A file feed, as mentioned in the default config:
+A file feed, giving access to the admin account:
 
 ::
 
   include dsn
-  user=devel
+  user=gavoadmin
   password=mySecretPassword
-  addAllRole devel
-  addAllRole admin
-  addReadRole: gavo
 
-A file feedpublic, to load public tables:
-
-::
-
-  include feed
-  addReadRole untrusted
-
-A file trustedquery (for querulator):
+A file trustedquery, giving access one of the queryRoles:
 
 ::
 
   include dsn
   user=gavo
-  password=dontMention
+  password=anotherSecretPassword
 
-A file untrustedquery (for a public SQL query interface):
+A file untrustedquery, giving access to one of the adqlRoles:
 
 ::
 
   include dsn
   user=untrusted
-  password=whyBother?
+  password=giveItAway
 
 
 The Web Section
@@ -360,14 +356,37 @@ one platform may not be able to execute another platform's binaries.
 To fix this, set platform in the DEFAULTS section of your config file.
 You can then rename any platform-dependent executable
 base-<platform>, and if on the respective platform, that binary will be
-used. This also works for computed resources using binaries.  
+used. This also works for computed resources using binaries, and those
+parts of the DC software that build binaries (e.g., the booster
+machinery) will automatically add the platform postfix.
+
+If you build your own software, a make file like the following could be
+helpful:
+
+::
+
+  PLATFORM=$(shell gavoconfig platform)
+  TARGET=@@@binName@@@-$(PLATFORM)
+  OBJECTS=@@@your object files@@@
+
+  $(REG_TARGET): buildstamp-$(PLATFORM) $(OBJECTS)
+          $(CC) -o $@ $(OBJECTS)
+
+  buildstamp-$(PLATFORM):
+          make clean
+          rm -f buildstamp-*
+          touch buildstamp-$(PLATFORM)
+
+You'll have to fill in the @@@.*@@@ parts and probably write rules for
+building the files in $OBJECT, but otherwise it's a simple hack to make
+sure a make on the respective machine builds a suitable binary.
 
 
 The Portal
 **********
 
 The root URL of the data center should return a page that explains what
-the site is all about and ideally list what's available.  The template
+the site is all about and list what's available.  The template
 for this page is
 located in root.html in templateDir (which defaults to
 GAVO_ROOT/web/templates and is defined in the web section of config).
