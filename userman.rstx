@@ -417,8 +417,10 @@ subdirectory of your gavo inputs directory (GAVO_HOME/inputs), the
 resource directory.  The
 recommended layout within this directory is:
 
-* res/ -- a directory containing the resource descriptor plus
-  additional metadata (like mapping files), if applicable
+* the resource descriptor in the root.
+* res/ -- a directory containing additional metadata (like mapping
+  files) or things belonging to the resource descriptor (like boosters
+  or custom cores), if applicable
 * bin/ -- if applicable, a directory containing code that may be needed
   for preprocessing and the like.  Use with care and provide explanatory
   make targets.
@@ -1409,6 +1411,30 @@ The following additional renderers are available:
 * render="warnTrunc" -- this only works when data="query" and will
   render a warning if a query was truncated due to reaching the match
   limit.
+
+
+Publishing
+==========
+
+To update the publishing status of an RD's services, say
+
+::
+
+  gavopublish <rd>
+
+You can also update the status of the services defined in all RDs in 
+your inputsDir by saying
+
+::
+
+  gavopublish -a
+
+
+To additionally update the metadata tables, say
+
+::
+
+  gavopublish -am
 
 
 Common Error Conditions
