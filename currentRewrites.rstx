@@ -1,0 +1,37 @@
+Thoughts on Things to be Rewritten
+==================================
+
+
+Tables
+------
+
+Tables need a table definition, a content, and parameters.
+
+The content could be either a list of dictionaries or a database
+table.
+
+The parameters are a simple dictionary.  For DB based tables, I guess it
+would always be empty, though one *could* have a table containing these
+parameters.  That might be interesting as a way to store stuff like min
+and max values as well...?
+
+
+Table definition
+----------------
+
+Table definitions have a role and an id.  The current table attribute
+should go, the (database) names of the tables should come from the id.
+That way, if we maintain the schema <-> rd bijection (except for the
+public schema), the XML syntax already guarantees that tables won't be
+overwritten.
+
+The role is largely free.  However, one table should be assigned the
+"primary" role so we don't need to rely on the order of TDs in a DD.
+Probably we should maintain the current convention of having the first
+table be the primary one and think of a sane way of overriding this.
+
+Also, the current "document record" in data sets could be substituted by
+a table with the role "parameters" that always has an empty content.
+
+We should make sure that tables for roles are always unique.
+Also, computed cores have special roles "commandLine" and "inputLine".
