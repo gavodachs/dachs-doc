@@ -202,24 +202,20 @@ using the GAVOSETTINGS environment variable (or ``defaultSettingsPath`` in
 global settings in your private settings file, ``~/.gavorc`` (you can
 override that location through GAVOCUSTOM).
 
-The built-in configuration looks like this:
+Here is a list of the configuration options available and their built-in
+defaults
 
 ::
 
-.. !!python -c "from gavo import config;print config._builtinConfig" | sed -e 's/^/  /'
+.. !!gavoconfig
 
-You see that gavorcs have a roughly INI-style format with sections in
+Gavorcs have a roughly INI-style format with sections in
 square brackets and keys beyond them.  To override a setting, you need
 to have the same key in the same section.
 
-Most of the settings either not very relevant or are covered in the sections
-dealing the the configured items.  Let's just look at three sections:
 
-
-The DEFAULT Section
+The general Section
 ...................
-
-The keys in here can be accessed from other sections as ``%(key)s``.
 
 This mainly sets paths.  The most important is ``rootDir``, a directory
 most other paths are relative to.  This is the one you'll most likely
@@ -228,7 +224,7 @@ could put
 
 ::
 
-  [DEFAULT]
+  [general]
   rootDir: /home/user/gavo
 
 into your ~/.gavorc.
@@ -953,7 +949,7 @@ definition for the product table as an example:
 
 ::
 
-.. !!sed -e 's/^/  /' ../resources/inputs/__system__/products/products.vord
+.. !!sed -e 's/^/  /' ../gavo/resources/inputs/__system__/products/products.vord
 
 Since the record definition of a shared table is present in all
 resource descriptors contributing to the table, it is likely
