@@ -203,9 +203,7 @@ global settings in your private settings file, ``~/.gavorc`` (you can
 override that location through GAVOCUSTOM).
 
 Here is a list of the configuration options available and their built-in
-defaults
-
-::
+defaults:
 
 .. !!gavoconfig
 
@@ -945,9 +943,7 @@ Dealing with shared tables
 
 Each shared table needs an owning resource.  As a rule, that owning
 resource will not enter any data of its own.  Here is the resource
-definition for the product table as an example:
-
-::
+definition for the product table as an example::
 
 .. !!sed -e 's/^/  /' ../gavo/resources/inputs/__system__/products/products.vord
 

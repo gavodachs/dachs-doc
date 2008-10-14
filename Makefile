@@ -1,7 +1,6 @@
 HTMLTARGET=vo:/var/www/docs/python-gavo
 
-ALL_HTML=userman.html querulator_devel.html querulator_user.html \
-	develNotes.html data_checklist.html
+ALL_HTML=userman.html develNotes.html data_checklist.html
 
 LATEXOPTS=--documentoptions=12pt,a4paper
 
