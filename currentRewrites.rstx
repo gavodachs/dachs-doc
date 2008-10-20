@@ -47,3 +47,10 @@ expandDateRange -- it would really be cool if its input had already
 processed (and, e.g., defaulted) input in place.  See apfs_new why you'd
 want this.
 
+
+Misc
+----
+
+Do away with mxDateTime, everything should be datetime-bases
+
+In valuemappers: let them return db types rather than votable types.
