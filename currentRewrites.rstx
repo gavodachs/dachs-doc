@@ -1,60 +1,13 @@
 Thoughts on Things to be Rewritten
 ==================================
 
-
-Tables
-------
-
-Tables need a table definition, a content, and parameters.
-
-The content could be either a list of dictionaries or a database
-table.
-
-The parameters are a simple dictionary.  For DB based tables, I guess it
-would always be empty, though one *could* have a table containing these
-parameters.  That might be interesting as a way to store stuff like min
-and max values as well...?
-
-
-Table definition
-----------------
-
-Table definitions have a role and an id.  The current table attribute
-should go, the (database) names of the tables should come from the id.
-That way, if we maintain the schema <-> rd bijection (except for the
-public schema), the XML syntax already guarantees that tables won't be
-overwritten.
-
-The role is largely free.  However, one table should be assigned the
-"primary" role so we don't need to rely on the order of TDs in a DD.
-Probably we should maintain the current convention of having the first
-table be the primary one and think of a sane way of overriding this.
-
-Also, the current "document record" in data sets could be substituted by
-a table with the role "parameters" that always has an empty content.
-
-We should make sure that tables for roles are always unique.
-Also, computed cores have special roles "commandLine" and "inputLine".
-
-
-Macros and Processors
----------------------
-
-Rename the parsing macros to something else.
-
-It seems there are two kinds of those: Those that work on literals and
-those that change the record, or rather those that want validated input
-and those that definitely don't want it.  Classic example:
-expandDateRange -- it would really be cool if its input had already
-processed (and, e.g., defaulted) input in place.  See apfs_new why you'd
-want this.
-
-
 Misc
 ----
 
-Do away with mxDateTime, everything should be datetime-bases
-
 In valuemappers: let them return db types rather than votable types.
 
-Unify macros and @-expansions if at all possible.  
+Have units always be unitconv-parseable, move things like "h m s" and
+such to displayHints.
+
+Add parsespecials to structs and attributes to have a clean way to
+declare things like nostrip and original, ref, etc.

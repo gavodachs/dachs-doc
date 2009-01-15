@@ -8,116 +8,34 @@ it'll grow into a useful introduction to further developing the stuff,
 right now it's a random collection that may even contain wrong
 information.  Caveat emptor.
 
-Parsing Anything
-================
+Package Layout
+==============
 
-Here's a short version of what to do to come from almost any data to a
-table; for an example with complete, handmade resource
-descriptor, see votabletest.VotableTest:
+To alleviate cross-import pains, to facilitate later package splitting
+and also as a guideline of what goes where, apply the following rules:
 
-#. Set up a DataTransformer to parse the data.  You can either read
-   it from an XML file within a resource descriptor or build it by hand.
-   There's an example for how that's done in tests/votabletest.py
-#. Constuct a resource.InternalDataSet.  It takes the data descriptor
-   you created, table.Table (unless you want a weird sort of table) and
-   the data you want parsed.  This can be a file, a table, a file name
-   and possibly other things parsed.   Note, however, that the input
-   given must match the grammar on your DataTransformer.  By default,
-   this will create all tables.  If you only want a subset of tables
-   created, pass a sequence of their names in tablesToBuild.
-
-If you need to do anything fancy like bypass grammar, you could
-check out servicelist.updateServiceList.
-
-Here's an example of getting data out of a DB via a resource descriptor.
-I guess it's still too gruesome, so I'll hide it behind yet another
-level of abstraction (yikes!):
-
-::
-
-	rd = resourcecache.getRd("__system__/services/services")
-	dd = rd.getDataById("servicelist").copy()
-	targetTable = dd.getRecordDefByName("services")
-	dd.set_Grammar(rowsetgrammar.RowsetGrammar(targetTable.get_items()))
-	data = sqlsupport.SimpleQuerier().query(
-		"SELECT * FROM %s"%(targetTable.get_table())).fetchall()
-	return resource.InternalDataSet(dd, dataSource=data, 
-		tablesToBuild=[targetTable.get_table()]).getPrimaryTable()
-
-
-A shortcut to just adapt the DataSet ``data`` to a DataSet with a 
-primary table consisting of ``fields``:
-
-::
-
-  resource.InternalDataSet(resource.makeRowsetDataDesc(rd, fields),
-    dataSource=data)
-
-If fields already has the sources set up correctly, you should pass
-``mungeFields=False``.
-
-Internally, the system does the following:
-
-#. DataSet calls its _fillTables method that will create a tableMaker
-   instance for each desired table.
-#. DataSet then calls its _parseSources method.[#booster]_ 
-#. _parseSources iterates of DataSet._iterParseContexts.  A parse
-   context is a wrapper for obtaining input to grammars and exporting
-   the parsed data (see resource.ParseContext).  
-#. In this iteration, a LiteralParser is passed to each ParseContext. 
-   Use typeconversion.LiteralParser for that.  The literal parser is the
-   place to worry about encodings and such things.  See the user manual
-   for other things the literal parser can do.
-#. _parseSources calls each parse context's parse method
-#. It, in turn, calls the grammar's parse method with itself as
-   argument.
-#. grammar.parse first calls the _getDocdict method of its concrete
-   implementation and passes the result on to the parse context's
-   processDocdict method, or, if the grammars docIsRow attribute is
-   true, to its own handleRowdict method (see below)
-#. grammar.parse then iterates over the implementation's _iterRows.
-   The result is passed to grammar.handleRowdict.
-#. handleRowdict arranges for row processors to run, expands macros and
-   hands over the resulting row dictionary/ies over to the parse context's 
-   processRowdict method
-#. This then uses ParseContext._buildRecord to build a record with
-   correct python types.  Here, validation and constraint checking takes
-   place.
-#. Finally, processRowdict calls the addData method of every table it
-   knows as a destination.
- 
-I know this is horribly overengineered.
-
-
-Conversion of Types and Values
-==============================
-
-Internally, the software obviously uses the python type system, but the
-"official" interface is defined in terms of PostgresSQL's (one should
-try to keep it down to SQL's).  The knowledge of how to transform the
-types should be kept in gavo.typesystems to keep things maintainable.
-
-With values, it's much more of a pain, even more, because some given
-value may be represented differently in, say, HTML than in a VOTable.
-
-For VOTables, the software tries to infer the proper representation from
-the sql type, the python type, ucds and units, for HTML it uses
-displayHints.
+* Each functionality block is in a subpackage, the __init__ for which
+  contains the main functions, classes, etc., of the the sub-package
+  interface most clients will be concerned with.  Clients needing
+  special tricks may still import individual modules.
+* Within each subpackage, *no* module imports the sub-package, i.e.,
+  a module in base never says "from gavo import base"
+* A subpackage may have a module common, containing objects that
+  multiple modules within that subpackage requires.  common may *not*
+  import any module from the subpackage, but may be imported from all
+  of them.
+* There is a hierarchy of subpackages, where subpackages lower in the
+  hierarchy may not import anything from the higher or equal levels, but 
+  only from lower levels.  This hierarchy currently looks like this:
+  base < (rscdef,grammars) < rsc < top-level.
 
 
 Testing
 =======
 
-I'm a big fan of doctests.  Pity there are so few of them in the code
-right now.
-
-I'll write pyunit-based test code to the tests subdirectory.  I haven't
-yet decided how I'll integrate those and the docstests.
-
-Many of the tests will require database connectivity.  I'll try and
-design the tests so they don't need resources apart from the
-availability of a test db profile.  I have this set up on my private
-machine like this:
+Many of the tests will require database connectivity.  They should, in
+general, not need resources apart from the availability of a test db
+profile.  I have this set up on my private machine like this:
 
 ::
 
@@ -134,6 +52,38 @@ in ~/.gavorc and
 in ~/.gavo/etc -- of course, for this to work, you need a postgresql
 engine running on your machine with a database gavo in which your role
 is superuser (well, has sufficient rights...).
+
+There are doctest, pyunit-based tests, and trial-based tests yaddayadda,
+utils/roughtest.py
+
+
+Structures
+==========
+
+Resource description within the DC works via instances of
+base.Structure.  These parse themselves from XML strings, do validation,
+etc.
+
+A complete structure instance has the following callbacks:
+
+* completeElement -- called when the element closing tag is encountered,
+  used to fill in computed defaults
+* validate -- called after completeElement, used to raise errors if
+  some gross ("syntactic") mistakes are in the element
+* onElementComplete -- called after validate, i.e., elementCompleted
+  can rely on seeing a "valid" structure
+
+In addition, structures can register onParentCompleted callbacks.  These
+are called after the elementCompleted of the parent element.
+
+This processing is done automatically when parsing elements from XML.
+When building elements manually, you should call the finishElement
+method when done to arrange for these methods being called.
+
+If you override these methods, make sure you call the methods of the
+superclass.  Since we might, at some point, want mixins to be able
+to define validators etc, use super()-based superclass calling, through
+_completeElementNext, _validateNext, and _onElementCompleteNext
 
 
 Metadata
