@@ -27,7 +27,11 @@ and also as a guideline of what goes where, apply the following rules:
 * There is a hierarchy of subpackages, where subpackages lower in the
   hierarchy may not import anything from the higher or equal levels, but 
   only from lower levels.  This hierarchy currently looks like this:
-  base < (rscdef,grammars) < rsc < top-level.
+  imp < utils < base < rscdef < grammars < rsc < svcs < protocols < web
+  The user and helpers subpackages are inteded to be imported by
+  top-level components only and thus may import anything, including
+  gavo.api.
+
 
 
 Testing
