@@ -5,8 +5,11 @@ ALL_HTML=userman.html develNotes.html data_checklist.html
 LATEXOPTS=--documentoptions=12pt,a4paper
 
 
+#%.html: %.rstx
+#	../bin/expandRstx.py < $< | rst2html >$@
+
 %.html: %.rstx
-	../bin/expandRstx.py < $< | rst2html >$@
+	rst2html --stylesheet ref.css --link-stylesheet < $<  >$@
 
 %.dvi: %.tex
 	latex $<
@@ -21,7 +24,9 @@ LATEXOPTS=--documentoptions=12pt,a4paper
 %.tex: %.rstx
 	rst2latex $(LATEXOPTS) $< > $@
 
-all: html data_checklist.pdf
+.PHONY: ref.rstx
+ref.rstx:
+	gavogendoc > ref.rstx
 
 html: $(ALL_HTML)
 
