@@ -1,0 +1,49 @@
+=========
+How Do I?
+=========
+
+This is a list of recipies for slightly advanced things you might want
+to do with the GAVO DC.
+
+...add and image to query forms?
+--------------------------------
+
+There are various variations to that theme -- you could go for a
+custom template if you want to get fancy, but usually putting an image
+into an _intro or _bottominfo meta section should do.
+
+In both cases, you need a place to get your image from.  While you could
+put it somewhere into rootDir/web/nv_static, it's probably nicer to have
+it within a resource's input directory.  So, add a static renderer to
+your service, like this::
+
+  <service allowed="form,static" staticData="static"...
+
+This lets you put service-local static data into resdir/static/ and
+access it as <serviceURL>/static/<filename>
+
+Usually, your _intro or _bottominfo will be in reStructured text.  Plain
+images work in there using substitution references or simply the naked
+image directive::
+
+		<meta name="_bottominfo" format="rst">
+			The current data set comprises these fields:
+
+			.. image:: \servicelink{cars/q/cat/static/fields-inline.png}
+		</meta>
+
+The servicelink macro would ensure that the image would still be found
+if the server ran off-root.
+
+This is the recommended way of doing things.  If, however, you insist on
+fancy layouts or need complete control over the appearance of your
+image (or whatever), you can use the evil "raw" meta format::
+  
+  <meta name="_bottominfo" format="raw"><![CDATA[
+    <a href="\servicelink{cars/q/cat/static/fields.png}">
+    <img src="\servicelink{cars/q/cat/static/fields-inline.png}"/>
+    </a>]]>
+  </meta>
+
+Make sure you enter valid HTML here, no checks are done by the DC
+software.
