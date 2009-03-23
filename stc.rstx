@@ -1,0 +1,23 @@
+========
+GAVO STC
+========
+
+A library to process VO STC specifications
+========================================================================
+
+Limitations
+-----------
+
+ * No unions, intersections and such.  This will be (at least partially)
+   fixed as soon as there is a specification on how to serialize that
+   into STC-S.
+ * Empty coordinate values (e.g., 2D data with just one coordinate) are not
+   really supported.  Processing them will, in general, work, but will,
+   in general, not yield the expected result.  This is fixable, but may
+   require changes in the data model.
+ * No generic coordinates.  Those can probably be added relatively
+   easily, but it would definitely help if someone had a clear use case
+   for them
+ * Units on "wiggles" (error, size, pixSize, resolution) are ignored
+   (assumed to be identical to those of the embedding item.  This will
+   change at some point.
