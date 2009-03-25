@@ -8,16 +8,29 @@ A library to process VO STC specifications
 Limitations
 -----------
 
- * No unions, intersections and such.  This will be (at least partially)
-   fixed as soon as there is a specification on how to serialize that
-   into STC-S.
- * Empty coordinate values (e.g., 2D data with just one coordinate) are not
-   really supported.  Processing them will, in general, work, but will,
-   in general, not yield the expected result.  This is fixable, but may
-   require changes in the data model.
- * No generic coordinates.  Those can probably be added relatively
-   easily, but it would definitely help if someone had a clear use case
-   for them
- * Units on "wiggles" (error, size, pixSize, resolution) are ignored
-   (assumed to be identical to those of the embedding item.  This will
-   change at some point.
+* No unions, intersections and such.  This will be (at least partially)
+  fixed as soon as there is a specification on how to serialize that
+  into STC-S.
+* External references (xlink:href and friends) are not supported.
+* Empty coordinate values (e.g., 2D data with just one coordinate) are not
+  really supported.  Processing them will, in general, work, but will,
+  in general, not yield the expected result.  This is fixable, but may
+  require changes in the data model.
+* No generic coordinates.  Those can probably be added relatively
+  easily, but it would definitely help if someone had a clear use case
+  for them
+* Units on "wiggles" (error, size, pixSize, resolution) are ignored
+  (assumed to be identical to those of the embedding item.  This will
+  change at some point.
+* No reference on posAngles, always assumed to be 'X'.
+* Units on subordinate objects (center, posAngle, etc.) are currently
+  ignored.  This will be fixed by making units identical to the
+  underlying object as far as possible at some point.
+
+Extensions to STC-S
+-------------------
+
+* After FK4 or FK5, an equinox specification is allowed.  This is either
+  J<number> or B<number>.
+* For velocities, arbitrary combinations of spaceUnit/timeUnit are
+  allowed.
