@@ -28,11 +28,17 @@ Limitations
 * Units on subordinate objects (center, posAngle, etc.) are currently
   ignored.  This will be fixed by making units identical to the
   underlying object as far as possible at some point.
+* No support for Area.
 
 Extensions to STC-S
 -------------------
 
-* After FK4 or FK5, an equinox specification is allowed.  This is either
-  J<number> or B<number>.
+* After ECLIPTIC, FK4, or FK5, an equinox specification is allowed.  This is 
+  either J<number> or B<number>.
 * For velocities, arbitrary combinations of spaceUnit/timeUnit are
   allowed.
+
+Other Deviations from the Standard
+----------------------------------
+
+* Units on geometries default to deg, deg when parsing from STC-X.
