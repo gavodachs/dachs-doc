@@ -19,9 +19,11 @@ Limitations
 * No generic coordinates.  Those can probably be added relatively
   easily, but it would definitely help if someone had a clear use case
   for them
-* Units on "wiggles" (error, size, pixSize, resolution) are ignored
-  (assumed to be identical to those of the embedding item.  This will
-  change at some point.
+* Spectral errors and their "wiggles" (error, size, etc) must be in the
+  same "flavor", i.e., either frequency, wavelength, or energy.  If they
+  are not, the library will silently failed.  This is easily fixable,
+  but there's too much special casing in the code as is, and I consider
+  this a crazy corner case no one will encounter.
 * No reference on posAngles, always assumed to be 'X'.
 * Units on subordinate objects (center, posAngle, etc.) are currently
   ignored.  This will be fixed by making units identical to the
