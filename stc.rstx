@@ -42,3 +42,12 @@ Other Deviations from the Standard
 ----------------------------------
 
 * Units on geometries default to deg, deg when parsing from STC-X.
+
+Bugs
+----
+
+* When converting from TT to UTC around insertion points of leap seconds,
+  UTC may be one second off.
+* Conversions between TT and TCB are performed using the rough
+  approximation of the explanatory supplement rather than the more
+  exact expression.
