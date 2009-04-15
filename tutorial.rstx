@@ -1,0 +1,21 @@
+=========================
+GAVO DC Software Tutorial
+=========================
+
+.. contents:: 
+  :depth: 2
+  :backlinks: entry
+  :class: toc
+
+
+Debugging
+=========
+
+If nothing else helps you can watch what the software actually sends to
+the database.  To do that, set the GAVO_SQL_DEBUG environment variable
+to any value.  This could look like this::
+
+  env GAVO_SQL_DEBUG=1 gavoimp q create
+
+The first couple of requests are for internal use (like checking that some
+meta tables are present).
