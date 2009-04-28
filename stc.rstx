@@ -11,6 +11,12 @@ Limitations
 * No unions, intersections and such.  This will be (at least partially)
   fixed as soon as there is a specification on how to serialize that
   into STC-S.
+* Reference positions are not supported in any meaningful way.  In
+  particular, when transforming STCs, transformations between all
+  reference positions are identities.  This won't hurt much for galactic
+  or extragalactic objects but of course makes the whole thing useless
+  for solar-system work.  I'm willing to put some work into this if
+  there's any demand.
 * External references (xlink:href and friends) are not supported.
 * Empty coordinate values (e.g., 2D data with just one coordinate) are not
   really supported.  Processing them will, in general, work, but will,
