@@ -17,6 +17,11 @@ Limitations
   or extragalactic objects but of course makes the whole thing useless
   for solar-system work.  I'm willing to put some work into this if
   there's any demand.
+* No handling of cos(delta) on proper motions in RA is implemented; it
+  is unclear to me what STC's stance on this is.  This is particularly
+  bad when transforming PMs.
+* The behaviour of some transforms (in particular FK5<->FK4) close to
+  the poles need some attention.
 * External references (xlink:href and friends) are not supported.
 * Empty coordinate values (e.g., 2D data with just one coordinate) are not
   really supported.  Processing them will, in general, work, but will,
