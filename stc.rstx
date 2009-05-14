@@ -53,6 +53,10 @@ Other Deviations from the Standard
 ----------------------------------
 
 * Units on geometries default to deg, deg when parsing from STC-X.
+* The equinox to be used for ECLIPTIC isn't quite clear from the specs.
+  The library will use a specified equinox if given, else the time value
+  if given, else the equinox will be None (which probably is not
+  terribly useful).
 
 Bugs
 ----
