@@ -11,6 +11,8 @@ Limitations
 * No unions, intersections and such.  This will be (at least partially)
   fixed as soon as there is a specification on how to serialize that
   into STC-S.
+* On system transformations, ellipses are not rotated, just moved.  No
+  "wiggles" (errors, etc) are touched at all.
 * Reference positions are not supported in any meaningful way.  In
   particular, when transforming STCs, transformations between all
   reference positions are identities.  This won't hurt much for galactic
@@ -39,7 +41,16 @@ Limitations
 * Units on subordinate objects (center, posAngle, etc.) are currently
   ignored.  This will be fixed by making units identical to the
   underlying object as far as possible at some point.
+* Spatial intervals are system-conformed analogous to geometries, so any
+  distance information is disregaded.  This will be fixed on request.
+* VelocityIntervals are not system-conformed at all.  This will be fixed
+  on request.
 * No support for Area.
+* Frame handling currently is a big mess; in particular, the system
+  changing functions *assume* that the frames on positions, velocities and
+  geometries are identical.  I'll probably more towards requiring
+  astroCoords being in astroSystem.
+
 
 Extensions to STC-S
 -------------------
