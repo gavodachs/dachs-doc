@@ -8,6 +8,149 @@ GAVO DC Software Tutorial
   :class: toc
 
 
+Ingesting Data
+==============
+
+Starting the RD
+---------------
+
+To ingest data, you will have to write a resource descriptor (RD).  We
+recommend to keep everything handled by a specific RD together in on
+directory that is a direct child of GAVODATA, though nothing forces you
+to do that.  So, in GAVODATA, say::
+
+  mkdir lmc
+
+(where lmc would be the directory name you chose).  The directory name
+will (normally) appear in URLs, so it's a good idea to choose something
+descriptive and short.
+
+We recommend to put the RD in the root of this directory.  A good
+default name for the RD is "q.rd"; the "q" will appear in the default
+URLs as well and usually looks good in there::
+
+  cd lmc
+  vi q.rd
+
+(where you can substitute vi with your favourite editor, of course).
+Writing resource descriptors is what most of the operation of a data
+center is about.  Let's start slowly by giving some metadata::
+
+  <?xml version="1.0" encoding="iso-8859-1"?>
+
+  <resource schema="lmcextinct">
+    <meta name="title">Extinction within the LMC</meta>
+    <meta name="creationDate">2009-06-02T08:42:00Z</meta>
+    <meta name="description" format="plain">
+      Extinction values in the area of the LMC...
+    </meta>
+    <meta name="copyright">Free to use.</meta>
+    <meta name="creator.name">Raoul Haschke</meta>
+
+    <meta name="subject">Large Magellanic Cloud</meta>
+    <meta name="subject">Interstellar medium, nebulae</meta>
+    <meta name="subject">Extinction</meta>
+
+  </resource>
+
+You need to adapt the encoding attribute in the prefix to match what you
+are actually using if you plan on using non-ASCII-characters.  
+You may want to use utf-8 instead of the iso-8859-1 given below
+depending on your computer's setup.
+
+The schema attribute on resource gives the schema tables for this
+resource will turn up in.  You should, in general, use the subdirectory
+name.  If you don't, you have to give the subdirectory name in a
+resdir attribute.
+
+Otherwise, there is only meta information so far.  XXX explain.
+
+Parsing Input Data
+------------------
+
+We recommend putting input data files into a data subdirectory.  Put it
+there.  Let's assume we have one input file for now, calle
+lmc_extinction_values.txt.  Suppose it looks like this, where tabs in
+the input are shown as "\\t"::
+
+  RA_min\\tRA_max\\tDEC_min\\tDEC_max\\tE(V-I)\\tA_V\\tA_I
+  78.910625\\t78.982146\\t-69.557417\\t-69.480639\\t0.04\\t0.092571\\t0.123429
+  78.910625\\t78.982146\\t-69.480639\\t-69.403861\\t0.05\\t0.115714\\t0.154286
+  78.910625\\t78.982146\\t-69.403861\\t-69.327083\\t0.05\\t0.115714\\t0.154286
+
+The first step for ingestion is lexical analysis.  In the DC software,
+this is performed by grammars.  There are many grammars defined, e.g.,
+for getting values from FITS files, VOTables, or using column-based
+formats.   All of them read "something" an emit a mapping from names to
+(mostly) string values.
+
+In this case the easiest grammar to use probably is the reGrammar.
+The idea here is that you give two regular expressions to separate the
+file into records and the records into fields, and that you simply
+enumerate the names used in the mapping.
+
+For the file given above, the RE grammar definition could look like
+this::
+
+  <reGrammar topIgnoredLines="1">
+    <names>raMin, raMax, decMin, decMax, EVI, AV, AI</names>
+  </reGrammar>
+
+If you checked the documentation on reGrammar, you will have noticed
+that "names" is an "atomic child" of reGrammar. Atomic children are
+usually written as attributes, since their values can always be
+represented as strings.  However, if strings become larger, it's more
+convenient to write them in elements, the the DC software allows you to
+do just that.  So,
+
+::
+
+  <reGrammar topIgnoredLines="1"
+    names="raMin, raMax, decMin, decMax, EVI, AV, AI"/>
+
+would have worked just fine, as would::
+
+  <reGrammar><topIgnoredLines>1</topIgnoredLines>
+    <names>raMin, raMax, decMin, decMax, EVI, AV, AI</names></reGrammar>
+
+Structured children, in contrast, cannot be written as plain strings and
+thus can only be written in element notation.
+
+Defining Target Tables
+----------------------
+
+This data is to be represented in a database table using appropriate
+metadata.  The metadata part is kept in a table structure in the RD.  In
+this case, it could look like this::
+
+	<table id="exts" onDisk="True">
+		<meta name="description">
+			Extinction values within certain areas on the sky.
+		</meta>
+		<column name="bbox" type="box" unit="deg"
+			description="Bounding box for the extinction data"/>
+		<column name="centerAlpha" unit="deg" tablehead="RA"
+			description="Area center RA ICRS" ucd="pos.eq.ra;meta.main"/>
+		<column name="centerDelta" unit="deg" tablehead="Dec"
+			description="Area center Declination ICRS" ucd="pos.eq.dec;meta.main"/>
+		<column name="ev_i" unit="mag" tablehead="E(V-I)"
+			ucd="arith.diff;phys.absorption;em.opt.V;em.opt.I"
+			description="Difference in extinction between V and I bands"/>
+		<column name="a_v" unit="mag" tablehead="A_V"
+			ucd="phys.absorption;em.opt.V"
+			description="Extinction in V"/>
+		<column name="a_i" unit="mag" tablehead="A_I"
+			ucd="phys.absorption;em.opt.I"
+			description="Extinction in I"/>
+	</table>
+
+To figure out "good" UCDs, the UCD resolver at
+http://dc.zah.uni-heidelberg.de/ucds/ui/ui/form can help.
+
+Mapping data
+------------
+
+
 Debugging
 =========
 
