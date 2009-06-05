@@ -45,7 +45,7 @@ center is about.  Let's start slowly by giving some metadata::
       Extinction values in the area of the LMC...
     </meta>
     <meta name="copyright">Free to use.</meta>
-    <meta name="creator.name">Raoul Haschke</meta>
+    <meta name="creator.name">S. Author</meta>
 
     <meta name="subject">Large Magellanic Cloud</meta>
     <meta name="subject">Interstellar medium, nebulae</meta>
@@ -63,7 +63,15 @@ resource will turn up in.  You should, in general, use the subdirectory
 name.  If you don't, you have to give the subdirectory name in a
 resdir attribute.
 
-Otherwise, there is only meta information so far.  XXX explain.
+Otherwise, there is only meta information so far.  This metadata is
+cruicial for later registration of the service.  In HTML forms, it is
+displayed in a sidebar.
+
+While you can add metadata for any key you like, only some "magic" keys
+are treated specially by the DC software.  These primarily are the keys
+defined by `Resource Metadata for the Virtual Observatory` by Robert
+Hanisch.
+
 
 Parsing Input Data
 ------------------
@@ -162,3 +170,6 @@ to any value.  This could look like this::
 
 The first couple of requests are for internal use (like checking that some
 meta tables are present).
+
+
+.. _`Resource Metadata for the Virtual Observatory`: http://www.ivoa.net/Documents/latest/RM.html
