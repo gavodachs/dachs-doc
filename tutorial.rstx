@@ -72,6 +72,12 @@ are treated specially by the DC software.  These primarily are the keys
 defined by `Resource Metadata for the Virtual Observatory` by Robert
 Hanisch.
 
+Items you should definitely set include:
+
+* title -- A terse phrase giving an idea what to expect.  Apart from
+  other uses, this will be the head of HTML forms
+* creationDate -- 
+
 
 Parsing Input Data
 ------------------
