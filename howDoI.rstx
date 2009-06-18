@@ -26,11 +26,11 @@ Usually, your _intro or _bottominfo will be in reStructured text.  Plain
 images work in there using substitution references or simply the naked
 image directive::
 
-		<meta name="_bottominfo" format="rst">
-			The current data set comprises these fields:
+    <meta name="_bottominfo" format="rst">
+      The current data set comprises these fields:
 
-			.. image:: \servicelink{cars/q/cat/static/fields-inline.png}
-		</meta>
+      .. image:: \servicelink{cars/q/cat/static/fields-inline.png}
+    </meta>
 
 The servicelink macro would ensure that the image would still be found
 if the server ran off-root.
@@ -47,3 +47,45 @@ image (or whatever), you can use the evil "raw" meta format::
 
 Make sure you enter valid HTML here, no checks are done by the DC
 software.
+
+
+...import data coming in to a service?
+--------------------------------------
+
+I a custom renderer or core, you can use code like::
+
+  from gavo import api
+
+  ...
+
+  def import(self, srcName, srcFile):
+    connection = api.getDBConnection("admin")
+    dd = self.service.rd.getById("myDataId")
+    self.nAffected = api.makeData(dd, forceSource=srcFile,
+      connection=connection).nAffected
+    connection.commit()
+    connection.close()
+
+You want to use a separate connection since the default connections
+obtained by cores and friends are unprivileged and typically cannot
+write to table.
+
+The nAffected should contain the total number of records imported and
+could be used in a custom render function.
+
+srcName and srcFile come from a formal File form item.  In
+submitActions, you obtain them like::
+
+  srcName, srcFile = data["inFile"]
+
+
+Note that you can get really fancy and manipulate data in some way up
+front.  That could look like this::
+
+  data = rsc.Data.create(dd, parseOptions=api.parseValidating,
+    connection=connection)
+  data.addMeta("_stationId", self.stationRecord["stationId"])
+  self.nAffected = api.makeData(dd, forceSource=srcFile, data=data,
+    connection=connection).nAffected
+
+
