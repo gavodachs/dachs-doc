@@ -204,6 +204,7 @@ file already has your new headers, False otherwise.
 
 A somewhat silly example could look like this::
 
+  from gavo import api
   from gavo import helpers
 
   class SillyProcessor(helpers.FileProcessor):
@@ -217,6 +218,10 @@ A somewhat silly example could look like this::
 
   if __name__=="__main__":
     helpers.procmain(SillyProcessor, "testdata/theRD", "sillyData")
+
+Do not forget the "from gavo import api" in this kind of script.  It
+makes sure all protocols you may use in your RDs are loaded when the RD
+is loaded.
 
 The readPrimaryHeader(srcName) -> pyfits header method is a convenience
 method of FileProcessors with obvious functionality.
@@ -379,6 +384,9 @@ class attribute.  An example could be::
 If you want to postprocess the output of the source extraction, define
 an objectFilter method, maybe like this::
 
+from gavo.utils import pyfits
+...
+
   def objectFilter(inName):
     """throws out funny-looking objects from inName and throws out objects
     near the border.
@@ -398,7 +406,9 @@ an objectFilter method, maybe like this::
     hdulist.close()
     os.rename("foo.xyls", inName)
 
-
+Note that we take pyfits from gavo.utils.  You should never import
+pyfits directly, since this may pull in the numpy version of pyfits,
+which is incompatible with what the rest of the DC software expects.
 
 
 .. _`Resource Metadata for the Virtual Observatory`: http://www.ivoa.net/Documents/latest/RM.html
