@@ -178,4 +178,227 @@ The first couple of requests are for internal use (like checking that some
 meta tables are present).
 
 
+Preparing Data
+==============
+
+Sometimes you want to change something on the input files you are
+receiving.  While usually we recommend coping with the input through
+grammars, rowmakers, and the like since this helps maitaining
+consistency with what the scientists intended and also stability when
+new data arrives, there are cases when you deliver data to users,
+most frequently, with FITS files.  There, you may need to add or change
+headers.
+
+Basic FITS Manipulation
+-----------------------
+
+To make this as painless and safe as possible, there is the processing
+module in gavo.helpers.  For manipulating FITS headers, there is the
+HeaderProcessor class.  To use it, derive from it and override at least
+the _getHeader(srcName) -> header and _isProcessed(srcName) -> boolean
+methods.
+
+_getHeader is supposed to return a new pyfits header for the file named
+in the argument, _isProcessed must return True if you think the name
+file already has your new headers, False otherwise.
+
+A somewhat silly example could look like this::
+
+  from gavo import helpers
+
+  class SillyProcessor(helpers.FileProcessor):
+    def _isProcessed(self, srcName):
+      return self.readPrimaryHeader(srcName).has_key("NUMPIXELS")
+
+    def _getHeader(self, srcName):
+      hdr = self.readPrimaryHeader(srcName)
+      hdr.update("NUMPIXELS") = hdr["NAXIS1"]*hdr["NAXIS2"]
+      return hdr
+
+  if __name__=="__main__":
+    helpers.procmain(SillyProcessor, "testdata/theRD", "sillyData")
+
+The readPrimaryHeader(srcName) -> pyfits header method is a convenience
+method of FileProcessors with obvious functionality.
+
+More interesting is procmain.  It arranges for the command line to be
+parsed and expects, in addition to the processor *class*, an id for 
+the resource descriptor for the data it should process, and the id of
+the data descriptor that ingests the files.
+
+Processors are expected  to have an addOptions static method receiving
+an optparser.OptionParser instance and adding options it wants to see.
+Call --help on the program above to see FileProcessor's options.  Things
+are arranged like this (check out the process and _makeCache methods in
+the source code), where proc stands of the name of the ingesting program:
+
+ * ``proc`` computes headers for all input files not yet having "cached"
+   headers.  Cached headers live alongside the fits files and have
+   ".hdr" attached to them.  The headers are *not* applied to the
+   original files.
+ * ``proc --apply --no-compute`` applies cached headers to the input
+   files that do not yet have headers.  In particular when processing 
+   is lengthy (e.g., astrometrical calibration), it is probably a good 
+   idea to keep processing and header application a two-step process.
+ * ``proc --apply`` in addition tries to compute header caches and
+    applies them.  This could be the default operation when header
+    computation is fast
+ * ``proc --reprocess`` recreates caches (without this option, cached
+   headers are never touched).  You want this option if you found a
+   bug in your _getHeader method and need to to recompute all the
+   headers.
+ * ``proc --reheader --apply`` replaces processed headers on the source
+   files.  This is necessary when you want to apply reprocessed headers.
+   Without --reheader, to header that looks like it is "fixed"
+   (according to your _isProcessed code) is ever touched.
+
+Admittedly, this logic is a bit convolved, but the fine-grained
+manipulation intensity is nice when your operations are expensive.
+
+By default, files for which the processing code raises exceptions are
+ignored; the number of files ignored is shown when procmain is finished.
+
+For debugging, pass a --bail option.  It will abort the processing at
+the first error, dumping a traceback.
+
+
+Header Selection
+----------------
+
+Due to the way pyfits manipulates header fields without data, certain
+headers must be taken from the original file, overwriting values in the
+cached headers.  These are the headers actually describing the data
+format, available in the processor's keepKeys attribute.  Right now,
+this is::
+
+	keepKeys = set(["SIMPLE", "BITPIX", "NAXIS", "NAXIS1", "NAXIS2",
+			"EXTEND", "BZERO", "BSCALE"])
+
+You can amend this list as necessary.
+
+Since these operations may mess up the sequence of header cards in a
+way that violates the FITS standard, after this the new headers are
+sorted.  This is done via fitstools.sortHeaders.  This function can take
+two additional functions commentFilter and historyFilter, both receiving
+the card value and returning True to keep the card and False to discard
+it.  
+
+Processors take these from like-named methods that you can override.
+The default implementation keeps all comments and history items.  For
+example, to nuke all comment cards not containing "IMPORTANT", you could
+define::
+
+  def commentFilter(self, comment):
+    return "IMPORTANT" in comment
+
+
+Advanced FITS manipulation
+--------------------------
+
+It is quite common that additional information is required to fix
+header, e.g., from a plate catalogue.  To have those available in your
+processor, add keyword arguments to the constructor and pass them in
+the procmain code, like this::
+
+  class Processor(helpers.FileProcessor):
+    def __init__(self, opts, dd, catalogue=None):
+      helpers.FileProcessor.__init__(opts, dd)
+      self.catalogue = catalogue
+      self.catEntriesUsed = 0
+    ...
+    def _getHeader(self, srcName):
+      ...
+      self.catEntriesUsed += 1
+
+  proc = procmain(Processor, "foo", "bar", catalogue=_loatCat())
+  print "Catalogue entries used:", proc.catEntriesUsed
+
+This fragment also shows how to use the fact that procmain returns the
+processor it instantiated, to return information from the processor to
+the controlling program.
+
+The next customization step is to add options.  To let the user specify
+the catalogue name, you could do something like this::
+
+  class Processer(helpers.FileProcessor):
+    @staticmethod 
+    addOptions(optParser):
+      helpers.FileProcessor.addOptions(optParser)
+      optParser.add_option("--cat-name", help="Resdir-relative path to"
+        " the plate catalogue", action="store", type="str", 
+        dest="catPath", default="res/plates.cat")
+
+Make sure you always do the upward call.  Cf. the optparse documentation
+for what you can do.  The options object returned by optParser is
+available as the opts attribute on your processor.
+
+
+Astrometry.net
+--------------
+
+If you have uncalibrated optical images, you can try to
+automatically calibrate them using astrometry.net.  The DC software
+comes with an interface to it in helpers.anet, and the file processing
+infrastructure is what you want to use here.
+
+You probably want to inherit from AnetHeaderProcessor, more or less like
+this::
+
+  class MyProcessor(helpers.AnetHeaderProcessor):
+    solverParameters = {
+      "indices": ["index-208.fits"],
+      "lower_pix": 0.1,
+      "upper_pix": 0.2,
+     }
+
+    def _getHeader(self, srcName):
+      hdr = helpers.AnetHeaderProcessor._getHeader(self, srcName)
+      if hdr is not None:
+        hdr.update("LOCATION", "Unknown")
+      return hdr
+
+
+See helpers.anet for an explanation of what you can do with solver
+parameters.
+
+If you want to use SExtractor for source extraction, add a sexScript
+class attribute.  An example could be::
+
+  sexScript = """CATALOG_TYPE     FITS_1.0
+    CATALOG_NAME     out.xyls
+    PARAMETERS_NAME  xylist.param
+    DETECT_TYPE      CCD
+    DETECT_MINAREA   100
+    DETECT_THRESH    8
+    SEEING_FWHM      1.2
+    #VERBOSE_TYPE     QUIET
+    """
+
+-- do not change CATALOG_TYPE, CATALOG_NAME, and PARAMETERS_NAME.
+
+If you want to postprocess the output of the source extraction, define
+an objectFilter method, maybe like this::
+
+  def objectFilter(inName):
+    """throws out funny-looking objects from inName and throws out objects
+    near the border.
+    """
+    hdulist = pyfits.open(inName)
+    data = hdulist[1].data
+    width = max(data.field("X_IMAGE"))
+    height = max(data.field("Y_IMAGE"))
+    badBorder = 0.3
+    data = data[data.field("ELONGATION")<1.2]
+    data = data[data.field("X_IMAGE")>width*badBorder]
+    data = data[data.field("X_IMAGE")<width-width*badBorder]
+    data = data[data.field("Y_IMAGE")>height*badBorder]
+    data = data[data.field("Y_IMAGE")<height-height*badBorder]
+    hdu = pyfits.BinTableHDU(data)
+    hdu.writeto("foo.xyls")
+    hdulist.close()
+    os.rename("foo.xyls", inName)
+
+
+
+
 .. _`Resource Metadata for the Virtual Observatory`: http://www.ivoa.net/Documents/latest/RM.html
