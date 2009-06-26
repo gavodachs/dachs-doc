@@ -202,6 +202,15 @@ _getHeader is supposed to return a new pyfits header for the file named
 in the argument, _isProcessed must return True if you think the name
 file already has your new headers, False otherwise.
 
+_getHeader should in general raise a processing.CannotComputeHeader
+exception if it cannot generate a header (e.g., missing catalogue entry,
+nonsensical input data).  If you return None form _getHeader, a
+generic CannotComputeHeader exception will be raised.
+
+Note that you have to return a *complete* header, i.e., including all
+cards you want to keep from the original header (but see 
+`Header Selection`_).
+
 A somewhat silly example could look like this::
 
   from gavo import api
@@ -209,10 +218,10 @@ A somewhat silly example could look like this::
 
   class SillyProcessor(helpers.FileProcessor):
     def _isProcessed(self, srcName):
-      return self.readPrimaryHeader(srcName).has_key("NUMPIXELS")
+      return self.getPrimaryHeader(srcName).has_key("NUMPIXELS")
 
     def _getHeader(self, srcName):
-      hdr = self.readPrimaryHeader(srcName)
+      hdr = self.getPrimaryHeader(srcName)
       hdr.update("NUMPIXELS") = hdr["NAXIS1"]*hdr["NAXIS2"]
       return hdr
 
@@ -223,7 +232,7 @@ Do not forget the "from gavo import api" in this kind of script.  It
 makes sure all protocols you may use in your RDs are loaded when the RD
 is loaded.
 
-The readPrimaryHeader(srcName) -> pyfits header method is a convenience
+The getPrimaryHeader(srcName) -> pyfits header method is a convenience
 method of FileProcessors with obvious functionality.
 
 More interesting is procmain.  It arranges for the command line to be
@@ -265,6 +274,7 @@ ignored; the number of files ignored is shown when procmain is finished.
 
 For debugging, pass a --bail option.  It will abort the processing at
 the first error, dumping a traceback.
+
 
 
 Header Selection
@@ -341,6 +351,9 @@ available as the opts attribute on your processor.
 Astrometry.net
 --------------
 
+Calibration using Astrometry.net
+''''''''''''''''''''''''''''''''
+
 If you have uncalibrated optical images, you can try to
 automatically calibrate them using astrometry.net.  The DC software
 comes with an interface to it in helpers.anet, and the file processing
@@ -409,6 +422,47 @@ from gavo.utils import pyfits
 Note that we take pyfits from gavo.utils.  You should never import
 pyfits directly, since this may pull in the numpy version of pyfits,
 which is incompatible with what the rest of the DC software expects.
+
+If you need more control over the parameters of astrometry.net, override
+_solveAnet and call _runAnet;  here's an example::
+
+	def _solveAnet(self, srcName):
+		for minArea in [300, 50, 150, 800, 2000, 8000]:
+			res = self._runAnet(srcName, self.solverParameters, 
+				self.sexScript%minArea, self.objectFilter)
+			if res is not None:
+				return res
+
+where the example sexScript above has been changed to have a %d for
+DETECT_MINAREA.
+
+
+Analyzing calibration failures
+''''''''''''''''''''''''''''''
+
+If astrometry.net fails to solve fields, you can get a copy of the
+"sandbox" in which the helpers.anet runs the the software.  To do this,
+pass _runAnet an additional argument, copyTo.  This should contain the
+name of a directory in which the sandbox should appear.  Caution: If
+this directory already exists, it will be removed.
+
+So, your _solveAnet might look like this::
+
+	def _solveAnet(self, srcName):
+		return self._runAnet(srcName, self.solverParameters, self.sexScript,
+			self.objectFilter, "/home/me/anetcheck")
+
+If you run your processor with --bail, it will stop at the first
+non-solvable field.  Going to anetcheck, you will find:
+
+ * in.fits -- a copy of the input file
+ * out.xyls -- the extracted source positions in a binary FITS table
+ * out.log -- the solver log
+ * blind.control -- the control file for the blind solver.
+
+To figure out what's wrong, a look into out.log might help.
+XXX further debug tips.
+
 
 
 .. _`Resource Metadata for the Virtual Observatory`: http://www.ivoa.net/Documents/latest/RM.html
