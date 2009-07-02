@@ -441,16 +441,9 @@ Analyzing calibration failures
 ''''''''''''''''''''''''''''''
 
 If astrometry.net fails to solve fields, you can get a copy of the
-"sandbox" in which the helpers.anet runs the the software.  To do this,
-pass _runAnet an additional argument, copyTo.  This should contain the
-name of a directory in which the sandbox should appear.  Caution: If
-this directory already exists, it will be removed.
-
-So, your _solveAnet might look like this::
-
-	def _solveAnet(self, srcName):
-		return self._runAnet(srcName, self.solverParameters, self.sexScript,
-			self.objectFilter, "/home/me/anetcheck")
+"sandbox" in which the helpers.anet runs the the software by passing
+your processing script the --copy-to=path option. Caution: If
+the directory path already exists, it will be removed.
 
 If you run your processor with --bail, it will stop at the first
 non-solvable field.  Going to anetcheck, you will find:
@@ -461,8 +454,33 @@ non-solvable field.  Going to anetcheck, you will find:
  * blind.control -- the control file for the blind solver.
 
 To figure out what's wrong, a look into out.log might help.
-XXX further debug tips.
 
+You can also change blind.control and re-run the solver using
 
+::
 
+  $ANET_PATH/blind < blind.control
+
+To rerun SExtractor, say::
+
+  sextractor -c anet.sex -FILTER N in.fits
+  $ANET_PATH/tabsort MAG_ISO out.xyls out.fits
+
+To get an idea what the source extraction has done, you can try anet's
+plotxy.  You could use anet's solve-field, but this probably will not
+reflect what is actually going on within th helper, in particular not if
+sextractor is in use.
+
+Instead, do something like::
+
+  gm convert -flip -scale 6.25% in.fits pnm:- | plotxy -I - -i out.xyls -C red -P -w 2  -S 0.0625 -X X_IMAGE -Y Y_IMAGE > ws.png
+
+We use gm (from GraphicsMagick) here since netpbm's fitstopnm has issues with
+large files.  You will want to use different scales for larger or
+smaller images both in gm convert's scale and plotxy's -S option, i.e.,
+maybe::
+
+  gm convert -flip -scale 12.5% in.fits pnm:- | plotxy -I - -i out.xyls -C red -P -w 2  -S 0.125 -X X_IMAGE -Y Y_IMAGE > ws.png
+
+for smaller plates.
 .. _`Resource Metadata for the Virtual Observatory`: http://www.ivoa.net/Documents/latest/RM.html
