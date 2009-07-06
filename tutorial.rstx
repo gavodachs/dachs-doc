@@ -312,20 +312,23 @@ Advanced FITS manipulation
 
 It is quite common that additional information is required to fix
 header, e.g., from a plate catalogue.  To have those available in your
-processor, add keyword arguments to the constructor and pass them in
-the procmain code, like this::
+processor, override the _createAuxillaries(dd) method::
 
   class Processor(helpers.FileProcessor):
-    def __init__(self, opts, dd, catalogue=None):
-      helpers.FileProcessor.__init__(opts, dd)
-      self.catalogue = catalogue
+    def _createAuxillaries(self, dd):
       self.catEntriesUsed = 0
+      catPath = os.path.join(dd.rd.resdir, "res/cat.txt")
+      self.catalogue = {}
+      for ln in open(catPath):
+        id, val = ln.split()
+        self.catalogue[id] = val
     ...
     def _getHeader(self, srcName):
       ...
+      foo = self.catalogue[os.path.splitext(srcName)[0]]
       self.catEntriesUsed += 1
 
-  proc = procmain(Processor, "foo", "bar", catalogue=_loatCat())
+  proc = procmain(Processor, "foo", "bar")
   print "Catalogue entries used:", proc.catEntriesUsed
 
 This fragment also shows how to use the fact that procmain returns the
@@ -335,7 +338,7 @@ the controlling program.
 The next customization step is to add options.  To let the user specify
 the catalogue name, you could do something like this::
 
-  class Processer(helpers.FileProcessor):
+  class Processor(helpers.FileProcessor):
     @staticmethod 
     addOptions(optParser):
       helpers.FileProcessor.addOptions(optParser)
