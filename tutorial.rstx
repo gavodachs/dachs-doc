@@ -280,6 +280,13 @@ If you just want to try new code on a single or a small set of files,
 use the --filter option.  It has one value, a substring that has to be
 in the source's name for it to be processed.
 
+If you want to run more than one processor over a given dataset, you
+will have to override the headerExt class attribute of your processors
+so all are distinct.  By default, the attribute contains ".hdr".
+Without overriding it, your processors would overwrite the other's
+cached headers.
+
+
 
 Header Selection
 ----------------
