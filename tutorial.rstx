@@ -65,18 +65,9 @@ resdir attribute.
 
 Otherwise, there is only meta information so far.  This metadata is
 cruicial for later registration of the service.  In HTML forms, it is
-displayed in a sidebar.
+displayed in a sidebar.  See `RMI-style metadata
+<./ref.html#rmi-style-metadata>`_ in the reference documentation.
 
-While you can add metadata for any key you like, only some "magic" keys
-are treated specially by the DC software.  These primarily are the keys
-defined by `Resource Metadata for the Virtual Observatory` by Robert
-Hanisch.
-
-Items you should definitely set include:
-
-* title -- A terse phrase giving an idea what to expect.  Apart from
-  other uses, this will be the head of HTML forms
-* creationDate -- 
 
 
 Parsing Input Data
