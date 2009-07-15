@@ -1,0 +1,588 @@
+=========================================
+GAVO DaCHS installation and configuration
+=========================================
+
+Installation
+============
+
+The preferred way to run python-gavo is on a dpkg-based system (apt-get
+yaddayadda -- actually, packaging and setting up a repository still
+needs to be done).
+
+If this is not an option for you, you can install python-gavo based on
+easy_install.  You first need a working python installation that can
+build python extensions.  If you installed python yourself and have a C
+compiler, that should already be the case, on some distributions you
+need packages like python-dev, python-devel or somesuch installed in
+addition to the binary python.  Once you have that, get the source
+tar.gz, unpack it somewhere, cd into resulting directory and then say
+
+::
+
+  sudo python setup.py install
+
+(there are various options to get the stuff installed when you're not
+root; refer to the `setuptools
+documentation <http://peak.telecommunity.com/DevCenter/EasyInstall>`_ if
+necessary).
+
+Optional components
+*******************
+
+Q3C
+...
+
+If at some point you have large data sets (more than 20000 rows, say)
+and you want to do positional searches on them (cone search, crossmatch,
+siap and such), you will want the Q3C library by Sergey Koposov et al,
+http://www.sai.msu.su/~megera/oddmuse/index.cgi/SkyPixelization.  It's
+not particularly tricky to install, but you should skip it for now.
+
+To install it, get the source from the web site given above.  You need a
+couple of dependencies (on debian etch systems, that would at least be
+libpam-dev, libreadline-dev, and postgresql-server-dev-8.1).  Then
+follow the instructions in the q3c distribution.
+
+To automatically create the necessary indices, use the q3cpositions interface.
+
+psycopg2
+........
+
+psycopg2 is the binding of choice for postgresql (pgsql might still
+work, but what support is left is definitely scheduled for removal).
+
+However, the default psycopg2 distribution does not support queries with
+timeouts.  You must install a patched package provided with the
+distribution.
+
+VOPlot
+......
+
+The software can generate code to load VOTable into VOPlot, a Java
+applet for working with VOTables.  Due to the applet security model, the
+applet has to originate from the server that will deliver the data, and
+so you will need to install VOPlot locally if you want to use this
+feature.
+
+Do do this, `download VOPlot
+<http://vo.iucaa.ernet.in/~voi/voplot.htm>`_ and unpack the distribution
+at a convenient place.  In the resulting folder, you'll find a
+subdirectory binaries/VOPlot.  Copy that and (less importantly)
+docs/user_guide to some location your webserver can serve from, e.g.,
+
+::
+
+  mkdir /var/www/htdocs/VOPlot
+  cp -r binaries/VOPlot  /var/www/htdocs/VOPlot/bin
+  cp -r docs/user_guide/  /var/www/htdocs/VOPlot/doc
+
+
+Assuming that /var/www/htdocs corresponds to the root of your webserver,
+you can then tell the GAVO software where it can find VOPlot in your
+/etc/gavo.rc (see below)::
+
+  [web]
+  voPlotEnable: True
+  voplotCodeBase: /VOPlot/bin
+  voplotUserman: /VOPlot/doc
+
+
+wcstools
+........
+
+To support cutout services, you need getfits from the wcstools package
+available at http://tdc-www.harvard.edu/software/wcstools/.   After
+building wcstools, the binary is in <build-dir>/bin/getfits.
+
+The system expects the binary getfits in inputsDir/cutout/bin/getfits,
+you can optionally add a platform suffix.
+
+
+Setup
+=====
+
+The tools want a "root directory" for GAVO, a directory in which the
+sources reside, ancillary data is kept, etc.  By default, this is
+``/var/gavo``.  If you want something else, set the environment variable
+``$GAVO_HOME`` or (probably better) adapt your /etc/gavorc.
+
+
+Logging
+*******
+
+The tools will write a log (by default ``rootDir/logs/gavoops``).  It
+may be a good idea to keep that log on a local file system and not share
+it with other instances, not the least because we do not provide for any
+kind of locking on that file.  To do that, set the environment variable
+GAVO_LOGDIR to a directory you want the logs in.  That directory should,
+of course, only be writable by you.
+
+If you insist, it wouldn't be hard to make the tools log to syslog.
+
+Database Setup
+**************
+
+To make things work, you will also need to set up a database and create
+at least one profile file (see `The profiles Section`_).
+
+Currently, we only support postgres.  You should have one user that may
+create tables and schemas, so you probably need a dedicated database.
+
+The data center software accesses the database in various functions.
+These are mapped to profiles which correspond to access information
+(basically, the DSN, user, and password).  There are three of them:
+
+* feed -- the "admin" profile, used for feeding tables into the normal
+  database, for user management, credentials checking and the like.
+* trustedquery -- this profile is used for queries generated  by the DC
+  software (though usually on behalf of a user).  The corresponding DB
+  role can access all "normal" tables, privilege management is supposed
+  to happen throught the web interface.
+* untrustedquery -- the profile used for user-contributed SQL.  Only
+  tables expressly opened up are accessible to it.
+
+We can't help you much with postgres (if you have an administrator, she
+should know how to set a database and the necessary users for you).  You
+can adapt all those names, but would need to change the default
+configuration files then.  Otherwise, do the following::
+
+  sudo -u postgres createdb --encoding=UTF-8 gavo  # creates the database that'll hold your data
+  # create the user that feeds the db...
+  sudo -u postgres createuser -P -ADSr gavoadmin
+  # and a user that usually has no write privileges
+  sudo -u postgres createuser -P -ADSR gavo
+  # and a user for "scratch tables" writable from the world
+  sudo -u postgres createuser -P -ADSR untrusted
+
+Note down the passwords you enter, you will need them when setting up your
+database profiles.
+
+Note that running a database server always is a potential security
+liability.  You should make sure you understand what your pg_hba.conf
+(it's in the config directory of your postgres installation, on debian
+that would be ``/etc/postgresql/<version>/main/``)
+says.  As a minimum, you should have a line like::
+
+  local   gavo        gavo,gavoadmin,untrusted          md5
+
+in there; it allows password authentication for the three users above
+from the local machine.  If you wanted to feed or query the database from remote
+machines, you'd have to provide similar lines for those machines; for
+details, see the postgres documentation.
+
+Finally, you need to let the various roles you just created access the 
+database; you do this using the command line interface to postgres::
+
+  sudo -u postgres psql gavo
+  GRANT ALL ON DATABASE gavo TO gavoadmin;
+
+For the individual tables, rights to gavo and untrusted are granted by
+gavoimp, so you do not need to specify any rights for them.
+
+
+Configuration
+=============
+
+You can adapt the gavo environment through a configuraton file.  It is
+located by default in ``/etc/gavo.rc``.  You can change that location
+using the GAVOSETTINGS environment variable (or ``defaultSettingsPath`` in
+``config.py``, though that will break on updates).  You can override
+global settings in your private settings file, ``~/.gavorc`` (you can
+override that location through GAVOCUSTOM).
+
+Gavorcs have a roughly INI-style format with sections in
+square brackets and keys beyond them.  To override a setting, you need
+to have the same key in the same section.
+
+We will first provide an informal walkthrough of the various
+configuration sections and give a reference below.
+
+Walkthrough
+***********
+
+The general Section
+...................
+
+This mainly sets paths.  The most important is ``rootDir``, a directory
+most other paths are relative to.  This is the one you'll most likely
+want to change.  If you, e.g., wanted to have a private gavo tree, you
+could put 
+
+::
+
+  [general]
+  rootDir: /home/user/gavo
+
+into your ~/.gavorc.
+
+The other paths in this section are relative to rootDir, but absolute
+paths are legal, too.
+
+You may want to set tempDir and cacheDir to a directory local to your
+maching if rootDir is mounted via a network.  Also note that we do
+no synchronization for writing to the log (and never will -- we will
+provide syslog based logging if necessary), so you may want to tweak
+this too to keep actions from seperate users seperate.
+
+The db Section
+..............
+
+In the db section, some global properties of the database access layer
+are defined.  Currently, the most releveant one is profilePath.  This is
+a colon-separated list of rootDir-relative paths in which we look for
+database profiles (expansion of home directories is supported).  The
+first match in any of these directories wins.  This is useful when you
+have a test setup and a production setup -- just say ``include dsn`` in
+the common profiles (by default in configDir) and have separate dsn
+files in the ~/.gavo directories of the accounts feeding the test and
+production databases.
+
+In addition, you can supply a comma separated list of database roles in
+maintainers.  There are roles that get gavoadmin-like privileges on all
+tables created by the system.  This is provided so people working on the
+system do not need to go through the gavoadmin account to do DB
+housekeeping.  Note that when you change maintainers, you *must*
+keep gavoadmin in it unless you know excatly what you do.  The DC 
+software will revoke all kinds of privileges from its own feeder if
+gavoadmin isn't part of maintainers, which will be a mess to fix.
+
+queryRoles and adqlRoles correspond to the roles defined during db
+setup.  Again, you can supply more than one such role, but you must at
+least give those defined in the trustedquery and untrustedquery
+profiles.
+
+The profiles Section
+....................
+
+The profile section maps profile names to file names.  These file names
+are relative to any of the directories in db.profilePath.
+
+The file names contain a specification of the access to the database in
+(unfortunately yet another, but simple) language.  Each line in 
+such a profile is either a comment (starting with #), an assignment
+(with "=") or an instruction (consisting of a command and arguments,
+separated by whitespace).
+
+Keywords available for assignment are
+
+* host -- the host the database resides on.  Leave empty for a Unix
+  socket connection. 
+* port -- the port the database listens on.  Leave empty for default
+  5432.
+* database -- the database your tables live in.
+* user -- the user through which the db is accessed.  
+* password -- the password of user.
+
+Commands available are
+
+* include -- read assignments and instructions from the profile given in
+  the argument
+
+A typical setup could look like this
+(all files located in configDir, e.g., /var/gavo/etc):
+
+A file dsn:
+
+::
+
+  host = computer.doma.in
+  port = 5432
+  database = test
+
+A file feed, giving access to the admin account:
+
+::
+
+  include dsn
+  user=gavoadmin
+  password=mySecretPassword
+
+A file trustedquery, giving access one of the queryRoles:
+
+::
+
+  include dsn
+  user=gavo
+  password=anotherSecretPassword
+
+A file untrustedquery, giving access to one of the adqlRoles:
+
+::
+
+  include dsn
+  user=untrusted
+  password=giveItAway
+
+
+The Web Section
+...............
+
+* serverURL: the scheme and host under which the service is visible
+  (like, http://vo.foo.org)
+* nevowRoot: a serverURL-relative URL to the place the nevow service
+  appears in the server.
+* errorPage: debug or something else -- whether to show a traceback on
+  the net or not.
+* staticURL: a serverURL-relative URL to static the data (for
+  querulator)
+
+
+Reference
+*********
+
+You can get an up-to-date version of this by running ``gavoconfig``.
+
+
+Section [general]
+.................
+
+Paths and other general settings.
+
+* cacheDir: path relative to rootDir; 
+  defaults to 'cache' --
+  Path to the DC's persistent scratch space
+* configDir: path relative to rootDir; 
+  defaults to 'etc' --
+  Path to the DC's non-ini configuration (e.g., DB profiles)
+* defaultProfileName: string; 
+  defaults to 'admin' --
+  Default profile name (used to construct system entities)
+* gavoGroup: string; 
+  defaults to 'gavo' --
+  Name of the unix group that administers the DC
+* inputsDir: path relative to rootDir; 
+  defaults to 'inputs' --
+  Path to the DC's data holdings
+* logDir: path relative to rootDir; 
+  defaults to 'logs' --
+  Path to the DC's logs (should be local)
+* logLevel: value from the list info, debug, warning, error; 
+  defaults to 'info' --
+  Verboseness of importer
+* operator: string; 
+  defaults to '' --
+  Mail address of the DC's operator(s).
+* platform: string; 
+  defaults to '' --
+  Platform string (can be empty if inputsDir is only accessed by
+  identical machines)
+* rootDir: string; 
+  defaults to '/var/gavo' --
+  Path to the root of the DC file (all other paths may be relative to
+  this
+* stateDir: path relative to rootDir; 
+  defaults to 'state' --
+  Path to the DC's state information (last imported,...)
+* tempDir: path relative to rootDir; 
+  defaults to 'tmp' --
+  Path to the DC's scratch space (should be local)
+* webDir: path relative to rootDir; 
+  defaults to 'web' --
+  Path to the DC's web related data (docs, css, js, templates...)
+
+Section [adql]
+..............
+
+Settings concerning the built-in ADQL core
+
+* webDefaultLimit: integer; 
+  defaults to '2000' --
+  Default match limit for ADQL queries via the web form
+* webTimeout: integer; 
+  defaults to '15' --
+  Default timeout for adql queries via the web form
+
+Section [db]
+............
+
+Settings concerning database access.
+
+* adqlRoles: set of strings; 
+  defaults to 'untrusted' --
+  Name(s) of DB roles that get access to tables opened for ADQL
+* defaultLimit: integer; 
+  defaults to '100' --
+  Default match limit for DB queries
+* interface: string; 
+  defaults to 'psycopg2' --
+  Don't change
+* maintainers: set of strings; 
+  defaults to 'gavoadmin' --
+  Name(s) of DB roles that should have full access to gavoimp-created
+  tables by default
+* msgEncoding: string; 
+  defaults to 'utf-8' --
+  Encoding of the messages coming from the database
+* profilePath: shell-type path; 
+  defaults to ' ~/.gavo:$configDir' --
+  Path for locating DB profiles
+* queryRoles: set of strings; 
+  defaults to 'gavo' --
+  Name(s) of DB roles that should be able to read gavoimp-created tables
+  by default
+
+Section [ivoa]
+..............
+
+The interface to the Greater VO.
+
+* authority: string; 
+  defaults to 'org.gavo.dc' --
+  the authority id for this DC
+* dalDefaultLimit: integer; 
+  defaults to '10000' --
+  Default match limit on DAL queries
+* registryIdentifier: string; 
+  defaults to 'ivo://org.gavo.dc/static/registryrecs/registry.rr' --
+  The IVOAid for this DC's registry
+
+Magic Section [profiles]
+........................
+
+Mapping of DC profiles to profile definitions.  The items in this
+section are all of type profile name.  You can add keys as required.
+
+* admin: profile name; 
+  A name of a file in [db]profilePath
+* deploydb: profile name; 
+  A name of a file in [db]profilePath
+* test: profile name; 
+  A name of a file in [db]profilePath
+* trustedquery: profile name; 
+  A name of a file in [db]profilePath
+* untrustedquery: profile name; 
+  A name of a file in [db]profilePath
+
+Section [ui]
+............
+
+Settings concerning the local user interface
+
+* outputEncoding: string; 
+  defaults to 'iso-8859-1' --
+  Encoding for system messages.  This should match what your terminal
+  emulator is set to
+
+Section [web]
+.............
+
+Settings related to serving content to the web.
+
+* adminpasswd: string; 
+  defaults to '' --
+  Password for online administration, leave empty to disable
+* enableTests: boolean; 
+  defaults to 'False' --
+  Enable test pages (don't if you don't know why)
+* errorPage: string; 
+  defaults to 'debug' --
+  set to 'debug' for error pages with tracebacks, anything else for a
+  less informative page
+* favicon: path relative to webDir; 
+  defaults to 'None' --
+  Webdir-relative path to a favicon
+* graphicMimes: list of strings; 
+  defaults to 'image/fits,image/jpeg' --
+  MIME types considered as graphics (for SIAP, mostly)
+* maxPreviewWidth: integer; 
+  defaults to '300' --
+  Hard limit for the width of previews (necessary because previews on
+  protected items are free)
+* nevowRoot: path fragment; 
+  defaults to '/' --
+  Path fragment to the server's root for operation off the server's root
+* previewCache: path relative to webDir; 
+  defaults to 'previewcache' --
+  Webdir-relative directory to store cached previews in
+* serverPort: integer; 
+  defaults to 'None' --
+  Port to bind the server to
+* serverURL: string; 
+  defaults to 'http://localhost:8080' --
+  URL fragment used to qualify relative URLs where necessary
+* sitename: string; 
+  defaults to 'GAVO data center' --
+  A short name for your site
+* sqlTimeout: integer; 
+  defaults to '15' --
+  Default timeout for db queries via the web
+* templateDir: path relative to webDir; 
+  defaults to 'templates' --
+  webDir-relative location of global nevow templates
+* user: string; 
+  defaults to 'None' --
+  Run server as this user (leave empty to not change user)
+* vanityNames: path relative to webDir; 
+  defaults to 'vanitynames.txt' --
+  Webdir-realtive path to the name map for vanity names
+* voplotCodeBase: URL fragment relative to the server's root; 
+  defaults to 'static/voplot/VOPlot' --
+  URL of the code base for VOPlot
+* voplotEnable: boolean; 
+  defaults to 'False' --
+  Enable the VOPlot output format (requires some external software)
+* voplotUserman: URL fragment relative to the server's root; 
+  defaults to 'static/voplot/docs/VOPlot_UserGuide_1_4.html' --
+  URL to the documentation of VOPlot
+
+Binaries
+========
+
+For extended functionality, the system uses external binaries.
+If your GAVO_ROOT is accessible from more than one machine and the
+machines have different architectures, this may be a problem, because
+one platform may not be able to execute another platform's binaries.
+
+To fix this, set platform in the DEFAULTS section of your config file.
+You can then rename any platform-dependent executable
+base-<platform>, and if on the respective platform, that binary will be
+used. This also works for computed resources using binaries, and those
+parts of the DC software that build binaries (e.g., the booster
+machinery) will automatically add the platform postfix.
+
+If you build your own software, a make file like the following could be
+helpful:
+
+::
+
+  PLATFORM=$(shell gavoconfig platform)
+  TARGET=@@@binName@@@-$(PLATFORM)
+  OBJECTS=@@@your object files@@@
+
+  $(REG_TARGET): buildstamp-$(PLATFORM) $(OBJECTS)
+          $(CC) -o $@ $(OBJECTS)
+
+  buildstamp-$(PLATFORM):
+          make clean
+          rm -f buildstamp-*
+          touch buildstamp-$(PLATFORM)
+
+You'll have to fill in the @@@.*@@@ parts and probably write rules for
+building the files in $OBJECT, but otherwise it's a simple hack to make
+sure a make on the respective machine builds a suitable binary.
+
+
+The Portal
+**********
+
+The root URL of the data center should return a page that explains what
+the site is all about and list what's available.  The template
+for this page is
+located in root.html in templateDir (which defaults to
+GAVO_ROOT/web/templates and is defined in the web section of config).
+A list of services in alphabetic order can be obtained using something
+like
+
+::
+
+    <div id="servicelist" n:data="chunkedServiceList" n:render="sequence">
+      <n:invisible n:pattern="item" n:render="mapping">
+        <h3><n:slot name="char"/>...</h3>
+        <ul n:data="chunk" n:render="sequence">
+          <li n:pattern="item" n:render="mapping">
+            <a n:render="serviceURL"/>
+            <span n:render="ifprotected">[P]</span>
+          </li>
+        </ul>
+      </n:invisible>
+    </div>

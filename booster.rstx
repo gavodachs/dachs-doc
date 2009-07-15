@@ -90,14 +90,12 @@ be edited or removed, since the function building the booster greps it out of
 the source code to communicate this value to the booster boilerplate.
 
 Then the code contains an enumeration of the field indices; the names are
-simple fi_ and the field destination lowercased.  If you only use these
+simple fi\_ and the field destination lowercased.  If you only use these
 names to access fields, the cut'n'paste effort on changes of the table
 structure should be manageable.
 
 While you shouldn't need to change any of this, you have to change the
-function that follows:
-
-::
+function that follows::
 
   Field *getTuple(char *inputLine)
   {
@@ -144,23 +142,23 @@ You can, and frequently will, fill the stuff by hand.  There are,
 however, a couple of functions that care about some standard situations,
 in particular when parsing column-structured text files:
 
-* void linearTransform(Field *field, double offset, double factor) --
-  changes field in place to offset+factor*oldValue.  Handles NULL
+* ``void linearTransform(Field *field, double offset, double factor)`` --
+  changes field in place to ``offset+factor*oldValue``.  Handles NULL
   correctly, silently does nothing for anything non-numeric
-* void parseFloatWithMagicNULL(char *src, Field *field, int start, int
-  len, char *magicVal) -- parses a float from src[start:start+len] into
+* ``void parseFloatWithMagicNULL(char *src, Field *field, int start, int
+  len, char *magicVal)`` -- parses a float from src[start:start+len] into
   field, writing NULL when magicVal is found in the field.
-* void parseDouble(char *src, Field *field, int start, int len) --
+* ``void parseDouble(char *src, Field *field, int start, int len)`` --
   parses a double from src[start:start+len] into field, writing NULL if it's empty
-* void parseInt(char *src, Field *field, int start, int len) -- parses a
+* void ``parseInt(char *src, Field *field, int start, int len)`` -- parses a
   32-bit in into field.
-* void parseBlankBoolean(char *src, Field *field, int srcInd) -- parses
+* ``void parseBlankBoolean(char *src, Field *field, int srcInd)`` -- parses
   a boolean such that field becomes true when src[srcInd] is nonempty.
-* void parseString(char *src, Field *field, int start, int len, char
-  *space) -- copies len bytes starting at start from src into space (you
+* ``void parseString(char *src, Field *field, int start, int len, char
+  *space)`` -- copies len bytes starting at start from src into space (you
   are responsible for allocating that!) and stuffs the whole thing into
   field.
-* void parseChar(char *src, Field *field, int srcInd) -- guess.
+* ``void parseChar(char *src, Field *field, int srcInd)`` -- guess.
 
 
 Boosters reading from binary data

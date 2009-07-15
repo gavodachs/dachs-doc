@@ -1,12 +1,11 @@
-HTMLTARGET=vo:/var/www/docs/python-gavo
+HTMLTARGET=vo:/var/www/docs/DaCHS
+RST_SOURCES=data_checklist.rstx howDoI.rstx ref.rstx tutorial.rstx\
+	booster.rstx develNotes.rstx install.rstx
+ALL_HTML=index.html $(subst .rstx,.html,$(RST_SOURCES))
+HTML_FILES=$(ALL_HTML)
+ALL_PDF=$(subst .rstx,.pdf,$(RST_SOURCES))
+LATEXOPTS=--documentoptions=11pt,a4paper --stylesheet stylesheet.tex
 
-ALL_HTML=userman.html develNotes.html data_checklist.html
-
-LATEXOPTS=--documentoptions=12pt,a4paper
-
-
-#%.html: %.rstx
-#	../bin/expandRstx.py < $< | rst2html >$@
 
 %.html: %.rstx
 	rst2html --stylesheet ref.css --link-stylesheet < $<  >$@
@@ -28,14 +27,14 @@ LATEXOPTS=--documentoptions=12pt,a4paper
 ref.rstx:
 	gavogendoc > ref.rstx
 
-html: $(ALL_HTML)
 
-install: html
-	rsync -av $(ALL_HTML) $(HTMLTARGET)
+install: $(HTML_FILES) $(ALL_PDF)
+	rsync -av *.css $(HTML_FILES) $(ALL_PDF) $(RST_SOURCES) $(HTMLTARGET)
 
 clean:
 	rm -f $(ALL_HTML)
 	rm -f *.log *.aux *.out *.pdf
+	rm -f classes.ps
 
 classes.ps: classes.dot
 	dot -T ps < $< > $@

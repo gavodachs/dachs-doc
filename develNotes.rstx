@@ -5,8 +5,8 @@ Development notes for the GAVO Data Center
 This is basically a heap of stuff I intend to amend with informal docs
 on what I'm doing to the software.  While I hope that at some point
 it'll grow into a useful introduction to further developing the stuff,
-right now it's a random collection that may even contain wrong
-information.  Caveat emptor.
+right now it's a random collection that contains quite a bit of
+outdated information.  Caveat emptor.
 
 Package Layout
 ==============

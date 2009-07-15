@@ -1,0 +1,11 @@
+\usepackage[compact]{titlesec}
+\titlespacing{\section}{0pt}{*0}{*0}
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{1pt plus 2pt minus 1pt}
+\sloppy
+\renewcommand{\rmdefault}{cmss}
+% plain hacker's way to get smaller typewriter text
+\let\realttfam\ttfamily
+\setlength{\parskip}{2ex plus 1ex minus 0.5ex}
+\renewcommand{\ttfamily}{\realttfam\footnotesize}
+\pagestyle{plain}

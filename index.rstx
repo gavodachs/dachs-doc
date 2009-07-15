@@ -1,0 +1,41 @@
+==========
+GAVO DaCHS
+==========
+
+The GAVO Data Center Helper Suite (DaCHS) is a publishing infrastructure
+for the Virtual Observatory, including a flexible component for
+ingesting and mapping data, integrated metadata handling with a
+publishing registry, and support for many VO protocols and standards.
+
+
+Documentation
+=============
+
+* Installation and configuration (`install.html <./install.html>`_, 
+  `install.pdf <./install.pdf>`_, `install.rstx <./install.rstx>`_)
+* Tutorial (`tutorial.html <./tutorial.html>`_, 
+  `tutorial.pdf <./tutorial.pdf>`_, `tutorial.rstx <./tutorial.rstx>`_)
+* Reference (`ref.html <./ref.html>`_, 
+  `ref.pdf <./ref.pdf>`_, `ref.rstx <./ref.rstx>`_)
+* How do I? (`howDoI.html <./howDoI.html>`_, 
+  `howDoI.pdf <./howDoI.pdf>`_, `howDoI.rstx <./howDoI.rstx>`_)
+* Checklist for data providers (`data_checklist.html <./data_checklist.html>`_, 
+  `data_checklist.pdf <./data_checklist.pdf>`_, 
+  `data_checklist.rstx <./data_checklist.rstx>`_)
+* Guide to write booster grammars (`booster.html <./booster.html>`_,
+  `booster.pdf <./booster.pdf>`_, `booster.rstx <./booster.rstx>`_)
+* Developments notes (`develNotes.html <./develNotes.html>`_,
+  `develNotes.pdf <./develNotes.pdf>`_, 
+  `develNotes.rstx <./develNotes.rstx>`_)
+
+
+Software
+========
+
+As you may have guessed from the documentation, DaCHS is very much a
+work in progress, and thus we so far do not provide installable
+packages.  
+
+You are very much welcome to our source, though, which is available
+under the GNU General Public License from our subversion repository.
+Please contact gavo@ari.uni-heidelberg.de.
