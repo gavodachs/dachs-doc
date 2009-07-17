@@ -287,7 +287,7 @@ A file dsn:
 
   host = computer.doma.in
   port = 5432
-  database = test
+  database = gavo
 
 A file feed, giving access to the admin account:
 
@@ -526,7 +526,7 @@ Settings related to serving content to the web.
   URL to the documentation of VOPlot
 
 Binaries
-========
+''''''''
 
 For extended functionality, the system uses external binaries.
 If your GAVO_ROOT is accessible from more than one machine and the
@@ -562,8 +562,25 @@ building the files in $OBJECT, but otherwise it's a simple hack to make
 sure a make on the respective machine builds a suitable binary.
 
 
+Specifying meta information fallbacks
+=====================================
+
+The file ``$DACHS/etc/defaultmeta.txt`` must exist.
+
+Preparing the system tables
+===========================
+
+DaCHS uses some internal tables that need to be prepared before you can
+start to ingest data.  You should now be able to run the following
+commands (in that order)::
+
+  gavoimp --system __system__/dc_tables
+  gavoimp --system __system__/services
+  gavoimp --system __system__/users
+  gavoimp --system __system__/products
+
 The Portal
-**********
+==========
 
 The root URL of the data center should return a page that explains what
 the site is all about and list what's available.  The template
