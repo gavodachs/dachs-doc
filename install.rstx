@@ -5,11 +5,47 @@ GAVO DaCHS installation and configuration
 Installation
 ============
 
-The preferred way to run python-gavo is on a dpkg-based system (apt-get
-yaddayadda -- actually, packaging and setting up a repository still
-needs to be done).
+Debian systems
+**************
 
-If this is not an option for you, you can install python-gavo based on
+The preferred way to run python-gavo is on Debian stable or compatible
+systems.  On such systems, add lines like
+
+{{{
+deb http://vo.ari.uni-heidelberg.de/debian lenny main
+deb-src http://vo.ari.uni-heidelberg.de/debian lenny main
+}}}
+
+to your /etc/apt/sources.list.  We will not clobber packages from stable
+*except* when we are very confident they are backwards compatible.
+Thus, while we cannot actually promise anything, including this
+repository should not impact your systems's stability in any way, even
+though we may occansionally include an updated package or two
+(typically, python-psycopg2).
+
+You should then get our archive key to avoid nasty questions from
+aptitude/apt-get.  Our archive key's id is D8C139FC, and it is on the
+key servers.  Its fingerprint is::
+
+  B199 D643 9DBB 98D7 9F4E  AD09 8B6C 75C0 D8C1 39FC
+
+The quick and dirty way to install the key on your machine is::
+
+  wget -qO - http://vo.ari.uni-heidelberg.de/docs/archive-key.asc \
+    | sudo apt-key add -
+
+After that, it's a matter of::
+
+  sudo aptitude update
+  sudo aptitude install gavodachs
+
+This will pull in all the necessary dependencies.
+
+
+Non-Debian Systems/ez_install
+*****************************
+
+If apt is not an option for you, you can install python-gavo based on
 easy_install.  You first need a working python installation that can
 build python extensions.  If you installed python yourself and have a C
 compiler, that should already be the case, on some distributions you

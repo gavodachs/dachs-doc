@@ -243,7 +243,7 @@ data coming from a grammar to whatever the table defines.
 
 Basically a row maker consists of
 
-* `var <./ref.html#element-var>`_s -- assignments of expression values 
+* `var <./ref.html#element-var>`_ s -- assignments of expression values 
   names in the rawdict.
 * procedure applications (see `apply <./ref.html#element-apply>`_) --
   procedural manipulations of both rawdicts and rowdicts.
@@ -514,6 +514,79 @@ to any value.  This could look like this::
 
 The first couple of requests are for internal use (like checking that some
 meta tables are present).
+
+
+Publishing Data
+===============
+
+Once a table is in the database, it needs to get out again.  Within
+DaCHS, there are three parties involved in delivering data to the user:
+
+* The core; it actually does the computation
+* The renderer; it formats the result in some way requested by the user
+  and delivers it.  There are renderers for web forms, VO protocols,
+  imges, etc.
+* The serviice; it holds together the core and the renderer, can
+  reformat core results, controls the metadata, etc.
+
+You will usually use pre-specified renderers, so these are not defined
+in resource descriptors.  What you have to define are cores and
+services.
+
+For core, you will usually use the `dbCore <./ref.html#element-dbcore>`_
+in custom services, though `many other cores
+<./ref.html#cores-available>`_ are predefined and you can `define your
+own <./ref.html#writing-custom-cores>`_.  
+
+The dbCore generates a (single-table) query from condition descriptors
+and returns a table that you describe through an output table.  Cores
+are defined as direct children of the resource.  For the lmcextinction
+table above, it could look like this::
+  
+  <core id="conecore" queriedTable="exts">
+    <condDesc predefined="humanScs"/>
+    <condDesc buildFrom="ev_i"/>
+  </core>
+
+Cores always need an id.  dbCores need a queriedTable attribute, the
+value of which must be a table reference.  This is the table the query
+will run against.
+
+CondDescs can be defined in all kinds of ways.  The most common modes,
+however, are using predefined condDescs (which mostly come from
+protocols; in this case, humanScs comes from SCS and lets you do cone
+searches), and just deriving condDescs from table columns.  You can
+refer to columns from your table definition by name in the buildFrom
+attribute, and the software tries to make some useful input definition
+from that column.
+
+In web forms, these input definitions become form items; other renderers
+will expose them differently.  In all cases, however, the condDescs of
+the dbCore define what fields can be queried.
+
+The service now ties the core together with a renderer.  It might look
+like this::
+
+	<service id="cone" core="conequery">
+    <meta name="shortname">lmcext_web</meta>
+	</service>
+
+While services can run without shortnames, it can lead to trouble later, so you
+should make a habit of assigning short names.  See `the data checklist
+<./data_checklist.html>`_ for more information on short names.
+
+A service must have an id as well, and its core attribute must contain
+the id of a core.
+
+With this minimal specification, the service exposes a web form-based
+interface.  To try this, run a server::
+
+  gavoserve debug
+
+and point a browser to http://localhost:8080/lmcextinct/q/cone/form (the
+host part, of course, depends on your configuration.  If you did not
+change anything there, you should find the data at the given URL).
+
 
 
 Preparing Data

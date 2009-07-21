@@ -5,6 +5,66 @@ GAVO STC
 A library to process VO STC specifications
 ========================================================================
 
+This library aims to ease processing specifications of space-time
+coordindates (STC) according to the IVOA STC data model with the XML and
+string serializations.  Note that it is at this point an early beta at
+best.
+
+More specifically, it is inteded to help in:
+
+* supporting ADQL region specifications
+* generating registry coverage specifications from simple STC-S
+
+As the dust settles around embedding STC in VOTable, we will support
+this as well.
+
+
+Installation
+------------
+
+If you are running Debian stable, see `Adding the GAVO repository to
+your sources`_ and use our packages.  After that, simply say::
+
+  aptitude install python-gavostc
+
+If you do not have a dpkg-based system, you will have to install the
+source distribution.  Unpack the .tar.gz and run::
+
+  python setup.py install
+
+You will normally need to do this as root for a system-wide
+installation.  There are, however, alternatives, first and foremost a
+`virtual python` that will keep your managed directories clean.
+
+This library's setup is based on setuptools.  Thus, it will generally
+obtain all necessary dependencies from the net.  For this to be
+successful, you will have net access.
+
+If all this bothers you, contact the authors.
+
+
+Usage
+-----
+
+Command Line
+''''''''''''
+
+For experiments, we provide a simple command line tool.  Try::
+
+  gavostc help
+
+so see what operations we expose through the command line tool.
+
+
+Programmatic
+''''''''''''
+
+The library is written in python, and thus currently can only be
+operated from python programs.  It should not be too hard to embed it
+into C or even Java programs.  If you have such needs, contact the
+author.
+
+
 Limitations
 -----------
 
@@ -72,8 +132,10 @@ Other Deviations from the Standard
 Bugs
 ----
 
-* When converting from TT to UTC around insertion points of leap seconds,
-  UTC may be one second off.
 * Conversions between TT and TCB are performed using the rough
   approximation of the explanatory supplement rather than the more
   exact expression.
+
+
+
+.. `Adding the GAVO repository to your sources`: http://vo.ari.uni-heidelberg.de/docs/repository.html
