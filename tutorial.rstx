@@ -1,6 +1,6 @@
-=========================
-GAVO DC Software Tutorial
-=========================
+===================
+GAVO DaCHS Tutorial
+===================
 
 .. contents:: 
   :depth: 2
@@ -588,6 +588,71 @@ host part, of course, depends on your configuration.  If you did not
 change anything there, you should find the data at the given URL).
 
 
+More on Grammars
+================
+
+Row Generators
+--------------
+
+TBD
+
+Source Fields
+-------------
+
+Grammars can have a sourceFields element.  It contains a standard
+procedure definition (i.e., you could predefine those and bind
+parameters), but usually you will just fill in the code.
+
+This code is called once for each source processed, and receives the
+sourceToken as argument.  It must return a dictionary, the key/value
+pairs of which will be added to all rows returned by the row iterator.
+
+The purpose of sourceFields is to precompute values that depend on the
+source ("file") and are constant for all rows within it.  An example for
+where you need this is when you want to create backlinks to the file a
+piece of data came from::
+
+  <xygrammar>
+    <sourceFields>
+      <code>
+        srcKey = utils.getRelativePath(sourceToken,
+						base.getConfig("inputsDir"))
+        return locals()
+      </code>
+    </sourceFields>
+  </xygrammar>
+
+You can then retrieve the path to the source file via srcKey key in
+rawdicts (and then, using render functions and static renderers, turn
+this into links).
+
+In addition to the sourceToken, you also have access to the data that
+will be fed from the grammar.  This can be used to, e.g., retrieve the
+resource directory (``data.dd.rd.resdir``) or data descriptor properties
+(``data.dd.getProperty("whatever")``).
+
+Sometimes you want to do database queries from within sourceFields.
+This is tricky when you access the table being written or otherwise
+being accessed.  This is because sourceTokens run in the midst of a
+transaction updating the table.  So, something like::
+
+  <code> 
+    <!-- will deadlock, don't do it like this -->
+    base.SimpleQuerier().query(...)
+  </code>
+
+will wait for the transaction to finish.  But the transaction is waiting
+for data that will only come when the query finishes -- this is a
+deadlock, and gavoimp will just sit there and wait (see also `Deadlocks
+<commonproblems.html#deadlocks>`_).
+
+To get around this, you need to query using the data's connection.  So,
+instead write::
+
+  <code>
+    base.SimpleQuerier(connection=data.connection).query(...)
+  </code>
+
 
 Preparing Data
 ==============
@@ -843,7 +908,7 @@ an objectFilter method, maybe like this::
     data = data[data.field("X_IMAGE")<width-width*badBorder]
     data = data[data.field("Y_IMAGE")>height*badBorder]
     data = data[data.field("Y_IMAGE")<height-height*badBorder]
-    hdu = pyfits.BinTableHDU(data)
+    hdu = pyfits.new_table(data)
     hdu.writeto("foo.xyls")
     hdulist.close()
     os.rename("foo.xyls", inName)

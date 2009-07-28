@@ -130,6 +130,12 @@ The italicized text in the explanations is taken from [RMI]_.
 Other issues
 ------------
 
+If you have data "with positions" (i.e., your data will be published
+using the Simple Cone Search (SCS) protocol), a unique identifier
+for each table row is required.  While a row counter will do fine, you
+will probably do yourself a favour if you follow the IAU conventions
+([IAU]_).
+
 If you have any wishes concerning the appearance of your service (on the
 Web or within the VO), just let us know.  We can do a lot of
 customization and even if we can't, we'd still like to know about them.
@@ -146,6 +152,7 @@ Bibliography
 
 .. [RMI]  Hanisch, R., et al, "Resource Metadata for the Virtual
    Observatory", http://www.ivoa.net/Documents/latest/RM.html
+
 .. [IAU] IAU Commission 5, "Specifications concerning designations for
    astronomical radiation sources outside the solar system",
    http://cdsweb.u-strasbg.fr/Dic/iau-spec.html
