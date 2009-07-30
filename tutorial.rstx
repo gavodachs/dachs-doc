@@ -665,14 +665,124 @@ new data arrives, there are cases when you deliver data to users,
 most frequently, with FITS files.  There, you may need to add or change
 headers.
 
+However, sometimes you just want to traverse all sources.  Let's cover
+this case first.
+
+
+Processors
+----------
+
+The basic infrastructure for manipulating sources is the FileProcessor
+class, available from gavo.helpers.
+
+Here is an example checking whether the sizes of files match what an
+(externally defined) function ``_getExpectedSize(fName) -> int`` returns::
+
+  import os
+
+  from gavo import api
+  from gavo.helpers import FileProcessor, procmain
+
+  class SizeChecker(FileProcessor):
+
+    def process(self, srcName):
+      found = os.path.getsize(srcName)
+      expected = _getExpectedSize(srcName)
+      if found!=expected:
+        print "%s: is %s, should be %s"%(srcName, found, expected)
+
+
+  if __name__=="__main__":
+    procmain(SizeChecker, "potsdam/q", "import")
+
+
+Do not forget the "from gavo import api" in this kind of script.  It
+makes sure all protocols you may use in your RDs are loaded when the RD
+is loaded.
+
+More interesting is procmain.  It arranges for the command line to be
+parsed and expects, in addition to the processor *class*, an id for 
+the resource descriptor for the data it should process, and the id of
+the data descriptor that ingests the files.
+
+The processors can define command line options of their own.  You could,
+for example, read the expected sizes from some sort of catalogue.  To do
+that, define an addOptions static method, like this::
+
+  class Processor(helpers.FileProcessor):
+    @staticmethod 
+    addOptions(optParser):
+      helpers.FileProcessor.addOptions(optParser)
+      optParser.add_option("--cat-name", help="Resdir-relative path to"
+        " the plate catalogue", action="store", type="str", 
+        dest="catPath", default="res/plates.cat")
+
+Make sure you always do the upward call.  Cf. the optparse documentation
+for what you can do.  The options object returned by optParser is
+available as the opts attribute on your processor.  To keep the chance
+of name clashes in this sort of inheritance low, always use long options
+only.
+
+Simple FileProcessors support the following options:
+
+--filter
+  It takes a value, a substring that has to be in the
+  source's name for it to be processed.  This is for when you want to try
+  out new code on just one file or a small subset of files.
+--bail
+  Rather than going on when a process method lets an exception escape,
+  abort the processing at the first error and dump a traceback.  Use 
+  this to figure out bugs in your (or our) code.
+
+Once you have the catalogue name, you will want to read it and make it
+available to the process method.  To allow you to do this, you can
+override the _createAuxillaries(dd) method.  It receives the data
+descriptor of the data to be processed.  Here's an example::
+
+  class Processor(helpers.FileProcessor):
+    def _createAuxillaries(self, dd):
+      self.catEntriesUsed = 0
+      catPath = os.path.join(dd.rd.resdir, self.opts.catPath)
+      self.catalogue = {}
+      for ln in open(catPath):
+        id, val = ln.split()
+        self.catalogue[id] = val
+
+
+As you can see, you can access the options given on the command line
+as self.opts here.
+
+If you want your processor to gather data, you can use the fact that
+procmain returns the processor it created.  Here is a version of the
+simple size checker above that outputs a sorted list of bad files::
+
+class SizeChecker(FileProcessor):
+
+	def _createAuxillaries(self, dd):
+		self.mess = []
+
+	def process(self, srcName):
+		found = os.path.getsize(srcName)
+		expected = _getExpectedSize(srcName)
+		if found!=expected:
+			self.mess.append((srcName, expected, found))
+
+
+if __name__=="__main__":
+	res = procmain(SizeChecker, "potsdam/q", "import")
+	res.mess.sort(key=lambda rec: abs(rec[1]-rec[2]))
+	for name, expected, found in res.mess:
+		print "%10d %10d %8d %s"%(expected, found, expected-found, name)
+
+
 Basic FITS Manipulation
 -----------------------
 
-To make this as painless and safe as possible, there is the processing
-module in gavo.helpers.  For manipulating FITS headers, there is the
-HeaderProcessor class.  To use it, derive from it and override at least
-the _getHeader(srcName) -> header and _isProcessed(srcName) -> boolean
-methods.
+For manipulating FITS headers, there is the HeaderProcessor class.  It
+is a FileProcessor, so everything said there applies here as well,
+except that you do not want to override the process method.
+Rather, override least the _getHeader(srcName) ->
+header and _isProcessed(srcName) -> boolean methods.
 
 _getHeader is supposed to return a new pyfits header for the file named
 in the argument, _isProcessed must return True if you think the name
@@ -704,17 +814,8 @@ A somewhat silly example could look like this::
   if __name__=="__main__":
     helpers.procmain(SillyProcessor, "testdata/theRD", "sillyData")
 
-Do not forget the "from gavo import api" in this kind of script.  It
-makes sure all protocols you may use in your RDs are loaded when the RD
-is loaded.
-
 The getPrimaryHeader(srcName) -> pyfits header method is a convenience
 method of FileProcessors with obvious functionality.
-
-More interesting is procmain.  It arranges for the command line to be
-parsed and expects, in addition to the processor *class*, an id for 
-the resource descriptor for the data it should process, and the id of
-the data descriptor that ingests the files.
 
 Processors are expected  to have an addOptions static method receiving
 an optparser.OptionParser instance and adding options it wants to see.
@@ -748,13 +849,6 @@ manipulation intensity is nice when your operations are expensive.
 By default, files for which the processing code raises exceptions are
 ignored; the number of files ignored is shown when procmain is finished.
 
-For debugging, pass a --bail option.  It will abort the processing at
-the first error, dumping a traceback.  Use this to figure out bugs in
-your (or our) code.
-
-If you just want to try new code on a single or a small set of files,
-use the --filter option.  It has one value, a substring that has to be
-in the source's name for it to be processed.
 
 If you want to run more than one processor over a given dataset, you
 will have to override the headerExt class attribute of your processors
@@ -792,50 +886,6 @@ define::
 
   def commentFilter(self, comment):
     return "IMPORTANT" in comment
-
-
-Advanced FITS manipulation
---------------------------
-
-It is quite common that additional information is required to fix
-header, e.g., from a plate catalogue.  To have those available in your
-processor, override the _createAuxillaries(dd) method::
-
-  class Processor(helpers.FileProcessor):
-    def _createAuxillaries(self, dd):
-      self.catEntriesUsed = 0
-      catPath = os.path.join(dd.rd.resdir, "res/cat.txt")
-      self.catalogue = {}
-      for ln in open(catPath):
-        id, val = ln.split()
-        self.catalogue[id] = val
-    ...
-    def _getHeader(self, srcName):
-      ...
-      foo = self.catalogue[os.path.splitext(srcName)[0]]
-      self.catEntriesUsed += 1
-
-  proc = procmain(Processor, "foo", "bar")
-  print "Catalogue entries used:", proc.catEntriesUsed
-
-This fragment also shows how to use the fact that procmain returns the
-processor it instantiated, to return information from the processor to
-the controlling program.
-
-The next customization step is to add options.  To let the user specify
-the catalogue name, you could do something like this::
-
-  class Processor(helpers.FileProcessor):
-    @staticmethod 
-    addOptions(optParser):
-      helpers.FileProcessor.addOptions(optParser)
-      optParser.add_option("--cat-name", help="Resdir-relative path to"
-        " the plate catalogue", action="store", type="str", 
-        dest="catPath", default="res/plates.cat")
-
-Make sure you always do the upward call.  Cf. the optparse documentation
-for what you can do.  The options object returned by optParser is
-available as the opts attribute on your processor.
 
 
 Astrometry.net
@@ -977,4 +1027,6 @@ maybe::
   gm convert -flip -scale 12.5% in.fits pnm:- | $ANET_PATH/plotxy -I - -i out.xyls -C red -P -w 2  -S 0.125 -X X_IMAGE -Y Y_IMAGE > ws.png
 
 for smaller plates.
+
+
 .. _`Resource Metadata for the Virtual Observatory`: http://www.ivoa.net/Documents/latest/RM.html
