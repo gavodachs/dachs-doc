@@ -781,14 +781,14 @@ Basic FITS Manipulation
 For manipulating FITS headers, there is the HeaderProcessor class.  It
 is a FileProcessor, so everything said there applies here as well,
 except that you do not want to override the process method.
-Rather, override least the _getHeader(srcName) ->
+Rather, you will probably want to override _mungeHeader(srcName, header) ->
 header and _isProcessed(srcName) -> boolean methods.
 
-_getHeader is supposed to return a new pyfits header for the file named
+_mungeHeader is supposed to return a new pyfits header for the file named
 in the argument, _isProcessed must return True if you think the name
 file already has your new headers, False otherwise.
 
-_getHeader should in general raise a processing.CannotComputeHeader
+_mungeHeader should in general raise a processing.CannotComputeHeader
 exception if it cannot generate a header (e.g., missing catalogue entry,
 nonsensical input data).  If you return None form _getHeader, a
 generic CannotComputeHeader exception will be raised.
@@ -806,16 +806,12 @@ A somewhat silly example could look like this::
     def _isProcessed(self, srcName):
       return self.getPrimaryHeader(srcName).has_key("NUMPIXELS")
 
-    def _getHeader(self, srcName):
-      hdr = self.getPrimaryHeader(srcName)
+    def _mungeHeader(self, srcName, hdr):
       hdr.update("NUMPIXELS") = hdr["NAXIS1"]*hdr["NAXIS2"]
       return hdr
 
   if __name__=="__main__":
     helpers.procmain(SillyProcessor, "testdata/theRD", "sillyData")
-
-The getPrimaryHeader(srcName) -> pyfits header method is a convenience
-method of FileProcessors with obvious functionality.
 
 Processors are expected  to have an addOptions static method receiving
 an optparser.OptionParser instance and adding options it wants to see.
@@ -849,12 +845,21 @@ manipulation intensity is nice when your operations are expensive.
 By default, files for which the processing code raises exceptions are
 ignored; the number of files ignored is shown when procmain is finished.
 
-
 If you want to run more than one processor over a given dataset, you
 will have to override the headerExt class attribute of your processors
 so all are distinct.  By default, the attribute contains ".hdr".
 Without overriding it, your processors would overwrite the other's
 cached headers.
+
+By the way, if the original FITS header is badly broken or you don't
+want to use it anyway, you can override the _getHeader(srcName) ->
+header method.  Its default implementation is something like::
+
+  def _getHeader(self, srcName):
+    return self._mungeHeader(srcName, self.getPrimaryHeader(srcName))
+
+The readPrimaryHeader(srcName) -> pyfits header method is a convenience
+method of FITSProcessors with obvious functionality.
 
 
 

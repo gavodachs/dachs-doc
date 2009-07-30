@@ -1,0 +1,92 @@
+==========================
+Common Problems with DaCHS
+==========================
+
+Transaction Deadlocking
+=======================
+
+When gavoimp (or possibly requests to the server) just hangs without
+consuming CPU but not doing anything useful, it is quite likely that you
+managed to provoke a deadlock.  This happens when you have a database
+transaction going on a table while trying to access it from the outside.
+
+To give an example::
+
+  from gavo import base
+  from gavo import rsc
+  t = rsc.TableForDef(tableDefForFoo)
+  q = base.SimpleQuerier().query("select * from foo")
+
+This will deadlock if tableDefForFoo actually defines an onDisk table foo.
+The reason is that instanciating a database table object will create a
+connection and start a transaction (e.g., to see if the table is
+actually present on disk).
+
+SimpleQuerier, on the other hand, creates another connection and another
+transaction.  In general, the result of this second transaction will
+depend on the outcome of the first one.  Postgres will notice that and
+postpone creating the result until the t's transaction if finished.
+That will never happen with this code.
+
+To diagnose what's happening, it is useful to see the server's idea of
+what is going on inside itself.  The following script (that you might
+call psdb) will help you::
+
+  #!/bin/sh
+  psql gavo << EOF
+  select procpid, usename, current_query, date_trunc('seconds', query_start::time)
+  from pg_stat_activity
+  order by procpid
+  EOF
+
+(this assumes your database is called gavo and you have sufficient
+rights on that database; it's not hard to figure out the psql command
+line for other scenarios).  This could output something like::
+
+   procpid |  usename  |    current_query        | date_trunc 
+  ---------+-----------+-------------------------+------------
+      9301 | gavoadmin | <IDLE>                  | 16:55:39
+      9302 | gavoadmin | <IDLE> in transaction   | 16:55:39
+      9303 | gavoadmin | <IDLE> in transaction   | 16:55:39
+      9306 | gavoadmin | <IDLE> in transaction   | 16:55:43
+      9309 | gavoadmin | SELECT calPar FROM l... | 16:55:43
+  (5 Zeilen)
+
+The procpid is the pid of the process handling the connection.  Usually,
+you will see one running query and possibly quite a few connections that
+are idle in transaction (which are tables waiting to be fed, etc.).
+
+The query should give you some idea where the deadlock occurs.  To
+escape the deadlock (which, under CPython, will block ^C as well), kill
+the process trying the query -- this will give you a traceback to the
+offending instruction.  Of course, you will need to become the
+postgres or root user to do that, so it may be easier to forego the
+traceback and just kill gavoimp.
+
+To fix such a situation, there are various options.  You could commit
+the table's transaction::
+
+  from gavo import base
+  from gavo import rsc
+  t = rsc.TableForDef(tableDefForFoo)
+  t.commit()
+  q = base.SimpleQuerier().query("select * from foo")
+
+but that is not usally what you want to do.  Much more often, you want
+to execute the second query in t's transaction.  In this case, this
+could work like this::
+
+  from gavo import base
+  from gavo import rsc
+  t = rsc.TableForDef(tableDefForFoo)
+  q = base.SimpleQuerier(connection=t.connection).query("select * from foo")
+
+Of course, it is not always easy to access the connection object.  Note,
+however, that in most procedure definitions, you have the target data
+set available as data.  If you have that, you can usually obtain the current
+connection (and thus transaction) via::
+
+  data.getPrimaryTable().connection
+
+-- at least if you designate one of the data's tables as primary through
+its make elements.

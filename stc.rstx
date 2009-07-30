@@ -1,6 +1,12 @@
-========
-GAVO STC
-========
+====================
+The GAVO STC Library
+====================
+
+.. contents:: 
+  :depth: 2
+  :backlinks: entry
+  :class: toc
+
 
 A library to process VO STC specifications
 ========================================================================
@@ -18,6 +24,7 @@ More specifically, it is inteded to help in:
 As the dust settles around embedding STC in VOTable, we will support
 this as well.
 
+The implementation should conform to STC-S 1.33.
 
 Installation
 ------------
@@ -63,6 +70,8 @@ The library is written in python, and thus currently can only be
 operated from python programs.  It should not be too hard to embed it
 into C or even Java programs.  If you have such needs, contact the
 author.
+
+See API_ for details.
 
 
 Limitations
@@ -135,6 +144,42 @@ Bugs
 * Conversions between TT and TCB are performed using the rough
   approximation of the explanatory supplement rather than the more
   exact expression.
+
+
+API
+---
+
+Parsing STC-X
+'''''''''''''
+
+The public API to the STC library is obtained by::
+
+  from gavo import stc
+
+This is assumed for all examples below.
+
+To parse and STC-X document, use ``stc.parseSTCX(literal) -> AST``.
+Thus, you pass in a string containing STC-X and receive a AST structure.
+
+Since STC documents should in general be rather small, there should be
+no necessity for a streaming API.  If you want to read directly from a
+file, you could use something like::
+
+  def parseFromFile(fName):
+    f = open(fName)
+    stcxLiteral = f.read()
+    f.close()
+    return stc.parseSTCX(stcxLiteral)
+
+Note that the STC library does not contain a validating parser.  Invalid
+STC-X documents will at best give you rather incomprehensible error
+message, at worst an AST that has little to do with what was in the
+document.  If you are not sure whether the STC-X you receive is valid,
+run a schema validator before parsing.
+
+We currently understand a subset of STC-X that matches the
+expressiveness of STC-S.  Most STC-X features that cannot be mapped in
+STC-X are silently ignored.
 
 
 
