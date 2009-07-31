@@ -171,9 +171,23 @@ file, you could use something like::
     f.close()
     return stc.parseSTCX(stcxLiteral)
 
+The return value is a sequence of pairs of ``(tagName, ast)``, where
+tagName is the namespace qualified name of the root element of the STC
+element.  The tagName is present since multiple STC trees may be present
+in one STC-X document.  The qualification is in standard W3C form, i.e.,
+``{<namespace URI>}<element name>``.  If you do not care about
+versioning (and you should not need to with this library), you could
+find a specific element using a construct like::
+
+  def getSTCElement(literal, elementName):
+    for rootName, ast in stc.parseSTCX(literal):
+      if rootName.endswith('}'+elementName):
+        return ast
+  getSTCElement(open("M81.xml").read(), "ObservationLocation")
+
 Note that the STC library does not contain a validating parser.  Invalid
 STC-X documents will at best give you rather incomprehensible error
-message, at worst an AST that has little to do with what was in the
+messages, at worst an AST that has little to do with what was in the
 document.  If you are not sure whether the STC-X you receive is valid,
 run a schema validator before parsing.
 
