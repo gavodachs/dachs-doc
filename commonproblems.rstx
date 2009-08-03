@@ -2,6 +2,23 @@
 Common Problems with DaCHS
 ==========================
 
+Server is Only Visible from the Local Host
+==========================================
+
+When gavoserve starts and you can access pages from the machine the
+server runs on just fine, but no other machines can access the server,
+you run the server with the default web configuration.  It tells the
+server to only bind to the loopback interface (127.0.0.1, a.k.a.
+localhost).
+
+To fix this, say::
+
+  [web]
+  bindAddress:
+
+in your /etc/gavo.rc.
+
+
 Transaction Deadlocking
 =======================
 

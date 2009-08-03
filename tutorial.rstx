@@ -849,7 +849,10 @@ If you want to run more than one processor over a given dataset, you
 will have to override the headerExt class attribute of your processors
 so all are distinct.  By default, the attribute contains ".hdr".
 Without overriding it, your processors would overwrite the other's
-cached headers.
+cached headers.  However, that's usually not enough since on --apply
+only one header would win.  One way of coping is by always applying one
+processor before running the next.  Another could be the use of keepKeys
+(see below).
 
 By the way, if the original FITS header is badly broken or you don't
 want to use it anyway, you can override the _getHeader(srcName) ->
@@ -875,7 +878,15 @@ this is::
   keepKeys = set(["SIMPLE", "BITPIX", "NAXIS", "NAXIS1", "NAXIS2",
       "EXTEND", "BZERO", "BSCALE"])
 
-You can amend this list as necessary.
+You can amend this list as necessary in your _createAuxillaries method,
+most likely like this::
+
+  self.keepKeys = self.keepKeys.copy()
+  self.keepKeys.add("EXPTIME")
+
+You will have to do this if you have more than one processor (using
+headerExt) and want to be able to apply them in any sequence.  This,
+however, is not usually worth the effort.
 
 Since these operations may mess up the sequence of header cards in a
 way that violates the FITS standard, after this the new headers are
