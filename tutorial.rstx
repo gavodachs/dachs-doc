@@ -893,7 +893,7 @@ way that violates the FITS standard, after this the new headers are
 sorted.  This is done via fitstools.sortHeaders.  This function can take
 two additional functions commentFilter and historyFilter, both receiving
 the card value and returning True to keep the card and False to discard
-it.  
+it.
 
 Processors take these from like-named methods that you can override.
 The default implementation keeps all comments and history items.  For
@@ -995,6 +995,18 @@ _solveAnet and call _runAnet;  here's an example::
 
 where the example sexScript above has been changed to have a %d for
 DETECT_MINAREA.
+
+Since astrometry.net spews out oodles of headers that may not be of huge
+interest to later users, the AnetHeaderProcessor implements comment and
+history filters.  It is probably a good idea to re-use those even when
+you want filters of your own.  This could look like this::
+
+  def historyFilter(self, value):
+    if "changed" in value:
+      return True
+    if "left" in value:
+      return False
+    return AnetHeaderProcessor.historyFilter(self, value)
 
 
 Analyzing calibration failures
