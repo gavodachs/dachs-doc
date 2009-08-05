@@ -654,6 +654,58 @@ instead write::
   </code>
 
 
+
+More on Services
+================
+
+Custom Templates
+----------------
+
+Within the data center, most pages are generated from templates [XXX
+TODO: write something about them generically].  This is true for the 
+pages the form renderer on services displays as well.  To effect special
+effects, you may want to override them (though in general, it is a much
+better idea to work within the standard template since that will give
+your service all kind of automatic updates and would make, e.g., changes
+much easier if your institution undergoes the yearly reorganization).
+
+The default response template can be found in
+resources/templates/defaultsresponse.html in the installed tree.  To
+obtain the plainest output conceivable, try::
+
+  <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+      "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+
+  <html mlns="http://www.w3.org/1999/xhtml"
+      xmlns:n="http://nevow.com/ns/nevow/0.1">
+  <head>
+    <title>No title</title>
+  </head>
+  <body>
+   	<div class="result" n:render="ifdata" n:data="result">
+   		<div class="result">
+  			<n:invisible n:render="resulttable"/>
+  		</div>
+    </div>
+    <n:invisible n:render="form genForm"/>
+  </body>
+  </html>
+
+Save this to a file within the resource directory, let's say
+"res/plain.html".  Then, say::
+
+		<template key="form">res/plain.html</template>
+
+in your service; this should do give you a minimally decorated page.
+
+Of course, this will display a severely degraded page.  To get at least
+the standard style sheet and the standard javascript, say::
+
+  <head n:render="commonhead">
+
+instead of the plain head.
+
+
 Preparing Data
 ==============
 
@@ -705,6 +757,9 @@ parsed and expects, in addition to the processor *class*, an id for
 the resource descriptor for the data it should process, and the id of
 the data descriptor that ingests the files.
 
+Processor Command line
+''''''''''''''''''''''
+
 The processors can define command line options of their own.  You could,
 for example, read the expected sizes from some sort of catalogue.  To do
 that, define an addOptions static method, like this::
@@ -733,6 +788,11 @@ Simple FileProcessors support the following options:
   Rather than going on when a process method lets an exception escape,
   abort the processing at the first error and dump a traceback.  Use 
   this to figure out bugs in your (or our) code.
+--report
+  More on this in `Processor Reporting`_
+
+Auxillaries
+'''''''''''
 
 Once you have the catalogue name, you will want to read it and make it
 available to the process method.  To allow you to do this, you can
@@ -751,6 +811,10 @@ descriptor of the data to be processed.  Here's an example::
 
 As you can see, you can access the options given on the command line
 as self.opts here.
+
+
+Gathering Data
+''''''''''''''
 
 If you want your processor to gather data, you can use the fact that
 procmain returns the processor it created.  Here is a version of the
@@ -773,6 +837,20 @@ if __name__=="__main__":
 	res.mess.sort(key=lambda rec: abs(rec[1]-rec[2]))
 	for name, expected, found in res.mess:
 		print "%10d %10d %8d %s"%(expected, found, expected-found, name)
+
+
+Processor Report Generation
+'''''''''''''''''''''''''''
+
+Most of the time, when gathering data (or otherwise), what you are doing
+is basically generate a report of some sort.  For such simple cases, you
+will usually want to use the --report option.  This causes the processor
+to skip process and instead call a method that will in turn call the
+``classify(sourceName)`` method.  It must return a string that will
+serve as a class label.  At the end of the run, the processor will print
+a summary of the class frequencies.
+
+XXX TODO: example.
 
 
 Basic FITS Manipulation
