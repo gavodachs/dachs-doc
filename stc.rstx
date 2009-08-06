@@ -14,9 +14,10 @@ A library to process VO STC specifications
 This library aims to ease processing specifications of space-time
 coordindates (STC) according to the IVOA STC data model with the XML and
 string serializations.  Note that it is at this point an early beta at
-best.
+best.  To change this, I welcome feedback, even if it's just "I'd need X
+and Y".
 
-More specifically, it is inteded to help in:
+More specifically, the library is inteded to help in:
 
 * supporting ADQL region specifications
 * generating registry coverage specifications from simple STC-S
@@ -29,19 +30,23 @@ The implementation should conform to STC-S 1.33.
 Installation
 ------------
 
-If you are running Debian stable, see `Adding the GAVO repository to
-your sources`_ and use our packages.  After that, simply say::
+If you are running a Debian-derived distribution, see `Adding the GAVO
+repository to your sources`_.  When you follow that recipe,
+
+::
 
   aptitude install python-gavostc
 
-If you do not have a dpkg-based system, you will have to install the
-source distribution.  Unpack the .tar.gz and run::
+is enough.
+
+Otherwise, you will have to install the source distribution.  Unpack the
+.tar.gz and run::
 
   python setup.py install
 
 You will normally need to do this as root for a system-wide
 installation.  There are, however, alternatives, first and foremost a
-`virtual python` that will keep your managed directories clean.
+`virtual python`_ that will keep your managed directories clean.
 
 This library's setup is based on setuptools.  Thus, it will generally
 obtain all necessary dependencies from the net.  For this to be
@@ -77,23 +82,18 @@ See API_ for details.
 Limitations
 -----------
 
-* No unions, intersections and such.  This will be (at least partially)
-  fixed as soon as there is a specification on how to serialize that
-  into STC-S.
+* External references (xlink:href and friends) and "STClib" are not supported
+  (this will be changed soon).
 * On system transformations, ellipses are not rotated, just moved.  No
-  "wiggles" (errors, etc) are touched at all.
+  "wiggles" (errors, etc) are touched at all (this will be fixed soon).
 * Reference positions are not supported in any meaningful way.  In
   particular, when transforming STCs, transformations between all
   reference positions are identities.  This won't hurt much for galactic
   or extragalactic objects but of course makes the whole thing useless
   for solar-system work.  I'm willing to put some work into this if
   there's any demand.
-* No handling of cos(delta) on proper motions in RA is implemented; it
-  is unclear to me what STC's stance on this is.  This is particularly
-  bad when transforming PMs.
 * The behaviour of some transforms (in particular FK5<->FK4) close to
   the poles need some attention.
-* External references (xlink:href and friends) are not supported.
 * Empty coordinate values (e.g., 2D data with just one coordinate) are not
   really supported.  Processing them will, in general, work, but will,
   in general, not yield the expected result.  This is fixable, but may
@@ -103,17 +103,12 @@ Limitations
   for them
 * Spectral errors and their "wiggles" (error, size, etc) must be in the
   same "flavor", i.e., either frequency, wavelength, or energy.  If they
-  are not, the library will silently failed.  This is easily fixable,
+  are not, the library will silently fail.  This is easily fixable,
   but there's too much special casing in the code as is, and I consider
   this a crazy corner case no one will encounter.
 * No reference on posAngles, always assumed to be 'X'.
-* Units on subordinate objects (center, posAngle, etc.) are currently
-  ignored.  This will be fixed by making units identical to the
-  underlying object as far as possible at some point.
 * Spatial intervals are system-conformed analogous to geometries, so any
   distance information is disregaded.  This will be fixed on request.
-* VelocityIntervals are not system-conformed at all.  This will be fixed
-  on request.
 * No support for Area.
 * Frame handling currently is a big mess; in particular, the system
   changing functions *assume* that the frames on positions, velocities and
@@ -144,13 +139,11 @@ Bugs
 * Conversions between TT and TCB are performed using the rough
   approximation of the explanatory supplement rather than the more
   exact expression.
+* TT should be extended to ET prior to 1973, but this is not done yet.
 
 
 API
 ---
-
-Parsing STC-X
-'''''''''''''
 
 The public API to the STC library is obtained by::
 
@@ -158,7 +151,11 @@ The public API to the STC library is obtained by::
 
 This is assumed for all examples below.
 
-To parse and STC-X document, use ``stc.parseSTCX(literal) -> AST``.
+
+Parsing STC-X
+'''''''''''''
+
+To parse an STC-X document, use ``stc.parseSTCX(literal) -> AST``.
 Thus, you pass in a string containing STC-X and receive a AST structure.
 
 Since STC documents should in general be rather small, there should be

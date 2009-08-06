@@ -327,10 +327,10 @@ names.
 
 The remaining computations can be performed in mappings::
 
-	<map dest="centerAlpha">(raMin+raMax)/2.</map>
-	<map dest="centerDelta">(decMin+decMax)/2.</map>
-	<map dest="bbox">coords.Box((raMin, decMin),
-		(raMax, decMax))</map>
+  <map dest="centerAlpha">(raMin+raMax)/2.</map>
+  <map dest="centerDelta">(decMin+decMax)/2.</map>
+  <map dest="bbox">coords.Box((raMin, decMin),
+    (raMax, decMax))</map>
 
 As in vars, the rawdict values can be accessed by their keys in the
 mapping expressions.  coords.Box is the internal type for SQL Box
@@ -526,7 +526,7 @@ DaCHS, there are three parties involved in delivering data to the user:
 * The renderer; it formats the result in some way requested by the user
   and delivers it.  There are renderers for web forms, VO protocols,
   imges, etc.
-* The serviice; it holds together the core and the renderer, can
+* The service; it holds together the core and the renderer, can
   reformat core results, controls the metadata, etc.
 
 You will usually use pre-specified renderers, so these are not defined
@@ -543,10 +543,10 @@ and returns a table that you describe through an output table.  Cores
 are defined as direct children of the resource.  For the lmcextinction
 table above, it could look like this::
   
-  <core id="conecore" queriedTable="exts">
+  <dbCore id="conecore" queriedTable="exts">
     <condDesc predefined="humanScs"/>
     <condDesc buildFrom="ev_i"/>
-  </core>
+  </dbCore>
 
 Cores always need an id.  dbCores need a queriedTable attribute, the
 value of which must be a table reference.  This is the table the query
@@ -567,9 +567,9 @@ the dbCore define what fields can be queried.
 The service now ties the core together with a renderer.  It might look
 like this::
 
-	<service id="cone" core="conequery">
+  <service id="cone" core="conecore">
     <meta name="shortname">lmcext_web</meta>
-	</service>
+  </service>
 
 While services can run without shortnames, it can lead to trouble later, so you
 should make a habit of assigning short names.  See `the data checklist
@@ -616,7 +616,7 @@ piece of data came from::
     <sourceFields>
       <code>
         srcKey = utils.getRelativePath(sourceToken,
-						base.getConfig("inputsDir"))
+            base.getConfig("inputsDir"))
         return locals()
       </code>
     </sourceFields>
@@ -682,10 +682,10 @@ obtain the plainest output conceivable, try::
     <title>No title</title>
   </head>
   <body>
-   	<div class="result" n:render="ifdata" n:data="result">
-   		<div class="result">
-  			<n:invisible n:render="resulttable"/>
-  		</div>
+     <div class="result" n:render="ifdata" n:data="result">
+       <div class="result">
+        <n:invisible n:render="resulttable"/>
+      </div>
     </div>
     <n:invisible n:render="form genForm"/>
   </body>
@@ -694,7 +694,7 @@ obtain the plainest output conceivable, try::
 Save this to a file within the resource directory, let's say
 "res/plain.html".  Then, say::
 
-		<template key="form">res/plain.html</template>
+    <template key="form">res/plain.html</template>
 
 in your service; this should do give you a minimally decorated page.
 
@@ -789,7 +789,7 @@ Simple FileProcessors support the following options:
   abort the processing at the first error and dump a traceback.  Use 
   this to figure out bugs in your (or our) code.
 --report
-  More on this in `Processor Reporting`_
+  More on this in `Processor Report Generation`_
 
 Auxillaries
 '''''''''''
@@ -820,23 +820,23 @@ If you want your processor to gather data, you can use the fact that
 procmain returns the processor it created.  Here is a version of the
 simple size checker above that outputs a sorted list of bad files::
 
-class SizeChecker(FileProcessor):
+  class SizeChecker(FileProcessor):
 
-	def _createAuxillaries(self, dd):
-		self.mess = []
+    def _createAuxillaries(self, dd):
+      self.mess = []
 
-	def process(self, srcName):
-		found = os.path.getsize(srcName)
-		expected = _getExpectedSize(srcName)
-		if found!=expected:
-			self.mess.append((srcName, expected, found))
+    def process(self, srcName):
+      found = os.path.getsize(srcName)
+      expected = _getExpectedSize(srcName)
+      if found!=expected:
+        self.mess.append((srcName, expected, found))
 
 
-if __name__=="__main__":
-	res = procmain(SizeChecker, "potsdam/q", "import")
-	res.mess.sort(key=lambda rec: abs(rec[1]-rec[2]))
-	for name, expected, found in res.mess:
-		print "%10d %10d %8d %s"%(expected, found, expected-found, name)
+  if __name__=="__main__":
+    res = procmain(SizeChecker, "potsdam/q", "import")
+    res.mess.sort(key=lambda rec: abs(rec[1]-rec[2]))
+    for name, expected, found in res.mess:
+      print "%10d %10d %8d %s"%(expected, found, expected-found, name)
 
 
 Processor Report Generation
@@ -1062,17 +1062,25 @@ pyfits directly, since this may pull in the numpy version of pyfits,
 which is incompatible with what the rest of the DC software expects.
 
 If you need more control over the parameters of astrometry.net, override
-_solveAnet and call _runAnet;  here's an example::
+the _runAnet method.  Its default implementation is::
 
-  def _solveAnet(self, srcName):
+	def _runAnet(self, srcName, solverParameters, sexScript, objectFilter):
+		return anet.getWCSFieldsFor(srcName, solverParameters,
+			sexScript, objectFilter, self.opts.copyTo)
+
+So, if your sexScript had a line ``DETECT_MINAREA %d``, you could do
+something like::
+
+  def _runAnet(self, srcName, solverParameters, sexScript, objectFilter):
     for minArea in [300, 50, 150, 800, 2000, 8000]:
-      res = self._runAnet(srcName, self.solverParameters, 
-        self.sexScript%minArea, self.objectFilter)
-      if res is not None:
-        return res
-
-where the example sexScript above has been changed to have a %d for
-DETECT_MINAREA.
+      try:
+        res = AnetHeaderProcessor._runAnet(self, srcName, 
+          solverParameters, sexScript%minArea, objectFilter)
+        if res is not None:
+          return res
+      except ShellCommandFailed:  # Ignore failures
+        pass
+		raise anet.ShellCommandFailed("No anet parameter worked", None)
 
 Since astrometry.net spews out oodles of headers that may not be of huge
 interest to later users, the AnetHeaderProcessor implements comment and
