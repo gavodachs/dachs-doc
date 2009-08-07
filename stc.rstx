@@ -19,7 +19,7 @@ and Y".
 
 More specifically, the library is inteded to help in:
 
-* supporting ADQL region specifications
+* supporting ADQL region specifications and conforming them
 * generating registry coverage specifications from simple STC-S
 
 As the dust settles around embedding STC in VOTable, we will support
@@ -151,6 +151,31 @@ The public API to the STC library is obtained by::
 
 This is assumed for all examples below.
 
+
+The Data Model
+''''''''''''''
+
+The STC library turns all input into an itermediate data structure
+called an AST.  This is a tree containing the STC information and is
+still following the STC data model quite closely.  However, it turned
+out that it is quite inconvenient to work with, so we will probably
+change it after we've gathered some experience.  The most intrusive
+change will probably be that the separation between data and metadata
+will be enforced much more strictly, i.e., unit, error and such will go
+from the positions to what is now the frame object.
+
+Thus, we don't document the data model fully yet.  The gory details are
+in dm.py.  Meanwhile, we will try to maintain the following properties:
+
+* All objects in ASTs are considered immutable, i.e., nobody is supposed to
+  change them once they are constructed.
+* An AST object has attributes time, place, freq, redshift, velocity
+  refererring to an objects containing the values of the respective
+  quantities or None if not given
+* An AST object has attributes timeAs, areas, freqAs, redshiftAs,
+  velocityAs containing sequences of intervals or geometries of the
+  respective quanities.
+* 
 
 Parsing STC-X
 '''''''''''''
