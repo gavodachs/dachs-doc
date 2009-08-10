@@ -706,6 +706,144 @@ the standard style sheet and the standard javascript, say::
 instead of the plain head.
 
 
+More on Cores
+=============
+
+CondDescs
+---------
+
+dbCores and cores derived from them take most of their power from
+condition descriptors or CondDescs.  These combine inputKeys, which are
+basically column objects with some additional presentation-related
+information, with code generating SQL conditions.
+
+A condDesc can contain zero or more input keys (though having zero input
+keys makes no sense for user-defined condDescs since they would never
+"fire").  Having more than one input key is useful when input quantities
+can only be interpreted when present as a group.  An example is the
+standard cone search, where you need both a position and a search
+radius.
+
+However, most condDescs correspond to one input key, and the input key
+is mostly derived from a table column.  This is the standard idiom,
+
+::
+
+  <condDesc buildFrom="somecol"/>
+
+
+where somecol is a column in the table queried by the core.  This
+construct will cause the an input key to be built from somecol.  While
+doing this, the type will be mapped automatically.  The primary rules
+are:
+
+* Numeric types will get mapped to numeric vizier-like expressions
+* Datetimes will get mapped to date vizier-like expressions
+* text and chars will get mapped to string vizier-like expressions
+* enumerated values (i.e., columns with value elements giving options)
+  will not become vizier-like expressions but input keys that yield
+  selection widgets.
+
+To have more control (e.g., if you do not want to allow vizier-like
+expressions, give the input key yourself)::
+
+  <condDesc>
+    <inputKey original="primaryId" required="False"/>
+  </condDesc>
+
+(which would make a column required in the table optional in the query),
+or::
+
+  <condDesc>
+    <inputKey name="specType" tablehead="Spectral Type"
+      type="text" description="Spectral type of the target object">
+  </condDesc>
+
+
+(which creates an input key matching everything literally), or even::
+
+  <condDesc>
+    <inputKey name="color" type="text" required="True">
+      <values multiOk="True">
+        <option title="Red">R</option>
+        <option title="Green">G</option>
+        <option title="Blue">B</option>
+      </values>
+    </inputKey>
+  </condDesc>
+
+-- if the input key is required, queries not giving it will be rejected.
+The title attribute on option gives the label of an option in the HTML
+input widget; if it's missing, a string representation of the value will
+be used.
+
+In all those cases, the SQL generated from the condDesc is a conjunction
+of the input key's individual SQL expressions.  Those, in turn, are
+simply comparisons for equality for plain types and more or less
+arbitrary expressions for vizier expression types.
+
+For complete control over what SQL is generated, condDescs may contain
+code called a phrase maker.  This, again, is a procedure application,
+quite like with rowmaker procs, except that the signature of condDesc
+code is different.
+
+Phrase maker code has the following names available:
+
+
+* inputKeys -- the list of input keys for the parent CondDesc
+* inPars -- a dictionary mapping inputKey names to the values
+  provided by the user
+* outPars -- a dictionary that is later used as the parameter
+  dictionary to the query.
+
+The code should amend the outPars dictionary with the keys mentioned in
+the the conditions.  The conditions themselves are yielded.  So, a very
+simple condDesc with generated SQL could look like this::
+
+  <condDesc> <!-- don't do it like this, see below -->
+    <inputKey name="val"/>
+    <phraseMaker>
+      <code>
+        outPars["xxyy"] = "x"*inPars.get("val", 20)
+        yield "someColumn=%(xxyy)s"
+      </code>
+    </phraseMaker>
+  </condDesc>
+
+However, using fixed names in outPars is not recommended, if only
+because condDescs could be used multiple times.  The recommended way
+uses the vizierexprs.getSQLKey function.  It takes a name, a value, and
+the outPars dictionary.  It will return a key unique to the query in
+question and enter the value into the outPars dictionary under that key.
+While that sounds complicated, it is actually rather harmless, as shown in
+the following real-world example that lets users input date, time and an
+interval in split-up form (e.g., when you cannot hope anyone will try to
+write the equivalent vizier-like expressions)::
+
+		<condDesc>
+			<inputKey name="date" tablehead="Date" type="date"
+				required="True"/>
+			<inputKey name="time" tablehead="Time (UTC)" type="time"
+				required="True"/>
+			<inputKey name="within" required="True" type="integer"
+				tablehead="plus/minus" unit="minutes"
+				description="Give measurements within this many minutes of your chosen date and time.  The sampling rate is 20 minutes">
+				<values default="11"/>
+			</inputKey>
+			<phraseMaker>
+				<code>
+					baseTS = datetime.datetime.combine(inPars["date"], inPars["time"])
+					dt = datetime.timedelta(minutes=inPars["within"])
+					yield "date BETWEEN %%(%s)s AND %%(%s)s"%(
+						vizierexprs.getSQLKey("date", baseTS-dt, outPars),
+						vizierexprs.getSQLKey("date", baseTS+dt, outPars))
+				</code>
+			</phraseMaker>
+		</condDesc>
+
+
+
+
 Preparing Data
 ==============
 
