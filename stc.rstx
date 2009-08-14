@@ -2,22 +2,26 @@
 The GAVO STC Library
 ====================
 
+A library to process VO STC specifications
+========================================================================
+
+:Author: Markus Demleitner
+:Email: gavo@ari.uni-heidelberg.de
+
+
 .. contents:: 
   :depth: 2
   :backlinks: entry
   :class: toc
 
 
-A library to process VO STC specifications
-========================================================================
-
 This library aims to ease processing specifications of space-time
 coordindates (STC) according to the IVOA STC data model with the XML and
 string serializations.  Note that it is at this point an early beta at
 best.  To change this, I welcome feedback, even if it's just "I'd need X
-and Y".
+and Y".  Honestly.
 
-More specifically, the library is inteded to help in:
+More specifically, the library is intended to help in:
 
 * supporting ADQL region specifications and conforming them
 * generating registry coverage specifications from simple STC-S
@@ -25,13 +29,15 @@ More specifically, the library is inteded to help in:
 As the dust settles around embedding STC in VOTable, we will support
 this as well.
 
-The implementation should conform to STC-S 1.33.
+The implementation should conform to STC-S 1.33; what STC-X is supported
+conforms to STC-X 1.00 (but see Limitations_).
+
 
 Installation
 ------------
 
 If you are running a Debian-derived distribution, see `Adding the GAVO
-repository to your sources`_.  When you follow that recipe,
+repository`_.  When you follow that recipe,
 
 ::
 
@@ -65,7 +71,63 @@ For experiments, we provide a simple command line tool.  Try::
 
   gavostc help
 
-so see what operations we expose through the command line tool.
+to see what operations it exposes.  Here are some examples::
+
+  $ gavostc help
+  Usage: gavostc [options] <command> {<command-args}
+    Use command 'help' to see commands available.
+
+  Options:
+    -h, --help            show this help message and exit
+    -e, --dump-exception  Dump exceptions.
+
+  Commands include:
+  resprof <srcSTCS> -- make a resource profile for srcSTCS.
+  parseX <srcFile> -- read STC-X from srcFile and output it as STC-S, - for stdin
+  conform <srcSTCS>. <dstSTCS>  -- prints srcSTCS in the system of dstSTCS.
+  help -- outputs help to stdout.
+  $ gavostc resprof "Polygon ICRS 20 20 21 19 18 17" | xmlstarlet fo
+  <?xml version="1.0"?>
+  <STCResourceProfile 
+    xmlns="http://www.ivoa.net/xml/STC/stc-v1.30.xsd" 
+    xmlns:xlink="http://www.w3.org/1999/xlink" 
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+    xsi:schemaLocation="http://www.ivoa.net/xml/STC/stc-v1.30.xsd http://vo.ari.uni-heidelberg.de/docs/schemata/stc-v1.30.xsd http://www.w3.org/1999/xlink http://vo.ari.uni-heidelberg.de/docs/schemata/xlink.xsd">
+    <AstroCoordSystem id="thgloml">
+      <SpaceFrame id="thdbgwl">
+        <ICRS/>
+        <UNKNOWNRefPos/>
+        <SPHERICAL coord_naxes="2"/>
+      </SpaceFrame>
+    </AstroCoordSystem>
+    <AstroCoordArea coord_system_id="thgloml">
+      <Polygon frame_id="thdbgwl" unit="deg">
+        <Vertex>
+          <Position>
+            <C1>20.0</C1>
+            <C2>20.0</C2>
+          </Position>
+        </Vertex>
+        <Vertex>
+          <Position>
+            <C1>21.0</C1>
+            <C2>19.0</C2>
+          </Position>
+        </Vertex>
+        <Vertex>
+          <Position>
+            <C1>18.0</C1>
+            <C2>17.0</C2>
+          </Position>
+        </Vertex>
+      </Polygon>
+    </AstroCoordArea>
+  </STCResourceProfile>
+  $ gavostc resprof "Circle FK5 -10 340 3" | gavostc parseX -
+  Circle FK5 -10.0 340.0 3.0
+  $ gavostc conform "Position GALACTIC 3 4 VelocityInterval Velocity 0.01 -0.002 unit deg/cy" "Position FK5"
+  Position FK5 264.371974024 -24.2795040403 VelocityInterval Velocity 0.00768930497899 0.00737459624525 unit deg/cy
+
 
 
 Programmatic
@@ -86,12 +148,20 @@ Limitations
   (this will be changed soon).
 * On system transformations, ellipses are not rotated, just moved.  No
   "wiggles" (errors, etc) are touched at all (this will be fixed soon).
+* There currently is not real API for "bulk" transforms, i.e., computing
+  a transformation once and then apply it to many coordinates.  The code
+  is organized to make it easy to add such a thing, though.
+* Serialization of floats and friends is with a fixed format that may
+  lose precision for very accurate values.  The solution will probably
+  be a floatFormat attribute on the frame/metadata object, but I'm open
+  to other suggestions.
 * Reference positions are not supported in any meaningful way.  In
   particular, when transforming STCs, transformations between all
   reference positions are identities.  This won't hurt much for galactic
   or extragalactic objects but of course makes the whole thing useless
-  for solar-system work.  I'm willing to put some work into this if
-  there's any demand.
+  for solar-system work.  If someone points me to a concise collection
+  of pertinent formulae, adding real reference positions transformations
+  should not be hard.
 * The behaviour of some transforms (in particular FK5<->FK4) close to
   the poles need some attention.
 * Empty coordinate values (e.g., 2D data with just one coordinate) are not
@@ -140,7 +210,11 @@ Bugs
   approximation of the explanatory supplement rather than the more
   exact expression.
 * TT should be extended to ET prior to 1973, but this is not done yet.
-
+* STC-S parse errors are frequently not very helpful.
+* Invalid STC-X documents may be accepted and yield nonsensical ASTs
+  (this will probably not be fixed since it would require running a
+  validating parser, which with XSD is not funny, but I'm open to
+  suggestions).
 
 API
 ---
@@ -170,12 +244,23 @@ in dm.py.  Meanwhile, we will try to maintain the following properties:
 * All objects in ASTs are considered immutable, i.e., nobody is supposed to
   change them once they are constructed.
 * An AST object has attributes time, place, freq, redshift, velocity
-  refererring to an objects containing the values of the respective
-  quantities or None if not given
+  refererring to an objects describing quantities or None if not given.
+  These are called "positions" in the following.
 * An AST object has attributes timeAs, areas, freqAs, redshiftAs,
   velocityAs containing sequences of intervals or geometries of the
-  respective quanities.
-* 
+  respective quantities.  These sequences are empty if nothing is
+  specified.  They are called areas in the following.
+* Both positions and areas have a frame attribute giving
+  the frame (for spatial coordinates, these have flavor, nDim, refFrame,
+  equinox, and refPos attributes, quite like in STC).
+* Positions have a values attribute containing either a python float or
+  a tuple of floats (for spatial and velocity coordinates).  For time
+  coordinates, a datetime.datetime object is used instead of a float
+* Positions have a unit attribute.  We will keep this even if all
+  other metadata move to the frame object.  The unit attribute follows
+  the coordinate values, i.e., they are tuple-valued when the values are
+  tuples.  For velocities and redshifts, there is a velTimeUnit as well.
+  
 
 Parsing STC-X
 '''''''''''''
@@ -218,5 +303,112 @@ expressiveness of STC-S.  Most STC-X features that cannot be mapped in
 STC-X are silently ignored.
 
 
+Generating STC-X
+''''''''''''''''
 
-.. `Adding the GAVO repository to your sources`: http://vo.ari.uni-heidelberg.de/docs/repository.html
+To generate STC-X, use the ``stc.getSTCX(ast, rootElmement) -> str``
+function.  Since there are quite a few root elements possible, you have
+to explicitely pass one.  You can find root elements in ``stc.STC``.  It
+is probably a good idea to only use ``ObservatoryLocation``,
+``ObservationLocation``, and ``STCResourceProfile`` right now.  Ask the
+authors if you need something else.
+
+There is the shortcut ``stc.getSTCXProfile(ast) -> str`` that is
+equivalent to ``stc.getSTCX(ast, stc.STC.STCResourceProfile)``.
+
+
+Parsing STC-S
+'''''''''''''
+
+To parse an STC-S string into an AST, use ``stc.parseSTCS(str) -> ast``.
+The most common exception this may raise is stc.STCSParseError, though
+others are conceivable.
+
+
+Generating STC-S
+''''''''''''''''
+
+To turn an AST into STC-S, use ``stc.getSTCS(ast) -> str``.  If you pass
+in ASTs that use features not supported by STC-S, you should get an
+STCNotImplementedError or an STCValueError.
+
+
+Conforming
+''''''''''
+
+You can force two ASTs to be expressed in the same frames, which we call
+"conforming".  As mentioned above, currently only reference frames and
+equinoxes are conformed right now, i.e., the conversion from Galactic to
+FK5 1980.0 coordinates should work correctly.  Reference positions are
+ignored, i.e. conforming ICRS TOPOCENTER to ICRS BARYCENTER will not
+change values.
+
+To convert coordinates in ast1 to the frame defined by ast2, use the
+``stc.conformTo(ast1, ast2) -> ast`` function.  This could look like
+this::
+
+  >>> p = stc.parseSTCS("Circle ICRS 12 12 1")
+  >>> stc.conformTo(p, stc.parseSTCS("Position GALACTIC"))
+  >>> stc.conformTo(p, stc.parseSTCS("Position GALACTIC")).areas[0].center
+  (121.59990883115164, -50.862855782323962)
+
+Conforming also works for units::
+
+  >>> stc.conformTo(p, stc.parseSTCS("Position GALACTIC unit rad")).areas[0].center
+  (2.1223187792285256, -0.8877243003685894)
+
+
+
+Hacking
+-------
+
+For those considering to contribute code, here is a short map of the
+source code:
+
+* cli -- the command line interface
+* common -- exceptions, some constants, definition of the AST node base
+  class
+* conform -- high-level code for transformations between reference
+  systems, units, etc.
+* spherc.py, sphermath.py -- low-level transformations for spherical
+  coordinate systems used by conform
+* times -- helpers for converting time formats, plus transformations
+  between time scales used by conform.
+* dm -- the core data model, i.e. definitions of the classes of the
+  objects making up the ASTs
+* stcsast.py, stcxast.py -- tree transformers from STC-S and STC-X
+  concrete syntax trees to ASTs.
+* scsgen.py, stcxgen.py -- serializers from ASTs to STC-S and STC-X
+* stcs.py, stcsdefaults.py -- a grammar for STC-S and a definition of
+  the defaults used during parsing and generation of STC-S.
+* units.py -- units defined by STC, and transformations between them
+
+Since the STC serializations and the sheer size of STC are not really
+amenable to a straightforward implementation, the stc*[gen|ast] code is
+not exactly easy to read.  There's quite a bit of half-assed
+metaprogramming going on, and thus these probably are not modules you'd
+want to touch if you don't want to invest substantial amounts of time.
+
+The conform, spherc, sphermath, units and time combo though shouldn't be
+too opaque.  Start in conform.py contains "master" code  for the
+transformations (which may need some reorganization when we transform
+spectral and redshift coordinates as well).
+
+Then, things get fanned out; in the probably most interesting case of
+spherical coordinates, this this to spherc.py.  That module defines lots
+of transformations and ``getTrafoFunction``.  All the spherical
+coordinate stuff uses an internal representation of STC, six vectors and
+frame triples; see conform.conformSystems on how to obtain these.
+
+To introduce a new transformation, write a function or a matrix
+implementing it and enter it into the list in the construction of
+_findTransformsPath.
+
+Either way: If you're planning to hack on the libary, *please* let us
+know at gavo@ari.uni-heidelberg.de.  We'll be delighted to help out with
+further hints.
+
+
+
+.. _`Adding the GAVO repository`: http://vo.ari.uni-heidelberg.de/docs/DaCHS/install.html#adding-the-gavo-repository
+.. _`virtual python`: http://peak.telecommunity.com/DevCenter/EasyInstall#creating-a-virtual-python

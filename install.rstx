@@ -2,21 +2,33 @@
 GAVO DaCHS installation and configuration
 =========================================
 
+.. contents:: 
+  :depth: 3
+  :backlinks: entry
+  :class: toc
+
+
 Installation
 ============
 
 Debian systems
-**************
+--------------
 
 The preferred way to run python-gavo is on Debian stable or compatible
-systems.  On such systems, add lines like
+systems.  
 
-{{{
-deb http://vo.ari.uni-heidelberg.de/debian lenny main
-deb-src http://vo.ari.uni-heidelberg.de/debian lenny main
-}}}
 
-to your /etc/apt/sources.list.  We will not clobber packages from stable
+Adding the GAVO repository
+''''''''''''''''''''''''''
+
+On such systems, add the lines
+
+::
+
+  deb http://vo.ari.uni-heidelberg.de/debian lenny main
+  deb-src http://vo.ari.uni-heidelberg.de/debian lenny main
+
+to your ``/etc/apt/sources.list``.  We will not clobber packages from stable
 *except* when we are very confident they are backwards compatible.
 Thus, while we cannot actually promise anything, including this
 repository should not impact your systems's stability in any way, even
@@ -34,6 +46,10 @@ The quick and dirty way to install the key on your machine is::
   wget -qO - http://vo.ari.uni-heidelberg.de/docs/archive-key.asc \
     | sudo apt-key add -
 
+
+Installing GAVO DaCHS
+'''''''''''''''''''''
+
 After that, it's a matter of::
 
   sudo aptitude update
@@ -43,7 +59,7 @@ This will pull in all the necessary dependencies.
 
 
 Non-Debian Systems/ez_install
-*****************************
+-----------------------------
 
 If apt is not an option for you, you can install python-gavo based on
 easy_install.  You first need a working python installation that can
@@ -63,10 +79,10 @@ documentation <http://peak.telecommunity.com/DevCenter/EasyInstall>`_ if
 necessary).
 
 Optional components
-*******************
+-------------------
 
 Q3C
-...
+'''
 
 If at some point you have large data sets (more than 20000 rows, say)
 and you want to do positional searches on them (cone search, crossmatch,
@@ -82,7 +98,7 @@ follow the instructions in the q3c distribution.
 To automatically create the necessary indices, use the q3cpositions interface.
 
 psycopg2
-........
+''''''''
 
 psycopg2 is the binding of choice for postgresql (pgsql might still
 work, but what support is left is definitely scheduled for removal).
@@ -92,7 +108,7 @@ timeouts.  You must install a patched package provided with the
 distribution.
 
 VOPlot
-......
+''''''
 
 The software can generate code to load VOTable into VOPlot, a Java
 applet for working with VOTables.  Due to the applet security model, the
@@ -124,7 +140,7 @@ you can then tell the GAVO software where it can find VOPlot in your
 
 
 wcstools
-........
+''''''''
 
 To support cutout services, you need getfits from the wcstools package
 available at http://tdc-www.harvard.edu/software/wcstools/.   After
@@ -144,7 +160,7 @@ sources reside, ancillary data is kept, etc.  By default, this is
 
 
 Logging
-*******
+-------
 
 The tools will write a log (by default ``rootDir/logs/gavoops``).  It
 may be a good idea to keep that log on a local file system and not share
@@ -156,7 +172,7 @@ of course, only be writable by you.
 If you insist, it wouldn't be hard to make the tools log to syslog.
 
 Database Setup
-**************
+--------------
 
 To make things work, you will also need to set up a database and create
 at least one profile file (see `The profiles Section`_).
@@ -234,10 +250,10 @@ We will first provide an informal walkthrough of the various
 configuration sections and give a reference below.
 
 Walkthrough
-***********
+-----------
 
 The general Section
-...................
+'''''''''''''''''''
 
 This mainly sets paths.  The most important is ``rootDir``, a directory
 most other paths are relative to.  This is the one you'll most likely
@@ -261,7 +277,7 @@ provide syslog based logging if necessary), so you may want to tweak
 this too to keep actions from seperate users seperate.
 
 The db Section
-..............
+''''''''''''''
 
 In the db section, some global properties of the database access layer
 are defined.  Currently, the most releveant one is profilePath.  This is
@@ -288,7 +304,7 @@ least give those defined in the trustedquery and untrustedquery
 profiles.
 
 The profiles Section
-....................
+''''''''''''''''''''
 
 The profile section maps profile names to file names.  These file names
 are relative to any of the directories in db.profilePath.
@@ -351,7 +367,7 @@ A file untrustedquery, giving access to one of the adqlRoles:
 
 
 The Web Section
-...............
+'''''''''''''''
 
 * serverURL: the scheme and host under which the service is visible
   (like, http://vo.foo.org)
@@ -364,13 +380,13 @@ The Web Section
 
 
 Reference
-*********
+---------
 
 You can get an up-to-date version of this by running ``gavoconfig``.
 
 
 Section [general]
-.................
+'''''''''''''''''
 
 Paths and other general settings.
 
@@ -417,7 +433,7 @@ Paths and other general settings.
   Path to the DC's web related data (docs, css, js, templates...)
 
 Section [adql]
-..............
+''''''''''''''
 
 Settings concerning the built-in ADQL core
 
@@ -429,7 +445,7 @@ Settings concerning the built-in ADQL core
   Default timeout for adql queries via the web form
 
 Section [db]
-............
+''''''''''''
 
 Settings concerning database access.
 
@@ -458,7 +474,7 @@ Settings concerning database access.
   by default
 
 Section [ivoa]
-..............
+''''''''''''''
 
 The interface to the Greater VO.
 
@@ -473,7 +489,7 @@ The interface to the Greater VO.
   The IVOAid for this DC's registry
 
 Magic Section [profiles]
-........................
+''''''''''''''''''''''''
 
 Mapping of DC profiles to profile definitions.  The items in this
 section are all of type profile name.  You can add keys as required.
@@ -490,7 +506,7 @@ section are all of type profile name.  You can add keys as required.
   A name of a file in [db]profilePath
 
 Section [ui]
-............
+''''''''''''
 
 Settings concerning the local user interface
 
@@ -500,13 +516,19 @@ Settings concerning the local user interface
   emulator is set to
 
 Section [web]
-.............
+'''''''''''''
 
 Settings related to serving content to the web.
 
 * adminpasswd: string; 
   defaults to '' --
   Password for online administration, leave empty to disable
+* adsMirror: string; 
+  defaults to 'http://ads.ari.uni-heidelberg.de' --
+  Root URL of ADS mirror to be used
+* bindAddress: string; 
+  defaults to '127.0.0.1' --
+  Interface to bind to
 * enableTests: boolean; 
   defaults to 'False' --
   Enable test pages (don't if you don't know why)
@@ -531,7 +553,7 @@ Settings related to serving content to the web.
   defaults to 'previewcache' --
   Webdir-relative directory to store cached previews in
 * serverPort: integer; 
-  defaults to 'None' --
+  defaults to '8080' --
   Port to bind the server to
 * serverURL: string; 
   defaults to 'http://localhost:8080' --
@@ -561,8 +583,9 @@ Settings related to serving content to the web.
   defaults to 'static/voplot/docs/VOPlot_UserGuide_1_4.html' --
   URL to the documentation of VOPlot
 
+
 Binaries
-''''''''
+--------
 
 For extended functionality, the system uses external binaries.
 If your GAVO_ROOT is accessible from more than one machine and the
@@ -601,7 +624,8 @@ sure a make on the respective machine builds a suitable binary.
 Specifying meta information fallbacks
 =====================================
 
-The file ``$DACHS/etc/defaultmeta.txt`` must exist.
+The file ``$DACHS/etc/defaultmeta.txt`` must exist.  TBD
+
 
 Preparing the system tables
 ===========================
@@ -614,6 +638,7 @@ commands (in that order)::
   gavoimp --system __system__/services
   gavoimp --system __system__/users
   gavoimp --system __system__/products
+
 
 The Portal
 ==========

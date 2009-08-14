@@ -24,9 +24,12 @@ Documentation
   `data_checklist.rstx <./data_checklist.rstx>`_)
 * Guide to write booster grammars (`booster.html <./booster.html>`_,
   `booster.pdf <./booster.pdf>`_, `booster.rstx <./booster.rstx>`_)
-* Developments notes (`develNotes.html <./develNotes.html>`_,
-  `develNotes.pdf <./develNotes.pdf>`_, 
-  `develNotes.rstx <./develNotes.rstx>`_)
+* STC library documentation (`stc.html <./stc.html>`_,
+  `stc.pdf <./stc.pdf>`_, `stc.rstx <./stc.rstx>`_)
+
+.. Developments notes (`develNotes.html <./develNotes.html>`_,
+   `develNotes.pdf <./develNotes.pdf>`_, 
+   `develNotes.rstx <./develNotes.rstx>`_)
 
 
 Software
