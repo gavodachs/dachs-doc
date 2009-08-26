@@ -35,10 +35,5 @@ Documentation
 Software
 ========
 
-As you may have guessed from the documentation, DaCHS is very much a
-work in progress, and thus we so far do not provide installable
-packages.  
-
-You are very much welcome to our source, though, which is available
-under the GNU General Public License from our subversion repository.
-Please contact gavo@ari.uni-heidelberg.de.
+To obtain the software (or parts of it), refer to
+http://vo.ari.uni-heidelberg.de/soft.

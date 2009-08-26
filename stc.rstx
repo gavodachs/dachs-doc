@@ -404,7 +404,7 @@ To introduce a new transformation, write a function or a matrix
 implementing it and enter it into the list in the construction of
 _findTransformsPath.
 
-Either way: If you're planning to hack on the libary, *please* let us
+Either way: If you're planning to hack on the library, *please* let us
 know at gavo@ari.uni-heidelberg.de.  We'll be delighted to help out with
 further hints.
 

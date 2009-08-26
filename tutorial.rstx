@@ -1269,16 +1269,18 @@ sextractor is in use.
 
 Instead, do something like::
 
-  gm convert -flip -scale 6.25% in.fits pnm:- | $ANET_PATH/plotxy -I - -i out.xyls -C red -P -w 2  -S 0.0625 -X X_IMAGE -Y Y_IMAGE > ws.png
+  gm convert -flip -scale 6.25% in.fits pnm:- | $ANET_PATH/plotxy -I - -i out.fits -C red -P -w 2  -N50 -S 0.0625 -X X_IMAGE -Y Y_IMAGE > ws.png
 
 We use gm (from GraphicsMagick) here since netpbm's fitstopnm has issues with
 large files.  You will want to use different scales for larger or
 smaller images both in gm convert's scale and plotxy's -S option, i.e.,
 maybe::
 
-  gm convert -flip -scale 12.5% in.fits pnm:- | $ANET_PATH/plotxy -I - -i out.xyls -C red -P -w 2  -S 0.125 -X X_IMAGE -Y Y_IMAGE > ws.png
+  gm convert -flip -scale 12.5% in.fits pnm:- | $ANET_PATH/plotxy -I - -i out.fits -C red -P -w 2 -N50 -S 0.125 -X X_IMAGE -Y Y_IMAGE > ws.png
 
-for smaller plates.
+for smaller plates.  Also, change the argument to -N if you change endob
+in the solverParameters to get an idea which objects are actually looked
+at.
 
 
 .. _`Resource Metadata for the Virtual Observatory`: http://www.ivoa.net/Documents/latest/RM.html

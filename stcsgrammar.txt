@@ -1,0 +1,76 @@
+The following is an attempt to generate EBNF (of sorts) from the
+pyparsing grammar in gavo.stc.stcs.  It is automatically generated
+from the quick hack on http://www.tfiu.de/homepage/hacks/#pyparsingToEBNF
+
+This is the reason for the ugly sym<whatever> things.
+
+In addition to the official STC-S document, we support equinoxes with
+FK4, FK5, and ECLIPTIC.
+
+[internal note: run python ~/projects/small/pyparsingToEBNF.py]
+
+
+_compoundGeoExprBinary ::= "Difference" "(" _compoundGeoOperand _compoundGeoOperand ")"
+_compoundGeoExprNary ::= sym0218 "(" _compoundGeoOperand _compoundGeoOperand { _compoundGeoOperand } ")"
+_compoundGeoExprUnary ::= "Not" sym0199 _compoundGeoOperand ")"
+_compoundGeoExpression ::= sym0204
+_compoundGeoOperand ::= sym0201 | _compoundGeoExpression
+_spaceUnitWord ::= RE<arcsec|arcmin|rad|Mpc|kpc|deg|mm|km|pc|AU|m>
+_timeUnitWord ::= RE<cy|yr|a|s|d>
+atomicGeometry ::= sym0202 [ fillfactor ] frame [ refpos ] [ flavor ] { number } [ positionSpec ] [ spaceUnit ] [ sym0043 ] [ sym0139 ] [ sym0141 ] [ sym0302 ] [ velocityInterval ]
+dopplerdef ::= RE<OPTICAL|RADIO|RELATIVISTIC>
+eqFrame ::= eqFrameName [ eqSpec ]
+eqFrameName ::= "FK5" | "FK4" | "ECLIPTIC"
+eqSpec ::= RE<[BJ][0-9]+([.][0-9]*)?>
+exactNumericLiteral ::= RE<[+-]?\d+(\.(\d+)?)?|[+-]?\.\d+>
+fillfactor ::= "fillfactor" number
+flavor ::= RE<UNITSPHER|SPHER2|SPHER3|CART3|CART2|CART1>
+frame ::= eqFrame | "J2000" | "B1950" | "ICRS" | "GALACTIC" | "GALACTIC_I" | "GALACTIC_II" | "SUPER_GALACTIC" | "GEO_C" | "GEO_D" | "UNKNOWNFrame"
+isoTimeLiteral ::= RE<\d\d\d\d-?\d\d-?\d\d(T\d\d:?\d\d:?\d\d(\.\d*)?Z?)?>
+jdLiteral ::= "JD" exactNumericLiteral
+mjdLiteral ::= "MJD" exactNumericLiteral
+nakedTime ::= isoTimeLiteral | jdLiteral | mjdLiteral
+number ::= RE<(?i)([+-]?\d+(\.(\d+)?)?|[+-]?\.\d+)(E[+-]?\d+)?>
+position ::= "Position" frame [ refpos ] [ flavor ] [ { number } ] [ spaceUnit ] [ sym0043 ] [ sym0139 ] [ sym0141 ] [ sym0302 ] [ velocityInterval ]
+positionInterval ::= "PositionInterval" [ fillfactor ] frame [ refpos ] [ flavor ] { number } [ positionSpec ] [ spaceUnit ] [ sym0043 ] [ sym0139 ] [ sym0141 ] [ sym0302 ] [ velocityInterval ]
+positionSpec ::= "Position" [ { number } ]
+redshift ::= "Redshift" [ refpos ] [ redshiftType ] [ dopplerdef ] [ { number } ] [ redshiftUnit ] [ sym0043 ] [ sym0139 ] [ sym0302 ]
+redshiftInterval ::= "RedshiftInterval" [ fillfactor ] [ refpos ] [ redshiftType ] [ dopplerdef ] { number } [ redshiftSpec ] [ redshiftUnit ] [ sym0043 ] [ sym0139 ] [ sym0302 ]
+redshiftSpec ::= "Redshift" number
+redshiftSubPhrase ::= redshiftInterval | redshift
+redshiftType ::= RE<VELOCITY|REDSHIFT>
+redshiftUnit ::= "unit" sym0292
+refpos ::= RE<LOCAL_GROUP_CENTER|GALACTIC_CENTER|UNKNOWNRefPos|EMBARYCENTER|HELIOCENTER|CoordRefPos|RELOCATABLE|BARYCENTER|TOPOCENTER|GEOCENTER|JUPITER|MERCURY|NEPTUNE|URANUS|SATURN|PLUTO|VENUS|LSRD|LSRK|MOON|MARS|LSR>
+spaceSubPhrase ::= positionInterval | position | atomicGeometry | sym0193 | sym0228 | sym0233
+spaceUnit ::= "unit" _spaceUnitWord { _spaceUnitWord }
+spectral ::= "Spectral" [ refpos ] [ { number } ] [ spectralUnit ] [ sym0043 ] [ sym0139 ] [ sym0302 ]
+spectralInterval ::= "SpectralInterval" [ fillfactor ] [ refpos ] { number } [ spectralSpec ] [ spectralUnit ] [ sym0043 ] [ sym0139 ] [ sym0302 ]
+spectralSpec ::= "Spectral" number
+spectralSubPhrase ::= spectralInterval | spectral
+spectralUnit ::= "unit" sym0256
+startTime ::= "StartTime" [ fillfactor ] [ sym0019 ] [ refpos ] nakedTime [ sym0033 ] [ timeUnit ] [ sym0043 ] [ sym0139 ] [ sym0302 ]
+stcsPhrase ::= [ timeSubPhrase ] [ spaceSubPhrase ] [ spectralSubPhrase ] [ redshiftSubPhrase ]
+stopTime ::= "StopTime" [ fillfactor ] [ sym0019 ] [ refpos ] nakedTime [ sym0033 ] [ timeUnit ] [ sym0043 ] [ sym0139 ] [ sym0302 ]
+sym0019 ::= RE<UTC|nil|TDB|TT|TEB|LST|TCG|IAT|ET|TCB|TAI|TDT>
+sym0033 ::= "Time" nakedTime
+sym0043 ::= "Error" number { number }
+sym0139 ::= "Resolution" number { number }
+sym0141 ::= "Size" number { number }
+sym0163 ::= _spaceUnitWord "/" _timeUnitWord
+sym0193 ::= "Not" [ fillfactor ] frame [ refpos ] [ flavor ] "(" _compoundGeoOperand ")" [ positionSpec ] [ spaceUnit ] [ sym0043 ] [ sym0139 ] [ sym0141 ] [ sym0302 ] [ velocityInterval ]
+sym0201 ::= sym0202 { number }
+sym0202 ::= "AllSky" | "Circle" | "Ellipse" | "Box" | "Polygon" | "Convex"
+sym0204 ::= _compoundGeoExprUnary | _compoundGeoExprBinary | _compoundGeoExprNary
+sym0218 ::= "Union" | "Intersection"
+sym0228 ::= "Difference" [ fillfactor ] frame [ refpos ] [ flavor ] "(" _compoundGeoOperand _compoundGeoOperand ")" [ positionSpec ] [ spaceUnit ] [ sym0043 ] [ sym0139 ] [ sym0141 ] [ sym0302 ] [ velocityInterval ]
+sym0233 ::= sym0218 [ fillfactor ] frame [ refpos ] [ flavor ] "(" _compoundGeoOperand _compoundGeoOperand { _compoundGeoOperand } ")" [ positionSpec ] [ spaceUnit ] [ sym0043 ] [ sym0139 ] [ sym0141 ] [ sym0302 ] [ velocityInterval ]
+sym0256 ::= RE<Angstrom|GHz|MeV|MHz|keV|Hz|nm|mm|um|eV|m>
+sym0292 ::= sym0163 | "nil"
+sym0302 ::= "PixSize" number { number }
+time ::= "Time" [ sym0019 ] [ refpos ] [ nakedTime ] [ timeUnit ] [ sym0043 ] [ sym0139 ] [ sym0302 ]
+timeInterval ::= "TimeInterval" [ fillfactor ] [ sym0019 ] [ refpos ] { nakedTime } [ sym0033 ] [ timeUnit ] [ sym0043 ] [ sym0139 ] [ sym0302 ]
+timeSubPhrase ::= timeInterval | startTime | stopTime | time
+timeUnit ::= "unit" _timeUnitWord
+velocityInterval ::= "VelocityInterval" [ fillfactor ] { number } [ velocitySpec ] [ velocityUnit ] [ sym0043 ] [ sym0139 ] [ sym0302 ]
+velocitySpec ::= "Velocity" number { number }
+velocityUnit ::= "unit" _spaceUnitWord "/" _timeUnitWord { sym0163 }
