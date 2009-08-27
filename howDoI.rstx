@@ -36,7 +36,7 @@ named _ADDITEM.  This would look like this::
  		<inputKey name="_ADDITEM" tablehead="Extinctions for band"
 			description="Output extinctions for the respective band (if you want multiple bands, you can use 'additional output fields' below)"
 			type="text" required="True" mul>
-			<values>
+			<values multiOk="True" showItems="-1">
 				<option title="Landolt U">a_U</option>
 				<option title="Landolt V">a_V</option>
 				<option title="Landolt I">a_I</option>
@@ -45,8 +45,20 @@ named _ADDITEM.  This would look like this::
     ...
   </service>
 
-You can even allow multiple fields using value's multiOk attribute
-(though that would approach the "additional output fields" widget).
+Setting showItems to -1 gives you checkboxes rather than a select list,
+which is mostly what you want.  Try with and without and see what you
+like better.
+
+If you do that, you *probably* do not want the standard "additional
+fields" widget at the bottom of the form.  To suppress it, add a line
+
+::
+
+  <property name="noAdditionals">True</property>
+  
+to the service definition.  The "True" in there actually is a bit of a
+red herring, the widget is suppressed for any value.
+
 
 ...add and image to query forms?
 --------------------------------
