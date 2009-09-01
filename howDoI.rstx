@@ -144,3 +144,43 @@ front.  That could look like this::
     connection=connection).nAffected
 
 
+...change the query issued on SCS queries?
+------------------------------------------
+
+You may want to do that because for some reason there is no q3c index on
+the queried table, or the semantics aren't quite a point vs. point cone
+search but close enough.
+
+Sadly, this is quite complicated right now since our inheritance
+mechanism ("original") is so simple-minded.  This will hopefully improve
+with a generic record/replay mechanism we're thinking about.
+
+That said, the current way looks like this (for a query that does a
+proximity search on bboxes)::
+
+	<condDesc original="__system__/scs#humanSCS">
+		<phraseMaker original="__system__/scs#humanSCSPhrase">
+			<setup original="__system__/scs#scsSetup" id="proxQuery">
+				<code><![CDATA[
+					def genQuery(inPars, outPars):
+						return "POINT(%%(%s)s, %%(%s)s) <-> bbox < %%(%s)s"%(
+							vizierexprs.getSQLKey("RA", inPars["RA"], outPars),
+							vizierexprs.getSQLKey("DEC", inPars["DEC"], outPars),
+							vizierexprs.getSQLKey("SR", inPars["SR"], outPars))
+				]]></code>
+			</setup>
+		</phraseMaker>
+	</condDesc>
+
+-- so, you are inheriting from the SCS condition on three levels and then 
+override the genQuery function defined in the common setup code.  The
+way the condDescs are written, you must return rather than yield
+the actual query string.  See the tutorial on how condDesc code
+works in general.  The semi-good news is that if you want the same thing
+for an SCS query, you can reuse part of what you did above::
+
+ 	<condDesc original="__system__/scs#scs">
+		<phraseMaker original="__system__/scs#scsPhrase">
+			<setup original="proxQuery"/>
+		</phraseMaker>
+	</condDesc>
