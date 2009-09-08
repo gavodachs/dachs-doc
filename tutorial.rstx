@@ -724,6 +724,9 @@ can only be interpreted when present as a group.  An example is the
 standard cone search, where you need both a position and a search
 radius.
 
+Automatic and manual control
+''''''''''''''''''''''''''''
+
 However, most condDescs correspond to one input key, and the input key
 is mostly derived from a table column.  This is the standard idiom,
 
@@ -781,6 +784,23 @@ In all those cases, the SQL generated from the condDesc is a conjunction
 of the input key's individual SQL expressions.  Those, in turn, are
 simply comparisons for equality for plain types and more or less
 arbitrary expressions for vizier expression types.
+
+Incidentally, two properties on inputKeys are defined to only show
+inputs for certain renderers, viz., ``onlyForRenderer`` and
+``notForRenderer``.  Both have single strings as values.  This is
+intended mainly for cases like SIAP and SCS where there are
+"human-oriented" versions of the input fields available.  The built-in
+SCS and SIAP conditions already to that, so you can give both scs and
+humanSCS conditions in a core.  Here is how you would define an input
+key that is only used for the form renderer::
+
+  <inputKey original="color">
+    <property name="onlyForRenderer">form</property>
+  </inputKey>
+
+
+Phrase makers
+'''''''''''''
 
 For complete control over what SQL is generated, condDescs may contain
 code called a phrase maker.  This, again, is a procedure application,
