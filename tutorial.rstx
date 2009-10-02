@@ -1008,7 +1008,16 @@ to skip process and instead call a method that will in turn call the
 serve as a class label.  At the end of the run, the processor will print
 a summary of the class frequencies.
 
-XXX TODO: example.
+Here's what such a classify method could look like::
+
+	def classify(self, srcName):
+		hdr = self.getPrimaryHeader(srcName)
+		try:
+			ignored = "FILTER_A" in hdr
+			return "ok"
+		except ValueError: # botched cards on board
+			return "botched"
+
 
 
 Basic FITS Manipulation
