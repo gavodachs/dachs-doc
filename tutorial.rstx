@@ -120,6 +120,9 @@ inheritance.  This means that if a table is asked for a piece of
 metadata it does not have, it forwards that request to the embedding
 resource.
 
+Defining Columns
+''''''''''''''''
+
 The main content of table is a sequence of column elements.  These
 contain a description of a single table column.  You must give a name.
 Type, if not given, defaults to real, and can otherwise take values in
@@ -165,6 +168,8 @@ Futher metadata on columns includes:
   valid.  By default, NULL (which in python is None) is a valid value
   for any column.  For required columns, that is no longer the case.
   This is particularly important in connection with foreign keys.
+
+
 
 
 Parsing Input Data
@@ -432,6 +437,7 @@ There also is a recurse boolean attribute you can use when your sources
 are distributed over subdirectories of the path part of the pattern.
 
 
+
 Indices and Mixins
 ------------------
 
@@ -586,6 +592,91 @@ interface.  To try this, run a server::
 and point a browser to http://localhost:8080/lmcextinct/q/cone/form (the
 host part, of course, depends on your configuration.  If you did not
 change anything there, you should find the data at the given URL).
+
+
+More on Tables
+==============
+
+Notes
+-----
+
+Frequently, you need to say more about a column than is appropriate in
+the few-phrase description.  Historically, such situations have been
+handled using notes.  Since notes can be reused for multiple columns, we
+chose to follow that precedent rather than attach longish information
+onto the columns themselves.
+
+The notes themselves are kept in meta elements belonging to tables.
+Since the notes tend to be markup-heavy, their default format is
+restructured text.  When entering notes in RDs, there is an attribute
+``tag`` on these meta items::
+
+  <table id="demo">
+    ...
+    <meta name="note" tag="1">
+      The meaning of the flag is as follows:
+
+      =====  ==========
+      value  meaning
+      =====  ==========
+      1      value is 2
+      2      value is 1
+      =====  ==========
+   </meta>
+
+   <meta name="note" tag="2">
+   ...
+  </table>
+
+To assoicate a column with a note, use the column's note attribute::
+
+  <colum name="crazyflag" type="smallint" ... note="1"/>
+
+As tag, you may use basically any string, but it's a good idea to keep
+it to numbers or at least characters not requiring URL encoding.
+
+The notes will exposed in HTML table heads, table and service
+description, etc.  If you need to link to one, there is the built-in
+tablenote renderer that takes the table and the note from its query path.  
+The most convenient way to is it is through the
+built-in vanity name tablenote, where you would access the note above
+using a URL like ``http://your.server/tablenote/demoschema.demo/1``.
+
+
+STC
+---
+
+As soon as you have coordinates, you will want to define coordinate
+systems on them.  In the introductory example, that was not necessary
+because SCS mandates that the coordinates you export are in ICRS, so
+either your coordinates are in ICRS or you are violating the SCS
+protocol -- in either case, nothing to declare.
+
+In the more general case, you will want to say what is what in your
+tables.  DaCHS uses a language called STC-S to declare systems,
+reference points, etc.  The STC-S description [TODO: Link to IVOA note]
+is a bit terse, but the good news is that you will get by with a few
+features most of the time.
+
+STC is defined in children of table elements, with references to table
+columns in quoted strings::
+
+  <table id="withcoo">
+    <stc>
+      Position ICRS "ra" "dec" Error "e_ra" "e_dec"
+    </stc>
+    <stc>
+      Position FK4 J1950.0 "ra_orig" "dec_orig"
+    </stc>
+
+    <column name="ra" unit=...
+    <column name="dec" ...
+    ...
+  </table>
+
+You do not need to change anything in the column definitions themselves,
+since the machinery will resolve your column references.  If you refer
+to non-existing columns, RD parse errors will be thrown.
 
 
 More on Grammars
