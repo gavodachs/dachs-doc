@@ -71,7 +71,9 @@ The italicized text in the explanations is taken from [RMI]_.
   located are described elsewhere in the resource metadata.*   This
   should not be a complete article, but *at most* something like an
   abstract.  In general, we feel a few lines would be optimal here.
-  For anything more, see Reference URL below.
+  For anything more, we can include a "long documentation" that will
+  be exposed in the service info.  Please write in the third person
+  (i.e., "Fantasurvey is..." rather than "We present the fantasurvey...")
 
 :Source:
   Optional. Some paper describing what you did to arrive at your data, if you
