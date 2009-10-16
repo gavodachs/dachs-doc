@@ -251,13 +251,21 @@ Another grammar frequently useful when reading from text tables is the
 `columnGrammar <./ref.html#element-columngrammar>`_.  It allows a rather
 dircect translation of VizieR-like "byte-by-byte"-descriptions.
 
-Column grammars define ``col`` elements, the keys of which give the
-``name``s of the target columns (or intermediary identifiers that you
-work with in your rowmaker), like this::
+Column grammars define ``col`` elements, the ``key`` attributes of which
+give the ``name``s of the target columns (or auxillary identifiers that
+you work with in your rowmaker), like this::
 
   <columnGrammar topIgnoredLines="1">
-    <col key=XXXXXXXXXXXXXXXXXXXXXXXXXraMin, raMax, decMin, decMax, EVI, AV, AI</names>
+    <col key="raMin">1-9</col>
+    <col key="raMax">10-18</col>
+    ...
   </columnGrammar>
+
+The first column has the index 1, and -- contrary to python slices --
+the last index is included in the selection.  No expansion of tabs or
+similar is performed.
+
+As potential column names, the keys must be valid python identifiers.
 
 
 Mapping data
