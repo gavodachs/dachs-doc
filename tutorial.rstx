@@ -106,13 +106,12 @@ Such a table definition might look like this::
       description="Extinction in I"/>
   </table>
 
-The table element has some attributes.  You must give id, which will
-double as the table name within the database.  The onDisk attribute
-specifies that the table is to reside on the disk as opposed to in
-memory (in-memory tables have applications in advanced operations).  The
-adql attribute specifies that no access restrictions are to be
-placed on the table; if you run an ADQL or TAP service, users can access
-this table.
+In a table definition, you must give id, which will double as the table
+name within the database.  The onDisk attribute specifies that the table
+is to reside on the disk as opposed to in memory (in-memory tables have
+applications in advanced operations).  The adql attribute specifies that
+no access restrictions are to be placed on the table; if you run an ADQL
+or TAP service, users can access this table.
 
 Table elements may contain metadata.  You do not need to repeat metadata
 given for the resource, because (in most cases) the DC performs metadata
@@ -120,14 +119,21 @@ inheritance.  This means that if a table is asked for a piece of
 metadata it does not have, it forwards that request to the embedding
 resource.
 
+
 Defining Columns
 ''''''''''''''''
 
 The main content of table is a sequence of column elements.  These
-contain a description of a single table column.  You must give a name.
-Type, if not given, defaults to real, and can otherwise take values in
-valid SQL datatypes.  The DC software knows how to handle, in addition
-to real,
+contain a description of a single table column.  The name attribute is
+central in that it will be the column name in the database, the key for
+the column's value in record dictionaries that the software uses
+internally, and it is usually used to reference the column from the
+outside.  Column names must be legal identifiers for both python and SQL in 
+DaCHS.  SQL quoted identifiers thus are not allowed.
+
+The type attribute, if not given, defaults to real, and can otherwise
+take values in valid SQL datatypes.  The DC software knows how to
+handle, in addition to real,
 
 * text -- a string.  You can also use types like char(7) and the like,
   but since that does not help postgres (or much anything else within
@@ -195,8 +201,11 @@ formats; you can also write specialized grammars in python.
 All grammars read "something" and emit a mapping from names to (mostly)
 string values.
 
+reGrammars
+''''''''''
+
 In this case the easiest grammar to use probably is the `reGrammar
-<./ref.html#element-regrammar>`_..  The idea here is that you give two
+<./ref.html#element-regrammar>`_.  The idea here is that you give two
 regular expressions to separate the file into records and the records
 into fields, and that you simply enumerate the names used in the
 mapping.
@@ -207,6 +216,9 @@ this::
   <reGrammar topIgnoredLines="1">
     <names>raMin, raMax, decMin, decMax, EVI, AV, AI</names>
   </reGrammar>
+
+The names given are values of the name attribute in the table
+definition.
 
 If you checked the documentation on reGrammar, you will have noticed
 that "names" is an "atomic child" of reGrammar. Atomic children are
@@ -231,6 +243,21 @@ thus can only be written in element notation.
 
 Though grammars can be direct children of resource, they are usually
 written as children of data elements (see below).
+
+columnGrammars
+''''''''''''''
+
+Another grammar frequently useful when reading from text tables is the
+`columnGrammar <./ref.html#element-columngrammar>`_.  It allows a rather
+dircect translation of VizieR-like "byte-by-byte"-descriptions.
+
+Column grammars define ``col`` elements, the keys of which give the
+``name``s of the target columns (or intermediary identifiers that you
+work with in your rowmaker), like this::
+
+  <columnGrammar topIgnoredLines="1">
+    <col key=XXXXXXXXXXXXXXXXXXXXXXXXXraMin, raMax, decMin, decMax, EVI, AV, AI</names>
+  </columnGrammar>
 
 
 Mapping data
@@ -1040,6 +1067,7 @@ Simple FileProcessors support the following options:
 --report
   More on this in `Processor Report Generation`_
 
+
 Auxillaries
 '''''''''''
 
@@ -1197,7 +1225,7 @@ header method.  Its default implementation is something like::
   def _getHeader(self, srcName):
     return self._mungeHeader(srcName, self.getPrimaryHeader(srcName))
 
-The readPrimaryHeader(srcName) -> pyfits header method is a convenience
+The getPrimaryHeader(srcName) -> pyfits header method is a convenience
 method of FITSProcessors with obvious functionality.
 
 
