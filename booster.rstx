@@ -1,20 +1,17 @@
-DirectGrammars and Boosters
-===========================
-
-/!\ Boosters only work with psycopg newer than 2.0.5.  This is not the
-default version in etch, so you'll need to use a backport for boosters.
-They do not work at all with pypgsql.
+=======================================
+GAVO DaCHS: DirectGrammars and Boosters
+=======================================
 
 A DirectGrammar is some program that gets called by the ingestor and
 outputs binary COPY material to be dumped into the table to stdout.
 Note that, by these restrictions, direct grammars can only operate on
-single tables; data sets containing more than one Record cannot have
-direct grammars.  The record definition of the table to be filled in
-this way must have onDisk="true".
+single tables; data descriptors containing more than one ``make`` cannot
+have direct grammars.  The record definition of the table to be filled
+in this way must of course have ``onDisk="true"``.
 
 This program can in principle be anything you like, but usually they are
 written in C using the boosterskel infrastructure
-(resources/src/boosterskel.c).  This infrastructure yields programs that
+(``resources/src/boosterskel.c``).  This infrastructure yields programs that
 expect to be called with a single argument, the source file to operate
 on.
 
@@ -22,59 +19,63 @@ To use a booster, say
 
 ::
 
-  <DirectGrammar cbooster="path"/>
+  <directGrammar cBooster="res/boosterfunc.c"/>
 
-in your data descriptor.  Path is interpreted resdir-relative.
+in a ``data`` element.  The path in the ``cbooster`` attribute is interpreted 
+relative to the RD's resdir.
+
 
 Input Formats
 -------------
 
 By default a booster expects to read from a text file.  Currently, the
-maximum line length is set to 4000 (INPUT_LINE_MAX in boosterskel.c).
+maximum line length is set to 4000 (``INPUT_LINE_MAX`` in
+``boosterskel.c``).  It is up to the parsing function to split and
+digest this text line.
 
-To handle binary data of fixed record length, set the recordSize
-attribute on the DirectGrammar element:
+When you get binary data of fixed record length, set the ``recordSize``
+attribute on the ``DirectGrammar`` element::
 
-::
+  <DirectGrammar cBooster="path" recordSize="300"/>
 
-  <DirectGrammar cbooster="path" recordSize="300"/>
-
-Note that  recordSizes larger than INPUT_LINE_MAX will cause a buffer
-overflow.
+Note that  ``recordSize``s larger than ``INPUT_LINE_MAX`` will cause a buffer
+overflow.  You will, in this case, want to generate the booster using
+the -b flag.
 
 Aonther type of booster reads from text files, but the fields are not
 defined by extent but by seperator characters.  For the booster
 environment, this doesn't make any difference, so you don't need to
 declare it.  The booster itself should be generated using the -s flag to
-gavomkboost
-
+``gavomkboost``.
 
 
 Writing a booster
 -----------------
 
 To write a booster, first define the table.  You can already specify the
-DirectGrammar as noted above.  
+``DirectGrammar`` as noted above.  
 
-Then call gavomkboost with the id or the
-path to the resource descriptor and the id of the data, e.g.
+Then call ``gavomkboost`` with the id or the
+path to the resource descriptor and the id of the table, e.g.
 
 ::
 
-  gavomkboost ppmx/res/ppmx data
+  cd res
+  gavomkboost ../q.rd main > boosterfunc.c
 
-This will write template code for a column-based source to stdout.  See
-below on what to do when your source has a different format.
+This will write template code for a column-based source to
+``booster.c``.  See above on what to do when your source has a different
+format.
 
-Place the template code anywhere (use the
-convention of putting it in res/boosterfunc.c unless you have a good
-reason to do otherwise).
+Place the template code anywhere (use the convention of putting it in
+res/boosterfunc.c unless you have a good reason to do otherwise).
 
-The template code starts like this:
+The template code starts somewhat like this:
 
 ::
 
   #include <math.h>
+  #include <string.h>
   #include "boosterskel.h"
 
   #define QUERY_N_PARS 33
@@ -91,8 +92,9 @@ the source code to communicate this value to the booster boilerplate.
 
 Then the code contains an enumeration of the field indices; the names are
 simple fi\_ and the field destination lowercased.  If you only use these
-names to access fields, the cut'n'paste effort on changes of the table
-structure should be manageable.
+names to access fields, the cut'n'paste effort if the table should later
+change should be manageable and you can hack your code directly into the
+generated code.
 
 While you shouldn't need to change any of this, you have to change the
 function that follows::
@@ -106,10 +108,11 @@ function that follows::
     parseFloat(inputLine, F(fi_pmde), start, end);
     parseFloat(inputLine, F(fi_raerr), start, end);
 
-Here, it's your job to assign the proper values to the Fields in val.
-Field is defined as follows:
+Here, it's your job to assign the proper values to the ``Field``s in
+``vals``.
 
-::
+``Field`` is defined as follows::
+
 
   typedef struct Field_s {
     valType type;
@@ -123,7 +126,7 @@ Field is defined as follows:
     } val;
   } Field;
 
-where type is one of
+where ``type`` is one of
 
 ::
 
@@ -137,6 +140,9 @@ where type is one of
     VAL_TEXT,
     VAL_JDATE,
   } valType;
+
+JDATE is a julian day number to be dumped as a date (rather than a
+datetime).  For other ways to represent dates and datetimes, see below.
 
 You can, and frequently will, fill the stuff by hand.  There are,
 however, a couple of functions that care about some standard situations,
@@ -160,6 +166,8 @@ in particular when parsing column-structured text files:
   field.
 * ``void parseChar(char *src, Field *field, int srcInd)`` -- guess.
 
+XXX TODO: document fieldscanf.
+
 
 Boosters reading from binary data
 ---------------------------------
@@ -173,6 +181,7 @@ following macros:
 * MAKE_FLOAT(fi, value) -- 
 * MAKE_SHORT(fi, value) -- 
 * MAKE_CHAR(fi, value) --
+* MAKE_JDATE(fi, value) --
 * MAKE_CHAR_NULL(fi, value, nullvalue) -- makes fi a char with value
   unless value==nullvalue; in that case, fi becomes a NULL
 
@@ -181,5 +190,72 @@ Boosters reading from seperated data
 ------------------------------------
 
 When your data comes in irregular fields split by a certain character,
-XXX
+TBD.
 
+
+Filling in data manually
+------------------------
+
+The ``F(index)`` macro lets you access the field info directly.  So, you
+could enter a fixed-length piece of memory into ``fi_magic``like this::
+
+  static char bufForMagic[8];
+
+  memcpy(bufForMagic, inputLine+20, 8);
+  F(fi_magic)->type = VAL_TEXT;
+  F(fi_magic)->val.c_ptr =  bufForMagic;
+  F(fi_magic)->length = 8;
+
+Having static buffers in ``getTuple`` is usually ok since the COPY input
+is generated before ``getTuple`` is called again.
+
+It is quite common to have to handle null values.  In the example above,
+this could look like this if a NULL for magic were signified by a F in
+``inputLine[19]``::
+
+  static char bufForMagic[8];
+
+  if (inputLine[19]=='F') {
+    F(fi_magic)->type = VAL_NULL;
+  } else {
+    memcpy(bufForMagic, inputLine+20, 8);
+    ...
+
+Casts
+'''''
+
+Make sure you always properly cast what you read, e.g.,
+
+::
+
+  MAKE_DOUBLE(fi_dej2000, -90+*(int32_t*)(line+4)); /* SPD */
+
+You can use the ``int<len>_t`` and ``uint<len>_t`` types defined by your
+compiler's (or library's) headers.
+
+
+Dates and times
+'''''''''''''''
+
+The boosters treat "normal" dates and datetimes as ``struct tm``s.  If you
+need a larger range, use ``VAL_JDATE``, which lets you store julian
+dates in floats.  Julian dates are serialized to dates rather than
+datetimes.
+
+To parse ``VAL_DATE`` or ``VAL_DATETIME``, you will write something
+like::
+
+	fieldscanf(curCont, fi_date, VAL_DATE, "%Y-%m-%d");
+
+if parsing from date strings.  If your input is something weird, figure
+out a way to generate a ``struct tm`` as defined in ``time.h``.  Then
+write::
+
+  struct tm timeParts;
+  timeParts.tm_sec = 12;
+  ...
+  timeParts.tm_year = 1920;
+  F(fi_dt)->val.time = timeParts;
+  F(fi_dt).type = VAL_DATETIME;
+
+(or ``VAL_DATE``, as the case may be).
