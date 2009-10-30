@@ -27,11 +27,32 @@ and also as a guideline of what goes where, apply the following rules:
 * There is a hierarchy of subpackages, where subpackages lower in the
   hierarchy may not import anything from the higher or equal levels, but 
   only from lower levels.  This hierarchy currently looks like this:
-  imp < utils < base < rscdef < grammars < rsc < svcs < protocols < web
-  The user and helpers subpackages are inteded to be imported by
-  top-level components only and thus may import anything, including
-  gavo.api.
+  imp < utils < (adql, stc) < base < rscdef < grammars < rsc < svcs <
+  protocols < web < rscdef < (helpers, user)
 
+
+Error handling, logging
+=======================
+
+It is the goal that all errors that can be triggered from the web or
+from within resource descriptors yield sensible error messages with,
+as possible, information on the location of the error.  Also, major
+operations changing the content of the database should be loggable with
+time and, probably, user information.
+
+The core of error processing is utils.excs.  All "sensible" exceptions
+(i.e., MemoryErrors and software bugs excepted) should be instances of
+gavo.excs.Error (or derived classes).
+
+The base class takes a hint argument at construction that gives 
+additional information on how to fix a certain problem.  Apart from
+message (in the first argument), the exceptions must always be
+constructed using keyword arguments.
+
+When there is structured information (e.g., line numbers, keys, and the
+like), always keep the information separate and use the __str__ method
+of the exception to construct something humans want to see.  All
+built-in exceptions should accept a hint keyword.
 
 
 Testing
