@@ -67,16 +67,29 @@ FieldInfo objects have the following attributes:
 * ucd, unit
 * tainted -- a boolean specifying whether the library had to guess
   anything (a simple scalar multiplication is enough; see below)
-* errors, warnings -- lists of strings giving information on mishaps
-  that happened while inferring this field  info.  These should probably
-  be exposed to the user.
 * userData -- a sequence of opaque data passed in by the host
   application (see below)
 * stc -- None or an AST from DaCHS STC.
 
 The source for these annotations is the metadata of the input columns.
 These are communicated to the library through the ``getFieldInfo`` callback
-passed to ``annotate``.
+passed to ``annotate``.  It has the signature::
+
+  getFieldInfo(tableName) -> list of info pairs,
+
+where an info pair consists of the column's name and quadruple of::
+
+  (unit, ucd, userdata, stc)
+
+``userdata`` is a tuple of application specific column descriptions; on
+input, these should always be tuples of length 1.  The library will
+collect those, and all userdata objects that went into a particular
+``FieldInfo`` can be retrieved under its ``userdata`` attribute.  `stc`
+is a DaCHS STC AST.
+
+The ``tableName``s passed to getFieldInfo are strings from ADQL, i.e., you
+must be prepared to resolve names like your database is resolving them
+(e.g., concerning default schemata and the like).
 
 
 User Functions
