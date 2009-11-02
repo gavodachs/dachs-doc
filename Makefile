@@ -34,7 +34,3 @@ install: $(HTML_FILES) $(ALL_PDF)
 clean:
 	rm -f $(ALL_HTML)
 	rm -f *.log *.aux *.out *.pdf
-	rm -f classes.ps
-
-classes.ps: classes.dot
-	dot -T ps < $< > $@

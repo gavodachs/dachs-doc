@@ -1,0 +1,87 @@
+=====================
+The GAVO ADQL Library
+=====================
+
+A library to deal with ADQL and have it executed by postgres
+========================================================================
+
+:Author: Markus Demleitner
+:Email: gavo@ari.uni-heidelberg.de
+
+This library tries to provide glue between a service eating ADQL and
+delivering VOTables on the one side and concrete DBMSes (currently only
+postgres) on the other.
+
+To do this, it parses ADQL, tries to infer types, units, systems, and
+UCDs for the result columns ("annotation"), and rewrites ("morphs")
+queries so they can be executed on postgres.
+
+
+Basic Usage
+-----------
+
+The standard way to access the package is::
+
+  from gavo import adql
+
+The adql namespace contains the functions documented below.  To see if
+things work at least to some degree, try::
+
+  In [1]:from gavo import adql
+
+  In [2]:from pprint import pprint
+
+  In [3]:t = adql.parseToTree("SELECT * FROM t WHERE 1=CONTAINS("
+     ...:                 "CIRCLE('ICRS', 4, 4, 2), POINT('', ra, dec))")
+
+  In [4]:pprint t.asTree()
+  ------>pprint(t.asTree())
+  ('querySpecification',
+   ('fromClause', ('possiblyAliasedTable', ('tableName',))),
+   ('selectList',),
+   ('whereClause',
+    ('comparisonPredicate',
+     ('factor',),
+     ('predicateGeometryFunction',
+      ('circle', ('factor',), ('factor',), ('factor',)),
+      ('point', ('columnReference', 'ra'), ('columnReference', 'dec'))))))
+
+
+Annotations
+-----------
+
+One central task of the ADQL library is the inference of column metadata
+from queries.  In this library, this is a two-step process.  First,
+a tree is parsed from the ADQL query.  Then, this tree is traversed, and
+each "typed" node (like a column reference, a literal, an expression, a
+function) is annotated with a FieldInfo object.  This would look like
+this::
+
+  t = adql.parseToTree(query)
+ 	adql.annotate(t, getFieldInfo)
+
+``query`` is the ADQL input, ``getFieldInfo`` a function described below.
+
+FieldInfo objects have the following attributes:
+
+* ucd, unit
+* tainted -- a boolean specifying whether the library had to guess
+  anything (a simple scalar multiplication is enough; see below)
+* errors, warnings -- lists of strings giving information on mishaps
+  that happened while inferring this field  info.  These should probably
+  be exposed to the user.
+* userData -- a sequence of opaque data passed in by the host
+  application (see below)
+* stc -- None or an AST from DaCHS STC.
+
+The source for these annotations is the metadata of the input columns.
+These are communicated to the library through the ``getFieldInfo`` callback
+passed to ``annotate``.
+
+
+User Functions
+--------------
+
+Custom Region Specifications
+----------------------------
+
