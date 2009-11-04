@@ -180,6 +180,53 @@ at least one profile file (see `The profiles Section`_).
 Currently, we only support postgres.  You should have one user that may
 create tables and schemas, so you probably need a dedicated database.
 
+
+Cluster Creation
+''''''''''''''''
+
+You first need a database to play with, preferably in a suitable
+cluster.  This is very system-dependent, and ideally a database admin
+would assist you.  You may entirely skip this section on making a custom
+cluster if you the default cluster works for you.
+
+On Debian systems dedicated for GAVO DaCHS, you can try the following:
+
+(#) Find out the version of the server you will be running (e.g., using
+    ``dpkg -l``; in Debian, more than one version may be installed in
+    parallel.  It's probably a good idea to use the most recent one.
+    Set your desired version for subsequent use::
+
+      export PGVERSION=8.3
+
+(#) Drop the Debian default cluster (this will delete everything in
+    there -- for a fresh install, that doesn't matter, but don't do this
+    if other people use the database).  If you don't do this, your
+    database will listen do a different port, and you will have to
+    adapt the default profiles::
+
+      pg_dropcluster --stop $PGVERSION main
+
+(#) Create the new cluster used by DaCHS::
+
+      sudo pg_createcluster -d /pgdata --locale=en_US.UTF-8\
+        --lc-collate=C --lc-ctype=C $PGVERSION pgdata
+
+    The locale is not terribly important, but you should use one with
+    utf-8 (or some other unicode) encoding.  The database stores
+    descriptions and similar entities, and you may encounter funny
+    characters in there.  It would be a shame if you couldn't store them
+    (plus, you would get funny error messages for those).
+(#) Start the server::
+    
+       sudo /etc/init.d/postgresql-$PGVERSION start
+
+On Debian, the configuration files for this cluster are at
+``/etc/postgresql/$PGVERSION/pgdata/``.
+
+
+Database Preparation
+''''''''''''''''''''
+
 The data center software accesses the database in various functions.
 These are mapped to profiles which correspond to access information
 (basically, the DSN, user, and password).  There are three of them:
@@ -193,10 +240,11 @@ These are mapped to profiles which correspond to access information
 * untrustedquery -- the profile used for user-contributed SQL.  Only
   tables expressly opened up are accessible to it.
 
-We can't help you much with postgres (if you have an administrator, she
-should know how to set a database and the necessary users for you).  You
-can adapt all those names, but would need to change the default
-configuration files then.  Otherwise, do the following::
+You can adapt all those names, but would need to change the default
+configuration files then.
+
+The following procedure sets up users and databases as expected by the
+default profiles::
 
   sudo -u postgres createdb --encoding=UTF-8 gavo  # creates the database that'll hold your data
   # create the user that feeds the db...
@@ -206,21 +254,27 @@ configuration files then.  Otherwise, do the following::
   # and a user for "scratch tables" writable from the world
   sudo -u postgres createuser -P -ADSR untrusted
 
-Note down the passwords you enter, you will need them when setting up your
-database profiles.
+Enter the passwords you assign here into the ``feed``, ``trustedquery``,
+and ``untrustedquery`` profiles, respectively.  These profiles are found
+in ``/var/gavo/etc``.
 
-Note that running a database server always is a potential security
-liability.  You should make sure you understand what your pg_hba.conf
-(it's in the config directory of your postgres installation, on debian
-that would be ``/etc/postgresql/<version>/main/``)
-says.  As a minimum, you should have a line like::
+Note that running a database server always is a security
+liability.  You should make sure you understand what the pg_hba.conf (in
+postgres' configuration directory) says.  As a minimum, you should have a 
+line like::
 
   local   gavo        gavo,gavoadmin,untrusted          md5
 
 in there; it allows password authentication for the three users above
-from the local machine.  If you wanted to feed or query the database from remote
-machines, you'd have to provide similar lines for those machines; for
-details, see the postgres documentation.
+from the local machine.  If you have two machines sitting on a
+reasonably trusted local network, you could say something like::
+
+  host    gavo gavo,gavoadmin,untrusted   xxx.xxx.xxx.0/24    md5
+
+(where the x must be replaced with your network number).  If you insist
+on having the data between DaCHS and the postgres server go through
+untrusted lines, see the postgres docs on how to set up an SSL
+connection.
 
 Finally, you need to let the various roles you just created access the 
 database; you do this using the command line interface to postgres::
