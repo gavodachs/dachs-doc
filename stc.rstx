@@ -229,14 +229,16 @@ This is assumed for all examples below.
 The Data Model
 ''''''''''''''
 
-The STC library turns all input into an itermediate data structure
-called an AST.  This is a tree containing the STC information and is
-still following the STC data model quite closely.  However, it turned
-out that it is quite inconvenient to work with, so we will probably
-change it after we've gathered some experience.  The most intrusive
-change will probably be that the separation between data and metadata
-will be enforced much more strictly, i.e., unit, error and such will go
-from the positions to what is now the frame object.
+The STC library turns all input into a tree called AST ("Abstract Syntax
+Tree", since it abstracts away the details for parsing from whatever
+serialisation you employ).
+
+The ASTs are following the STC data model quite closely.  However, it
+turned out that -- even with the changes already in place -- this is
+quite inconvenient to work with, so we will probably change it after
+we've gathered some experience.  It is quite likely that we will enforce
+a much stricter separation between data and metadata, i.e., unit, error
+and such will go from the positions to what is now the frame object.
 
 Thus, we don't document the data model fully yet.  The gory details are
 in dm.py.  Meanwhile, we will try to maintain the following properties:
@@ -260,6 +262,10 @@ in dm.py.  Meanwhile, we will try to maintain the following properties:
   other metadata move to the frame object.  The unit attribute follows
   the coordinate values, i.e., they are tuple-valued when the values are
   tuples.  For velocities and redshifts, there is a velTimeUnit as well.
+* ASTs have a cooSystem attribute with, in turn, spaceFrame, timeFrame,
+  spectralFrame, and redshiftFrame attributes.
+* NULL is consistently represented as None, except when the values
+  would be sequences, in which case NULL is an empty tuple.
   
 
 Parsing STC-X
@@ -333,6 +339,54 @@ in ASTs that use features not supported by STC-S, you should get an
 STCNotImplementedError or an STCValueError.
 
 
+Generating Utypes
+'''''''''''''''''
+
+For embedding STC into VOTables, utypes are used.  To turn an AST object
+into utypes, use ``stc.getUtypes(ast) -> dict, dict``.  The function
+returns a pair of dictionaries:
+
+* the first dictionary, the "system dict", maps utypes to values.
+  All utypes belong to AstroCoordSystem and into this group.
+* the second dictionary, the "columns dict", maps values to utypes.
+
+Of course, the columns dict doesn't make much sense with ASTs
+actually containing values.  To sensibly use it it a way useful for
+VOTables, you can define your columns' STC using "quoted STC-S".  In
+this format, you have identifiers in double quotes instead of normal
+STC-S values.  Despite the double quotes, only python-compatible
+identifiers are allowed, i.e., these are *not* quoted identifiers in the
+SQL sense.  The ``stc.parseQSTCS(str) -> ast`` function parses such
+strings.
+
+Consider::
+
+  In [5]:from gavo import stc
+  In [6]:stc.getUtypes(stc.parseQSTCS(
+     ...:'Position ICRS "ra" "dec" Error "e_p" "e_p"'))
+  Out[6]:
+  ({'AstroCoordSystem.SpaceFrame.CoordFlavor': 'SPHERICAL',
+    'AstroCoordSystem.SpaceFrame.CoordRefFrame': 'ICRS',
+    'AstroCoordSystem.SpaceFrame.ReferencePosition': 'UNKNOWNRefPos'},
+   {'dec': 'AstroCoords.Position2D.Value2.C2',
+    'e_p': 'AstroCoords.Position2D.Error2Radius',
+    'ra': 'AstroCoords.Position2D.Value2.C1'})
+
+Note that there is no silly "namespace prefix" here.  Nobody really
+knows what those prefixes really mean with utypes.  When sticking these
+things into VOTables, you will currently need to stick an "stc:" in
+front of those.
+
+
+Parsing Utypes
+''''''''''''''
+
+When parsing a VOTable, you can gather the utypes encountered to
+dictionaries as returned by ``getUtypes``.  You can then pass these to
+``parseFromUtypes(sysDict, colDict) -> ast``.  The function does not
+expect any namespace prefixes on the utypes.
+
+
 Conforming
 ''''''''''
 
@@ -359,6 +413,35 @@ Conforming also works for units::
 
 
 
+Equivalence
+'''''''''''
+
+For some applications it is necessary to decide if two STC
+specifications are equivalent.  Python's built-in equivalence operator
+requires all values in two ASTs to be identical except of the values of
+id attributes.
+
+Frequently, you want to be more lenient: 
+
+* you might decide that unspecified values match anything
+* you may ignore certain keys entirely (e.g., the reference position
+  when you're doing extragalactic work or when a parallax error doesn't
+  matter)
+* you may want to view certain combinatinons as equivalent (e.g., ICRS
+  and J2000 are quite close)
+
+To support this, the STC library lets you define ``EquivalencePolicy``
+objects.  There is a default equivalence policy ignoring the reference
+position, defining ICRS and FK5 J2000 as equivalent, and matching Nones
+to anything.  This default policy is available as ``stc.defaultPolicy``.
+It has a single method, ``match(sys1, sys2) -> boolean`` with the
+obvious semantics.  Note, however, that you pass in systems, i.e.,
+``ast.cooSystem`` rather than ASTs themselves.
+
+You can define your own equivalence policies.  Tell us if you want that
+and we'll document it.  In the mean time, check ``stc/eq.py``.
+
+
 Hacking
 -------
 
@@ -378,7 +461,9 @@ source code:
   objects making up the ASTs
 * stcsast.py, stcxast.py -- tree transformers from STC-S and STC-X
   concrete syntax trees to ASTs.
-* scsgen.py, stcxgen.py -- serializers from ASTs to STC-S and STC-X
+* scsgen.py, stcxast.py -- serializers from ASTs to STC-S and STC-X
+* utypegen.py, utypeast.py -- code generating and parsing utype
+  dictionaries.  These are thin wrappers around the STC-X code.
 * stcs.py, stcsdefaults.py -- a grammar for STC-S and a definition of
   the defaults used during parsing and generation of STC-S.
 * units.py -- units defined by STC, and transformations between them
