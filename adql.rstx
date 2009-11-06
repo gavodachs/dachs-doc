@@ -58,7 +58,7 @@ function) is annotated with a FieldInfo object.  This would look like
 this::
 
   t = adql.parseToTree(query)
- 	adql.annotate(t, getFieldInfo)
+ 	ctx = adql.annotate(t, getFieldInfo)
 
 ``query`` is the ADQL input, ``getFieldInfo`` a function described below.
 
@@ -98,3 +98,39 @@ User Functions
 Custom Region Specifications
 ----------------------------
 
+The ADQL library always accepts STC-S for regions.  It will raise an
+error if the STC specifies no or more than one region.
+
+To enable more region specifications, define region makers.  	Region
+makers are functions taking the argument to REGION and trying to do
+something with it.  They should return either some kind of
+FieldInfoedNode that will then replace the REGION or None, in which case
+the next function will be tried.  Anything not derived from a
+FieldInfoedNode is not suitable as a return value in general since
+Regions might be annotated.
+
+As a convention, region specifiers here should always start with
+an identifier (like simbad, siapBbox, etc, basically [A-Za-z]+).
+The rest is up to the region maker, but whitespace should separate
+this rest from the identifier.
+
+Here's an example of a region looking up a Simbad identifier (using some
+DaCHS code for the actual Simbad interface):
+
+  def _getRegionId(regionSpec, pat=re.compile("[A-Za-z_]+")):
+    mat = pat.match(regionSpec)
+    if mat:
+      return mat.group()
+  
+  def _makeSimbadRegion(regionSpec):
+    if not _getRegionId(regionSpec)=="simbad":
+      return
+    object = "".join(regionSpec.split()[1:])
+    resolver = base.caches.getSesame("web")
+    try:
+      alpha, delta = resolver.getPositionFor(object)
+    except KeyError:
+      raise adql.RegionError("No simbad position for '%s'"%object)
+    return adql.getSymbols()["point"].parseString("POINT('ICRS',"
+      "%.10f, %.10f)"%(alpha, delta))
+  adql.registerRegionMaker(_makeSimbadRegion)

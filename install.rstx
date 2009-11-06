@@ -204,7 +204,7 @@ On Debian systems dedicated for GAVO DaCHS, you can try the following:
     database will listen do a different port, and you will have to
     adapt the default profiles::
 
-      pg_dropcluster --stop $PGVERSION main
+      sudo pg_dropcluster --stop $PGVERSION main
 
 (#) Create the new cluster used by DaCHS::
 
@@ -219,6 +219,11 @@ On Debian systems dedicated for GAVO DaCHS, you can try the following:
 (#) Start the server::
     
        sudo /etc/init.d/postgresql-$PGVERSION start
+
+(#) You probably want to make yourself a superuser account so you don't
+    need to become postgres all the time.  To do that, say::
+
+      sudo -u postgres createuser -P -adsr <your login name>
 
 On Debian, the configuration files for this cluster are at
 ``/etc/postgresql/$PGVERSION/pgdata/``.

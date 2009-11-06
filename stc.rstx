@@ -82,10 +82,12 @@ to see what operations it exposes.  Here are some examples::
     -e, --dump-exception  Dump exceptions.
 
   Commands include:
-  resprof <srcSTCS> -- make a resource profile for srcSTCS.
-  parseX <srcFile> -- read STC-X from srcFile and output it as STC-S, - for stdin
   conform <srcSTCS>. <dstSTCS>  -- prints srcSTCS in the system of dstSTCS.
   help -- outputs help to stdout.
+  parseUtypes --- reads the output of utypes and prints quoted STC for it.
+  parseX <srcFile> -- read STC-X from srcFile and output it as STC-S, - for stdin
+  resprof <srcSTCS> -- make a resource profile for srcSTCS.
+  utypes <QSTCS> -- prints the utypes for the quoted STC string <QSTCS>.
   $ gavostc resprof "Polygon ICRS 20 20 21 19 18 17" | xmlstarlet fo
   <?xml version="1.0"?>
   <STCResourceProfile 
@@ -127,7 +129,16 @@ to see what operations it exposes.  Here are some examples::
   Circle FK5 -10.0 340.0 3.0
   $ gavostc conform "Position GALACTIC 3 4 VelocityInterval Velocity 0.01 -0.002 unit deg/cy" "Position FK5"
   Position FK5 264.371974024 -24.2795040403 VelocityInterval Velocity 0.00768930497899 0.00737459624525 unit deg/cy
-
+  $ gavostc utypes 'Redshift TOPOCENTER VELOCITY "z" Error "e_z" PixSize "p_z"'
+  AstroCoordSystem.RedshiftFrame.value_type                    = VELOCITY
+  AstroCoordSystem.RedshiftFrame.DopplerDefinition             = OPTICAL
+  AstroCoordSystem.RedshiftFrame.ReferencePosition             = TOPOCENTER
+  AstroCoords.Redshift.Error                                   -> e_z
+  AstroCoords.Redshift.Value                                   -> z
+  AstroCoords.Redshift.PixSize                                 -> p_z
+  $ gavostc utypes 'Redshift TOPOCENTER VELOCITY "z" Error "e_z" PixSize "p_z"'\
+  | gavostc parseUtypes
+  Redshift TOPOCENTER VELOCITY "z" Error "e_z" PixSize "p_z"
 
 
 Programmatic
