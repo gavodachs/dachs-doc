@@ -87,13 +87,16 @@ collect those, and all userdata objects that went into a particular
 ``FieldInfo`` can be retrieved under its ``userdata`` attribute.  `stc`
 is a DaCHS STC AST.
 
-The ``tableName``s passed to getFieldInfo are strings from ADQL, i.e., you
+A ``tableName`` passed to getFieldInfo is a strings from ADQL, i.e., you
 must be prepared to resolve names like your database is resolving them
 (e.g., concerning default schemata and the like).
 
 
 User Functions
 --------------
+
+TBD.
+
 
 Custom Region Specifications
 ----------------------------
@@ -115,7 +118,7 @@ The rest is up to the region maker, but whitespace should separate
 this rest from the identifier.
 
 Here's an example of a region looking up a Simbad identifier (using some
-DaCHS code for the actual Simbad interface):
+DaCHS code for the actual Simbad interface)::
 
   def _getRegionId(regionSpec, pat=re.compile("[A-Za-z_]+")):
     mat = pat.match(regionSpec)

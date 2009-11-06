@@ -24,11 +24,13 @@ Documentation
   `data_checklist.rstx <./data_checklist.rstx>`_)
 * Guide to write booster grammars (`booster.html <./booster.html>`_,
   `booster.pdf <./booster.pdf>`_, `booster.rstx <./booster.rstx>`_)
-* Guide to preprocessing input files (`processors.html <./processors.html>`,
+* Guide to preprocessing input files (`processors.html <./processors.html>`_,
   `processors.pdf <./processors.pdf>`_, 
   `processors.rstx <./processors.rstx>`_)
 * STC library documentation (`stc.html <./stc.html>`_,
   `stc.pdf <./stc.pdf>`_, `stc.rstx <./stc.rstx>`_)
+* ADQL library documentation (`adql.html <./adql.html>`_,
+  `adql.pdf <./adql.pdf>`_, `adql.rstx <./adql.rstx>`_)
 
 .. Developments notes (`develNotes.html <./develNotes.html>`_,
    `develNotes.pdf <./develNotes.pdf>`_, 

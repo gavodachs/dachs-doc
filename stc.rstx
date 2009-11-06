@@ -25,9 +25,8 @@ More specifically, the library is intended to help in:
 
 * supporting ADQL region specifications and conforming them
 * generating registry coverage specifications from simple STC-S
-
-As the dust settles around embedding STC in VOTable, we will support
-this as well.
+* generating utypes for VOTable embedding of STC information and
+  parsing from them
 
 The implementation should conform to STC-S 1.33; what STC-X is supported
 conforms to STC-X 1.00 (but see Limitations_).
