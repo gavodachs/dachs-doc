@@ -27,8 +27,8 @@ and also as a guideline of what goes where, apply the following rules:
 * There is a hierarchy of subpackages, where subpackages lower in the
   hierarchy may not import anything from the higher or equal levels, but 
   only from lower levels.  This hierarchy currently looks like this:
-  imp < utils < (adql, stc) < base < rscdef < grammars < rsc < svcs <
-  protocols < web < rscdef < (helpers, user)
+  imp < utils < stc < adql < base < rscdef < grammars < rsc < svcs <
+  registry < protocols < web < rscdef < (helpers, user)
 
 
 Error handling, logging
