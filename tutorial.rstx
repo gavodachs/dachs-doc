@@ -609,10 +609,11 @@ The service now ties the core together with a renderer.  It might look
 like this::
 
   <service id="cone" core="conecore">
-    <meta name="shortname">lmcext_web</meta>
+    <meta name="shortName">lmcext_web</meta>
   </service>
 
-While services can run without shortnames, it can lead to trouble later, so you
+While services can run without ``shortName``s, it can lead to trouble later, 
+so you
 should make a habit of assigning short names.  See `the data checklist
 <./data_checklist.html>`_ for more information on short names.
 
