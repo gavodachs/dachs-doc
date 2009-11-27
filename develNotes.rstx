@@ -55,6 +55,30 @@ of the exception to construct something humans want to see.  All
 built-in exceptions should accept a hint keyword.
 
 
+Scripting
+=========
+
+Scripting here means embedded SQL or python code run at various stages
+of ingestion (or similar).  All this works through the classes and
+functions in rscdef.scripting.  The code is in dire need of an overhaul;
+in particular, the "typing" of scripts has to be done in the embedding
+objects.
+
+Structures that want to support scripting need to mix in
+rscdef.ScriptingMixin and define a class attribute validWaypoints
+listing all script types permissable on this Structure (i.e.,  values of
+the script attribute).  They would usually also want to mix in
+MacroPackage or StandardMacroMixin, but that's not stricly necessary.
+
+They get a runScripts(waypoint, kwargs) -> None method.  It is called
+with the script type to be run and with keyword arguments depending on
+what kind of script is run.  This is what's currently a pain, since
+the actual execution of the scripts is in scripting.ScriptHandler.  This
+aggregates lots of information that belongs to the structures embedding
+the scripts (e.g., the signatures).  Thus, this needs to be rewritten.
+For now, check in ScriptHandler to figure out the kwargs for runScripts.
+
+
 Testing
 =======
 
@@ -182,11 +206,6 @@ information contained in the configuration will be consulted.  If all
 fails, a default is returned (which is set via a keyword argument that
 again defaults to None) or, if the raiseOnFail keyword argument
 evaluates to true, a gavo.NoMetaKey exception is raised.
-
-As an example for propagation, querying metadata on a Table
-will ask DataSet (XXX shouldn't it ask the RecordDef?  Right now, that
-won't work because Tables don't get RecordDefs but fieldDefs XXX),
-DataDescriptor, RecordDef and finally config.
 
 If you require metadata exactly for the item you are querying, call
 getMeta(key, propagate=False).
@@ -544,11 +563,11 @@ recursive imports low, it is the providing modules' responsibility to
 register caching functions.  The idea is that, e.g., importparser wants
 a cache of resource descriptors.  It should then call
 
-resourcecache.makeCache("getRd", getRd)
+resourcecache.makeCache("getRD", getRD)
 
 Clients would then call
 
-resourcecache.getRd(id).
+resourcecache.getRD(id).
 
 This mechanism for now is restricted to items that come with a unique
 id (the argument).  It would be easy to extend this to multiple-argument
@@ -566,29 +585,6 @@ caches make via makeCache.  There probably should be similar mechanisms
 for other shared resources, since we want to be able to respond to
 "reload"-like requests.
 
-
-Coordinate Systems
-==================
-
-This is a very weak point right know.  All those transforms aren't
-rocket science, but still need to be worked out.
-
-Cartesian Coordinates
-+++++++++++++++++++++
-
-For many geometrical operations, we use cartesian coordinates (a.k.a.
-c_x, c_y, c_z).  These correspond to the point at which the radius
-vector to RA, Dec crosses the unit sphere.  These coordinates have many
-desirable properties (e.g., there are no "stich" lines for them).
-
-The cartesian coordinates are oriented such that the x axis is aligned
-with alpha=0, the y axis with alpha=90 degrees or 6 hours, and the z
-axis with delta=90 degrees.  Most of this is implemented in coords.py.
-
-If you're doing more with this that just compute it and hand it over to
-the DB engine, you may want to use the Vector3 class in coords.  I wrote
-it when I tried to do siap-style matches using cartesians.  Since that
-doesn't work, the class is, as it were, orphaned right now.
 
 
 SIAP
@@ -622,133 +618,3 @@ With this plan, the SIAP conditions become (in Postgres notation):
   roiSecondary AND roiSecondary && primaryBox)
 
 There's code in siap.py that computes these boxes.
-
-
-Databases
-=========
-
-The code started out using pypgsql, but after handling multimillon-row
-datasets, I largely gave up on it, instead going for psycopg2.  Most
-things still should work with both interfaces.  However, psycopg2
-by default uses python's native DateTime rather that egenix' mxDateTime.
-psycopg2 needs to be compiled with mxDateTime support, or bad things
-will happen.
-
-Currently, the main thing that doesn't work for pypgsql is SIAP.  I use
-boxes in there and only adapt them for psycopg2.  It probabaly wouldn't
-be hard to retrofit it to pypgsql, but I can't see much sense in doing
-this.
-
-
-Test Plan
-=========
-
-(mostly ARI-specific)
-
-Before any commit, run trunk/tests/runtests.sh (this will start a local
-postgres used just for testing).  It runs unit tests independent of any
-DB content.
-
-trunk/utils/roughtest.py requires the configured dc service to run and
-depends on ARI-local data.  Run it if you're developing at ARI, build
-your own if you're anywhere else.
-
-When you changed anything on the registry, run
-trunk/utils/registryrest.py.  It also contains ARI-specific stuff.
-
-Then mirror the stuff using ~/gavo/mirror.sh.  Restart the DC on
-alnilam, run roughtest.py on tucana.  If all is well, do the commit.
-
-Scrap
-=====
-
-To get a value from a rowdict and a recordDef, use the getValueIn method of
-datadef.DataField.  This way, you'll have consistent semantics of source and 
-value.  You may pass in an @-expanding function, but if you're sure there are
-not @s or you don't want them expanded, it doesn't hurt if you don't.
-
-
-Warts
-=====
-
-The whole system has lots and lots of warts, and the main thing I can
-say in the way of justification is that most of the time, I didn't
-really know where the whole thing was to be going.  At the few times I
-really knew what I was going for, I, admittedly, went for q'n'd
-"solutions" quite frequently.
-
-Grep for XXX in the sources to find (sometimes minor) warts.  Here, I'll
-collect some higher level warts:
-
-* Table names have a horribly defined semantics.  They are used as table
-  names in SQL, as ids and, in the context of web services, as function
-  designators ("output").  At least the last function is incompatible
-  with the others (because more than one "output" will be present within
-  a schema).  We should untangle this, probably introducing a "function"
-  attribute for RecordDef and allowing tables without names.
-* ...and RecordDef is a lousy name for what really is a table
-  definition.
-* The whole business of passing InternalDataSets around when processing
-  web queries and usually just using the first table in them is a pain.
-  I think DataSets should have a designated "interesting" table when
-  something insists on having a single table, and instances where things
-  insist on that should be dramatically reduced in the first place.
-
-
-Lessons learnt
-==============
-
-There's an old saying "Get your data structures right, and the rest of
-the program will write itself".  This couldn't be more true here, and
-unfortunately, I didn't get them right, mostly, because I started out
-doing something utterly useless.  
-
-Anyway, I think one should set out doing a "pure python" model of a
-VOTable, i.e., a set of classes modelling *easily accessible* and
-*easily constructable* (possibly along the lines of stan?) data tables
-containing all the information necessary to build a VOTable.  The
-VOTable data model isn't all that bad.  Also, when it comes to
-generating VOTables according to DAL protocols, having abstracted away
-LINK, INFO, and PARAM is a major pain.
-
-These VOTables should be able to exist standalone, but having
-descriptors containing standard metadata certainly is a good idea.  I'm
-still not sure how I'd do this.  Resource descriptors like I have them
-here are too fat, anyway.
-
-And, think of the metadata from the very start.  Having to glue them on
-later is a pain.  I guess that's less of a problem once there are
-self-contained Tables that don't (necessarily) refer to external
-objects.
-
-Also, in your data trees, make sure you always have a parent reference.
-
-The managed-attribute things (record.Record) probably were not a good
-idea.  I liked the idea because it *may* help when parsing from XML
-(that is what they still are used for almost exclusively), but I never
-actually used the stuff.  Having accessor methods generated
-automatically is nice, but if you absolutely want this, do it properly
-and use metaclasses.  Also, think about how you'll copy these records
-from the beginning.  And think about inheritence, the additionalFields
-hack sucks bad.
-
-It was a bad idea to stuff information on how a field should be parsed
-(source, literalForm, nullLiteral) into the same field definition
-describing the field itself.  At the very least, the fields used for
-parsing should be joined in a subelement of field.
-
-The separation between core and renderer is ok, though it's a bit
-misfigured.  The interface between the two could use some work.  But:
-*Both* cores and renderers should be able to define condDescs -- this
-would do away with that silent nonsense.  This might also be a way to
-get rid of those stupid output filters.  They were not a good idea.
-Maybe some kind of general transformer for whatever a core hands to a
-renderer might work at some point, but then one again needs to be
-careful not to make the prediction what output fields are generated
-impossible.
-
-.. [#booster]  DataSet._parseSources can take an
-   optional parseSwitcher that you can pass in when you construct a
-   DataSet directly.  The parseSwitcher, if defined, can override the parse
-   method of the grammar, which is used for parser boosting (e.g., when
-   filling the table through copy statements).
