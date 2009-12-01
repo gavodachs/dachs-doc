@@ -253,7 +253,7 @@ default profiles::
 
   sudo -u postgres createdb --encoding=UTF-8 gavo  # creates the database that'll hold your data
   # create the user that feeds the db...
-  sudo -u postgres createuser -P -ADSr gavoadmin
+  sudo -u postgres createuser -P -ADsr gavoadmin
   # and a user that usually has no write privileges
   sudo -u postgres createuser -P -ADSR gavo
   # and a user for "scratch tables" writable from the world

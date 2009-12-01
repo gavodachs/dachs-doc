@@ -2,6 +2,32 @@
 Common Problems with DaCHS
 ==========================
 
+
+ignoreOn in a rowmaker doesn't seem to work
+===========================================
+
+The most likely reason is that you are testing for the presence of a key
+that is within the table.  This will not work since rowmakers add
+key->None mapping for all keys missing but metioned in a map (also
+implicitely via ``idmaps``.
+
+If more than one rowmake operate on a source, things get really messy
+since rowmakers *change* the row dictionaries in place.  Maybe this
+should change at some point, but right now that's the way it is.  Thus,
+you can *never* reliably expect keys used by other tables to be present
+or absent since you cannot predict the order in which the various
+table's rowmakers will run.
+
+To fix this, you can check against that key's value being NULL, e.g.,
+like this::
+
+  <keyIs key="accessURL" value="__NULL__"/>
+
+You could also instruct the rowmaker to ignore that key; this would
+require you to enumerate all rows you want mapped.
+
+
+
 Server is Only Visible from the Local Host
 ==========================================
 
@@ -107,3 +133,5 @@ connection (and thus transaction) via::
 
 -- at least if you designate one of the data's tables as primary through
 its make elements.
+
+

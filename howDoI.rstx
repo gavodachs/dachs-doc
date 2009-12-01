@@ -6,6 +6,26 @@ This is a list of recipies for slightly advanced things you might want
 to do with the GAVO DC.
 
 
+...skip a row from a rowmaker?
+------------------------------
+
+Raise IgnoreThisRow in a procedure application, like this::
+
+  <rowmaker id="build_mytable" idmaps="*">
+    <apply>
+      <code>
+        if 2+colX>22:
+          raise IgnoreThisRow()
+      </code>
+    </apply>
+  </rowmaker>
+
+
+However, it's probably more desirable to use the rowmakers' built-in
+``ignoreOn`` feature, possibly in connection with procedure since it is
+more declarative.
+
+
 ...add computed columns to a dbCore output?
 -------------------------------------------
 
