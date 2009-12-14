@@ -103,13 +103,17 @@ function that follows::
   {
     static Field vals[QUERY_N_PARS];
 
-    parseWhatever(inputLine, F(fi_localid), start, end);
-    parseFloat(inputLine, F(fi_pmra), start, end);
-    parseFloat(inputLine, F(fi_pmde), start, end);
-    parseFloat(inputLine, F(fi_raerr), start, end);
+    parseWhatever(inputLine, F(fi_localid), start, len);
+    parseFloat(inputLine, F(fi_pmra), start, len);
+    parseFloat(inputLine, F(fi_pmde), start, len);
+    parseFloat(inputLine, F(fi_raerr), start, len);
 
-Here, it's your job to assign the proper values to the ``Field``s in
-``vals``.
+Here, it's your job to assign the proper values to the ``Field``
+elements of ``vals``.  The template adds parseXXX function calls that
+will to in the simplest cases, except you need to fill in ``start`` (the
+character index of the start of the value in C-convention, i.e.,
+the first character has index 0) and ``len``, the length of the field
+in characters.
 
 ``Field`` is defined as follows::
 
@@ -126,9 +130,7 @@ Here, it's your job to assign the proper values to the ``Field``s in
     } val;
   } Field;
 
-where ``type`` is one of
-
-::
+where ``type`` is one of::
 
   typedef enum valType_e {
     VAL_NULL,
