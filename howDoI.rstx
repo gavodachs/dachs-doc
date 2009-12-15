@@ -26,14 +26,28 @@ However, it's probably more desirable to use the rowmakers' built-in
 more declarative.
 
 
+...set a constant input to a core?
+----------------------------------
+
+Use a service input key with a Hidden widget factory and a default::
+
+  <service id="cutout" ...>
+    ...
+    <inputKey name="cutoutSize" widgetFactory="Hidden">
+      <values default="0.1"/>
+    </inputKey>
+  </service>
+
+
+
 ...add computed columns to a dbCore output?
 -------------------------------------------
 
 Easy: define an output field with a select attribute, e.g.::
 
-			<outputField name="a_U" tablehead="A_U" ucd="phys.absorption;em.opt.U"
-				description="Extinction in U, assuming R_V=3.1"
-				select="ev_i*5.434"/>
+      <outputField name="a_U" tablehead="A_U" ucd="phys.absorption;em.opt.U"
+        description="Extinction in U, assuming R_V=3.1"
+        select="ev_i*5.434"/>
 
 This will add an output field that looks to the service like it comes
 from the DB proper but contains the value of the ``ev_i`` column
@@ -53,15 +67,15 @@ named _ADDITEM.  This would look like this::
 
   <service ....>
     ....
- 		<inputKey name="_ADDITEM" tablehead="Extinctions for band"
-			description="Output extinctions for the respective band (if you want multiple bands, you can use 'additional output fields' below)"
-			type="text" required="True" mul>
-			<values multiOk="True" showItems="-1">
-				<option title="Landolt U">a_U</option>
-				<option title="Landolt V">a_V</option>
-				<option title="Landolt I">a_I</option>
-			</values>
-		</inputKey>
+     <inputKey name="_ADDITEM" tablehead="Extinctions for band"
+      description="Output extinctions for the respective band (if you want multiple bands, you can use 'additional output fields' below)"
+      type="text" required="True" mul>
+      <values multiOk="True" showItems="-1">
+        <option title="Landolt U">a_U</option>
+        <option title="Landolt V">a_V</option>
+        <option title="Landolt I">a_I</option>
+      </values>
+    </inputKey>
     ...
   </service>
 
@@ -178,19 +192,19 @@ with a generic record/replay mechanism we're thinking about.
 That said, the current way looks like this (for a query that does a
 proximity search on bboxes)::
 
-	<condDesc original="__system__/scs#humanSCS">
-		<phraseMaker original="__system__/scs#humanSCSPhrase">
-			<setup original="__system__/scs#scsSetup" id="proxQuery">
-				<code><![CDATA[
-					def genQuery(inPars, outPars):
-						return "POINT(%%(%s)s, %%(%s)s) <-> bbox < %%(%s)s"%(
-							vizierexprs.getSQLKey("RA", inPars["RA"], outPars),
-							vizierexprs.getSQLKey("DEC", inPars["DEC"], outPars),
-							vizierexprs.getSQLKey("SR", inPars["SR"], outPars))
-				]]></code>
-			</setup>
-		</phraseMaker>
-	</condDesc>
+  <condDesc original="__system__/scs#humanSCS">
+    <phraseMaker original="__system__/scs#humanSCSPhrase">
+      <setup original="__system__/scs#scsSetup" id="proxQuery">
+        <code><![CDATA[
+          def genQuery(inPars, outPars):
+            return "POINT(%%(%s)s, %%(%s)s) <-> bbox < %%(%s)s"%(
+              vizierexprs.getSQLKey("RA", inPars["RA"], outPars),
+              vizierexprs.getSQLKey("DEC", inPars["DEC"], outPars),
+              vizierexprs.getSQLKey("SR", inPars["SR"], outPars))
+        ]]></code>
+      </setup>
+    </phraseMaker>
+  </condDesc>
 
 -- so, you are inheriting from the SCS condition on three levels and then 
 override the genQuery function defined in the common setup code.  The
@@ -199,8 +213,8 @@ the actual query string.  See the tutorial on how condDesc code
 works in general.  The semi-good news is that if you want the same thing
 for an SCS query, you can reuse part of what you did above::
 
- 	<condDesc original="__system__/scs#scs">
-		<phraseMaker original="__system__/scs#scsPhrase">
-			<setup original="proxQuery"/>
-		</phraseMaker>
-	</condDesc>
+   <condDesc original="__system__/scs#scs">
+    <phraseMaker original="__system__/scs#scsPhrase">
+      <setup original="proxQuery"/>
+    </phraseMaker>
+  </condDesc>

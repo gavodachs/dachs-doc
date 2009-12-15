@@ -544,6 +544,82 @@ you could have said::
 from anywhere in the file system.
   
 
+Images
+------
+
+Images have relatively rich metadata.  Partly these are covered in a
+mixin called "products", but astronomical images have even
+more metadata, like position on the sky or bandpass.  To cope with them,
+there are two mixins: ``bboxSIAP`` and 
+`pgsSIAP <ref.html#the-pgssiap-mixin>`_.  Unless you for some
+reason cannot install pgsphere on your postgres installation, you should
+use ``pgsSIAP`` that stores the image geometry as a phSphere polygon,
+which is much more accurate and, since it can exploit indices, faster
+than ``bboxSIAP``.
+
+To define a table that carries images, simply mix in the appropriate
+mixin::
+
+	<table id="images" onDisk="True">
+    <mixin name="pgsSIAP"/>
+  </table>
+
+(of course, you can add more columns if you need them).
+
+Filling this table requires the use of a rowfilter and two procedure
+applications.  Let's look at a data element for this table:
+
+	<data id="import_images">
+		<sources recurse="True" pattern="data/images/*.cut.fits"/>
+		<fitsProdGrammar qnd="True">
+			<sourceFields procDef="insertFieldKey"/>
+				<map src="PI-COI">PI_COI</map>
+			</mapKeys>
+			<rowfilter predefined="defineProduct">
+				<bind key="table">"cars.images"</bind>
+			</rowfilter>
+		</fitsProdGrammar>
+
+		<rowmaker id="make_image" idmaps="*">
+			<apply predefined="computePGSSIAP"/>
+			<
+		</rowmaker>
+
+		<make table="images" rowmaker="make_images"/>
+	</data>
+
+
+So, step-by-step:
+
+* When ingesting images, you will almost always read from FITS images,
+  i.e., FITS primary headers.  A ``fitsProdGrammar`` delivers the
+  key-value-pairs from a header as a rawdict.
+* The ``qnd`` attribute of the grammar is recommended.  It makes
+  some (weak) assumptions to yield significant speedups with large
+  images.
+* The ``fitsProdGrammar`` will map keys with hyphens to names with
+  underscores, which is required to make them accessible in rowmakers.
+  The ``map``` example above therefore is superfluous since it orders
+  default behaviour.  You may need other (non-automatic) name mappings,
+  though, which would work analoguously.
+* The grammar further needs a rowfilter.  These are procedure
+  applications working on rawdicts.  The defineProduct rowfilter
+  lets  you add keys on owners and embargo in case you want password
+  protection for images, but most importantly it defines what table the
+  data is destined for.  This is crucial information, and if you ever
+  get it wrong, you need to manually connect to the database and issue
+  a command like ``DELETE FROM products WHERE sourcetable='<your wrong
+  table>'``.  So, always bind table.  Make sure to include the quotes,
+  this is supposed to be a valid python expression yielding a string.
+* You then need to define a rowmaker that must apply two procs.  For
+  one, you need `computePGSSIAP <ref.html#computepgssiap>`_
+  (if you mixed in ``pgsSIAP``).  No bindings are required here.
+* The second proc application required is 
+  `setSIAPMeta <ref.html#setsiapmeta>`_ .  Try to give all its keys
+  somewhat sensible values, you will make your users' lives much easier.
+
+
+
 Debugging
 ---------
 
