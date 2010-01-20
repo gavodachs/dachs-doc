@@ -106,7 +106,8 @@ put it somewhere into rootDir/web/nv_static, it's probably nicer to have
 it within a resource's input directory.  So, add a static renderer to
 your service, like this::
 
-  <service allowed="form,static" staticData="static"...
+  <service allowed="form,static">
+    <property name="staticData">static</property>
 
 This lets you put service-local static data into resdir/static/ and
 access it as <serviceURL>/static/<filename>
