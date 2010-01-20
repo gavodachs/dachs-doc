@@ -251,9 +251,10 @@ Another grammar frequently useful when reading from text tables is the
 `columnGrammar <./ref.html#element-columngrammar>`_.  It allows a rather
 dircect translation of VizieR-like "byte-by-byte"-descriptions.
 
-Column grammars define ``col`` elements, the ``key`` attributes of which
-give the ``name``s of the target columns (or auxillary identifiers that
-you work with in your rowmaker), like this::
+Column grammars define ``col`` elements. Each of these has a ``key``
+attribute that gives a name.  This could be the ``name`` of a target
+column in the simplest case, or it can be an auxillary identifier that
+you process in a rowmaker::
 
   <columnGrammar topIgnoredLines="1">
     <col key="raMin">1-9</col>
@@ -567,7 +568,7 @@ mixin::
 (of course, you can add more columns if you need them).
 
 Filling this table requires the use of a rowfilter and two procedure
-applications.  Let's look at a data element for this table:
+applications.  Let's look at a data element for this table::
 
 	<data id="import_images">
 		<sources recurse="True" pattern="data/images/*.cut.fits"/>
@@ -688,7 +689,7 @@ like this::
     <meta name="shortName">lmcext_web</meta>
   </service>
 
-While services can run without ``shortName``s, it can lead to trouble later, 
+While a service can run without a ``shortName``, it can lead to trouble later, 
 so you
 should make a habit of assigning short names.  See `the data checklist
 <./data_checklist.html>`_ for more information on short names.
