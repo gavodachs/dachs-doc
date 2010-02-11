@@ -22,7 +22,7 @@ Raise IgnoreThisRow in a procedure application, like this::
 
 
 However, it's probably more desirable to use the rowmakers' built-in
-``ignoreOn`` feature, possibly in connection with procedure since it is
+``ignoreOn`` feature, possibly in connection with a procedure, since it is
 more declarative.
 
 
@@ -56,7 +56,7 @@ multiplied with 5.434.
 The expression must be valid SQL.
 
 
-...do I make an input widget to select output columns?
+...make an input widget to select output columns?
 ------------------------------------------------------
 
 In general, selecting fancy output options currently requires custom
@@ -142,7 +142,7 @@ software.
 ...import data coming in to a service?
 --------------------------------------
 
-I a custom renderer or core, you can use code like::
+In a custom renderer or core, you can use code like::
 
   from gavo import api
 
