@@ -26,6 +26,24 @@ However, it's probably more desirable to use the rowmakers' built-in
 more declarative.
 
 
+...skip a single source?
+------------------------
+
+If you want to skip processing of a source, you can raise SkipThis from
+an appropriate place.  Usually, this will be a sourceFields element,
+like this::
+
+  <reGrammar>
+		<sourceFields>
+			<code>
+				if len(sourceToken)>22:
+          raise base.SkipThis("%s skipped since I didn't like the name"%
+            sourceToken)
+       </code>
+    </sourceFields>
+  </sourceFields>
+
+
 ...set a constant input to a core?
 ----------------------------------
 
