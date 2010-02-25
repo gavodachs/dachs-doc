@@ -380,6 +380,9 @@ the whole DC code in this mapping.  At some point we will define an API
 of "safe operations" that you can use without having to fear changes in
 the DC code.
 
+`Some functions useful for such mappings< ./ref.html#functions-available-for-row-makers>`_
+are listed in the reference manual.
+
 
 Data elements
 -------------
@@ -478,8 +481,7 @@ Indices and Mixins
 ------------------
 
 Now, let's assume the input table is large.  You will want to define
-indices on the table.  To do this, use the `index
-<./ref.html#element-index>`_ element.  It is a child of table.  In
+indices on the table.  To do this, use the `index <./ref.html#element-index>`_ element.  It is a child of table.  In
 general, index specifications can be rather involved, but simple cases
 remain simple.  If you just wanted to define an index on EVI, you could
 say::
