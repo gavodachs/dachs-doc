@@ -1068,5 +1068,36 @@ write the equivalent vizier-like expressions)::
 		</condDesc>
 
 
+Running the DC Server
+=====================
+
+You will probably want to run the DC server software from a start
+script.  The ``gavo`` interface already works a bit like a SYSV
+initscript -- you can say ``gavo start``, ``gavo stop``, ``gavo
+restart`` and ``gavo reload``; you may want to define an init script
+anyway (instead of just linking) in order to define metadata.
+
+TBD.
+
+Updates to metadata are not usually picked up by the running software.
+If you change an RD, you may have to say ``gavo imp -m <rd id>`` if
+the column metadata or permissions changed, or ``gavo publish <rd id>``
+if you changed the publication status.
+
+Even then, the home page will not show new local publications since
+those lists are currently cached.  To update them, you could run ``gavo
+reload``, but it's better to just reload the services data.  To do this,
+log in as gavoadmin and go to the service overview at 
+``/__system__/services/overview/form`` (the standard root has that in a
+small [s] link at the very bottom of the page).  Choose "Admin me" from
+the sidebar and then the reload RD button.
+
+Similarly, if you edit anything in an RD, you will have to reload it,
+preferably through "Admin me", before the changes will be reflected.
+Note that right now, if your RD is invalid, any services on it will stop
+working on a reload.
+
+
+
 
 .. _`Resource Metadata for the Virtual Observatory`: http://www.ivoa.net/Documents/latest/RM.html
