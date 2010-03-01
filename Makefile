@@ -25,7 +25,7 @@ LATEXOPTS=--documentoptions=11pt,a4paper --stylesheet stylesheet.tex
 
 .PHONY: ref.rstx
 ref.rstx:
-	gavogendoc > ref.rstx
+	gavo gendoc > ref.rstx
 
 
 install: $(HTML_FILES) $(ALL_PDF)

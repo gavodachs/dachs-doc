@@ -522,27 +522,27 @@ Starting the Ingestion
 
 At this point, you can run the ingestion::
 
-  gavoimp q
+  gavo imp q
 
-By default, gavoimp creates all data defined in a resource.  If this is
+By default, ``gavo imp`` creates all data defined in a resource.  If this is
 not what you want, you can explicitely specify a data id to process::
 
-  gavoimp q import
+  gavo imp q import
 
 For larger data sets, it may be wise to first try a couple of rows::
 
-  gavoimp --stop-after=300 q
+  gavo imp --stop-after=300 q
 
 
-Try ``gavoimp --help`` to see more options (most of which are probably
+Try ``gavo imp --help`` to see more options (most of which are probably
 irrelevant to you now.
 
-Note that gavoimp interprets the RD argument as a file first and then as
+Note that gavo imp interprets the RD argument as a file first and then as
 an RD id.  An RD id is the inputs-relative path of the RD with the
 extension stripped.  Our example RD thus has the RD id lmcextinct/q, and
 you could have said::
 
-  gavoimp lmcextinct/q
+  gavo imp lmcextinct/q
 
 from anywhere in the file system.
   
@@ -630,7 +630,7 @@ If nothing else helps you can watch what the software actually sends to
 the database.  To do that, set the GAVO_SQL_DEBUG environment variable
 to any value.  This could look like this::
 
-  env GAVO_SQL_DEBUG=1 gavoimp q create
+  env GAVO_SQL_DEBUG=1 gavo imp q create
 
 The first couple of requests are for internal use (like checking that some
 meta tables are present).
@@ -702,7 +702,7 @@ the id of a core.
 With this minimal specification, the service exposes a web form-based
 interface.  To try this, run a server::
 
-  gavoserve debug
+  gavo serve debug
 
 and point a browser to http://localhost:8080/lmcextinct/q/cone/form (the
 host part, of course, depends on your configuration.  If you did not
@@ -849,7 +849,7 @@ transaction updating the table.  So, something like::
 
 will wait for the transaction to finish.  But the transaction is waiting
 for data that will only come when the query finishes -- this is a
-deadlock, and gavoimp will just sit there and wait (see also `Deadlocks
+deadlock, and gavo imp will just sit there and wait (see also `Deadlocks
 <commonproblems.html#deadlocks>`_).
 
 To get around this, you need to query using the data's connection.  So,

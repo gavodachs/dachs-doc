@@ -46,7 +46,7 @@ Aonther type of booster reads from text files, but the fields are not
 defined by extent but by seperator characters.  For the booster
 environment, this doesn't make any difference, so you don't need to
 declare it.  The booster itself should be generated using the -s flag to
-``gavomkboost``.
+``gavo mkboost``.
 
 
 Writing a booster
@@ -55,13 +55,13 @@ Writing a booster
 To write a booster, first define the table.  You can already specify the
 ``DirectGrammar`` as noted above.  
 
-Then call ``gavomkboost`` with the id or the
+Then call ``gavo mkboost`` with the id or the
 path to the resource descriptor and the id of the table, e.g.
 
 ::
 
   cd res
-  gavomkboost ../q.rd main > boosterfunc.c
+  gavo mkboost ../q.rd main > boosterfunc.c
 
 This will write template code for a column-based source to
 ``booster.c``.  See above on what to do when your source has a different

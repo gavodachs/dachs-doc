@@ -288,7 +288,7 @@ database; you do this using the command line interface to postgres::
   GRANT ALL ON DATABASE gavo TO gavoadmin;
 
 For the individual tables, rights to gavo and untrusted are granted by
-gavoimp, so you do not need to specify any rights for them.
+``gavo imp``, so you do not need to specify any rights for them.
 
 
 Configuration
@@ -296,10 +296,10 @@ Configuration
 
 You can adapt the gavo environment through a configuraton file.  It is
 located by default in ``/etc/gavo.rc``.  You can change that location
-using the GAVOSETTINGS environment variable (or ``defaultSettingsPath`` in
+using the ``GAVOSETTINGS`` environment variable (or ``defaultSettingsPath`` in
 ``config.py``, though that will break on updates).  You can override
 global settings in your private settings file, ``~/.gavorc`` (you can
-override that location through GAVOCUSTOM).
+override that location through ``GAVOCUSTOM``).
 
 Gavorcs have a roughly INI-style format with sections in
 square brackets and keys beyond them.  To override a setting, you need
@@ -441,7 +441,7 @@ The Web Section
 Reference
 ---------
 
-You can get an up-to-date version of this by running ``gavoconfig``.
+You can get an up-to-date version of this by running ``gavo config``.
 
 
 Section [general]
@@ -663,7 +663,7 @@ helpful:
 
 ::
 
-  PLATFORM=$(shell gavoconfig platform)
+  PLATFORM=$(shell gavo config platform)
   TARGET=@@@binName@@@-$(PLATFORM)
   OBJECTS=@@@your object files@@@
 
@@ -693,10 +693,10 @@ DaCHS uses some internal tables that need to be prepared before you can
 start to ingest data.  You should now be able to run the following
 commands (in that order)::
 
-  gavoimp --system __system__/dc_tables
-  gavoimp --system __system__/services
-  gavoimp --system __system__/users
-  gavoimp --system __system__/products
+  gavo imp --system __system__/dc_tables
+  gavo imp --system __system__/services
+  gavo imp --system __system__/users
+  gavo imp --system __system__/products
 
 
 The Portal

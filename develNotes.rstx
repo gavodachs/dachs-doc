@@ -517,7 +517,7 @@ Values include "web" (something that provides a web form), "siap" (a
 siap compliant service).
 
 These dictionaries end up in gavo.web.servicelist.makeRecord when
-gavopublish runs and are turned into records for the tables described by
+``gavo publish`` runs and are turned into records for the tables described by
 ``__system__/services/services.vord``.
 
 

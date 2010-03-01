@@ -31,11 +31,11 @@ require you to enumerate all rows you want mapped.
 Server is Only Visible from the Local Host
 ==========================================
 
-When gavoserve starts and you can access pages from the machine the
-server runs on just fine, but no other machines can access the server,
-you run the server with the default web configuration.  It tells the
-server to only bind to the loopback interface (127.0.0.1, a.k.a.
-localhost).
+When the server is running (``gavo serve start``) and you can access
+pages from the machine the server runs on just fine, but no other
+machines can access the server, you run the server with the default web
+configuration.  It tells the server to only bind to the loopback
+interface (127.0.0.1, a.k.a. localhost).
 
 To fix this, say::
 
@@ -48,7 +48,7 @@ in your /etc/gavo.rc.
 Transaction Deadlocking
 =======================
 
-When gavoimp (or possibly requests to the server) just hangs without
+When gavo imp (or possibly requests to the server) just hangs without
 consuming CPU but not doing anything useful, it is quite likely that you
 managed to provoke a deadlock.  This happens when you have a database
 transaction going on a table while trying to access it from the outside.
@@ -104,7 +104,7 @@ escape the deadlock (which, under CPython, will block ^C as well), kill
 the process trying the query -- this will give you a traceback to the
 offending instruction.  Of course, you will need to become the
 postgres or root user to do that, so it may be easier to forego the
-traceback and just kill gavoimp.
+traceback and just kill gavo imp.
 
 To fix such a situation, there are various options.  You could commit
 the table's transaction::
