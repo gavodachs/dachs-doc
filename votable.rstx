@@ -25,14 +25,15 @@ work with, though.
 
 The central function for iterative parsing is parse::
 
-  parse(inFile, watchset=[V.TABLE]) -> iterator
+  parse(inFile, watchset=[]) -> iterator
 
 There also is ``parseString`` that takes a string literal instead of a file.
 ``inFile`` may be anything acceptable to the Elementtree library, so
 files and file names are ok.
 
-The watchlist gives the element types you expect back.  These have to be
-classes from ``votable.V``.
+The watchlist gives additional element types you want the iterator to
+return.  These have to be classes from ``votable.V``.  By default, only
+special votable.Rows objects are returned.  More on those below.
 
 You get back ``xmlstan.Element`` instances with some additional
 attributes:
@@ -43,3 +44,13 @@ attributes:
   ``idmap`` if the input document is valid.  For documents with clashing
   ids, the behaviour is undefined.
 
+
+
+Standards compliance
+--------------------
+
+From the standards document it is not clear if, on parsing, nullvalue
+comparison should happen on literals or on parsed values.  In this
+library, we went for literal comparison.  This means that, e.g., for
+unsignedBytes with a null value of 0x10, a decimal 16 will not be
+rendered as None.
