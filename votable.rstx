@@ -46,11 +46,20 @@ attributes:
 
 
 
-Standards compliance
---------------------
+Special behaviour
+-----------------
 
 From the standards document it is not clear if, on parsing, nullvalue
 comparison should happen on literals or on parsed values.  In this
 library, we went for literal comparison.  This means that, e.g., for
 unsignedBytes with a null value of 0x10, a decimal 16 will not be
 rendered as None.
+
+Values of VOTable type bits are always returned as integers, possibly 
+very long ones.
+
+Arraysize specifications are ignored when parsing VOTables in TABLEDATA
+encoding.  The resulting lists will have the length given by the input.
+
+Bit arrays in TABLEDATA encoding may have interspersed whitespace or
+not.
