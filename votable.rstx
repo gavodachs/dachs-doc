@@ -1,0 +1,45 @@
+========================
+The GAVO VOTable Library
+========================
+
+A library to process VOTables  using python
+========================================================================
+
+:Author: Markus Demleitner
+:Email: gavo@ari.uni-heidelberg.de
+
+
+.. contents:: 
+  :depth: 2
+  :backlinks: entry
+  :class: toc
+
+
+Iterative Parsing
+-----------------
+
+Iterative parsing is well suited for streaming applications and is
+attractive because the full document need never be completely in RAM at
+the same time.  For many applications, it is a little more clunky to
+work with, though.
+
+The central function for iterative parsing is parse::
+
+  parse(inFile, watchset=[V.TABLE]) -> iterator
+
+There also is ``parseString`` that takes a string literal instead of a file.
+``inFile`` may be anything acceptable to the Elementtree library, so
+files and file names are ok.
+
+The watchlist gives the element types you expect back.  These have to be
+classes from ``votable.V``.
+
+You get back ``xmlstan.Element`` instances with some additional
+attributes:
+
+* ``idmap`` is a dictionary-like object mapping ids to the elements that
+  have so far been seen.  This is the same object for all items
+  returned, so forward references will at least been resolved in this
+  ``idmap`` if the input document is valid.  For documents with clashing
+  ids, the behaviour is undefined.
+
