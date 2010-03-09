@@ -87,3 +87,10 @@ Nullvalue declarations for booleans are always ignored.  Nullvalue
 declarations for floats, doubles, and their complex counterparts
 are ignored for BINARY encoding (i.e., you can only use NaN as a
 nullvalue).
+
+When serializing bit fields in BINARY and there are too many bits for
+the number of *bytes* available, the most significant bits are cut off.
+If there are too few, zeroes are added on the left.
+
+Post-data INFOs are not currently accessible when doing iterative
+parsing.
