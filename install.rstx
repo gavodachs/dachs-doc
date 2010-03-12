@@ -97,16 +97,6 @@ follow the instructions in the q3c distribution.
 
 To automatically create the necessary indices, use the q3cpositions interface.
 
-psycopg2
-''''''''
-
-psycopg2 is the binding of choice for postgresql (pgsql might still
-work, but what support is left is definitely scheduled for removal).
-
-However, the default psycopg2 distribution does not support queries with
-timeouts.  You must install a patched package provided with the
-distribution.
-
 VOPlot
 ''''''
 
@@ -208,7 +198,8 @@ On Debian systems dedicated for GAVO DaCHS, you can try the following:
 
 (#) Create the new cluster used by DaCHS::
 
-      sudo pg_createcluster -d /pgdata --locale=en_US.UTF-8\
+      sudo pg_createcluster -d /<path-to-where-your-db-should-reside> \
+        --locale=en_US.UTF-8\
         --lc-collate=C --lc-ctype=C $PGVERSION pgdata
 
     The locale is not terribly important, but you should use one with
@@ -223,7 +214,7 @@ On Debian systems dedicated for GAVO DaCHS, you can try the following:
 (#) You probably want to make yourself a superuser account so you don't
     need to become postgres all the time.  To do that, say::
 
-      sudo -u postgres createuser -P -adsr <your login name>
+      sudo -u postgres createuser -P -adsr `id -un`
 
 On Debian, the configuration files for this cluster are at
 ``/etc/postgresql/$PGVERSION/pgdata/``.
@@ -249,14 +240,15 @@ You can adapt all those names, but would need to change the default
 configuration files then.
 
 The following procedure sets up users and databases as expected by the
-default profiles::
+default profiles (if you made yourself a superuser account as described
+above you do not need the ``sudo -u postgres`` in these commands)::
 
   sudo -u postgres createdb --encoding=UTF-8 gavo  # creates the database that'll hold your data
   # create the user that feeds the db...
   sudo -u postgres createuser -P -ADsr gavoadmin
   # and a user that usually has no write privileges
   sudo -u postgres createuser -P -ADSR gavo
-  # and a user for "scratch tables" writable from the world
+  # and a user for ADQL queries (i.e., untrusted queries from the net)
   sudo -u postgres createuser -P -ADSR untrusted
 
 Enter the passwords you assign here into the ``feed``, ``trustedquery``,

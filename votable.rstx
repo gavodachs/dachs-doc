@@ -94,3 +94,7 @@ If there are too few, zeroes are added on the left.
 
 Post-data INFOs are not currently accessible when doing iterative
 parsing.
+
+In BINARY serialization, fixed-length strings (both char and
+unicodeChar) are always padded right with blanks, whether or not a
+nullvalue is defined.
