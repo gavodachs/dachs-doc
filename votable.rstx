@@ -107,3 +107,23 @@ the entire array value.  This is done since probably no library will
 support individual NULL characters (whatever that is) within strings,
 and this *if* we encounter such a thing, this probably is the meaning.
 Don't write something like that, though.
+
+When deserializing variable multidimensional arrays from BINARY encoded
+streams, the length is assumed to be the total number of elements in
+the array rather than the number of rows.  This may change when
+I find some VOTable using this in the wild.
+
+Multidimensional arrays are returned as a single sequence on parsing,
+i.e. an arraysize of 5x7 is interpreted exactly like 35.  This is not
+going to change.  If you must, you can use the
+``unravel|Array(arraysize, seq)`` function to reshape the list and get a
+nested structure of lists, where arraysize has the form of the
+VOTable FIELD attribute. If seq does not match the dimensions described
+by arraysize, the behavior is undefined (right now, we return short
+rows, but we may later raise exceptions).
+
+On writing, you must flatten your multidimensional arrays before passing
+them to the library.  This may change if people actually use it.  The
+behavior then will be to accept as input whatever unravelArray returns.
+You can guess that the author considers multidimensional arrays a
+particularly gross misfeature within the misfeature VOTable arrays.
