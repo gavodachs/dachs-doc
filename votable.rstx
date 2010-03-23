@@ -15,6 +15,32 @@ A library to process VOTables  using python
   :class: toc
 
 
+Generating VOTables
+-------------------
+
+Low-Level method
+''''''''''''''''
+
+When creating a VOTable using the low-level interface, you write the
+VOTable using DOM elements.  This looks like this::
+
+  from gavo import votable
+  from gavo.votable import V
+
+  vot = V.VOTABLE[
+    V.INFO(name="generic", value="example)["This is an example"],
+    V.RESOURCE[
+      votable.DelayedTable(
+        V.TABLE[
+          V.FIELD(name="col1", datatype="char", arraysize="*"),],
+        rows, V.BINARY)]]
+
+The ``votable.DelayedTable`` class wraps a defined table and serializes
+data (``rows`` in the example) using the structure defined by the first
+argument into a serialization defined by its last argument.  Currently,
+you can use ``V.BINARY`` or ``V.TABLEDATA`` here.
+
+
 Iterative Parsing
 -----------------
 
@@ -127,3 +153,6 @@ them to the library.  This may change if people actually use it.  The
 behavior then will be to accept as input whatever unravelArray returns.
 You can guess that the author considers multidimensional arrays a
 particularly gross misfeature within the misfeature VOTable arrays.
+
+The ``ref`` attribute on TABLEs currently is not interpreted.  Due to the
+way the library works, this means that such tables cannot be parsed.
