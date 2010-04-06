@@ -18,8 +18,8 @@ A library to process VOTables  using python
 Generating VOTables
 -------------------
 
-Low-Level method
-''''''''''''''''
+Low-Level
+'''''''''
 
 When creating a VOTable using the low-level interface, you write the
 VOTable using DOM elements.  This looks like this::
@@ -39,6 +39,7 @@ The ``votable.DelayedTable`` class wraps a defined table and serializes
 data (``rows`` in the example) using the structure defined by the first
 argument into a serialization defined by its last argument.  Currently,
 you can use ``V.BINARY`` or ``V.TABLEDATA`` here.
+
 
 
 Iterative Parsing
@@ -156,3 +157,26 @@ particularly gross misfeature within the misfeature VOTable arrays.
 
 The ``ref`` attribute on TABLEs currently is not interpreted.  Due to the
 way the library works, this means that such tables cannot be parsed.
+
+
+The STC Data Model
+------------------
+
+To include STC information, you can just build the necessary GROUPs,
+PARAMs and FIELDrefs yourself.
+
+Alternatively, you can install GAVO's STC library and build ASTs in some
+way (most likely from STC-S) and use the modelgroups module to include
+the information.  This would look like this::
+
+  from votable import modelgroups, DelayedTable
+  [...]
+  ast = ast.parseQSTCS('Time TT "date" Position ICRS "ra" "de")
+  fields = [
+    V.FIELD(name="date", datatype="char", arraysize="*"),
+    V.FIELD(name="ra", datatype="float"),
+    V.FIELD(name="de", datatype="float"),
+  table = V.TABLE[
+        ],
+       rows, V.BINARY)]]
+
