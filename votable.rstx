@@ -175,8 +175,10 @@ the information.  This would look like this::
   fields = [
     V.FIELD(name="date", datatype="char", arraysize="*"),
     V.FIELD(name="ra", datatype="float"),
-    V.FIELD(name="de", datatype="float"),
-  table = V.TABLE[
-        ],
-       rows, V.BINARY)]]
+    V.FIELD(name="de", datatype="float"),]
+  table = V.TABLE[fields,
+    modelgroups.marshal(ast, getIDFor)]
+
+XXX TODO: Add id management.
+
 
