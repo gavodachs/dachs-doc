@@ -655,8 +655,10 @@ services.
 
 For core, you will usually use the `dbCore <./ref.html#element-dbcore>`_
 in custom services, though `many other cores
-<./ref.html#cores-available>`_ are predefined and you can `define your
-own <./ref.html#writing-custom-cores>`_.  
+<./ref.html#cores-available>`_ are predefined -- e.g., to run ADQL
+queries, to upload files, or to do feedback queries --, and you can `define your
+own <./ref.html#writing-custom-cores>`_ when you need special
+functionality.
 
 The dbCore generates a (single-table) query from condition descriptors
 and returns a table that you describe through an output table.  Cores
@@ -672,16 +674,29 @@ Cores always need an id.  dbCores need a queriedTable attribute, the
 value of which must be a table reference.  This is the table the query
 will run against.
 
-CondDescs can be defined in all kinds of ways.  The most common modes,
-however, are using predefined condDescs (which mostly come from
-protocols; in this case, humanScs comes from SCS and lets you do cone
-searches), and just deriving condDescs from table columns.  You can
-refer to columns from your table definition by name in the buildFrom
-attribute, and the software tries to make some useful input definition
-from that column.
+CondDescs define input fields (for the form renderer, these are actually
+form items people can fill in).  Most commonly, you will either define
+them using the ``predefined`` attribute or using ``buildFrom``.  The
+first case is typically used in connection with protocols and on tables
+having mixins; such condDescs result in zero or more input fields, and
+they typically inspect the queried table.  For example, the humanScs
+core in the example locates the "main" positions as identified by UCDs
+and generates queries against them using two input fields, one it tries
+to guess a position from, and another for the search radius.
 
-In web forms, these input definitions become form items; other renderers
-will expose them differently.  In all cases, however, the condDescs of
+When you define your condDesc using buildFrom, the result is almost
+always a single input field that allows posing restrictions against the
+column referred to in the buildFrom attribute, which in turn usually is
+the name of a column in the table queried (though you could use any
+field using id-based referencing).  The software tries to make some
+useful input definition from that column, which in particular means that
+the types are "up-valued".  String columns can be queried against using
+Vizier-like string expressions, real and double precision columns using
+Vizier-like float expressions, and so on.  You can suppress that
+behaviour using more verbose forms explained elsewhere.
+
+Renderers other than form will expose the input fields in some other way
+than form items.  In all cases, however, the condDescs of
 the dbCore define what fields can be queried.
 
 The service now ties the core together with a renderer.  It might look
