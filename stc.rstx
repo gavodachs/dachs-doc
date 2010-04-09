@@ -154,10 +154,11 @@ See API_ for details.
 Limitations
 -----------
 
-* External references (xlink:href and friends) and "STClib" are not supported
-  (this will be changed soon).
+* "Library" coordinate systems for ECLIPTIC coordinates are not
+  supported since it is unclear to me how the equinox of those is
+  expressed.
 * On system transformations, ellipses are not rotated, just moved.  No
-  "wiggles" (errors, etc) are touched at all (this will be fixed soon).
+  "wiggles" (errors, etc) are touched at all.
 * There currently is not real API for "bulk" transforms, i.e., computing
   a transformation once and then apply it to many coordinates.  The code
   is organized to make it easy to add such a thing, though.
