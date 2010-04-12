@@ -204,6 +204,13 @@ Extensions to STC-S
   either J<number> or B<number>.
 * For velocities, arbitrary combinations of spaceUnit/timeUnit are
   allowed.
+* To allow the notation of STC Library coordinate systems, you can give
+  a System keyword with an STC Library tag at the end of a phrase (e.g.,
+  ``System TT-ICRS-TOPO``).  This overwrites all previous system
+  information (e.g., ``Time ET Position FK4 System TT-ICRS-TOPO`` will
+  result in TT time scale and ICRS spatial frame).  We admit it's not nice, 
+  and are open to suggestions for better solutions.
+
 
 Other Deviations from the Standard
 ----------------------------------
