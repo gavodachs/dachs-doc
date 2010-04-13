@@ -154,6 +154,9 @@ See API_ for details.
 Limitations
 -----------
 
+* Internally, all dates and times are represented as datetimes, and
+  all information whether they were JDs or MJDs before is discarded.
+  Thus, you cannot generate STC with M?JDTime.
 * "Library" coordinate systems for ECLIPTIC coordinates are not
   supported since it is unclear to me how the equinox of those is
   expressed.

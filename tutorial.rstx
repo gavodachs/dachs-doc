@@ -380,7 +380,7 @@ the whole DC code in this mapping.  At some point we will define an API
 of "safe operations" that you can use without having to fear changes in
 the DC code.
 
-`Some functions useful for such mappings< ./ref.html#functions-available-for-row-makers>`_
+`Some functions useful for such mappings <./ref.html#functions-available-for-row-makers>`_
 are listed in the reference manual.
 
 
