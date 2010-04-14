@@ -157,6 +157,8 @@ Limitations
 * Internally, all dates and times are represented as datetimes, and
   all information whether they were JDs or MJDs before is discarded.
   Thus, you cannot generate STC with M?JDTime.
+* All stc:DataModel utypes are ignored.  On output and request, only
+  stc:DataModel.URI is generated, fixed to uri stc.STCNamespace.
 * "Library" coordinate systems for ECLIPTIC coordinates are not
   supported since it is unclear to me how the equinox of those is
   expressed.
