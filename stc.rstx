@@ -517,6 +517,108 @@ know at gavo@ari.uni-heidelberg.de.  We'll be delighted to help out with
 further hints.
 
 
+Extending STC-S
+'''''''''''''''
+
+Here's an example for an extension to STC-S:  Let's handle the planetary
+ephemeris element.
+
+Checking the schema, you'll see only two literals are allowed for the
+ephemeris: ``JPL-DE200`` and ``JPL-DE405``.  So, in
+``stcs._getSTCSGrammar``, near the definition of refpos, add::
+
+  plEphemeris = Keyword("JPL-DE200") | Keyword("JPL-DE405")
+
+The plan is to allow the optional specification of the ephemeris used
+after refpos.  Now grep for the occurrences of refpos and notice that
+there are quite a number of them.  So, rather than fixing all those
+rules, we change the refpos rule from::
+
+	refpos = (Regex(_reFromKeys(stcRefPositions)))("refpos")
+
+to::
+
+	refpos = ((Regex(_reFromKeys(stcRefPositions)))("refpos")
+    + Optional( plEphemeris("plEphemeris") ))
+
+We can test this.  In stcstest.STCSSpaceParsesTest, let's add the sample::
+
+	("position", "Position ICRS TOPOCENTER JPL-DE200"),
+
+Now, the refpos nodes are handled in the _makeRefpos function, looking
+like this::
+
+  def _makeRefpos(node):
+    refposName = node.get("refpos")
+    if refposName=="UNKNOWNRefPos":
+      refposName = None
+    return dm.RefPos(standardOrigin=refposName)
+
+The node passed in here is a pyparsing node.  Since in our data model,
+None is always null/ignored, we can just take the planetary ephemeris if
+it's present, and the system will do the right thing if it's not there::
+
+  def _makeRefpos(node):
+    refposName = node.get("refpos")
+    if refposName=="UNKNOWNRefPos":
+      refposName = None
+    return dm.RefPos(standardOrigin=refposName,
+      planetaryEphemeris=node.get("plEphemeris"))
+
+Let's test this; testing STC-S to AST parsing takes place in stctest.py,
+so let's add a method to ``CoordSysTest``:
+
+	def testPlanetaryEphemeris(self):
+		ast = stcsast.parseSTCS("Time TT TOPOCENTER JPL-DE200")
+		self.assertEqual(ast.astroSystem.timeFrame.refPos.planetaryEphemeris,
+			"JPL-DE200")
+
+Thus, we can parse the ephemeris spec from STC-S.  To generate it, two
+things need to be done: The DM item must be transformed into the CST the
+STC-S is built from, and the part of the CST must be flattened out.
+Both things happen in stcsgen.py.  The CST is just nested dictionaries.
+Refpos handline happens in refPosToCST, so replace::
+
+  def refPosToCST(node):
+    return {"refpos": node.standardOrigin}
+
+with::
+
+  def refPosToCST(node):
+    return {
+      "refpos": node.standardOrigin,
+      "planetaryEphemeris": node.planetaryEphemeris,}
+
+To flatten that out to the finished string, the flatteners need to
+be told that you want that key noticed.  Grepping for repos shows
+that it's used in several places.  So, let's define a "common
+flattener", which is a function taking a value and the CST node (i.e., a
+dictionary) the value was taken from and returns a string ready for
+inclusion into the STC-S.  The flattener here would look like this::
+
+  def _flattenRefPos(val, node):
+    return _joinWithNull([node["refpos"], node["planetaryEphemeris"]])
+
+The ``_joinWithNull`` call makes sure that empty specifications do not
+show up the in result.
+
+This "global" flattener is now entered into ``_commonFlatteners``, a
+dictionary mapping specific CST keys to flatten functions::
+
+  _commonFlatteners = {
+  ...
+	  "refpos": _flattenRefPos,
+  }
+
+The most convenient way to test this is to define a round-trip test.
+These again reside stcstest.  Use ``BaseGenerationTest`` and add a
+sample pair like this::
+
+	("Redshift BARYCENTER JPL-DE405 3.5",
+		"Redshift BARYCENTER JPL-DE405 3.5")
+
+With this, you should be done.
+
 
 .. _`Adding the GAVO repository`: http://vo.ari.uni-heidelberg.de/docs/DaCHS/install.html#adding-the-gavo-repository
 .. _`virtual python`: http://peak.telecommunity.com/DevCenter/EasyInstall#creating-a-virtual-python
