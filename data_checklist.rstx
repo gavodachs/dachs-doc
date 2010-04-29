@@ -77,16 +77,15 @@ The italicized text in the explanations is taken from [RMI]_.
 
 :Source:
   Optional. Some paper describing what you did to arrive at your data, if you
-  already have published one.  Preferable, we'd like to see a bibcode
-  here.  For online publications, use referenceURL.
+  already have published one.  Preferably, we'd like to see a bibcode
+  here.
 
 :Reference URL:
-  If you have substantial amounts of documentation on your data, you
-  should provide a URL to that document here.  You're welcome to host
-  these documents at our data center (where, we hope, it might be
-  longer-lived than on some private web page, for example).  If you
-  don't give us a reference URL, the DC software will insert the URL of
-  the query page, which is usually not what you want.
+  A URL to a documentation the service; this may include documentation
+  on the data itself, but this aspect is secondary.  Usually, you want
+  us to compute the reference URL, and it will point to the "Service
+  info" (see side bar).  If you want to give further information there,
+  just send it along and we will include it on that page.
 
 :Facility:
   Optional.  *The observatory or facility where the data was obtained.
