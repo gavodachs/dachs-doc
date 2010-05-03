@@ -61,7 +61,9 @@ The italicized text in the explanations is taken from [RMI]_.
   possible, the subjects should come from a controlled vocabulary.  We
   recommend you first check the `IVOA Vocabulary Explorer`_, but
   both `Astronomy Journal Keywords`_ and `Vizier Keywords`_ will do fine
-  if you already have those.
+  if you already have those.  In the GAVO DC the first term is *always*
+  capitalized, successive words should be lower case if at all
+  posssible.
 
 :Description:
   *Thorough text descriptions are particularly encouraged in order to
