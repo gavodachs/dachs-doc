@@ -618,3 +618,38 @@ With this plan, the SIAP conditions become (in Postgres notation):
   roiSecondary AND roiSecondary && primaryBox)
 
 There's code in siap.py that computes these boxes.
+
+
+Profiling
+=========
+
+If you want to profile server actions, try a script like this::
+
+  """
+  Make a profile of server responses.
+
+  Call as
+
+  trial --profile createProfile.py
+  """
+
+  import sys
+
+  from gavo import api
+  from gavo.web import dispatcher
+
+  sys.path.append("/home/msdemlei/gavo/trunk/tests")
+
+  import trialhelpers
+
+
+
+  class ProfileThis(trialhelpers.RenderTest):
+    renderer = dispatcher.ArchiveService()
+
+    def testOneService(self):
+      self.assertGETHasStrings("/ppmx/res/ppmx/scs/form",
+        {"hscs_pos": "12 2", "hscs_sr": "20.0"},
+        ["PPMX"])
+
+After running, you can use pstats on the file profile.data.
