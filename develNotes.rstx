@@ -653,3 +653,9 @@ If you want to profile server actions, try a script like this::
         ["PPMX"])
 
 After running, you can use pstats on the file profile.data.
+
+To profile actually running GAVO operations, use the --profile <profile
+file> option of the gavo program.  For the server, you must make sure
+in cleanly exists in order to have meaningful stats.  Do this by
+accessing /exit on a debug server.
+
