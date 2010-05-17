@@ -57,6 +57,15 @@ Use a service input key with a Hidden widget factory and a default::
   </service>
 
 
+...get a multi-line text input for an input key?
+------------------------------------------------
+
+Use a widgetFactory, like this::
+
+		<inputKey original="adqlInput.query"
+				widgetFactory="widgetFactory(ScalingTextArea, rows=15)"/>
+
+
 
 ...add computed columns to a dbCore output?
 -------------------------------------------
