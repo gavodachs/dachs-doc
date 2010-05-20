@@ -62,15 +62,53 @@ The watchlist gives additional element types you want the iterator to
 return.  These have to be classes from ``votable.V``.  By default, only
 special votable.Rows objects are returned.  More on those below.
 
-You get back ``xmlstan.Element`` instances with some additional
-attributes:
+You get back ``xmlstan.Element`` instances with an additional attribute
+``idmap`` is a dictionary-like object mapping ids to the elements that
+have so far been seen.  This is the same object for all items returned,
+so forward references will eventually be resolved in this ``idmap`` if
+the input document is valid.  For documents with clashing ids, the
+behaviour is undefined.
 
-* ``idmap`` is a dictionary-like object mapping ids to the elements that
-  have so far been seen.  This is the same object for all items
-  returned, so forward references will at least been resolved in this
-  ``idmap`` if the input document is valid.  For documents with clashing
-  ids, the behaviour is undefined.
 
+Rows objects
+------------
+
+Unless you order something else, parse will yield Rows objects, one
+per TABLE element.  Iterate over those to obtain the table rows,
+deserialized, with ``None`` as NULL.  The ``tableDefinition`` attribute
+contains the VOTable TABLE element that describes the current data.  
+
+To read the first table, do::
+
+  rows = votable.parse(open(inFileName)).next()
+  for row in rows:
+    print row
+  print rows.tableDefinition.getChildrenOfType("FIELD")
+
+The ``tableDefinition`` also lets you retrieve FIELDs by name using the
+``getFieldName(name) -> FIELD`` method.
+
+
+Post-data INFOs
+'''''''''''''''
+
+More recent VOTable specifications allow INFO elements after table data.
+By the time you see data
+
+So, to be sure ``tableDefinition`` is complete including post-data groups, 
+you need to let the iterator run once more after exhausting the data.
+Here's how to do this for the first table within a VOTable::
+
+  td = None
+  for rows in votable.parse(inFile):
+    if td is not None:
+      break
+    td = rows.tableDefinition
+    for row in rows:
+      doMagic(row)
+
+When you don't care about possible INFO elements anyway, use the simpler
+pattern above.
 
 
 Special behaviour
