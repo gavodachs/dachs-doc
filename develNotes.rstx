@@ -659,3 +659,36 @@ file> option of the gavo program.  For the server, you must make sure
 in cleanly exists in order to have meaningful stats.  Do this by
 accessing /exit on a debug server.
 
+
+Delimited SQL identifiers
+=========================
+
+Although it may look like it, we do not really support delimited
+identifiers (DIs) as column names (and not at all as table names).  I happen
+to regard them as an SQL misfeature and really only want to keep them
+out of my software.
+
+However, TAP forces me to deal with them at least superficially.  That
+means, using them elsewhere will lead to lots of mysterious error
+messages from inside the DC software bowels.  There still should not be
+any remote exploits possible when using them.
+
+Here's the deal on them:
+
+They are represented as utils.misctricks.QuotedName objects.  These
+QuotedNames have some methods to control the impact the partial support
+for delimited identifiers has on the rest of the software.  In
+particular, when you stringify them, they  result in string ready for
+inclusion into SQL (i.e., hopefully properly escaped).  The hash to the
+name, i.e., there are no implied quotes, and, unfortunately,
+hash(di)!=hash(str(di)).
+
+The DC software right now assumes DIs are ASCII only (what do the
+standards people say?).
+
+The one real painful thing is the representation of result rows with
+DIs -- I did not want to have lots of these ugly QuotedNames in the
+result rows, so they end up as SQL-escaped strings when used as keys.
+This is extra sad since in this way for a DI column foo,
+rec[QName("foo")] raises a KeyError.  To work around this, fields have
+a key attribute, and rec[f.key] should never bomb.
