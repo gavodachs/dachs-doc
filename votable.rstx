@@ -15,30 +15,36 @@ A library to process VOTables  using python
   :class: toc
 
 
-Generating VOTables
--------------------
 
-Low-Level
-'''''''''
+Simple Parsing
+--------------
 
-When creating a VOTable using the low-level interface, you write the
-VOTable using DOM elements.  This looks like this::
+To parse simple, moderately sized VOTable, use the
 
-  from gavo import votable
-  from gavo.votable import V
+::
 
-  vot = V.VOTABLE[
-    V.INFO(name="generic", value="example)["This is an example"],
-    V.RESOURCE[
-      votable.DelayedTable(
-        V.TABLE[
-          V.FIELD(name="col1", datatype="char", arraysize="*"),],
-        rows, V.BINARY)]]
+  votable.open(source) -> data, metadata
 
-The ``votable.DelayedTable`` class wraps a defined table and serializes
-data (``rows`` in the example) using the structure defined by the first
-argument into a serialization defined by its last argument.  Currently,
-you can use ``V.BINARY`` or ``V.TABLEDATA`` here.
+function.  Here, data is a list of records (as a list), metadata a
+TableMetadata instance.  Source can be a string that is then interpreted
+as a local file name, or it can be a file-like object.
+
+votable.open only looks at the first TABLE element encountered.  If the
+VOTable does not contain any tabular data at all (e.g., error messages
+from various VO protocols), ``(None, None)`` is returned.
+
+If you want to create a numpy record array from that data, you can
+say
+
+::
+
+  data, metadata = votable.open(source)
+  ra = rec.array(data, dtype=votable.makeDtype(metadata))
+
+However, you cannot in general store NULL values in record arrays (as
+None, that is), so this code will fail for many tables unless one
+introduces proper null values (e.g., nan for floats; for ints, you could
+ask metadata for the null value used by the VOTable.
 
 
 
@@ -83,10 +89,39 @@ To read the first table, do::
   rows = votable.parse(open(inFileName)).next()
   for row in rows:
     print row
-  print rows.tableDefinition.getChildrenOfType("FIELD")
+  print rows.tableDefinition.iterChildrenOfType(votable.V.FIELD)
 
 The ``tableDefinition`` also lets you retrieve FIELDs by name using the
-``getFieldName(name) -> FIELD`` method.
+``getFieldForName(name) -> FIELD`` method.
+
+
+
+Generating VOTables
+-------------------
+
+Low-Level
+'''''''''
+
+When creating a VOTable using the low-level interface, you write the
+VOTable using DOM elements.  This looks like this::
+
+  from gavo import votable
+  from gavo.votable import V
+
+  vot = V.VOTABLE[
+    V.INFO(name="generic", value="example)["This is an example"],
+    V.RESOURCE[
+      votable.DelayedTable(
+        V.TABLE[
+          V.FIELD(name="col1", datatype="char", arraysize="*"),],
+        rows, V.BINARY)]]
+
+The ``votable.DelayedTable`` class wraps a defined table and serializes
+data (``rows`` in the example) using the structure defined by the first
+argument into a serialization defined by its last argument.  Currently,
+you can use ``V.BINARY`` or ``V.TABLEDATA`` here.
+
+
 
 
 Post-data INFOs
