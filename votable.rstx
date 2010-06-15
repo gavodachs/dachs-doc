@@ -23,7 +23,7 @@ To parse simple, moderately sized VOTable, use the
 
 ::
 
-  votable.open(source) -> data, metadata
+  votable.load(source) -> data, metadata
 
 function.  Here, data is a list of records (as a list), metadata a
 TableMetadata instance.  Source can be a string that is then interpreted
@@ -38,13 +38,13 @@ say
 
 ::
 
-  data, metadata = votable.open(source)
+  data, metadata = votable.load(source)
   ra = rec.array(data, dtype=votable.makeDtype(metadata))
 
 However, you cannot in general store NULL values in record arrays (as
 None, that is), so this code will fail for many tables unless one
 introduces proper null values (e.g., nan for floats; for ints, you could
-ask metadata for the null value used by the VOTable.
+ask metadata for the null value used by the VOTable).
 
 
 
