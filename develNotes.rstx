@@ -23,7 +23,7 @@ and also as a guideline of what goes where, apply the following rules:
 * A subpackage may have a module common, containing objects that
   multiple modules within that subpackage requires.  common may *not*
   import any module from the subpackage, but may be imported from all
-  of them.
+  of them, so in turn it cannot import any module from the subpackage.
 * There is a hierarchy of subpackages, where subpackages lower in the
   hierarchy may not import anything from the higher or equal levels, but 
   only from lower levels.  This hierarchy currently looks like this:
@@ -34,9 +34,13 @@ and also as a guideline of what goes where, apply the following rules:
 Error handling, logging
 =======================
 
+
+Exception classes
++++++++++++++++++
+
 It is the goal that all errors that can be triggered from the web or
 from within resource descriptors yield sensible error messages with,
-as possible, information on the location of the error.  Also, major
+if possible, information on the location of the error.  Also, major
 operations changing the content of the database should be loggable with
 time and, probably, user information.
 
@@ -55,28 +59,60 @@ of the exception to construct something humans want to see.  All
 built-in exceptions should accept a hint keyword.
 
 
-Scripting
-=========
+The events subsystem
+++++++++++++++++++++
 
-Scripting here means embedded SQL or python code run at various stages
-of ingestion (or similar).  All this works through the classes and
-functions in rscdef.scripting.  The code is in dire need of an overhaul;
-in particular, the "typing" of scripts has to be done in the embedding
-objects.
+All proper DC code (i.e. above base) should do user interaction
+through base.ui.notify<something>.  
 
-Structures that want to support scripting need to mix in
-rscdef.ScriptingMixin and define a class attribute validWaypoints
-listing all script types permissable on this Structure (i.e.,  values of
-the script attribute).  They would usually also want to mix in
-MacroPackage or StandardMacroMixin, but that's not stricly necessary.
+The <something> can be various things.  base.events defines a class
+EventDispatcher (an instance of which then becomes base.ui) that defines
+the notify<something> methods.  The docstrings there explain what you're
+supposed to pass, and they explain what observers get.
 
-They get a runScripts(waypoint, kwargs) -> None method.  It is called
-with the script type to be run and with keyword arguments depending on
-what kind of script is run.  This is what's currently a pain, since
-the actual execution of the scripts is in scripting.ScriptHandler.  This
-aggregates lots of information that belongs to the structures embedding
-the scripts (e.g., the signatures).  Thus, this needs to be rewritten.
-For now, check in ScriptHandler to figure out the kwargs for runScripts.
+base.events itself does very little with the events, and in particular
+it does not do any user interaction -- the idea is that I may yet want
+to have Tkinter interfaces or whatever, and they should have a fair
+chance to control the user interaction of a program.
+
+The actual action on events is done by observers; these are ususally
+defined in ``user``, and some can be selected from the ``gavo`` command
+line.  For convenience, you should derive your Observer classes from
+base.ObserverBase.  This lets you stuff like::
+
+  from gavo.base import ObserverBase, listensTo
+
+  class PlainUI(ObserverBase):
+    @listensTo("NewSource")
+    def announceNewSource(self, srcString):
+      print "Starting %s"%srcString
+	
+However, you can also just handle single events by saying things like::
+
+  from gavo import base
+
+  def handleNewSource(srcToken):
+    pass
+  
+  base.ui.subscribeNewSource(handleNewSource)
+
+
+Catching exceptions
++++++++++++++++++++
+
+In the DC software, is is frequently desirable to ignore the first rule
+of exception handling, viz., leave them alone as much as possible.
+Instead, we often map exceptions to DC-internal exceptions (this is very
+relevant for everything leading up to ValidationErrors).  However, to
+keep the original exception information around, whenever you "translate"
+an exception, do ``base.ui.notifyExceptionMutation(newException)``.  
+This should arrange logging the exception to the error log (although of 
+course that's up to the observer selected).
+
+``ui.logOldExc(exc)`` arranges for the notification and returns its
+argument, so you can say thing like::
+
+  raise base.ui.logOldExc(GavoError(...))
 
 
 Testing
@@ -84,9 +120,7 @@ Testing
 
 Many of the tests will require database connectivity.  They should, in
 general, not need resources apart from the availability of a test db
-profile.  I have this set up on my private machine like this:
-
-::
+profile.  I have this set up on my private machine like this::
 
   [profiles]
   test:test
@@ -103,7 +137,6 @@ engine running on your machine with a database gavo in which your role
 is superuser (well, has sufficient rights...).
 
 There are doctest, pyunit-based tests, and trial-based tests yaddayadda,
-utils/roughtest.py
 
 
 Structures
@@ -270,9 +303,6 @@ There's currently no provision for having PARAMS to VOTABLE elements
 elements (this would require a special attribute of table.Table, I
 guess).
 
-XXX TODO: there's also INFO and LINK.  Have some convention as to
-what goes where.
-
 However, Tables are meta containers and can contain meta information.
 
 With VOTables, correct formatting of values becomes a particular
@@ -305,240 +335,6 @@ have run, nothing will look at the dbtype any more.
 To add new default mappers, add one in votable.py and call
 _registerDefaultMF on them.
 
-
-The New Web Structure
-=====================
-
-The new web structure is based on resource descriptors.  These define
-data, adapters and services.  A service is a combination of a renderer,
-a core, and optionally input and output adapters.
-
-A core is a machinery that takes a DataSet as input (mostly, only the
-docRec will be used, which typically contains the query parameters).  If
-at all sensible, cores should return DataSets, since that is what most
-renderers expect.
-
-The renderer provides the interface to the client.  This can be Form
-for something that outputs an HTML form and returns and HTML table.
-Other renderers include ones of DAL protocols (like SIAP), JPEG images
-or plain text.
-
-Adapters are basically datadef.DataTransformers, i.e., they generate
-tables using grammars.  For input adapters, these grammars will
-typically be context grammars, for output adapters, table grammars.
-
-The way a query ideally is processed is roughly like this:
-
-::
-
-  query interface (http, dal, ...) <-> service 
-                                        ^ ^ ^
-                                        | | \
-                                + -----/  V  `--------+
-                                V        core         V
-                        (input adapter)          (output adapter)
-
-
-Services
-++++++++
-
-Services primarily know the fields the user is expected to provide and
-that the renderer should return.  In addition, they carry most of the
-metadata necessary for publication (although much of it may really be
-in the resource descriptor by meta delegation).
-
-You probably will not subclass Service.
-
-A service provides the following methods:
-
-* getInputFields() -> seq of InputKeys -- what the user must/may give
-  as the service input.
-* getInputData(rawInput) -> DataSet -- receives the input to the
-  inputAdapter's Grammar (usually a dict) and returns the input data set
-* run(inputData, queryMeta) -> DataSet -- returns a
-  web.common.SvcResult instance containing (hopefully) everything to
-  build an answer to the query.
-* getCurOutputFields(queryMeta) -> seq of DataFields -- returns the colums
-  of the primary table of the result.  This is given so (a) cores 
-  capable of returning specific fields only (e.g., DbBasedCores) can
-  ask a service what data to query and (b) so the registry interface
-  or renderers wanting to know the structure of the data in advance
-  (SOAP!) can obtain this information.  This depends on queryMeta since
-  the verbLevel can change what fields are returned.
-
-The return values of getInputData and run may be twisted deferreds (for
-getInputData, this is necessary because getting the input data may
-involve database operations or web queries).
-
-
-Cores
-+++++
-
-A core is something that receives a DataSet and produces one.  In
-between, they may issue database queries, run a program, whatever.
-Cores must have the following method:
-
-* run(inputData, queryMeta) -> thing
-
-The thing returned is either 
-
-* a twisted.deferred firing a DataSet or 
-* a pair of (headers, file-like object) if whatever is to be delivered is
-  not really a table or
-* a string.  
-
-InputData is a DataSet (unfortunately, there
-currently is no way for a core to describe the structure it expects in
-that DataSet), queryMeta is a common.QueryMeta instance.
-
-Cores must have avInputKeys and avOutputKeys sets.  These contain
-strings naming input and output parameters the core supports.
-
-If at all possible, the should also give getInputFields and
-getOutputFields methods returning record.DataFieldLists.  Several
-renderers may depend on these.
-
-In the typical case of a database based core, you'll usually want to use
-the condition descriptor infrastructure (currently in standardcores,
-CondDesc and friends, but that's probably going to move).  A condition
-descriptor is an object that controls zero or more data fields, can
-describe them and can build SQL queries given values (usually coming
-from the docRec of a service's inputTable).
-
-CondDescs must support the following methods:
-
-* getInputFields() -> seq of DataField instances -- the embedding core
-  will return the union of all theses sequences from its getInputFields
-* getQueryFrags(inPars, sqlPars, queryMeta) -> frag -- receives the
-  input parameters and a QueryMeta instance and returns a fragment
-  suitable for where clauses in SQL statements.  It will add the
-  parameters within this statement to sqlPars (which is passed so the
-  implementations can check for free keys).
-
-
-Default Output Filter
-+++++++++++++++++++++
-
-With DbBasedCores, the typical case is that the DataSet returned gives
-exactly the fields the service ordered.  In that case, when constructing
-the SvcResult, the core's DataSet is taken as the SvcResult's original.
-
-If, however, the field keys are different, a transformation will
-be set up based on the service's outputFields.  If any outputField
-declared as non-optional is not found in a coreResult's row, a
-ValiationError will be raised.
-
-
-Validation
-++++++++++
-
-XXX Standard validation: make a values child for field,  yadda
-
-If some code implementing a service can't go on, it should raise some
-subclass of gavo.ValidationError with an explanation and the responsible
-field name if at all possible.  web.resourcebased.Form catches such
-errors during the parsing of the input (i.e., interpretation of the form
-data) and (hopefully) during the actual run of the service.  Any other
-errors right now lead to 500s.
-
-In the later stages of processing, fields will usually be present that
-are not present in the input form.  If errors corresponding to these
-fields are raised, formal won't be able to display the message at the
-appropriate field.  As a quick fix, Service provides a
-translateFieldName method that takes a field name and tries to map it to
-an originating field.  Right now, it uses a table coded in the resource
-descriptor (nameMap element) for that, but that's only a temporary hack.
-We should come up with something residing in the adapters.
-
-Macros and processors an, while processing, set an attribute errorField.
-This should contain the name of the argument they are processing.  If
-some error occurs, it will be caught in RowFunction.__call__, which in
-turn will change the error to a ValidatonError with the appropriate
-source field.
-
-
-Templates
-+++++++++
-
-We support providing custom XHTML templates for both the query form and
-the response table.  To do that say, something like ``<template
-type="form" src="res/foo.template"/>`` in your service definition.  For
-type, there currently are two legal values, ``form`` for the template
-used to format the form, and ``response`` for the resdir-relative file
-name of the template used to format the query response.
-
-In the code, this mechanism is implemented by making docFactory a
-property that checks if there is a customTemplate attribute on the
-instance.  If it is, its content is used as an absolute path to a nevow
-XML template (i.e., the instances need to do resolution of the relative
-paths in the resource descriptors themselves), if not, the
-defaultDocFactory attribute of the instance is used.  There is a mixin
-implementing this functionality in gavo.web.common.CustomTemplateMixin.
-
-
-Dispatching
-+++++++++++
-
-Requests come in through dispatcher.ArchiveService.  This parses the
-query URI in its locateChild method.  All resource based services have
-URIs like ``<path-to-rd>/<service>/<action>``.  ArchiveService decides
-on action what child to return, using the rederClasses dictionary.  This
-should map to rend.Page subclasses, the service pages.
-
-For now, ArchiveService will create a new class using whatever is in
-renderClasses.  I guess we might save time if we'd reuse those classes
-as appropriate, but let's not go that way as long as the thing is fast
-enough.
-
-On instanciatioon, the service page receives the current context and the
-segments pertaining to its rd an service in one go.  Use the
-web.common.parseServicePath function to get the rd and the service name from
-this.
-
-Access control
-++++++++++++++
-
-Services can be "protected" by setting their requiredGroup field.
-
-Service-based renderers should be constructed through
-resourcebased.getServiceRend and then get (currently, sigh,
-http-basic-based) protection automatically.  Everything else will have
-to use something in web.creds instead.
-
-Publication
-+++++++++++
-
-Publications are handled via the publications list field of
-service.Service plus a lot of meta data.  Its values are dictionaries
-with at least the keys ``render`` (the renderer used, i.e., the last
-item in the service path) and ``type``.  The value of type has to be an
-element of a locally controlled vocabulary defined in gavo.web.registry.
-Values include "web" (something that provides a web form), "siap" (a
-siap compliant service).
-
-These dictionaries end up in gavo.web.servicelist.makeRecord when
-``gavo publish`` runs and are turned into records for the tables described by
-``__system__/services/services.vord``.
-
-
-Interfaces
-==========
-
-One nice architectural feature would be to have interfaces actually
-implement functionality -- a positional interface could tell how to run
-cone searches on it, etc.  I haven't yet done this, because in effect
-we'd like to have another indirection here: various interfaces could
-implement SIAP-like queries, etc.  Also, we'd have to keep interfaces
-around at runtime.  While it's quite clear that interfaces would always
-be tied to table definitions (I should rename RecordDef at some
-point...), the actual location of the interfaces requires some
-thought.
-
-Meanwhile, all interfaces have the getNodes method, which is nifty for
-testing -- it (almost) returns a list of datadef.DataField instances for
-the fields defined in the interface.  See tests/testsiap.py for an
-example of testing against an interface if you're lazy and don't want an
-actual table implementing the interface.
 
 
 User management
@@ -586,38 +382,6 @@ for other shared resources, since we want to be able to respond to
 "reload"-like requests.
 
 
-
-SIAP
-====
-
-Our plan for coping with the nasty stitching and the degeneracy at the
-poles with polar coordinates and SIAP is as follows:
-
-Every table supporting siap queries has two fields, primaryBox and
-secondaryBox; in SQL both are of the type BOX, and I have a local class
-Box in coords that these may be converted from/to.  
-
-For "harmless" areas, only primaryBox is non-NULL and contains a
-bounding box for the area in RA and DEC.  A field that covers the stitch
-line at 360/0 has a secondaryBox; the primary box is left of the stich
-line (i.e., box.x1<360, box.x0=360), the secondary box is right of the
-stitch line (i.e., box.x1=0, box.x0>0).
-
-The ROI works analogously.
-
-With this plan, the SIAP conditions become (in Postgres notation):
-
-* COVERS: primaryBox ~ roiPrimary AND (secondaryBox IS NULL OR
-  secondaryBox ~ roiSecondary)
-* ENCLOSED: roiPrimary ~ primaryBox AND (roiSecondary IS NULL OR
-  roiSecondary ~ secondaryBox)
-* CENTER: roiCenter ~ primaryBox OR roiCenter ~ secondaryBox
-* OVERLAPS: primaryBox && roiPrimary OR (
-  secondaryBbox AND secondaryBox && roiSecondary) OR (
-  secondaryBbox AND secondaryBox && roiPrimary) OR (
-  roiSecondary AND roiSecondary && primaryBox)
-
-There's code in siap.py that computes these boxes.
 
 
 Profiling
