@@ -2,7 +2,7 @@
 The GAVO VOTable Library
 ========================
 
-A library to process VOTables  using python
+A library to process VOTables using python
 ========================================================================
 
 :Author: Markus Demleitner
@@ -14,6 +14,23 @@ A library to process VOTables  using python
   :backlinks: entry
   :class: toc
 
+
+Introduction
+------------
+
+This library lets you parse and generate VOTables.  These are data
+containers as used in the Virtual Observatory and specified in
+http://www.ivoa.net/Documents/VOTable/20091130/REC-VOTable-1.2.html
+
+This library supports Version 1.2 VOTables and to some extent earlier
+versions as well.
+
+An `alternative python library to handle VOTables
+<http://stsdas.stsci.edu/astrolib/vo/html/intro_table.html>`_
+is included in STSci's astrolib.
+
+The library has a simplied high-level interface for simple applications
+and a low-level streaming interface for advanced use.
 
 
 Simple Parsing
