@@ -36,7 +36,7 @@ and a low-level streaming interface for advanced use.
 Simple Parsing
 --------------
 
-To parse simple, moderately sized VOTable, use the
+To parse simple (one-table), moderately sized VOTable, use the
 
 ::
 
@@ -51,9 +51,7 @@ VOTable does not contain any tabular data at all (e.g., error messages
 from various VO protocols), ``(None, None)`` is returned.
 
 If you want to create a numpy record array from that data, you can
-say
-
-::
+say::
 
   data, metadata = votable.load(source)
   ra = rec.array(data, dtype=votable.makeDtype(metadata))

@@ -27,9 +27,14 @@ LATEXOPTS=--documentoptions=11pt,a4paper --stylesheet stylesheet.tex
 ref.rstx:
 	gavo gendoc > ref.rstx
 
+apidoc: gavo-epydoc.conf
+	rm -rf apidoc
+	epydoc -v --config gavo-epydoc.conf
 
+# since building the apidoc takes forever, it's not a dependency for install.
+# It is assumed people will build it now and then (touch gavo-epydoc.conf).
 install: $(HTML_FILES) $(ALL_PDF)
-	rsync -av *.css $(HTML_FILES) $(ALL_PDF) $(RST_SOURCES) $(HTMLTARGET)
+	rsync -av *.css $(HTML_FILES) $(ALL_PDF) $(RST_SOURCES) $(HTMLTARGET) apidoc
 
 clean:
 	rm -f $(ALL_HTML)
