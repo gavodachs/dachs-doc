@@ -36,15 +36,13 @@ and a low-level streaming interface for advanced use.
 Simple Parsing
 --------------
 
-To parse simple (one-table), moderately sized VOTable, use the
-
-::
+To parse simple (one-table), moderately sized VOTable, do::
 
   votable.load(source) -> data, metadata
 
-function.  Here, data is a list of records (as a list), metadata a
-TableMetadata instance.  Source can be a string that is then interpreted
-as a local file name, or it can be a file-like object.
+Here, ``data`` is a list of records, each of which is a sequence,
+``metadata`` is a ``TableMetadata`` instance, and ``source`` can be a
+string naming a local file, or it can be a file-like object.
 
 votable.open only looks at the first TABLE element encountered.  If the
 VOTable does not contain any tabular data at all (e.g., error messages
