@@ -537,6 +537,11 @@ For larger data sets, it may be wise to first try a couple of rows::
 Try ``gavo imp --help`` to see more options (most of which are probably
 irrelevant to you now.
 
+By the way, the ``gavo`` command has lots of subcommands.  The
+subcommand here has the full name ``import``; you could have said ``gavo
+import`` or even ``gavo im``, since any unique prefix into the command
+list is ok.  Try ``gavo --help`` to see the commands available.
+
 Note that gavo imp interprets the RD argument as a file first and then as
 an RD id.  An RD id is the inputs-relative path of the RD with the
 extension stripped.  Our example RD thus has the RD id lmcextinct/q, and
