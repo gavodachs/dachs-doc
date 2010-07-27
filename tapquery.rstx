@@ -1,0 +1,15 @@
+So, a simple query could look like this::
+
+  job = votable.ADQLTAPJob(accessURL, query)
+  job.run()
+  dataIterator, metadata = votable.load(job.openResult())
+  data = list(dataIterator)
+
+Metadata contains PARAMs, etc, but most importantly the field
+definitions; you get them by simply iterating over the metadata.  
+With continuing the example above, you could say::
+
+  labels = [field.name for field in metadata]
+  print [dict(zip(labels, row)) for row in data]
+  
+
