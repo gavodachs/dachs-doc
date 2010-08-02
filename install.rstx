@@ -14,16 +14,17 @@ Installation
 Debian systems
 --------------
 
-The preferred way to run python-gavo is on Debian stable or compatible
-systems.  
+The preferred way to run DaCHS is on Debian stable or compatible
+systems, so this is what this guide focuses on.  However, the
+package-based approach described here doesn't really work yet (though it
+may appear to work at first, so for now check `Generic installation
+instructions`_
 
 
 Adding the GAVO repository
 ''''''''''''''''''''''''''
 
-On such systems, add the lines
-
-::
+On such systems, add the lines::
 
   deb http://vo.ari.uni-heidelberg.de/debian lenny main
   deb-src http://vo.ari.uni-heidelberg.de/debian lenny main
@@ -58,114 +59,126 @@ After that, it's a matter of::
 This will pull in all the necessary dependencies.
 
 
-Non-Debian Systems/ez_install
------------------------------
+Generic installation instructions
+---------------------------------
 
-If apt is not an option for you, you can install python-gavo based on
-easy_install.  You first need a working python installation that can
-build python extensions.  If you installed python yourself and have a C
-compiler, that should already be the case, on some distributions you
-need packages like python-dev, python-devel or somesuch installed in
-addition to the binary python.  Once you have that, get the source
-tar.gz, unpack it somewhere, cd into resulting directory and then say
+Getting the source
+''''''''''''''''''
 
-::
+Though we may provide releases_ now and then, you probably should just
+check out whatever is in the subversion repository right now.  Say, at
+some place you can write to::
+
+  svn co http://svn.ari.uni-heidelberg.de/svn/gavo/python/trunk/ dachs
+
+After that, the current source code is in the ``dachs`` subdirectory.
+This is development code, so *please* do not hesitate to contact us if
+something weird is going on with it.  We mean it; even trivial reports
+help us to gauge where our software behaves contrary to expectations.
+Plus, we clearly don't have oodles of users, so chances are you won't
+get on our nerves.  Try gavo@ari.uni-heidelberg.de using mail, or ++49
+6221 541837 on the plain old telephone.  You can also use XMPP
+("jabber"), we'll give you an id on request.
+
+.. _releases: http://vo.ari.uni-heidelberg.de/soft/
+
+
+Installing from source
+''''''''''''''''''''''
+
+The DaCHS installer is based on setuptools; we do not use setuptools'
+dependency management, though, since in practice it seems more trouble
+than it's worth.  So, first install the python dependencies: twisted,
+nevow, pyfits, numpy, pyparsing, PIL, soappy, the Zolera soap
+infrastructre, and psycopg2.  Furthermore, you will
+need a python that can build (python) packages, and (usually) a C
+compiler.
+
+On Debian Lenny systems, the following should work::
+ 
+  sudo aptitude install python-dev build-essential \
+    python-nevow python-psycopg2 python-pyparsing python-pyfits\
+    python-numpy python-imaging python-soappy python-zsi
+
+should work (it's not important that the server-dev version matches the
+version of your sever at this point).
+
+Finally, in the ``dachs`` directory you checked out above, say::
 
   sudo python setup.py install
 
-(there are various options to get the stuff installed when you're not
-root; refer to the `setuptools
-documentation <http://peak.telecommunity.com/DevCenter/EasyInstall>`_ if
+(there are various options to get the stuff installed when you prefer 
+not to install as root; refer to the `setuptools documentation`_ if 
 necessary).
 
-Optional components
--------------------
+.. _nevow: http://divmod.org/trac/wiki/DivmodNevow
+.. _setuptools documentation: http://peak.telecommunity.com/DevCenter/EasyInstall
 
-Q3C
-'''
-
-If at some point you have large data sets (more than 20000 rows, say)
-and you want to do positional searches on them (cone search, crossmatch,
-siap and such), you will want the Q3C library by Sergey Koposov et al,
-http://www.sai.msu.su/~megera/oddmuse/index.cgi/SkyPixelization.  It's
-not particularly tricky to install, but you should skip it for now.
-
-To install it, get the source from the web site given above.  You need a
-couple of dependencies (on debian etch systems, that would at least be
-libpam-dev, libreadline-dev, and postgresql-server-dev-8.1).  Then
-follow the instructions in the q3c distribution.
-
-To automatically create the necessary indices, use the q3cpositions interface.
-
-VOPlot
-''''''
-
-The software can generate code to load VOTable into VOPlot, a Java
-applet for working with VOTables.  Due to the applet security model, the
-applet has to originate from the server that will deliver the data, and
-so you will need to install VOPlot locally if you want to use this
-feature.
-
-Do do this, `download VOPlot
-<http://vo.iucaa.ernet.in/~voi/voplot.htm>`_ and unpack the distribution
-at a convenient place.  In the resulting folder, you'll find a
-subdirectory binaries/VOPlot.  Copy that and (less importantly)
-docs/user_guide to some location your webserver can serve from, e.g.,
-
-::
-
-  mkdir /var/www/htdocs/VOPlot
-  cp -r binaries/VOPlot  /var/www/htdocs/VOPlot/bin
-  cp -r docs/user_guide/  /var/www/htdocs/VOPlot/doc
-
-
-Assuming that /var/www/htdocs corresponds to the root of your webserver,
-you can then tell the GAVO software where it can find VOPlot in your
-/etc/gavo.rc (see below)::
-
-  [web]
-  voPlotEnable: True
-  voplotCodeBase: /VOPlot/bin
-  voplotUserman: /VOPlot/doc
-
-
-wcstools
-''''''''
-
-To support cutout services, you need getfits from the wcstools package
-available at http://tdc-www.harvard.edu/software/wcstools/.   After
-building wcstools, the binary is in <build-dir>/bin/getfits.
-
-The system expects the binary getfits in inputsDir/cutout/bin/getfits,
-you can optionally add a platform suffix.
 
 
 Setup
 =====
 
-The tools want a "root directory" for GAVO, a directory in which the
-sources reside, ancillary data is kept, etc.  By default, this is
-``/var/gavo``.  If you want something else, set the environment variable
-``$GAVO_HOME`` or (probably better) adapt your /etc/gavorc.
+You should first create a user that the DaCHS server runs as later,
+and a group for running DC-related processes in::
 
+  sudo adduser --system gavo
+  sudo addgroup --system gavo
+  sudo adduser gavo gavo
 
-Logging
--------
+(or similar, depending on your environment). This user should not be
+able to log in, but it should have a home directory.  Everyone working
+on the data center must be in the group created (this is because the log
+directory will be writable by this group); in particular, you should add
+yourself::
 
-The tools will write a log (by default ``rootDir/logs/gavoops``).  It
-may be a good idea to keep that log on a local file system and not share
-it with other instances, not the least because we do not provide for any
-kind of locking on that file.  To do that, set the environment variable
-GAVO_LOGDIR to a directory you want the logs in.  That directory should,
-of course, only be writable by you.
+  sudo adduser `id -nu` gavo
 
-If you insist, it wouldn't be hard to make the tools log to syslog.
+You may want to create another account for "maintenance", or just use
+your normal account; if more than one person will feed the data center,
+you'll need more elaborate schemes;  do not use the gavo group as the
+"data center maintenance group".
 
-Database Setup
+Next, you need to decide on a "root" directory for DaCHS.  Below it,
+there are data descriptions, cache files, logs, etc. (these locations
+can be changed later, but for a simple setup we recommend keeping
+everything together).  By default, this is ``/var/gavo``.
+
+DaCHS is configured in an INI-style configuration file in
+``/etc/gavo.rc`` (overridable using the envirvonment variable
+``GAVOSETTINGS``).  In addition, users, in particular the gavo user, can
+have ~/.gavorc files, the contents of which override settings in
+/etc/gavo.rc.
+
+`Configuration Settings`_ gives a walkthrough through the most important
+settings; for now, if you want to change the DaCHS root dir, use
+something like::
+
+  [general]
+  rootDir: /data/gavo
+
+as /etc/gavo.rc.
+
+You can now let DaCHS create its file system hierarchy::
+
+  gavo init
+
+This may spit out a warning or two on the first run.  On repeated runs
+no output at all should appear.
+
+You can later run gavo init again. It will not clobber anything you did
+in the meantime (well, if it does, it's a bug and you should fiercely
+complain).  In particular, this is the most convenient way to create
+directories if you changed locations in ``gavo.rc``.
+
+Next, you need to prepare the database.
+
+Database setup
 --------------
 
-To make things work, you will also need to set up a database and create
-at least one profile file (see `The profiles Section`_).
+To make things work, you will also need to set up a database; the
+software requires at least two users, three if you let people to ADQL
+queries.
 
 Currently, we only support postgres.  You should have one user that may
 create tables and schemas, so you probably need a dedicated database.
@@ -175,9 +188,13 @@ Cluster Creation
 ''''''''''''''''
 
 You first need a database to play with, preferably in a suitable
-cluster.  This is very system-dependent, and ideally a database admin
-would assist you.  You may entirely skip this section on making a custom
-cluster if you the default cluster works for you.
+cluster; even if you want to use DaCHS to expose an existing database,
+we recommend you create a playground first to get a feeling for how
+things should look like.  You can then switch to your existing database,
+e.g., by having a .gavorc setting configDir.  
+
+Database cluster generator is very system-dependent, and ideally a
+database admin would assist you.  
 
 On Debian systems dedicated for GAVO DaCHS, you can try the following:
 
@@ -236,14 +253,15 @@ These are mapped to profiles which correspond to access information
 * untrustedquery -- the profile used for user-contributed SQL.  Only
   tables expressly opened up are accessible to it.
 
-You can adapt all those names, but would need to change the default
-configuration files then.
+You can adapt those names as necessary in the corresponding profiles.
+See `The profiles Section`.
 
 The following procedure sets up users and databases as expected by the
 default profiles (if you made yourself a superuser account as described
 above you do not need the ``sudo -u postgres`` in these commands)::
 
-  sudo -u postgres createdb --encoding=UTF-8 gavo  # creates the database that'll hold your data
+  # create the database that'll hold your data
+  sudo -u postgres createdb --encoding=UTF-8 gavo  
   # create the user that feeds the db...
   sudo -u postgres createuser -P -ADsr gavoadmin
   # and a user that usually has no write privileges
@@ -253,7 +271,7 @@ above you do not need the ``sudo -u postgres`` in these commands)::
 
 Enter the passwords you assign here into the ``feed``, ``trustedquery``,
 and ``untrustedquery`` profiles, respectively.  These profiles are found
-in ``/var/gavo/etc``.
+in ``$GAVO_ROOT/etc``.
 
 Note that running a database server always is a security
 liability.  You should make sure you understand what the pg_hba.conf (in
@@ -276,28 +294,46 @@ connection.
 Finally, you need to let the various roles you just created access the 
 database; you do this using the command line interface to postgres::
 
-  sudo -u postgres psql gavo
-  GRANT ALL ON DATABASE gavo TO gavoadmin;
+  sudo -u postgres psql gavo \
+    -c "GRANT ALL ON DATABASE gavo TO gavoadmin"
 
 For the individual tables, rights to gavo and untrusted are granted by
 ``gavo imp``, so you do not need to specify any rights for them.
 
 
-Configuration
-=============
+Importing the first resources
+=============================
 
-You can adapt the gavo environment through a configuraton file.  It is
-located by default in ``/etc/gavo.rc``.  You can change that location
-using the ``GAVOSETTINGS`` environment variable (or ``defaultSettingsPath`` in
-``config.py``, though that will break on updates).  You can override
-global settings in your private settings file, ``~/.gavorc`` (you can
-override that location through ``GAVOCUSTOM``).
+There are some built-in tables in DaCHS, related to metadata storage,
+certain protocols, and the like.  You must import them before the DC
+software can be used.  This also is a nice test that at least some
+things work.
 
-Gavorcs have a roughly INI-style format with sections in
-square brackets and keys beyond them.  To override a setting, you need
-to have the same key in the same section.
+So, in this sequence, run::
 
-We will first provide an informal walkthrough of the various
+  gavo imp --system __system__/dc_tables
+  gavo imp --system __system__/services
+  gavo imp --system __system__/users
+  gavo imp --system __system__/products
+
+Output of the type ``Columns affected: 0`` is ok for these commands.
+
+If you get error messages, add a ``--hints`` after the gavo command,
+like this::
+
+  gavo --hints imp --system __system__/dc_tables
+  
+This will (for the ``gavo`` command in general) give additional error
+info where available.
+
+You should now be able to run the examples in the tutorial.
+
+
+Configuration Settings
+======================
+
+These are for finetuning.  You should at least briefly skip over this
+section.  We will first provide an informal walkthrough of the various
 configuration sections and give a reference below.
 
 Walkthrough
@@ -308,7 +344,7 @@ The general Section
 
 This mainly sets paths.  The most important is ``rootDir``, a directory
 most other paths are relative to.  This is the one you'll most likely
-want to change.  If you, e.g., wanted to have a private gavo tree, you
+want to change.  If you, e.g., wanted to have a private DaCHS tree, you
 could put 
 
 ::
@@ -376,48 +412,20 @@ Keywords available for assignment are
 * user -- the user through which the db is accessed.  
 * password -- the password of user.
 
-Commands available are
+There's just one command available, viz.,
 
 * include -- read assignments and instructions from the profile given in
   the argument
 
-A typical setup could look like this
-(all files located in configDir, e.g., /var/gavo/etc):
-
-A file dsn:
-
-::
-
-  host = computer.doma.in
-  port = 5432
-  database = gavo
-
-A file feed, giving access to the admin account:
-
-::
-
-  include dsn
-  user=gavoadmin
-  password=mySecretPassword
-
-A file trustedquery, giving access one of the queryRoles:
-
-::
-
-  include dsn
-  user=gavo
-  password=anotherSecretPassword
-
-A file untrustedquery, giving access to one of the adqlRoles:
-
-::
-
-  include dsn
-  user=untrusted
-  password=giveItAway
+``gavo init`` creates four profile files, ``dsn``, ``feed``,
+``trustedquery``, and ``untrustedquery``.  These are referred to in the
+default profiles section, and are basically required by the python code.
+See `Database setup`_ for infos how to edit them.  You will not usually
+need more or different profiles or setup on top of what's discussed
+there.
 
 
-The Web Section
+The web Section
 '''''''''''''''
 
 * serverURL: the scheme and host under which the service is visible
@@ -675,43 +683,88 @@ sure a make on the respective machine builds a suitable binary.
 Specifying meta information fallbacks
 =====================================
 
-The file ``$DACHS/etc/defaultmeta.txt`` must exist.  TBD
+In the file ``$GAVO_ROOT/etc/defaultmeta.txt`` you should give some
+information filled in when the resources do not give this kind of
+metadata themselves.  Don't sweat it for now, but you must fix it before
+you run your own registry.
 
 
-Preparing the system tables
-===========================
+Customizing the appearance on the web
+=====================================
 
-DaCHS uses some internal tables that need to be prepared before you can
-start to ingest data.  You should now be able to run the following
-commands (in that order)::
+Uh.  I need to work on this.  Basically, you'd have to check out
+``resources/web`` in the source distribution.  You can take these files
+and copy them to ``$GAVO_ROOT/web/<path>`` to edit them there.  The
+machinery should then pick them up and use them instead of what
+comes with the distribution (it doesn't, yet, for all such files).
 
-  gavo imp --system __system__/dc_tables
-  gavo imp --system __system__/services
-  gavo imp --system __system__/users
-  gavo imp --system __system__/products
+This is clearly suboptimal.  Good ideas for "shallow" configurability
+are welcome.
 
 
-The Portal
-==========
+More dependencies
+=================
 
-The root URL of the data center should return a page that explains what
-the site is all about and list what's available.  The template
-for this page is
-located in root.html in templateDir (which defaults to
-GAVO_ROOT/web/templates and is defined in the web section of config).
-A list of services in alphabetic order can be obtained using something
-like
+The following software components are not really hard dependencies, but
+they are in some ways used by very common functions of DaCHS, and this
+you *should* install them unless you know what you are doing.
+
+Q3C
+'''
+
+If at some point you have large data sets (more than 20000 rows, say)
+and you want to do positional searches on them (cone search, crossmatch,
+siap and such), you will want the Q3C library by Sergey Koposov et al,
+http://www.sai.msu.su/~megera/oddmuse/index.cgi/SkyPixelization.  It's
+not particularly tricky to install, but you should skip it for now.
+
+To install it, get the source from the web site given above.  You need a
+couple of dependencies (on debian etch systems, that would at least be
+libpam-dev, libreadline-dev, and postgresql-server-dev-8.1).  Then
+follow the instructions in the q3c distribution.
+
+To automatically create the necessary indices, use the q3cpositions interface.
+
+VOPlot
+''''''
+
+The software can generate code to load VOTable into VOPlot, a Java
+applet for working with VOTables.  Due to the applet security model, the
+applet has to originate from the server that will deliver the data, and
+so you will need to install VOPlot locally if you want to use this
+feature.
+
+Do do this, `download VOPlot
+<http://vo.iucaa.ernet.in/~voi/voplot.htm>`_ and unpack the distribution
+at a convenient place.  In the resulting folder, you'll find a
+subdirectory binaries/VOPlot.  Copy that and (less importantly)
+docs/user_guide to some location your webserver can serve from, e.g.,
 
 ::
 
-    <div id="servicelist" n:data="chunkedServiceList" n:render="sequence">
-      <n:invisible n:pattern="item" n:render="mapping">
-        <h3><n:slot name="char"/>...</h3>
-        <ul n:data="chunk" n:render="sequence">
-          <li n:pattern="item" n:render="mapping">
-            <a n:render="serviceURL"/>
-            <span n:render="ifprotected">[P]</span>
-          </li>
-        </ul>
-      </n:invisible>
-    </div>
+  mkdir /var/www/htdocs/VOPlot
+  cp -r binaries/VOPlot  /var/www/htdocs/VOPlot/bin
+  cp -r docs/user_guide/  /var/www/htdocs/VOPlot/doc
+
+
+Assuming that /var/www/htdocs corresponds to the root of your webserver,
+you can then tell the GAVO software where it can find VOPlot in your
+/etc/gavo.rc (see below)::
+
+  [web]
+  voPlotEnable: True
+  voplotCodeBase: /VOPlot/bin
+  voplotUserman: /VOPlot/doc
+
+
+wcstools
+''''''''
+
+To support cutout services, you need getfits from the wcstools package
+available at http://tdc-www.harvard.edu/software/wcstools/.   After
+building wcstools, the binary is in <build-dir>/bin/getfits.
+
+The system expects the binary getfits in inputsDir/cutout/bin/getfits,
+you can optionally add a platform suffix.
+
+

@@ -11,6 +11,9 @@ publishing registry, and support for many VO protocols and standards.
 Documentation
 =============
 
+All of this is very much work in progress.  Users asking for elaboration
+are certainly good indicators of where need is greatest.
+
 * Installation and configuration (`install.html <./install.html>`_, 
   `install.pdf <./install.pdf>`_, `install.rstx <./install.rstx>`_)
 * Tutorial (`tutorial.html <./tutorial.html>`_, 
@@ -27,10 +30,18 @@ Documentation
 * Guide to preprocessing input files (`processors.html <./processors.html>`_,
   `processors.pdf <./processors.pdf>`_, 
   `processors.rstx <./processors.rstx>`_)
+* Hints on common problems (`commonproblems.html <./commonproblems.html>`_,
+  `commonproblems.pdf <./commonproblems.pdf>`_, 
+  `commonproblems.rstx <./commonproblems.rstx>`_)
 * STC library documentation (`stc.html <./stc.html>`_,
   `stc.pdf <./stc.pdf>`_, `stc.rstx <./stc.rstx>`_)
 * ADQL library documentation (`adql.html <./adql.html>`_,
   `adql.pdf <./adql.pdf>`_, `adql.rstx <./adql.rstx>`_)
+* VOTable library documentation (`votable.html <./votable.html>`_,
+  `votable.pdf <./votable.pdf>`_, `votable.rstx <./votable.rstx>`_)
+* tapquery documentation (a supplement to the VOTable library
+  documentation; `tapquery.html <./tapquery.html>`_,
+  `tapquery.pdf <./tapquery.pdf>`_, `tapquery.rstx <./tapquery.rstx>`_)
 
 .. Developments notes (`develNotes.html <./develNotes.html>`_,
    `develNotes.pdf <./develNotes.pdf>`_, 

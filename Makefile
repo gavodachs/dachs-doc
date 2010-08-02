@@ -1,6 +1,7 @@
 HTMLTARGET=vo:/var/www/docs/DaCHS
 RST_SOURCES=data_checklist.rstx howDoI.rstx ref.rstx tutorial.rstx\
-	booster.rstx install.rstx stc.rstx processors.rstx adql.rstx
+	booster.rstx install.rstx stc.rstx processors.rstx adql.rstx\
+	votable.rstx commonproblems.rstx
 ALL_HTML=index.html $(subst .rstx,.html,$(RST_SOURCES))
 HTML_FILES=$(ALL_HTML)
 ALL_PDF=$(subst .rstx,.pdf,$(RST_SOURCES))
@@ -34,7 +35,7 @@ apidoc: gavo-epydoc.conf
 # since building the apidoc takes forever, it's not a dependency for install.
 # It is assumed people will build it now and then (touch gavo-epydoc.conf).
 install: $(HTML_FILES) $(ALL_PDF)
-	rsync -av *.css $(HTML_FILES) $(ALL_PDF) $(RST_SOURCES) $(HTMLTARGET) apidoc
+	rsync -av *.css $(HTML_FILES) $(ALL_PDF) $(RST_SOURCES) apidoc $(HTMLTARGET) 
 
 clean:
 	rm -f $(ALL_HTML)
