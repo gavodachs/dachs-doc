@@ -1,7 +1,7 @@
 HTMLTARGET=vo:/var/www/docs/DaCHS
 RST_SOURCES=data_checklist.rstx howDoI.rstx ref.rstx tutorial.rstx\
 	booster.rstx install.rstx stc.rstx processors.rstx adql.rstx\
-	votable.rstx commonproblems.rstx
+	votable.rstx commonproblems.rstx tapquery.rstx
 ALL_HTML=index.html $(subst .rstx,.html,$(RST_SOURCES))
 HTML_FILES=$(ALL_HTML)
 ALL_PDF=$(subst .rstx,.pdf,$(RST_SOURCES))

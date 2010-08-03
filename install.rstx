@@ -710,7 +710,7 @@ they are in some ways used by very common functions of DaCHS, and this
 you *should* install them unless you know what you are doing.
 
 Q3C
-'''
+---
 
 If at some point you have large data sets (more than 20000 rows, say)
 and you want to do positional searches on them (cone search, crossmatch,
@@ -726,7 +726,7 @@ follow the instructions in the q3c distribution.
 To automatically create the necessary indices, use the q3cpositions interface.
 
 VOPlot
-''''''
+------
 
 The software can generate code to load VOTable into VOPlot, a Java
 applet for working with VOTables.  Due to the applet security model, the
@@ -758,7 +758,7 @@ you can then tell the GAVO software where it can find VOPlot in your
 
 
 wcstools
-''''''''
+--------
 
 To support cutout services, you need getfits from the wcstools package
 available at http://tdc-www.harvard.edu/software/wcstools/.   After

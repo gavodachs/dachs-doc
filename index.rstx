@@ -39,9 +39,11 @@ are certainly good indicators of where need is greatest.
   `adql.pdf <./adql.pdf>`_, `adql.rstx <./adql.rstx>`_)
 * VOTable library documentation (`votable.html <./votable.html>`_,
   `votable.pdf <./votable.pdf>`_, `votable.rstx <./votable.rstx>`_)
-* tapquery documentation (a supplement to the VOTable library
-  documentation; `tapquery.html <./tapquery.html>`_,
-  `tapquery.pdf <./tapquery.pdf>`_, `tapquery.rstx <./tapquery.rstx>`_)
+* Epydoc-generated `API documentation <./apidoc>`_.  Note, however,
+  that none of this is, as yet, guaranteed stable API.  Very little
+  will be.  The main purpose of this is to help understanding the code
+  as it is; but of course we'll gladly listen to your "I need this
+  function in a stable API" statements.
 
 .. Developments notes (`develNotes.html <./develNotes.html>`_,
    `develNotes.pdf <./develNotes.pdf>`_, 
