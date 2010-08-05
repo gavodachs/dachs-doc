@@ -1,15 +1,142 @@
-So, a simple query could look like this::
+=========
+TAP query
+=========
 
+A library to query TAP servers
+========================================================================
+
+:Author: Markus Demleitner
+:Email: gavo@ari.uni-heidelberg.de
+
+
+.. contents:: 
+  :depth: 2
+  :backlinks: entry
+  :class: toc
+
+
+TAP is a relatively complex protocol to execute potentially long-running
+(ADQL) queries on remote servers.  As a part of the GAVO VOTable
+library, we provide a shallow client that speaks TAP.  It is the
+intention of this document to keep the `TAP spec`_ from your reading
+list.  If it doesn't do that, complain, and we'll try to fix it.
+
+
+Obtaining the library
+---------------------
+
+See the `GAVO VOTable Library documentation`_
+
+
+
+For the impatient
+-----------------
+
+All you need to query a server is its access URL.  What we need here is
+the root of the hierarchy, i.e., without any ``sync`` or ``async``.
+
+Then, you can say something like::
+
+  from gavo import votable
+  accessURL = "http://vo.uni-hd.de/tap"
+  query = "SELECT TOP 3 * FROM TAP_SCHEMA.tables"
   job = votable.ADQLTAPJob(accessURL, query)
   job.run()
   dataIterator, metadata = votable.load(job.openResult())
   data = list(dataIterator)
 
-Metadata contains PARAMs, etc, but most importantly the field
-definitions; you get them by simply iterating over the metadata.  
-With continuing the example above, you could say::
+More on dataIterator and metadata can be found in the `GAVO VOTable
+library documentation`_.
 
-  labels = [field.name for field in metadata]
-  print [dict(zip(labels, row)) for row in data]
-  
 
+
+The ADQLTAPJob
+--------------
+
+The class you will usually deal with is ADQLTAPJob_, which is
+constructed with the endpoint URL and the query.  The construction will
+access the, which means it may very well raise network-related
+exceptions.
+
+You can pass a ``userParams`` dictionary to the constructor.  This is
+intended for tho TAP parameters (in particular, ``FORMAT``, ``MAXREC``,
+``RUNID`` or service-defined ones).  You should not use ``userParams``
+for ``UPLOAD`` but instead use the ``addUpload`` method described below.
+
+You can also change the parameters later using 
+``setParameter(key, value)``.  This again causes a server connection
+to be made, as are accesses to ADQLTAPJob's properties, viz.,
+
+* ``executionduration`` -- the number of seconds after which the server
+  will kill your job.  Simply assign some integer to change it, though
+  of course the server might not let you.
+* ``destruction`` -- a ``datetime.datetime`` (in UTC) at which the job
+  will be completely removed (i.e., even the results) from the remote
+  server.  Again, you can assign ``datetime``s to try and change it.
+* ``phase`` -- the current phase of the job.  This is a string
+  containing magic values; the possible values are PENDING, QUEUED, 
+  EXECUTING, COMPLETED, ERROR, ABORTED (these are also available as
+  symbols in tapquery -- this provides some ward against typos).  Most 
+  of them are pretty self-explanatory, except that PENDING means you 
+  still can change the query, whereas QUEUED jobs are, well, in the 
+  server's queue and cannot be changed any more.  You should not assign 
+  to ``phase`` manually.
+* ``quote`` -- returns an estimate of the number of seconds your job
+  will execute on the remote machine.  This is, of course, a guess even
+  under the most favorable circumstances.  Some servers choose to not
+  even try to guess, in which case you'll get a None.  This
+  cannot be assigned to.
+* ``parameters`` -- a dictionary containing your parameters.  You cannot
+  assign to parameters
+
+
+
+Running a job
+-------------
+
+Once you have constructed (and possibly modified) a job, call ``start()``
+to tell the remote server to put it into its execution queue.
+You can then poll the job's phase (now and then)::
+
+  job = votable.ADQLTAPJob(...)
+  job.executionduration = 6000
+  job.start()
+  while job.phase not in set([tapquery.ERROR, tapquery.COMPLETED]):
+    time.sleep(10)
+
+
+
+XXX: go on here
+
+TAP parameters
+--------------
+
+The following parameters are defined by the TAP spec:
+
+* ``FORMAT`` -- the format you want to retrieve the data in.  This
+  defaults to votable, and you should probably keep that default with
+  this library (since, if you have it, you can parse VOTables, right?).
+  Other possibile values include csv, tsv, fits, text, or html.  Servers
+  must support VOTables, the other formats are optional
+* ``MAXREC`` -- a limit as to how many rows are to be returned.  This
+  basically works like the ``TOP`` phrase in ADQL and is rather
+  superfluous when using ADQL.
+* ``RUNID`` -- some identifier you can pass.  It could be used for
+  tracking and similar.  The server should include it in
+  results.  If you don't know what it's for, you probably don't need it.
+* ``LANG`` -- the query language.  In this library, it defaults to
+  ``ADQL``.  Let's see if the library is flexible enough to support
+  other languages (which are not specified yet).
+* ``REQUEST`` -- specifies the operation you want from the server.
+  ``"doQuery"`` is what ``ADQLTAPJob`` fills in for you, and it's
+  what you should leave it at.
+* ``QUERY`` -- the query you are posing.  ``ADQLTAPJob`` specifies
+  it for you, but if you really wanted to, you could override it (e.g.,
+  using ``setParameter``.
+* ``UPLOAD`` -- table uploads and such.  While you could manipulate
+  this manually, don't.  Use the ``addUpload`` method.
+
+
+.. _ADQLTAPJob: http://vo.ari.uni-heidelberg.de/docs/DaCHS/apidoc/gavo.votable.tapquery.ADQLTAPJob-class.html
+.. _GAVO VOTable Library documentation: http://vo.ari.uni-heidelberg.de/docs/DaCHS/votable.html
+.. _TAP spec: http://www.ivoa.net/Documents/TAP/

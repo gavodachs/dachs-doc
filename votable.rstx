@@ -33,7 +33,13 @@ The library has a simplied high-level interface for simple applications
 and a low-level streaming interface for advanced use.
 
 
-Simple Parsing
+Obtaining the library
+---------------------
+
+XXX TBD
+
+
+Simple parsing
 --------------
 
 To parse simple (one-table), moderately sized VOTable, do::
@@ -44,9 +50,9 @@ Here, ``data`` is a list of records, each of which is a sequence,
 ``metadata`` is a ``TableMetadata`` instance, and ``source`` can be a
 string naming a local file, or it can be a file-like object.
 
-votable.open only looks at the first TABLE element encountered.  If the
-VOTable does not contain any tabular data at all (e.g., error messages
-from various VO protocols), ``(None, None)`` is returned.
+``votable.load`` only looks at the first TABLE element encountered.  If
+the VOTable does not contain any tabular data at all (e.g., error
+messages from various VO protocols), ``(None, None)`` is returned.
 
 If you want to create a numpy record array from that data, you can
 say::
@@ -59,9 +65,17 @@ None, that is), so this code will fail for many tables unless one
 introduces proper null values (e.g., nan for floats; for ints, you could
 ask metadata for the null value used by the VOTable).
 
+Metadata simply is the VOTable.TABLE element the data comes from.  Most
+importantly, it holds the field definitions; you get them by simply
+iterating over the metadata.  For example::
+
+  labels = [field.name for field in metadata]
+  print [dict(zip(labels, row)) for row in data]
 
 
-Iterative Parsing
+
+
+Iterative parsing
 -----------------
 
 Iterative parsing is well suited for streaming applications and is

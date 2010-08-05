@@ -164,7 +164,18 @@ You can now let DaCHS create its file system hierarchy::
 
   gavo init
 
-This may spit out a warning or two on the first run.  On repeated runs
+For this to work, you must ``rootDir`` must exist and be writable by
+you, or you must have sufficient privileges to create it.  Do *not* run
+``gavo init`` as root, since the files and directories it creates will
+be owned by whoever ran the program.  In the typical situation in which
+you may not write to ``rootDir``'s parent, do something like::
+
+  sudo mkdir -p /data/gavo
+  sudo chown `id -nu`:staff /data/gavo
+
+(replacing staff with some appropriate group).
+
+``gavo init`` may spit out a warning or two on the first run.  On repeated runs
 no output at all should appear.
 
 You can later run gavo init again. It will not clobber anything you did
