@@ -72,7 +72,7 @@ to be made, as are accesses to ADQLTAPJob's properties, viz.,
   of course the server might not let you.
 * ``destruction`` -- a ``datetime.datetime`` (in UTC) at which the job
   will be completely removed (i.e., even the results) from the remote
-  server.  Again, you can assign ``datetime``s to try and change it.
+  server.  Again, you can assign ``datetime`` instances to try and change it.
 * ``phase`` -- the current phase of the job.  This is a string
   containing magic values; the possible values are PENDING, QUEUED, 
   EXECUTING, COMPLETED, ERROR, ABORTED (these are also available as
@@ -87,8 +87,8 @@ to be made, as are accesses to ADQLTAPJob's properties, viz.,
   even try to guess, in which case you'll get a None.  This
   cannot be assigned to.
 * ``parameters`` -- a dictionary containing your parameters.  You cannot
-  assign to parameters
-
+  assign to parameters, and changing things here has no effect.  Use
+  setParameter(key, value) instead.
 
 
 Running a job
@@ -105,8 +105,36 @@ You can then poll the job's phase (now and then)::
     time.sleep(10)
 
 
+You can call ``abort()`` to kill a running job, and you can call
+``delete()`` when done.  As a matter of fact, although server operators
+will eventually destroy your job anyway, it's common courtesy to clean
+up behind you unless you have good reason to keep the result data.  So
+the recommended pattern is::
 
-XXX: go on here
+  job = votable.ADQLTAPJob(...)
+  try:
+    ... do your thing ...
+  finally:
+    job.delete()
+
+Now, doing the polling by hand is tedious, and this there is a function
+``waitForPhases(phases, ...)`` that takes a set of phases to wait for,
+and then polls at increasing intervals (that you could control though
+the method's further arguments; see `API docs`_ for details).
+
+But really, the ``run`` method is what you'd usually use; it has the
+added advantage that it raises a ``RemoteError`` or a ``RemoteAbort`` exception
+if something went wrong on the server side.  So, the standard pattern is::
+
+  job = votable.ADQLTAPJob(...)
+  try:
+    ... add uploads, set parameters if you must ...
+    ... change UWS parameters (executionduration, destruction, etc) ...
+    job.run()
+    ... read results ...
+  finally:
+    job.delete()
+
 
 TAP parameters
 --------------
@@ -137,6 +165,38 @@ The following parameters are defined by the TAP spec:
   this manually, don't.  Use the ``addUpload`` method.
 
 
+Getting results
+---------------
+
+Right now, this library heavily leans towards ADQL.  When doing ADQL
+queries, there is only one result.  You can access it using the
+``openResult()`` method, which returns a file-like object (actually,
+it's what ``urllib.urlopen`` returns) that you can read your results
+from.  Since successful ADQL queries return single-table VOTables, you
+can feed this directly to votable.load(f)::
+
+  data, metadata = votable.load(job.openResult())
+
+More complex query patterns could yield more results; in that case,
+you will have to inspect ``job.results``, which is a list of triples of
+an access URL, an opaque string-typed id, and a UWS "result type" that
+you probably can safely ignore.
+
+
+Errors
+------
+
+All exceptions originating in the library are subclasses of
+``tapquery.Error``.  The `API docs`_ list some exceptions you should
+expect; also, of course, all kinds of network-related exceptions could
+come out of the library.  No serious attempt is being made to catch
+such exceptions and translate them.  If something is wrong network-wise,
+we feel it's better to freely admit this.
+
+
+------
+
 .. _ADQLTAPJob: http://vo.ari.uni-heidelberg.de/docs/DaCHS/apidoc/gavo.votable.tapquery.ADQLTAPJob-class.html
+.. _API docs: http://vo.ari.uni-heidelberg.de/docs/DaCHS/apidoc/toc-gavo.votable.tapquery-module.html
 .. _GAVO VOTable Library documentation: http://vo.ari.uni-heidelberg.de/docs/DaCHS/votable.html
 .. _TAP spec: http://www.ivoa.net/Documents/TAP/

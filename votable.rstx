@@ -36,7 +36,12 @@ and a low-level streaming interface for advanced use.
 Obtaining the library
 ---------------------
 
-XXX TBD
+Current versions of the library are available from `DaCHS distribution
+page`_.  Users of Debian stable (and similar distributions not too far
+removed), will want to pull the library from the data center's apt
+archive; see the `DaCHS install docs`_.
+
+This library is part of the GAVO Data Center Helper Suite.
 
 
 Simple parsing
@@ -74,14 +79,13 @@ iterating over the metadata.  For example::
 
 
 
-
 Iterative parsing
 -----------------
 
 Iterative parsing is well suited for streaming applications and is
 attractive because the full document need never be completely in RAM at
-the same time.  For many applications, it is a little more clunky to
-work with, though.
+any time.  For many applications, it is a little more clunky to work
+with, though.
 
 The central function for iterative parsing is parse::
 
@@ -92,72 +96,89 @@ There also is ``parseString`` that takes a string literal instead of a file.
 files and file names are ok.
 
 The watchlist gives additional element types you want the iterator to
-return.  These have to be classes from ``votable.V``.  By default, only
-special votable.Rows objects are returned.  More on those below.
+return.  These have to be classes from ``votable.V`` (see `VOTable
+elements`_)  By default, only special votable.Rows objects are returned.  
+More on those below.
 
-You get back ``xmlstan.Element`` instances with an additional attribute
+You get back `stanxml elements`_ with an additional attribute
 ``idmap`` is a dictionary-like object mapping ids to the elements that
 have so far been seen.  This is the same object for all items returned,
 so forward references will eventually be resolved in this ``idmap`` if
 the input document is valid.  For documents with clashing ids, the
 behaviour is undefined.
 
+So, if you were interested in the the resource structure of a VOTable,
+you could write::
+
+  from gavo import votable
+  from gavo.votable import V
+
+  for element in votable.parse(open("in.vot"), watchset=[V.RESOURCE]):
+    if isinstance(element, V.RESOURCE):
+      print "Starting new resource: %s"%element.name
+    else:
+      print "Discarding %s elements"%len(list(element))
+
+
 
 Rows objects
 ------------
 
-Unless you order something else, parse will yield Rows objects, one
+Unless you order something else, parse will yield Rows_ objects only, one
 per TABLE element.  Iterate over those to obtain the table rows,
-deserialized, with ``None`` as NULL.  The ``tableDefinition`` attribute
-contains the VOTable TABLE element that describes the current data.  
+deserialized, with ``None`` as NULL.  Note that you **must** exhaus the
+Rows iterator if you wish to continue parsing the table.  You currently
+cannot simply skip a table.
+
+The Rows' ``tableDefinition`` attribute contains the VOTable TABLE
+element that describes the current data.  
 
 To read the first table, do::
 
   rows = votable.parse(open(inFileName)).next()
+  print rows.tableDefinition.iterChildrenOfType(votable.V.FIELD)
   for row in rows:
     print row
-  print rows.tableDefinition.iterChildrenOfType(votable.V.FIELD)
 
 The ``tableDefinition`` also lets you retrieve FIELDs by name using the
 ``getFieldForName(name) -> FIELD`` method.
 
 
+stanxml elements
+----------------
 
-Generating VOTables
--------------------
+VOTables are built as stanxml elements; these have the common VOTable
+attributes as python attributes, i.e., to find the ucd of a FIELD ``f``
+you would say ``f.ucd``.  To find out what's where, read the `VOTable
+spec`_ or check the `VOTable elements`_ and look out for class attributes
+starting with ``_a_`` -- these are turned into attributes without the
+prefix.
 
-Low-Level
-'''''''''
+To access child elements, use any of the following methods:
 
-When creating a VOTable using the low-level interface, you write the
-VOTable using DOM elements.  This looks like this::
+* ``iterChildren()`` -- yields all the element's children in sequence
+* ``iterChildrenOfType(stanxmlType)`` -- yields all the element's
+  children that are an instance of ``stanxmlType`` (in a python
+  inheritance sense)
+* ``makeChildDict()`` -- returns a dictionary that maps child element
+  names to sequences of children of this type.
 
-  from gavo import votable
-  from gavo.votable import V
+So, to find a FIELD's description(s), you could say either::
 
-  vot = V.VOTABLE[
-    V.INFO(name="generic", value="example)["This is an example"],
-    V.RESOURCE[
-      votable.DelayedTable(
-        V.TABLE[
-          V.FIELD(name="col1", datatype="char", arraysize="*"),],
-        rows, V.BINARY)]]
+  list(f.iterChildrenOfType(V.DESCRIPTION))
 
-The ``votable.DelayedTable`` class wraps a defined table and serializes
-data (``rows`` in the example) using the structure defined by the first
-argument into a serialization defined by its last argument.  Currently,
-you can use ``V.BINARY`` or ``V.TABLEDATA`` here.
+or::
 
-
+  f.makeChildDict()["DESCRIPTION"]
 
 
 Post-data INFOs
 '''''''''''''''
 
 More recent VOTable specifications allow INFO elements after table data.
-By the time you see data
+If you must catch these, things get a bit messier.
 
-So, to be sure ``tableDefinition`` is complete including post-data groups, 
+To be sure ``tableDefinition`` is complete including post-data groups, 
 you need to let the iterator run once more after exhausting the data.
 Here's how to do this for the first table within a VOTable::
 
@@ -173,8 +194,57 @@ When you don't care about possible INFO elements anyway, use the simpler
 pattern above.
 
 
+
+Generating VOTables
+-------------------
+
+Low Level
+'''''''''
+
+When creating a VOTable using the low-level interface, you write the
+VOTable using DOM elements, using a simple notation gleaned from
+`Nevow Stan`.  This looks like this::
+
+  from gavo import votable
+  from gavo.votable import V
+
+  vot = V.VOTABLE[
+    V.INFO(name="generic", value="example)["This is an example"],
+    V.RESOURCE[
+      votable.DelayedTable(
+        V.TABLE[
+          V.FIELD(name="col1", datatype="char", arraysize="*"),],
+        rows, V.BINARY)]]
+
+-- square brackets thus denote element membership, round parentheses are
+used to set attributes.
+
+The ``votable.DelayedTable`` class wraps a defined table and serializes
+data (``rows`` in the example) using the structure defined by the first
+argument into a serialization defined by its last argument.  Currently,
+you can use ``V.BINARY`` or ``V.TABLEDATA`` here.  The data itself
+must come in sequences of python values compatible with your field
+definitions.
+
+To write the actual VOTable, use the ``votable.write(root, outputFile)`` 
+method.  You can also call the root element's render() method to obtain
+the representation in a string.
+
+
+High Level
+''''''''''
+
+There is a higher-level API to this library as a part of the DaCHS
+software.  However, absent the mechanisms present there it's not trivial
+to come up with an interface that is both sufficiently expressive and
+simpler than just writing down stuff as in the low level API.  Numpy
+arrays we'll do at some point, and it helps if you ask us.
+
+
 Special behaviour
 -----------------
+
+(a.k.a. "Bug and Features")
 
 From the standards document it is not clear if, on parsing, nullvalue
 comparison should happen on literals or on parsed values.  In this
@@ -282,3 +352,9 @@ the information.  This would look like this::
 XXX TODO: Add id management.
 
 
+.. _DaCHS distribution page: http://vo.ari.uni-heidelberg.de/soft
+.. _DaCHS install docs: http://vo.ari.uni-heidelberg.de/docs/DaCHS/install.html#installation
+.. _Nevow Stan: http://www.kieranholland.com/code/documentation/nevow-stan/
+.. _Rows: http://vo.ari.uni-heidelberg.de/docs/DaCHS/apidoc/gavo.votable.tableparser.Rows-class.html
+.. _VOTable spec: http://www.ivoa.net/Documents/VOTable/
+.. _VOTable elements: http://vo.ari.uni-heidelberg.de/docs/DaCHS/apidoc/gavo.votable.model.VOTable-class.html
