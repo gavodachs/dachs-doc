@@ -90,7 +90,7 @@ The DaCHS installer is based on setuptools; we do not use setuptools'
 dependency management, though, since in practice it seems more trouble
 than it's worth.  So, first install the python dependencies: twisted,
 nevow, pyfits, numpy, pyparsing, PIL, soappy, the Zolera soap
-infrastructre, and psycopg2.  Furthermore, you will
+infrastructre, setuptools, and psycopg2.  Furthermore, you will
 need a python that can build (python) packages, and (usually) a C
 compiler.
 
@@ -98,7 +98,8 @@ On Debian Lenny systems, the following should work::
  
   sudo aptitude install python-dev build-essential \
     python-nevow python-psycopg2 python-pyparsing python-pyfits\
-    python-numpy python-imaging python-soappy python-zsi
+    python-numpy python-imaging python-soappy python-zsi\
+    python-setuptools
 
 should work (it's not important that the server-dev version matches the
 version of your sever at this point).
