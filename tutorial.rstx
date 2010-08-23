@@ -68,8 +68,9 @@ configuration.
 
 Otherwise, there is only meta information so far.  This metadata is
 cruicial for later registration of the service.  In HTML forms, it is
-displayed in a sidebar.  See `RMI-style metadata
-<./ref.html#rmi-style-metadata>`_ in the reference documentation.
+displayed in a sidebar.  
+
+See also `More on Metadata`_.
 
 
 Defining Target Tables
@@ -1088,6 +1089,49 @@ write the equivalent vizier-like expressions)::
 		</condDesc>
 
 
+More on Metadata
+================
+
+In general, most metadata for services and resources rather closely
+follows what's defined in `Resource Metadata for the Virtual
+Observatory`_; see also the `Reference Manual on RMI-style metadata`_.
+
+One tricky spot is coverage.  In general, you will define coverage more
+or less like this::
+
+	<meta name="coverage">
+		<meta name="profile">AllSky ICRS</meta>
+		<meta name="waveband">Optical</meta>
+	</meta>
+
+The easy part is the waveband.  Values here are from a fixed set of
+strings, viz., Radio, Millimeter, Infrared, Optical, UV, EUV, X-ray,
+Gamma-ray;  capitalization is important, and you may give multiple
+elements (the software doesn't enforce this selection, but your registry
+documents will become invalid if you use anything else).
+
+The coverage.profile meta item has STC-S strings as values.  See the
+`STC-S Note`_ as well as the `STC library documentation`_ for more
+information on the STC-S understood by DaCHS.  In principle, you can
+get fancy here; for example, you could write::
+
+  <meta name="coverage.profile">
+    TimeInterval TT BARYCENTER 1999-10-01T20:30:00 1999-10-02T20:30:10
+      unit s Error 10 Resolution 1 2
+    Circle FK5 J1980.0 GEOCENTER 0.13 0.45 0.03 unit rad
+      PixSize 0.0001 0.0001
+    SpectralInterval HELIOCENTER 2000 6000 unit Angstrom Error 1
+    RedshiftInterval TOPOCENTER VELOCITY RELATIVISTIC -10 10 unit km/s
+  </meta>
+
+However, the registries probably evaluate not very much of this
+information, and you most certainly should try to give positions
+in ICRS.
+
+.. _Reference Manual on RMI-style metadata: ./ref.html#rmi-style-metadata
+.. _STC library documentation: ./stc.html
+.. _STC-S Note: http://www.ivoa.net/Documents/Notes/STC-S/
+
 Running the DC Server
 =====================
 
@@ -1116,8 +1160,6 @@ Similarly, if you edit anything in an RD, you will have to reload it,
 preferably through "Admin me", before the changes will be reflected.
 Note that right now, if your RD is invalid, any services on it will stop
 working on a reload.
-
-
 
 
 .. _`Resource Metadata for the Virtual Observatory`: http://www.ivoa.net/Documents/latest/RM.html
