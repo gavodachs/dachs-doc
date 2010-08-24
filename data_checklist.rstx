@@ -110,9 +110,13 @@ The italicized text in the explanations is taken from [RMI]_.
 
 :Coverage:
   Optional.  This is supposed to reflect what part of the sky, the
-  electromagnetic spectrum, etc., the data is talking about.  If you
-  feel you want to specify coverage, talk to us; the topic is too
-  complicated to discuss here.
+  electromagnetic spectrum, etc., the data is talking about.  In
+  general, it consists of a "waveband" (Optical, Infrared, etc) and
+  of a more precise specification of the spatio-temporal extent of
+  the observations.  Leave the technicalities to us and just say
+  something like "the observations have been taken between 1980-01-04
+  and 2010-10-30 and cover positions between 30,40, and 60, 120 degrees
+  ICRS; we only have objects of redshifts between 0.1 and 0.2".
 
 :Copyright information:
   If you have any special wishes ("if you use..., please

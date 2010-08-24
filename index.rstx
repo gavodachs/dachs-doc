@@ -14,6 +14,7 @@ Documentation
 All of this is very much work in progress.  Users asking for elaboration
 are certainly good indicators of where need is greatest.
 
+
 * Installation and configuration (`install.html <./install.html>`_, 
   `install.pdf <./install.pdf>`_, `install.rstx <./install.rstx>`_)
 * Tutorial (`tutorial.html <./tutorial.html>`_, 
@@ -39,6 +40,8 @@ are certainly good indicators of where need is greatest.
   `adql.pdf <./adql.pdf>`_, `adql.rstx <./adql.rstx>`_)
 * VOTable library documentation (`votable.html <./votable.html>`_,
   `votable.pdf <./votable.pdf>`_, `votable.rstx <./votable.rstx>`_)
+* VOTable library tapquery documentation (`tapquery.html <./tapquery.html>`_,
+  `tapquery.pdf <./tapquery.pdf>`_, `tapquery.rstx <./tapquery.rstx>`_)
 * Epydoc-generated `API documentation <./apidoc>`_.  Note, however,
   that none of this is, as yet, guaranteed stable API.  Very little
   will be.  The main purpose of this is to help understanding the code
