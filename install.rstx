@@ -294,9 +294,11 @@ line like::
 
   local   gavo        gavo,gavoadmin,untrusted          md5
 
-in there; it allows password authentication for the three users above
-from the local machine.  If you have two machines sitting on a
-reasonably trusted local network, you could say something like::
+in there, probably right below the line allowing the postgres user
+complete access (the order of lines in pg_hba.conf is significant); it
+allows password authentication for the three users above from the local
+machine.  If you have two machines sitting on a reasonably trusted local
+network, you could say something like::
 
   host    gavo gavo,gavoadmin,untrusted   xxx.xxx.xxx.0/24    md5
 
