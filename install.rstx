@@ -7,6 +7,13 @@ GAVO DaCHS installation and configuration
   :backlinks: entry
   :class: toc
 
+These installation instructions cover the installation of the complete
+data center suite.  Installing libraries or, say, the tapsh, is much
+less involved.  See the respective pages at the `GAVO DC's software
+distribution pages`_ for details on those.
+
+.. _GAVO DC's software distribution pages: http://vo.ari.uni-heidelberg.de/soft
+
 
 Installation
 ============
@@ -15,52 +22,24 @@ Debian systems
 --------------
 
 The preferred way to run DaCHS is on Debian stable or compatible
-systems, so this is what this guide focuses on.  However, the
-package-based approach described here doesn't really work yet (though it
-may appear to work at first, so for now check `Generic installation
-instructions`_
+systems.  However, for the complete data center suite, the apt-based
+approach is not recommended yet, in particular since it is quite
+possible that you will run into bugs, and it will be much easier for us
+if you can update directly from our subversion repository.
 
+Still, you should `add our apt repository`_ to your system's
+sources.list.  When you have done this, you *could* do::
 
-Adding the GAVO repository
-''''''''''''''''''''''''''
-
-On such systems, add the lines::
-
-  deb http://vo.ari.uni-heidelberg.de/debian lenny main
-  deb-src http://vo.ari.uni-heidelberg.de/debian lenny main
-
-to your ``/etc/apt/sources.list``.  We will not clobber packages from stable
-*except* when we are very confident they are backwards compatible.
-Thus, while we cannot actually promise anything, including this
-repository should not impact your systems's stability in any way, even
-though we may occansionally include an updated package or two
-(typically, python-psycopg2).
-
-You should then get our archive key to avoid nasty questions from
-aptitude/apt-get.  Our archive key's id is D8C139FC, and it is on the
-key servers.  Its fingerprint is::
-
-  B199 D643 9DBB 98D7 9F4E  AD09 8B6C 75C0 D8C1 39FC
-
-The quick and dirty way to install the key on your machine is::
-
-  wget -qO - http://vo.ari.uni-heidelberg.de/docs/archive-key.asc \
-    | sudo apt-key add -
-
-
-Installing GAVO DaCHS
-'''''''''''''''''''''
-
-After that, it's a matter of::
-
-  sudo aptitude update
   sudo aptitude install gavodachs
 
-This will pull in all the necessary dependencies.
+But really, if you want to operate a server, you should, for now, work
+from svn.
+
+.. _add our apt repository: http://vo.ari.uni-heidelberg.de/soft/repo
 
 
-Generic installation instructions
----------------------------------
+Working with the subversion source
+----------------------------------
 
 Getting the source
 ''''''''''''''''''
@@ -99,14 +78,14 @@ On Debian Lenny systems, the following should work::
   sudo aptitude install python-dev build-essential \
     python-nevow python-psycopg2 python-pyparsing python-pyfits\
     python-numpy python-imaging python-soappy python-zsi\
-    python-setuptools
+    python-setuptools libxml2
 
-should work (it's not important that the server-dev version matches the
-version of your sever at this point).
+(it's not important that the server-dev version matches the version of
+your sever at this point).
 
 Finally, in the ``dachs`` directory you checked out above, say::
 
-  sudo python setup.py install
+  sudo python setup.py develop
 
 (there are various options to get the stuff installed when you prefer 
 not to install as root; refer to the `setuptools documentation`_ if 
