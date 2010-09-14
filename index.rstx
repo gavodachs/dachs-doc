@@ -15,6 +15,9 @@ All of this is very much work in progress.  Users asking for elaboration
 are certainly good indicators of where need is greatest.
 
 
+For Data Center Operators
+-------------------------
+
 * Installation and configuration (`install.html <./install.html>`_, 
   `install.pdf <./install.pdf>`_, `install.rstx <./install.rstx>`_)
 * Tutorial (`tutorial.html <./tutorial.html>`_, 
@@ -23,9 +26,6 @@ are certainly good indicators of where need is greatest.
   `ref.pdf <./ref.pdf>`_, `ref.rstx <./ref.rstx>`_)
 * How do I? (`howDoI.html <./howDoI.html>`_, 
   `howDoI.pdf <./howDoI.pdf>`_, `howDoI.rstx <./howDoI.rstx>`_)
-* Checklist for data providers (`data_checklist.html <./data_checklist.html>`_, 
-  `data_checklist.pdf <./data_checklist.pdf>`_, 
-  `data_checklist.rstx <./data_checklist.rstx>`_)
 * Guide to write booster grammars (`booster.html <./booster.html>`_,
   `booster.pdf <./booster.pdf>`_, `booster.rstx <./booster.rstx>`_)
 * Guide to preprocessing input files (`processors.html <./processors.html>`_,
@@ -34,6 +34,17 @@ are certainly good indicators of where need is greatest.
 * Hints on common problems (`commonproblems.html <./commonproblems.html>`_,
   `commonproblems.pdf <./commonproblems.pdf>`_, 
   `commonproblems.rstx <./commonproblems.rstx>`_)
+
+For VO Data Providers
+---------------------
+
+* Checklist for data providers (`data_checklist.html <./data_checklist.html>`_, 
+  `data_checklist.pdf <./data_checklist.pdf>`_, 
+  `data_checklist.rstx <./data_checklist.rstx>`_)
+
+Library Documentation
+---------------------
+
 * STC library documentation (`stc.html <./stc.html>`_,
   `stc.pdf <./stc.pdf>`_, `stc.rstx <./stc.rstx>`_)
 * ADQL library documentation (`adql.html <./adql.html>`_,
@@ -42,6 +53,11 @@ are certainly good indicators of where need is greatest.
   `votable.pdf <./votable.pdf>`_, `votable.rstx <./votable.rstx>`_)
 * VOTable library tapquery documentation (`tapquery.html <./tapquery.html>`_,
   `tapquery.pdf <./tapquery.pdf>`_, `tapquery.rstx <./tapquery.rstx>`_)
+
+
+DaCHS developer Documentation
+-----------------------------
+
 * Epydoc-generated `API documentation <./apidoc>`_.  Note, however,
   that none of this is, as yet, guaranteed stable API.  Very little
   will be.  The main purpose of this is to help understanding the code

@@ -67,7 +67,7 @@ You can also change the parameters later using
 ``setParameter(key, value)``.  This again causes a server connection
 to be made, as are accesses to ADQLTAPJob's properties, viz.,
 
-* ``executionduration`` -- the number of seconds after which the server
+* ``executionDuration`` -- the number of seconds after which the server
   will kill your job.  Simply assign some integer to change it, though
   of course the server might not let you.
 * ``destruction`` -- a ``datetime.datetime`` (in UTC) at which the job
@@ -99,7 +99,7 @@ to tell the remote server to put it into its execution queue.
 You can then poll the job's phase (now and then)::
 
   job = votable.ADQLTAPJob(...)
-  job.executionduration = 6000
+  job.executionDuration = 6000
   job.start()
   while job.phase not in set([tapquery.ERROR, tapquery.COMPLETED]):
     time.sleep(10)
@@ -129,7 +129,7 @@ if something went wrong on the server side.  So, the standard pattern is::
   job = votable.ADQLTAPJob(...)
   try:
     ... add uploads, set parameters if you must ...
-    ... change UWS parameters (executionduration, destruction, etc) ...
+    ... change UWS parameters (executionDuration, destruction, etc) ...
     job.run()
     ... read results ...
   finally:

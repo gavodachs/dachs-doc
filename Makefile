@@ -1,4 +1,4 @@
-HTMLTARGET=vo:/var/www/docs/DaCHS
+HTMLTARGET=vo.ari.uni-heidelberg.de:/var/www/docs/DaCHS
 RST_SOURCES=data_checklist.rstx howDoI.rstx ref.rstx tutorial.rstx\
 	booster.rstx install.rstx stc.rstx processors.rstx adql.rstx\
 	votable.rstx commonproblems.rstx tapquery.rstx
