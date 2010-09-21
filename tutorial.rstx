@@ -557,14 +557,10 @@ Images
 ------
 
 Images have relatively rich metadata.  Partly these are covered in a
-mixin called "products", but astronomical images have even
-more metadata, like position on the sky or bandpass.  To cope with them,
-there are two mixins: ``bboxSIAP`` and 
-`pgsSIAP <ref.html#the-pgssiap-mixin>`_.  Unless you for some
-reason cannot install pgsphere on your postgres installation, you should
-use ``pgsSIAP`` that stores the image geometry as a phSphere polygon,
-which is much more accurate and, since it can exploit indices, faster
-than ``bboxSIAP``.
+mixin called "products", but astronomical images have even more
+metadata, like position on the sky or bandpass.  To cope with them, use
+the `pgsSIAP <ref.html#the-pgssiap-mixin>`_ (and ignore the old
+bbox-based SIAP mixin). 
 
 To define a table that carries images, simply mix in the appropriate
 mixin::
