@@ -72,6 +72,23 @@ displayed in a sidebar.
 
 See also `More on Metadata`_.
 
+Once you are here, you should "validate" your RD.  This is, in general,
+a good idea before doing anything with the RD, since it will allow you
+to more easily catch errors than the in all likelihood even more
+byzantine error messages that may arise when something goes wrong later.
+So, say::
+
+  gavo val q.rd
+
+and read the output.  If you don't understand what ``gavo val`` tells
+you, complain to gavo@ari.uni-heidelberg.de -- the command is really
+intended to help you catch errors, and if it doesn't do so, it's
+either a bug in ``gavo val`` or the documentation, and in either case
+we'd like to fix it.
+
+You can also pass an RD id to ``gavo val``, and you can specify more
+than one RD.
+
 
 Defining Target Tables
 ----------------------
@@ -587,7 +604,14 @@ applications.  Let's look at a data element for this table::
 
 		<rowmaker id="make_image" idmaps="*">
 			<apply predefined="computePGSSIAP"/>
-			<
+			<apply predefined="setSIAPMeta">
+        <bind key="title">vars["imageTitle"]</bind>
+        <bind key="instrument">"%s, %s"%(vars["OBSERVAT"],
+          vars["TELESCOP"])</bind>
+        <bind key="dateObs">vars["dateObs"]+vars["startTime"]+(
+          vars["endTime"]-vars["startTime"])/2</bind>
+        <bind key="bandpassId">vars["FILTER"]</bind>
+      </apply>
 		</rowmaker>
 
 		<make table="images" rowmaker="make_images"/>
