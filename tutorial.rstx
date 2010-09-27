@@ -647,6 +647,8 @@ So, step-by-step:
   `setSIAPMeta <ref.html#setsiapmeta>`_ .  Try to give all its keys
   somewhat sensible values, you will make your users' lives much easier.
 
+Warning: Do *not* use idmaps="*" with SIAP, since the auto-generated
+mappings will clobber the work of the xSIAP procs.
 
 
 Debugging
