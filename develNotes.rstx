@@ -2,33 +2,40 @@
 Development notes for GAVO DaCHS
 ================================
 
-This is basically a heap of stuff I intend to amend with informal docs
-on what I'm doing to the software.  While I hope that at some point
-it'll grow into a useful introduction to further developing the stuff,
-right now it's a random collection that contains quite a bit of
-outdated information.  Caveat emptor.
+This is currently a somewhat random collection of notes on various
+topics related to DaCHS development.  We'll expand it, in particular
+when people ask.
+
 
 Package Layout
 ==============
 
-To alleviate cross-import pains, to facilitate later package splitting
-and also as a guideline of what goes where, apply the following rules:
+The following rules should be followed as regards subpackages of gavo in
+order to keep the modules dependency graph manageable (and facilitate
+factoring out libraries).
 
 * Each functionality block is in a subpackage, the __init__ for which
   contains the main functions, classes, etc., of the the sub-package
   interface most clients will be concerned with.  Clients needing
-  special tricks may still import individual modules.
+  special tricks may still import individual modules.  What's in
+  __init__ should be considered "public interface".
 * Within each subpackage, *no* module imports the sub-package, i.e.,
   a module in base never says "from gavo import base"
 * A subpackage may have a module common, containing objects that
   multiple modules within that subpackage requires.  common may *not*
   import any module from the subpackage, but may be imported from all
-  of them, so in turn it cannot import any module from the subpackage.
+  of them.  No rules wrt importing modules from the same subpackage
+  exist of other modules.  Just apply common sense here to avoid
+  circular imports.
 * There is a hierarchy of subpackages, where subpackages lower in the
   hierarchy may not import anything from the higher or equal levels, but 
   only from lower levels.  This hierarchy currently looks like this:
-  imp < utils < stc < (votable, adql) < base < rscdef < grammars < rsc < svcs <
+  imp [<] utils < stc < (votable, adql) < base < rscdef < grammars < rsc < svcs <
   registry < protocols < web < rscdesc < (helpers, user)
+  utils should never assume anything from imp is present, i.e., it may
+  *attempt* to import from there, but it should not fail hard if the
+  import doesn't work.  Of course, concrete functions (e.g., from
+  utils.fitstools) won't work if the base libraries are not present.
 
 
 Error handling, logging
@@ -46,7 +53,7 @@ time and, probably, user information.
 
 The core of error processing is utils.excs.  All "sensible" exceptions
 (i.e., MemoryErrors and software bugs excepted) should be instances of
-gavo.excs.Error (or derived classes).
+gavo.excs.Error.
 
 The base class takes a hint argument at construction that gives 
 additional information on how to fix a certain problem.  Apart from
@@ -63,7 +70,9 @@ The events subsystem
 ++++++++++++++++++++
 
 All proper DC code (i.e. above base) should do user interaction
-through base.ui.notify<something>.  
+through base.ui.notify<something>.  In base and below, you can use
+utils.sendUIEvent, but this should be reserved for weird circumstances;
+code so far down should't need to do user interaction or similar.
 
 The <something> can be various things.  base.events defines a class
 EventDispatcher (an instance of which then becomes base.ui) that defines
@@ -96,6 +105,12 @@ However, you can also just handle single events by saying things like::
   
   base.ui.subscribeNewSource(handleNewSource)
 
+Most logging is done in user.logui; if you want logging, say::
+
+	from gavo.user import logui
+  logui.LoggingUI(base.ui)
+  
+
 
 Catching exceptions
 +++++++++++++++++++
@@ -114,6 +129,9 @@ argument, so you can say thing like::
 
   raise base.ui.logOldExc(GavoError(...))
 
+LoggingUI only logs the information on old exceptions when base.DEBUG is
+true.  You can set this from your code, or by passing the ``--debug``
+option to gavo.
 
 Testing
 =======
@@ -136,7 +154,25 @@ in ~/.gavo/etc -- of course, for this to work, you need a postgresql
 engine running on your machine with a database gavo in which your role
 is superuser (well, has sufficient rights...).
 
-There are doctest, pyunit-based tests, and trial-based tests yaddayadda,
+There are doctests in modules (though rarely), and pyunit- and
+trial-based tests in ``<project root>/tests``.  ``tests/runAllTests.py``
+takes care of locating and executing them all.
+
+Most DaCHS test use gavo.helpers.testhelpers.  The module provides
+(check out the source) some useful helper functions (like
+``getTestRD``), the ``VerboseTest`` class adding test resources and some
+assertions to the normal ``unittest.TestCase``, and it sets up the
+inputdir and the database profile. Thus, do *not* import it in
+production code.  Test-like functionality interesting to production code
+should go to ``helpers.testtricks``.  
+
+``testhelpers.main`` is useful after an ``if __name__=='__main__'`` in
+test modules.  Pass a default test class, and you can call the module
+without arguments (in which case it will run all tests), with a single
+argument (that will be interpreted as a method prefix to locate tests on
+the default TestCase) or with two arguments (a TestCase name and a
+method prefix to find the methods to be run).  All pyunit-based tests
+use this main.
 
 
 Structures
@@ -148,15 +184,15 @@ etc.
 
 A complete structure instance has the following callbacks:
 
-* completeElement -- called when the element closing tag is encountered,
+* ``completeElement`` -- called when the element closing tag is encountered,
   used to fill in computed defaults
-* validate -- called after completeElement, used to raise errors if
+* ``validate`` -- called after completeElement, used to raise errors if
   some gross ("syntactic") mistakes are in the element
-* onElementComplete -- called after validate, i.e., elementCompleted
+* ``onElementComplete`` -- called after validate, i.e., elementCompleted
   can rely on seeing a "valid" structure
 
-In addition, structures can register onParentCompleted callbacks.  These
-are called after the elementCompleted of the parent element.
+In addition, structures can register ``onParentCompleted`` callbacks.  These
+are called after onElementCompleted of the parent element is run.
 
 This processing is done automatically when parsing elements from XML.
 When building elements manually, you should call the finishElement
@@ -171,60 +207,23 @@ _completeElementNext, _validateNext, and _onElementCompleteNext
 Metadata
 ========
 
-Within the framework, there are two main sources of metadata.  For one,
-the fields (via datadef.DataField) of a table or a document record carry
-metadata on their types, ucds, etc.
+"Open" metadata (as opposed to the attributes of columns and the like)
+is kept in a ``meta_`` structure added by ``base.meta.MetaMixin``.  You
+should probably not access that attribute directly if at all possible
+since the current implementation is incredibly messy and liable to
+change.
 
-Metadata pertaining to other entities than fields is kept with these
-entities, viz., ResourceDescriptor, DataDescriptor, DataSet, Table, and
-RecordDef, instances.  All these mix in the parsing.meta.MetaMixin
-providing getMeta and addMeta methods.
+For this kind of metadata, a simple inheritance exists.  MetaMixins have
+a ``setMetaParent`` method that declares another MetaMixin as the
+current's parent.  Any request for metadata that cannot be satisfied
+from self will then be propagated up to this parent (unless propagation
+is suppressed).  Usually, parents will call their children's
+setMetaParent methods.
 
-It is the metadata containers' responsibility to choose their parents
-and children.  For this purpose, they have have to call a child's
-setMetaParent method when they notice a Meta-carrying child is being
-added.
-
-Our Metadata implementation has to deal with
-
-* Sequences of metadata -- there may be more than one item for a keyword,
-	e.g. for "subject".
-* Compound metadata -- items may consist of various sub-items (e.g.,
-	coverage, creator)
-* There may be sequences of compound objects
-* The metadata should be sanely serializable into at least plain text,
-	html, and VOResource
-* At least XML and key/value pairs should be supported as input
-* Handover: Metadata containers are hierarchical -- a service might be
-	derived from a data set, which in turn sits within a resource descriptor.
-	If the service doesn't have a piece of metadata, it has to hand over
-	the question to its parent.  
-* To keep the complexity of the meta trees down, we want certain types
-  common types of metadata; for example, we generally don't want
-  the title to be metadata for a link but rather keep it in the link
-  meta value itself.
-
-This results in a rather messy implementation and an interface that's
-not really optimal.
-
-
-Describing Metadata
-+++++++++++++++++++
-
-Metadata is organized by mapping keys to values.  Keys are
-dot-seperated "atoms" (i.e., sequences of letters); most of them are
-defined in RMI.  In addition, the system uses quite a number of
-"internal" keys, designated by leading underscores.  They include:
-
-* _type -- on DataSets, this becomes the type attribute of the VOTable.
-* _query_status -- on DataSets, this can be used to communicate the
-  value of an INFO element in the VOTable (see SIAP spec).  These must
-  be meta.InfoItem instances.
-* _legal -- human-readable unstructured information on the legal 
-  status of the data.
-* _infolink -- a URL pointing to further unstructured human-readable
-  information to the data content
-
+The metdata is organized in a tree with ``MetaItem``s as nodes.  Each
+MetaItem contains one or more children that are instances ``MetaValue``
+(or more specialized classes).  A MetaValue can have more MetaItem
+children.
 
 
 Getting Metadata
@@ -232,23 +231,25 @@ Getting Metadata
 
 Metadata are accessed by name (or "key", if you will).
 
-The getMeta method usually follows the enclosure hierarchy up, meaning
-that if a meta item is not found in the current instance, it will ask
-its parent for that item, and so on.  If no parent is known, the meta
-information contained in the configuration will be consulted.  If all
-fails, a default is returned (which is set via a keyword argument that
-again defaults to None) or, if the raiseOnFail keyword argument
-evaluates to true, a gavo.NoMetaKey exception is raised.
+The ``getMeta(key, ...)->MetaItem`` method usually follows the
+inheritance hierarchy up, meaning that if a meta item is not found in
+the current instance, it will ask its parent for that item, and so on.
+If no parent is known, the meta information contained in the
+configuration will be consulted.  If all fails, a default is returned
+(which is set via a keyword argument that again defaults to None) or, if
+the raiseOnFail keyword argument evaluates to true, a gavo.NoMetaKey
+exception is raised.
 
 If you require metadata exactly for the item you are querying, call
 getMeta(key, propagate=False).
 
-For metadata that has structure, getMeta will raise a gavo.MetaCardError
-when there is more than one matching meta item.  For these, you will
-usually use a builder, which will usually be a subclass of
-meta.metaBuilder.  web.common.HtmlMetaBuilder is an example of how such
-a thing may look like, for simple cases you may get by using
-ModelBasedBulder (see the registry code for examples).
+getMeta will raise a gavo.MetaCardError when there is more than one
+matching meta item.  For these, you will usually use a builder, which
+will usually be a subclass of meta.metaBuilder.
+web.common.HtmlMetaBuilder is an example of how such a thing may look
+like, for simple cases you may get by using ModelBasedBulder (see the
+registry code for examples).  This really is too messy and needs to be
+replaced by something smarter.
 
 The builders are passed to a MetaMixin's buildRepr(metakey, builder)
 method that returns whatever the builder's getResult method returns.
@@ -258,7 +259,7 @@ Setting Metadata
 ++++++++++++++++
 
 You can programmatically set metadata on any metadata container by
-calling container.addMeta(key, value), where both key and value are
+calling its method ``addMeta(key, value)``, where both key and value are
 (unicode-compatible) strings.  You can build any hierarchy in this way, 
 provided you stick with typeless meta values or can do with the default
 types.  Those are set by key in meta._typesForKeys.
@@ -289,81 +290,23 @@ m.addMeta("info", meta.makeMetaValue("content", type="info",
   infoName="someInfo", infoValue="GIVEN"))
 
 
-VOTables
-========
-
-table.Table instances are primarily meant to be serialized into VOTable
-tables.  Since most of the metadata of tables will be contained in the
-parent DataSet's docRec, PARAM elements of tables will be taken from
-there and will be located in the RESOURCE element that contains the
-table(s). 
-
-There's currently no provision for having PARAMS to VOTABLE elements
-(these would probably reside in the resource descriptor) or TABLE
-elements (this would require a special attribute of table.Table, I
-guess).
-
-However, Tables are meta containers and can contain meta information.
-
-With VOTables, correct formatting of values becomes a particular
-problem.  While presentation is largely a non-issue, it is paramount
-that the literals actually match what the ucds, units and types give.
-Therefore, displayHints (apart from "suppress", which by default is
-honored) are ignored.  Instead, votable.py defines MapperFactories.
-These are just callables taking ColProperties (in a pinch, dicts having
-"sufficient" keys will do too, where sufficient at least includes
-``ucd``, ``unit``, ``datatype``, ``arraysize``, and ``dbtype``, possibly
-more) and returning either None (meaning they won't handle values for
-this column) or a callable returning a string.
-
-These MapperFactories are organized in a Registry that can be queried
-for a mapper.  If you need to do some special mapping, get a copy of
-the default mapper registry by calling ``votable.getMapperRegistry``,
-write mappers (a couple of the keys available are listed above, but 
-votable calls the mappers with properly filled out votable.ColProperties
-instances, so you can, e.g., look at min, max, and hasNulls), and
-register them using the ``registerFactory`` method of the registry.  The
-mappers will be called in reverse order of registration, so you can
-override default behaviour, and you should register the most special
-mappers last.
-
-Mapper factories may decide to alter the type they're returning (in
-fact, for things like date they'll in all likelihood need to).  To do
-that, change the datatype and arraysize attributes.  After the mappers
-have run, nothing will look at the dbtype any more.
-
-To add new default mappers, add one in votable.py and call
-_registerDefaultMF on them.
-
-
-
-User management
-===============
-
-The rights model used here is simple: There are users and groups, where
-for each user there's a group and vice versa.  Access restrictions are
-stated in terms of groups, and users can belong to groups.  Access to a
-protected resource is given to any user that belongs to that group.
-
-Users and groups are stored in two database tables generated from
-user.vord.  Admittedly, it's overkill to use the gavo framework for
-these tables, but there you are.
-
 
 Memoization
 ===========
 
-The resourcecache module should be the central point for all kinds of
-memoization/caching issues.  To keep dependencies and risks of
-recursive imports low, it is the providing modules' responsibility to
-register caching functions.  The idea is that, e.g., importparser wants
-a cache of resource descriptors.  It should then call
+The base.caches module should be the central point for all kinds of
+memoization/caching issues; in particular, if you use base.caches,
+your caches will automatically be cleared on ``gavo serve reload``.  To
+keep dependencies and risks of recursive imports low, it is the
+providing modules' responsibility to register caching functions.  The
+idea is that, e.g., rscdesc wants a cache of resource descriptors.
+Therefore, it says::
 
-resourcecache.makeCache("getRD", getRD)
+  base.caches.makeCache("getRD", getRD)
 
-Clients would then call
+Clients the say::
 
-resourcecache.getRD(id).
+  base.caches.getRD(id).
 
 This mechanism for now is restricted to items that come with a unique
 id (the argument).  It would be easy to extend this to multiple-argument
@@ -371,17 +314,6 @@ functions, but I don't think that's a good idea -- the "identities" of
 the cached objects should be kept simple.
 
 No provision is made to prevent accidental overwriting of function names.
-
-This scheme has the central flaw that you need to make sure that you or
-somebody else actually imports the module defining the resource you want
-to access.
-
-All caches can be cleared by calling clearCaches.  This only affects
-caches make via makeCache.  There probably should be similar mechanisms
-for other shared resources, since we want to be able to respond to
-"reload"-like requests.
-
-
 
 
 Profiling
@@ -405,7 +337,6 @@ If you want to profile server actions, try a script like this::
   sys.path.append("/home/msdemlei/gavo/trunk/tests")
 
   import trialhelpers
-
 
 
   class ProfileThis(trialhelpers.RenderTest):
@@ -433,13 +364,13 @@ to regard them as an SQL misfeature and really only want to keep them
 out of my software.
 
 However, TAP forces me to deal with them at least superficially.  That
-means, using them elsewhere will lead to lots of mysterious error
-messages from inside the DC software bowels.  There still should not be
+means that using them elsewhere will lead to lots of mysterious error
+messages from inside of DaCHS's bowels.  There still should not be
 any remote exploits possible when using them.
 
 Here's the deal on them:
 
-They are represented as utils.misctricks.QuotedName objects.  These
+They are represented as ``utils.misctricks.QuotedName`` objects.  These
 QuotedNames have some methods to control the impact the partial support
 for delimited identifiers has on the rest of the software.  In
 particular, when you stringify them, they  result in string ready for

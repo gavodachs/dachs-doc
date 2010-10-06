@@ -28,7 +28,10 @@ LATEXOPTS=--documentoptions=11pt,a4paper --stylesheet stylesheet.tex
 ref.rstx:
 	gavo gendoc > ref.rstx
 
-apidoc: gavo-epydoc.conf
+apidoc-stamp:
+	touch apidoc-stamp
+
+apidoc: gavo-epydoc.conf apidoc-stamp
 	rm -rf apidoc
 	epydoc -v --config gavo-epydoc.conf
 

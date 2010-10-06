@@ -63,8 +63,7 @@ DaCHS developer Documentation
   will be.  The main purpose of this is to help understanding the code
   as it is; but of course we'll gladly listen to your "I need this
   function in a stable API" statements.
-
-.. Developments notes (`develNotes.html <./develNotes.html>`_,
+* Developments notes (`develNotes.html <./develNotes.html>`_,
    `develNotes.pdf <./develNotes.pdf>`_, 
    `develNotes.rstx <./develNotes.rstx>`_)
 
