@@ -142,16 +142,16 @@ Defining Columns
 ''''''''''''''''
 
 The main content of table is a sequence of column elements.  These
-contain a description of a single table column.  The name attribute is
+contain the definition of a single table column.  The name attribute is
 central in that it will be the column name in the database, the key for
 the column's value in record dictionaries that the software uses
 internally, and it is usually used to reference the column from the
 outside.  Column names must be legal identifiers for both python and SQL in 
 DaCHS.  SQL quoted identifiers thus are not allowed.
 
-The type attribute, if not given, defaults to real, and can otherwise
-take values in valid SQL datatypes.  The DC software knows how to
-handle, in addition to real,
+The type attribute defaults to real, and can otherwise take values in
+valid SQL datatypes.  The DC software knows how to handle, in addition
+to real,
 
 * text -- a string.  You can also use types like char(7) and the like,
   but since that does not help postgres (or much anything else within
@@ -171,6 +171,8 @@ handle, in addition to real,
 * date -- a date.  See timestamp.
 * time -- a time.  See timestamp
 * box -- a rectangle.
+* spoint, scircle, sbox, spoly -- objects of spherical geometry, taken
+  from pgSphere.  Ask for documentation...
 
 Some more types (like raw and file) are available to tables in service
 definitions, but they should, in general, not appear in database tables.
@@ -184,7 +186,17 @@ Futher metadata on columns includes:
   is typically used for display purposes, e.g., as table headings or
   labels on input fields.
 * description -- a longer string characterizing the content.  This may
-  be in bubble help or VOTable descriptions.
+  be in bubble help or VOTable descriptions.  Since these could by
+  longer, you may want to put them in a child element rather than an
+  attribute; in both cases, whitespace is normalized, so you can enter
+  line breaks and similar for readability in the source; they will
+  always be rendered as a single blank.  For even longer, note-like
+  material, see Notes_.  An example for a long descripton::
+
+    <column name="aperture">
+      <description>The aperture is the full-width-half-mean of the
+        response function of our sage 3000 hyper-detector.</description>
+    </column>
 * ucd -- a Unified Content Descriptor as defined by IVOA.  To figure out
   "good" UCDs, the UCD resolver at
   http://dc.zah.uni-heidelberg.de/ucds/ui/ui/form can help.

@@ -53,7 +53,10 @@ time and, probably, user information.
 
 The core of error processing is utils.excs.  All "sensible" exceptions
 (i.e., MemoryErrors and software bugs excepted) should be instances of
-gavo.excs.Error.
+gavo.excs.Error.  However, upwards from base you should always raise
+exceptions from base; all ("public") exception types from utils.excs
+are available there (i.e., raise base.NotFoundError(...) rather than
+utils.excs.NotFoundError(...)).
 
 The base class takes a hint argument at construction that gives 
 additional information on how to fix a certain problem.  Apart from
@@ -387,3 +390,29 @@ result rows, so they end up as SQL-escaped strings when used as keys.
 This is extra sad since in this way for a DI column foo,
 rec[QName("foo")] raises a KeyError.  To work around this, fields have
 a key attribute, and rec[f.key] should never bomb.
+
+Grammars
+========
+
+Grammars are DaCHS' means of turning some external data to rowdicts,
+i.e., dictionaries that map grammar keys to values that are usually
+strings.  They are fed to rowmakers to come up with rows suitable for
+ingestion (or formatting).
+
+A grammar consists of a Grammar object, which is a structure inheriting
+from grammars.Grammar.  It contains all the "configuration" (e.g.,
+rules).  Grammars have a parse method receiving some kind of source
+token (typically, a file name).  You will normally not need to override
+it.
+
+The real action happens in the row iterator, which is declared in the
+rowIterator class attribute of the grammar.  Row iterators should
+inherit from grammars.RowIterator.
+
+TODO: yieldsTyped, rowfilters, sourceFields, targetData
+
+Do not import modules from the grammars subpackage directly.  Instead,
+use rscdef.getGrammar with the name of the grammar you want.  If you
+define a new grammar, add a line in
+rscdef.builtingrammars.grammarRegistry.  To inspect what grammars are
+available, consult the keys from rscdef.grammarRegistry.

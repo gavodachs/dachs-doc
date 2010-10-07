@@ -220,9 +220,9 @@ with a generic record/replay mechanism we're thinking about.
 That said, the current way looks like this (for a query that does a
 proximity search on bboxes)::
 
-  <condDesc original="__system__/scs#humanSCS">
-    <phraseMaker original="__system__/scs#humanSCSPhrase">
-      <setup original="__system__/scs#scsSetup" id="proxQuery">
+  <condDesc original="//scs#humanSCS">
+    <phraseMaker original="//scs#humanSCSPhrase">
+      <setup original="//scs#scsSetup" id="proxQuery">
         <code><![CDATA[
           def genQuery(inPars, outPars):
             return "POINT(%%(%s)s, %%(%s)s) <-> bbox < %%(%s)s"%(
@@ -241,8 +241,8 @@ the actual query string.  See the tutorial on how condDesc code
 works in general.  The semi-good news is that if you want the same thing
 for an SCS query, you can reuse part of what you did above::
 
-   <condDesc original="__system__/scs#scs">
-    <phraseMaker original="__system__/scs#scsPhrase">
+   <condDesc original="//scs#scs">
+    <phraseMaker original="//scs#scsPhrase">
       <setup original="proxQuery"/>
     </phraseMaker>
   </condDesc>

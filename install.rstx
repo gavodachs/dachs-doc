@@ -306,17 +306,22 @@ things work.
 
 So, in this sequence, run::
 
-  gavo imp --system __system__/dc_tables
-  gavo imp --system __system__/services
-  gavo imp --system __system__/users
-  gavo imp --system __system__/products
+  gavo imp --system //dc_tables
+  gavo imp --system //services
+  gavo imp --system //users
+  gavo imp --system //products
 
 Output of the type ``Columns affected: 0`` is ok for these commands.
+
+The double slash in the identifiers above means "use system
+resources".  All these really refer to resource descriptors (RD) in the
+__system__ resource directory; at this point, they are the RDs shipped
+with DaCHS.
 
 If you get error messages, add a ``--hints`` after the gavo command,
 like this::
 
-  gavo --hints imp --system __system__/dc_tables
+  gavo --hints imp --system //dc_tables
   
 This will (for the ``gavo`` command in general) give additional error
 info where available.
