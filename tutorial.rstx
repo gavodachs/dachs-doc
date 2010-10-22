@@ -1180,7 +1180,7 @@ for RD writers, too.  Active tags always have names in all upper-case.
 LOOP
 ----
 
-Loop lets you create multiple elements by rules.  The simplest ways to
+Loop lets you create multiple elements by rules.  The simplest way to
 use it is by giving a space-separated list of "items"::
 
   <LOOP listItems="a b c">
@@ -1202,7 +1202,54 @@ resulting RD tree, the fragment above will have the same result as::
 
 Sometimes the list items are used in multiple places in the same
 document.  To avoid having to maintain multiple lists, you can define
-macros using RD's ``macDef`` element.
+macros using RD's ``macDef`` element; this could look like this::
+
+  <resource schema="foo">
+    <macDef name="bands">U B V R</macDef>
+    <table id="mags">
+      <LOOP listItems="\bands">
+        <events>
+          <column name="mag\item"/>
+        </events>
+      </LOOP>
+    </table>
+    <rowmaker id="build_mags">
+      <LOOP listItems="\bands"/>
+        <events>
+          <map dest="mag\item">parseFromString(MAG_\item)</map>
+        </events>
+      </LOOP>
+    </rowmaker>
+  ....
+  </resource>
+
+Frequently, the loop variable should not just take on a single string.
+For such cases you can feed in tuples.  The most convenient way to do
+this is ``csvItems``.  The content of this element is a string literal
+containing comma separated values *with labels*, i.e., parsable with
+python's csv.DictReader.  In your events, you can then refer to the
+labeled items using macros.  For example::
+
+  <resource schema="foo">
+    <macDef name="bands">
+      band,source
+      U 10-12
+      V 13-16
+    </macDef>
+    <table id="mags">
+      <LOOP csvItems="\bands">
+        <column name="mag\band"/>
+      </LOOP>
+    </table>
+    <data id="import_mags">
+      <columnGrammar>
+        <LOOP csvItems="\bands">
+          <col key="mag\band">\source</col>
+        </LOOP>
+      </columnGrammar>
+      <make table="mags"/>
+    </data>
+  </resource>
 
 
 Running the DC Server
