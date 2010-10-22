@@ -1166,6 +1166,45 @@ in ICRS.
 .. _STC library documentation: ./stc.html
 .. _STC-S Note: http://www.ivoa.net/Documents/Notes/STC-S/
 
+
+Active Tags
+===========
+
+Active "tags" delemit elements within resource descriptor XML that 
+do not directly contribute to result tree.  Their typical use is to
+"record" event sequences and replay them later.  Much of this is used
+internally.  However, some applications of active tags are interesting
+for RD writers, too.  Active tags always have names in all upper-case.
+
+
+LOOP
+----
+
+Loop lets you create multiple elements by rules.  The simplest ways to
+use it is by giving a space-separated list of "items"::
+
+  <LOOP listItems="a b c">
+    <events>
+      <column name="\item"/>
+    </events>
+  </LOOP>
+
+The ``events`` child of the ``LOOP`` element creates a list of events
+(think "begin column element", "value for name attribute", "end column
+element").  These events are then replayed to the parser for each item
+in the LOOP's ``listItems`` attribute.  Each occurrence of the
+``\\item`` macro is replaced with the current item.  So, in the
+resulting RD tree, the fragment above will have the same result as::
+
+  <column name="a"/>
+  <column name="b"/>
+  <column name="c"/>
+
+Sometimes the list items are used in multiple places in the same
+document.  To avoid having to maintain multiple lists, you can define
+macros using RD's ``macDef`` element.
+
+
 Running the DC Server
 =====================
 
