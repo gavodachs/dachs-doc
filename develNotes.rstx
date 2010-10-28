@@ -416,3 +416,115 @@ use rscdef.getGrammar with the name of the grammar you want.  If you
 define a new grammar, add a line in
 rscdef.builtingrammars.grammarRegistry.  To inspect what grammars are
 available, consult the keys from rscdef.grammarRegistry.
+
+
+Procedures
+==========
+
+To embed actual (python) code into RDs, you should use the
+infrastructure given in rscdef.procdef.  It basically leads up to
+``ProcApp``, which is what's usually embedded in RDs.
+
+``ProcApp`` inherits from ``ProcDef``, a procedure definition.  Such a
+definition gives some (python) code that is executed when the procedure
+is applied.  To set up the execution environment of this code, there's
+the definition's setup child.   
+
+The setup contains code and parameters.  The code is executed to set up
+the namespace that the procedure will run in; it is thus executed once
+-- at construction -- per procedure.  The parameters allow
+configuration of the procedure.  This is the place to do relatively
+expensive operations like I/O or imports.  
+
+For example, ``//procs#resolveObject`` creates the resolver in its
+setup code; this happens only once per creation of the embedding RD::
+
+  <procDef type="apply" id="resolveObject">
+    <setup>
+      <par key="ignoreUnknowns">True</par>
+      <par key="identifier" late="True"/>
+      <code>
+        from gavo.protocols import simbadinterface
+        resolver = simbadinterface.Sesame(saveNew=True)
+      </code>
+    </setup>
+    <doc>...</doc>
+   	<code>
+      ra, dec = None, None
+      try:
+        ra, dec = resolver.getPositionFor(identifier)
+      except KeyError:
+        if not ignoreUnknowns:
+          raise base.Error("resolveObject could not resolve object"
+            " %s."%identifier)
+      vars["simbadAlpha"] = ra
+      vars["simbadDelta"] = dec
+    </code>
+  </procDef>
+
+
+The setup definition introduced two parameters.  One is ignoreUnknowns,
+which is "immediate" and just lets the code see a name ignoreUnknowns.
+As with all ``par``s, the content of the element is a python expression
+providing a default.
+
+The other parameter, identifier, is a "late" identifier.  This means
+that it is evaluated on each application of the procedure, much like a
+function argument.  These are just translated into assignments at the
+top of the function body, which means that for rowmaker procedures 
+(i.e., type="apply"), you can access ``vars`` here.
+
+Taken together, late and immediate ``par``s should allow for all kinds
+of configuration of procedures.  This is particularly convenient
+together with macros.
+
+To actually execute the code, you need some kind of procedure
+application.  These always inherit from procdef.ProcApp and add
+bindings.  The ``bind`` element lets you give python expressions for all
+names defined using ``par`` in the ``setup`` child of the ``ProcDef``
+given in the ``procDef`` attribute.  You can also define just a
+procedure application without a procDef by giving ``setup`` and ``code``.
+
+Procedure application have "types" -- these give where they can be used.
+In particular, the type determines the signature of the python callable
+that the procedure application is compiled into.  ``procdef.ProcApp``
+has no type, and thus is "abstract"; it should never a child factory of
+any ``StructAttribute``.
+
+Instead, inherit from it and give
+
+* ``name_`` -- the element name, as always in structures.  This is
+  "apply" for rowmaker applys, "rowfilter" for grammar rowfilters, etc
+* ``formalArgs`` -- a python argument list that gives the arguments
+  of the callable a ProcApp of this type is compiled into.  Thus,
+  this defines the signature.
+* ``requiredType`` -- a type name that specifies what kind of ProcDef
+  the application will accept.  This will in general be the same as
+  ``name_``.  None would mean accept all, so that's a safe setting, too,
+  but the whole thing is not used right now.
+
+
+So, all you need to do to define a new sort of ProcApp is write
+something like::
+
+  class EmbeddedIterator(rscdef.ProcApp):
+    name_ = "iterator"
+    formalArgs = "self"
+
+(of course, here, documentation as to what the code is supposed to do is
+particularly important, so don't leave out the docstring when actually
+doing anything.
+
+Then, you could have::
+
+ 	_iterator = base.StructAttribute("iterator", default=base.Undefined,
+		childFactory=EmbeddedIterator,
+		description="Code yielding row dictionaries", copyable=True)
+
+in some structure.  To produce something you can execute, then say::
+
+  theIterator = self.iterator.compile()
+  for row in theIterator(self):
+    print row
+
+or somesuch.
