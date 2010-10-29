@@ -609,7 +609,7 @@ applications.  Let's look at a data element for this table::
 			<sourceFields procDef="insertFieldKey"/>
 				<map src="PI-COI">PI_COI</map>
 			</mapKeys>
-			<rowfilter predefined="defineProduct">
+			<rowfilter predefined="//products#define">
 				<bind key="table">"cars.images"</bind>
 			</rowfilter>
 		</fitsProdGrammar>
@@ -644,7 +644,7 @@ So, step-by-step:
   default behaviour.  You may need other (non-automatic) name mappings,
   though, which would work analoguously.
 * The grammar further needs a rowfilter.  These are procedure
-  applications working on rawdicts.  The defineProduct rowfilter
+  applications working on rawdicts.  The //products#define rowfilter
   lets  you add keys on owners and embargo in case you want password
   protection for images, but most importantly it defines what table the
   data is destined for.  This is crucial information, and if you ever
