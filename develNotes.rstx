@@ -528,3 +528,13 @@ in some structure.  To produce something you can execute, then say::
     print row
 
 or somesuch.
+
+
+Random Stuff
+============
+
+Sometimes it's nice to see what gets imported when.  Futzing with PEP
+302-style import hooks is a pain, and indeed a simple shell line
+produces more useful output than naive hooks::
+
+  strace gavo imp -h 2>&1 | grep 'open' | grep -v ENOENT | grep -v "pyc" | sed -e 's/.*"\(.*\)".*/\1/'
