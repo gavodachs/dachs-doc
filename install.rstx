@@ -309,6 +309,7 @@ So, in this sequence, run::
   gavo imp --system //dc_tables
   gavo imp --system //services
   gavo imp --system //users
+  gavo imp --system //tap
   gavo imp --system //products
 
 Output of the type ``Columns affected: 0`` is ok for these commands.
