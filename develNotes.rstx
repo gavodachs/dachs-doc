@@ -531,6 +531,16 @@ in some structure.  To produce something you can execute, then say::
 or somesuch.
 
 
+Implementing Protocols
+======================
+
+TBD
+
+You should add the protocol mixin(s) in user.docgen.PUBLIC_MIXINS so
+they get included in the documentation; likewise if you need apply
+and/or rowfilters, amend PUBLIC_APPLYS or PUBLIC_ROWFILTERS.
+
+
 Random Stuff
 ============
 

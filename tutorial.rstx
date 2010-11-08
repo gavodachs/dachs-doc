@@ -505,6 +505,17 @@ like this::
 There also is a recurse boolean attribute you can use when your sources
 are distributed over subdirectories of the path part of the pattern.
 
+The second new element is ``make``.  It ties together a destination
+table an the rowmaker using id references.  You may want to define the
+rowmaker as a direct child of make, which saves you some referencing.
+
+Though make looks quite inoccuous here, it is the element that drives
+the action.  You can have multiple make elements in a single data
+element to build multiple tables (using different row makers) from the
+same grammar output.
+
+Makes can also carry scripts in SQL or python.  For details, see
+`Scripting <./ref.html#scripting>`_.
 
 
 Indices and Mixins
@@ -545,6 +556,14 @@ So, all you need to do to have a spatial index on the table is::
 This is UCD magic at work -- q3cindex selects the columns with
 pos.eq.*;meta.main as index columns.  If you are curious how it does
 this, check scs.rd in the system RD directory.
+
+Mixins actually do much more than just help with indexing.  Their main
+purpose is the definition of interfaces that can be relied upon.  For
+example, an image table must have a certain structure determined by
+the SIA protocol.  The mixins ``//siap#pgs`` and ``//siap#bbox`` make
+sure that tables have this structure, and they make sure that the table
+containing information on all the files in the data center is updated
+when the table is filled.
 
 
 Starting the Ingestion
