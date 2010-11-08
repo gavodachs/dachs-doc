@@ -30,8 +30,9 @@ factoring out libraries).
 * There is a hierarchy of subpackages, where subpackages lower in the
   hierarchy may not import anything from the higher or equal levels, but 
   only from lower levels.  This hierarchy currently looks like this:
-  imp [<] utils < stc < (votable, adql) < base < rscdef < grammars < rsc < svcs <
-  registry < protocols < web < rscdesc < (helpers, user)
+  imp [<] utils < stc < (votable, adql) < base < rscdef < grammars 
+   < formats < rsc < svcs < registry < protocols < web < rscdesc 
+   < (helpers, user)
   utils should never assume anything from imp is present, i.e., it may
   *attempt* to import from there, but it should not fail hard if the
   import doesn't work.  Of course, concrete functions (e.g., from
