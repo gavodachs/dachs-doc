@@ -44,11 +44,7 @@ Here is an example checking whether the sizes of files match what an
     procmain(SizeChecker, "potsdam/q", "import")
 
 
-Do not forget the "from gavo import api" in this kind of script.  It
-makes sure all protocols you may use in your RDs are loaded when the RD
-is loaded.
-
-More interesting is procmain.  It arranges for the command line to be
+The call to ``procmain`` arranges for the command line to be
 parsed and expects, in addition to the processor *class*, an id for 
 the resource descriptor for the data it should process, and the id of
 the data descriptor that ingests the files.
