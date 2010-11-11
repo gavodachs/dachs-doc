@@ -1242,6 +1242,8 @@ macros using RD's ``macDef`` element; this could look like this::
   ....
   </resource>
 
+Note that macro names must be at least two characters long.
+
 Frequently, the loop variable should not just take on a single string.
 For such cases you can feed in tuples.  The most convenient way to do
 this is ``csvItems``.  The content of this element is a string literal
