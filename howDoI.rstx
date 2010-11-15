@@ -277,3 +277,30 @@ do what's intended above is::
   <data id="makeView" auto="False">
     <make table="b"/>
   </data>
+
+
+...fix duplicate values?
+------------------------
+
+There are many reasons why you could violate the uniqueness constraints on
+primary keys, but let's say you just got a message saying::
+
+  Primary key <whatever> could not be added ('could not create unique 
+  index "data_pkey" DETAIL:  Table contains duplicated values.)'
+
+The question at this point is: What are the duplicated values?  For a
+variety of reasons, DaCHS only applies constraints only after inserting
+all the data, so the error will occur at the end of the input.  Not even
+the ``-b1`` trick will help you here.
+
+Instead, temporarily remove the primary key condition from the RD and
+import your data.
+
+Then, exececute a query like::
+
+  select * 
+  from (
+    select <primary-col>, count(*) as ct 
+    from <your-table>
+    group by <primary-col>) as q 
+  where ct>1;

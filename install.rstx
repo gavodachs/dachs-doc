@@ -207,12 +207,12 @@ On Debian systems dedicated for GAVO DaCHS, you can try the following:
 (#) Create the new cluster used by DaCHS::
 
       sudo pg_createcluster -d /<path-to-where-your-db-should-reside> \
-        --locale=en_US.UTF-8 -e UNICODE\
+        --locale=C -e UNICODE\
         --lc-collate=C --lc-ctype=C $PGVERSION pgdata
 
-    The locale is not terribly important, and you may need to adapt the
-    names.  You should use a locale with utf-8 (or some other unicode)
-    encoding, though.  The database stores descriptions and similar
+    The locale should currently be C, because only the C locale will
+    allow you databases with all kinds of encodings.
+    The database stores descriptions and similar
     entities, and you may encounter funny characters in there.  It would
     be a shame if you couldn't store them (plus, you would get funny
     error messages for those).
