@@ -321,7 +321,7 @@ Basically a row maker consists of
 * maps -- rowdict definition.
 
 When building a rowdict for ingestion into the database, a rowmaker first
-binds var names, then applies procedures and finally runs the mappings.
+binds var names, then applies procedures and finally performs the mappings.
 
 For simple cases, maps will suffice; you may actually even be able to do
 without them.  Maps must specify a dest attribute giving the rowdict key
@@ -334,6 +334,12 @@ that is defined.  To specify the value, the can
 * or give a python expression in the character content, the value of
   which is then directly used as value for dest.  No implicit
   conversions are performed.
+
+In python expressions, you can access the data handed over by the
+grammar as ``vars["key"]``; equivalently, you can use the abbreviation
+``@key``.  This notion is supported throughout rowmakers where
+applicable; e.g., you can use it in late bindings of procedure
+applications.
 
 In the case above, you could start by saying::
 
@@ -382,29 +388,26 @@ the input data.  We need to compute them.
 To facilitate computations, we first turn the bounds to floats; this can
 be done using vars::
 
-  <var name="raMin">float(raMin)</var>
-  <var name="raMax">float(raMax)</var>
-  <var name="decMin">float(decMin)</var>
-  <var name="decMax">float(decMax)</var>
+  <var name="raMin">float(@raMin)</var>
+  <var name="raMax">float(@raMax)</var>
+  <var name="decMin">float(@decMin)</var>
+  <var name="decMax">float(@decMax)</var>
 
 No shortcut is available here, since this is a relatively rare thing.
 You could use procDef/apply to save on keystrokes if you find yourself
-having to do such simple conversions more frequently.
-
-As you can see, var elements have a name attribute that gives the name
-in the rawdict the value is to be bound to.  Their character content is
-a python expression in which you can access the rawdict values by their
-names.
+having to do such simple conversions more frequently.  Note the
+@-notation.  As mentioned above, you could equivalently have written
+``vars["raMin"]``.  Both spellings evaluate to the value of the given
+name in the rawdict coming from the grammar.
 
 The remaining computations can be performed in mappings::
 
-  <map dest="centerAlpha">(raMin+raMax)/2.</map>
-  <map dest="centerDelta">(decMin+decMax)/2.</map>
-  <map dest="bbox">coords.Box((raMin, decMin),
-    (raMax, decMax))</map>
+  <map dest="centerAlpha">(@raMin+@raMax)/2.</map>
+  <map dest="centerDelta">(@decMin+@decMax)/2.</map>
+  <map dest="bbox">coords.Box((@raMin, @decMin),
+    (@raMax, @decMax))</map>
 
-As in vars, the rawdict values can be accessed by their keys in the
-mapping expressions.  coords.Box is the internal type for SQL Box
+``coords.Box`` is the internal type for SQL Box
 values; you will not usually see those.  Still, you can access basically
 the whole DC code in this mapping.  At some point we will define an API
 of "safe operations" that you can use without having to fear changes in
@@ -412,6 +415,43 @@ the DC code.
 
 `Some functions useful for such mappings <./ref.html#functions-available-for-row-makers>`_
 are listed in the reference manual.
+
+Of course, you can have values that do not even depend on grammar
+output::
+
+  <map dest="dateIngested">datetime.datetime.now()</map>
+
+Null values are always troublesome.  Within DaCHS, the null value
+(almost) always is python's None.  There is the rowmaker function
+``parseWithNull`` to help you come up with those; say, some joker used
+99.99 as a null value for a magnitude, you could say::
+  
+  <map dest="Vmag">parseWithNull(@VmagSrc, float, "99.99")</map>
+
+If you need to scale this (or if null values are chosen that they are
+invalid literals to begin with), a feature that lets you null out a
+value when an specific type of exception is raised comes in handy.
+This is map's ``nulExcs`` attribute, which is just a comma separated list of
+exceptions that should be caught and interpreted as "this is null".  If,
+in the example above, the source would give the magnitude in millimags
+to save a comma, you could use::
+
+  <map dest="Vmag" nullExcs="TypeError"
+    >parseWithNull(@VmagSrc, float, "99999")/1000.</map>
+
+If parseWithNull here returns None, a TypeError will be raised and caught,
+and Vmag will be None.
+
+You can turn more than one exception into None.  For example example, if
+both magicOffset has been parsed before and could be None, while
+magicLit is to be parsed and has the empty string as a Null literal, you
+could write::
+
+  <map dest="magic" nullExcs="ValueError,TypeError"
+    >@magicOffset+float(@magicLit)</map>
+
+If magicOffset is None, magic will be None via the TypeError, whereas
+empty magicLits will result in Nones via a ValueError.
 
 
 Data elements
