@@ -135,3 +135,23 @@ connection (and thus transaction) via::
 its make elements.
 
 
+
+'prodtblAccref' not found in a mapping
+======================================
+
+You get this error message when you make a table that mixes in
+//products#table (possibly indirectly, e.g., via SSAP or SIAP mixins)
+with a grammar that does not use the //products#define row filter.
+
+So, within the grammar, say (at least, see the reference documentation
+for other parameters for rowgen)::
+
+	<rowfilter procDef="//products#define">
+		<bind name="table">\schema.table</bind>
+	</rowfilter>
+
+-- substituting dest.table with the actual name of the table fed.  The
+reason why you need to manually give the table is that the grammar
+doesn't now what table the rows generated end up in.  On the other hand,
+the information needs to be added in the grammar, since it is fed both
+to your table and the system-wide products table.
