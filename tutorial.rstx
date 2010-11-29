@@ -1344,4 +1344,5 @@ Note that right now, if your RD is invalid, any services on it will stop
 working on a reload.
 
 
+
 .. _`Resource Metadata for the Virtual Observatory`: http://www.ivoa.net/Documents/latest/RM.html
