@@ -298,7 +298,7 @@ Astrometry.net
 Calibration using Astrometry.net
 ''''''''''''''''''''''''''''''''
 
-If you have uncalibrated optical images, you can try to
+If you have uncalibrated (optical) images, you can try to
 automatically calibrate them using astrometry.net.  The DC software
 comes with an interface to it in helpers.anet, and the file processing
 infrastructure is what you want to use here.
@@ -307,12 +307,10 @@ You probably want to inherit from AnetHeaderProcessor, more or less like
 this::
 
   class MyProcessor(helpers.AnetHeaderProcessor):
-    solverParameters = {
-      "indices": ["index-208.fits"],
-      "lower_pix": 0.1,
-      "upper_pix": 0.2,
-      "endob": 50,
-     }
+    sp_indices = ["index-208.fits"],
+    sp_lower_pix = 0.1
+    sp_upper_pix = 0.2
+    sp_endob = 50
 
     def _getHeader(self, srcName):
       hdr = helpers.AnetHeaderProcessor._getHeader(self, srcName)
@@ -321,29 +319,32 @@ this::
       return hdr
 
 
-See helpers.anet for an explanation of what you can do with solver
-parameters.  endob is important because it instructs anet to give up
-when no identification has been possible within the first endob objects.
-It keeps the solver from wasting enormous amounts of time on potentially
-thousands of spurious detections, e.g., on photographic plates.
+The class attributes starting with ``sp\_`` are parameters for the solver.
+The `anet module docstring`_ explains what is available.  The endob
+parameter is important on larger images because it instructs anet to
+give up when no identification has been possible within the first endob
+objects.  It keeps the solver from wasting enormous amounts of time on
+potentially thousands of spurious detections, e.g., on photographic
+plates.
 
-If you want to use SExtractor for source extraction, add a sexScript
-class attribute.  An example could be::
+The call to ``_getHeader`` illustrates how to modify the default
+behaviour (which is to just add the WCS headers if they are available).
 
-  sexScript = """CATALOG_TYPE     FITS_1.0
-    CATALOG_NAME     out.xyls
-    PARAMETERS_NAME  xylist.param
-    DETECT_TYPE      CCD
+If you want to use SExtractor for source extraction, add a sexControl
+class attribute.  If it is empty, extraction will be done using some
+default parameters.  You can add more (refer to the sextractor manual)::
+
+  sexScript = """
     DETECT_MINAREA   100
     DETECT_THRESH    8
     SEEING_FWHM      1.2
-    #VERBOSE_TYPE     QUIET
     """
 
 -- do not change CATALOG_TYPE, CATALOG_NAME, and PARAMETERS_NAME.
 
-If you want to postprocess the output of the source extraction, define
-an objectFilter method, maybe like this::
+You can even filter what sextractor has obtained.  To do that, define
+and ``objectFilter`` method (in addition to the ``sexControl``
+attribute)::
 
   from gavo.utils import pyfits
   ...
@@ -367,25 +368,31 @@ an objectFilter method, maybe like this::
     hdulist.close()
     os.rename("foo.xyls", inName)
 
-Note that we take pyfits from gavo.utils.  You should never import
-pyfits directly, since this may pull in the numpy version of pyfits,
-which is incompatible with what the rest of the DC software expects.
+Just make sure to rename the result you come up with to whatever is
+passed in in ``inName``.
+
+Note, incidentally, that we take pyfits from gavo.utils.  You should
+never import pyfits directly, since this may pull in the numpy version
+of pyfits, which is incompatible with what the rest of the DC software
+expects.
 
 If you need more control over the parameters of astrometry.net, override
 the _runAnet method.  Its default implementation is::
 
-	def _runAnet(self, srcName, solverParameters, sexScript, objectFilter):
-		return anet.getWCSFieldsFor(srcName, solverParameters,
-			sexScript, objectFilter, self.opts.copyTo)
+	def _runAnet(self, srcName):
+ 		return anet.getWCSFieldsFor(srcName, self.solverParameters,
+			self.sexControl, self.objectFilter, self.opts.copyTo,
+			self.opts.beVerbose)
 
-So, if your sexScript had a line ``DETECT_MINAREA %d``, you could do
-something like::
 
-  def _runAnet(self, srcName, solverParameters, sexScript, objectFilter):
+So, if you had an attribute ``sexControl_in`` containing
+``DETECT_MINAREA %d``, you could do something like::
+
+  def _runAnet(self, srcName):
     for minArea in [300, 50, 150, 800, 2000, 8000]:
       try:
-        res = AnetHeaderProcessor._runAnet(self, srcName, 
-          solverParameters, sexScript%minArea, objectFilter)
+        self.sexControl = self.sexControl_in%minArea
+        res = AnetHeaderProcessor._runAnet(self, srcName)
         if res is not None:
           return res
       except ShellCommandFailed:  # Ignore failures
@@ -420,29 +427,28 @@ The header returned by ``_mungeHeader`` will be joined with the WCS
 header in ``_getHeader``; you will in general not want to override the
 latter.
 
+.. _anet module docstring: apidoc/gavo.helpers.anet-module.html
+
 Analyzing calibration failures
 ''''''''''''''''''''''''''''''
+
+*This isn't all up to date.*  The sextractor call now looks different,
+and we probably need verbose operation for the commands to manually see
+what's going on.
 
 If astrometry.net fails to solve fields, you can get a copy of the
 "sandbox" in which the helpers.anet runs the the software by passing
 your processing script the --copy-to=path option. Caution: If
-the directory path already exists, it will be removed.
+the directory path already exists, it will be deleted.
 
 If you run your processor with --bail, it will stop at the first
-non-solvable field.  Going to anetcheck, you will find:
+non-solvable field.  Going to anetcheck, you will find at least:
 
  * in.fits -- a copy of the input file
  * out.xyls -- the extracted source positions in a binary FITS table
  * out.log -- the solver log
- * blind.control -- the control file for the blind solver.
 
 To figure out what's wrong, a look into out.log might help.
-
-You can also change blind.control and re-run the solver using
-
-::
-
-  $ANET_PATH/blind < blind.control
 
 To rerun SExtractor, say::
 

@@ -24,10 +24,12 @@ LATEXOPTS=--documentoptions=11pt,a4paper --stylesheet stylesheet.tex
 %.tex: %.rstx
 	rst2latex $(LATEXOPTS) $< > $@
 
-.PHONY: ref.rstx
+.PHONY: ref.rstx apidoc-stamp
 ref.rstx:
 	gavo gendoc > ref.rstx
 
+# Since building apidoc takes forever, you need to manually trigger it
+# using make apidoc-stamp
 apidoc-stamp:
 	touch apidoc-stamp
 
@@ -35,11 +37,10 @@ apidoc: gavo-epydoc.conf apidoc-stamp
 	rm -rf apidoc
 	epydoc -v --config gavo-epydoc.conf
 
-# since building the apidoc takes forever, it's not a dependency for install.
-# It is assumed people will build it now and then (touch gavo-epydoc.conf).
-install: $(HTML_FILES) $(ALL_PDF)
+install: $(HTML_FILES) $(ALL_PDF) apidoc
 	rsync -av *.css $(HTML_FILES) $(ALL_PDF) $(RST_SOURCES) apidoc $(HTMLTARGET) 
 
 clean:
 	rm -f $(ALL_HTML)
 	rm -f *.log *.aux *.out *.pdf
+	rm -f apidoc-stamp
