@@ -1314,6 +1314,57 @@ labeled items using macros.  For example::
 
 TODO: EDIT actives?
 
+
+Publishing DAL Services
+=======================
+
+DAL is VO-speak for "Data Access Layer", the standard protocols the VO
+uses to allow remote querying of data.  To support such a protocol, you
+usually need to arrange things in three places:
+
+* The table queried needs a certain set of columns
+* The core must support certain input and output fields
+* The renderer must exhibit specified behaviour as regards, e.g., the
+  formatting of error messages, and it may require protocol-specific
+  metadata
+
+This section discusses the individual protocols in turn.
+
+
+SIAP
+----
+
+DaCHS' SIAP implemention right now assumes you are publishing FITS files
+with WCS headers.  Other arrangements are of course possible, but you'd
+have to write your own computeXXX procDef.
+
+
+Tables
+''''''
+
+SIAP-capable tables should mix in ``//siap#pgs`` (the older
+``//siap#bbox`` is deprecated; you could still use it if for some reason
+you have no pgSphere).
+
+When building them, use the ``//siap#computePGS`` and ``//siap#setMeta``
+applys.  Since SIAP tables contain products, you also need the
+``//products#describe`` row filter in the input grammar (which, of
+course, needs to be a fitsProdGrammar.
+
+
+Cores
+'''''
+
+TBD.
+
+
+Service
+'''''''
+
+TBD.
+
+
+
 Running the DC Server
 =====================
 
