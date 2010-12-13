@@ -1395,5 +1395,51 @@ Note that right now, if your RD is invalid, any services on it will stop
 working on a reload.
 
 
+The Vanity Map
+--------------
+
+DaCHS' URL scheme leads to somewhat clunky URLs that, in particular,
+reflect the file system underneath.  While this doesn't matter to the VO
+registry, it is possibly unwelcome when publishing URLs outside of the
+VO.  To overcome it, you can define "vanity names", single path elements
+that are mapped to paths.
+
+These mappings are read from the file ``GAVO_ROOT/etc/vanitymap.txt``.
+The file contains lines of the format::
+
+		<target> <key> [<option>]
+
+Target is a path that must *not* include nevowRoot and must *not* start
+with a slash (unless you're going for special effects).
+
+Key is a single path element (i.e., a string without a slash).  If this
+path element is found in the first segment, it is replaced with the
+segments in target.
+
+<option> can only be ``!redirect`` or empty right now.  If it is
+``!redirect``, target is interpreted as a server-relative URI, and a
+redirect to it is generated, but only if only one or two segments are in
+the original query.  You can use this to create shortcuts with the
+resource dir names, which create endless loops with standard vanity
+maps.  It's an ugly hack, and you really shouldn't use it; make up
+non-conflicting vanity names instead.
+
+Empty lines and #-on-a-line-comments are allowed in the input.
+
+As an example, here's the vanity map that DaCHS had builtin as of 
+version 0.6::
+
+	__system__/products/p/get getproduct
+	__system__/services/registry/pubreg.xml oai.xml
+	__system__/services/overview/external odoc
+	__system__/dc_tables/show/tablenote tablenote
+	__system__/dc_tables/show/tableinfo tableinfo
+	__system__/adql/query/form adql !redirect
+	__system__/services/overview/admin seffe
+	__system__/tap/run/tap tap
+
+Note again that ``<key>`` must be a *single* path element only. 
+
+
 
 .. _`Resource Metadata for the Virtual Observatory`: http://www.ivoa.net/Documents/latest/RM.html
