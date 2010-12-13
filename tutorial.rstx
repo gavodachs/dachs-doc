@@ -1410,19 +1410,27 @@ The file contains lines of the format::
 		<target> <key> [<option>]
 
 Target is a path that must *not* include nevowRoot and must *not* start
-with a slash (unless you're going for special effects).
+with a slash (unless you're going for very special effects).
 
-Key is a single path element (i.e., a string without a slash).  If this
-path element is found in the first segment, it is replaced with the
-segments in target.
+Key normally is a single path element (i.e., a string without a slash).
+If this path element is found in the first segment, it is replaced with
+the segments in target.
 
-<option> can only be ``!redirect`` or empty right now.  If it is
-``!redirect``, target is interpreted as a server-relative URI, and a
-redirect to it is generated, but only if only one or two segments are in
-the original query.  You can use this to create shortcuts with the
-resource dir names, which create endless loops with standard vanity
-maps.  It's an ugly hack, and you really shouldn't use it; make up
-non-conflicting vanity names instead.
+<option> can only be ``!redirect`` or empty right now.  
+
+If it is ``!redirect``, ``<key>`` may be a path fragment (as opposed to
+a single path element); leading and trailing slashes are ignored.  If
+the *enire* query path matches this key, a redirect to this key is
+generated.  This is intended to let you shut down services and introduce
+replacements.  If the incoming URL contains a query, it will be appended
+to the replacement URL.  Thus, even stored queries or forms can
+potentially work across such a redirect.
+
+You can also (ab)use the redirect option to give vanity names, but since
+the target will show up in the browser address line, normal maps are
+highly preferred.  The only time normal maps don't work for this is when
+the resource directory is identical to the vanity name (you'll get an
+endless loop then), so you should avoid that situation.
 
 Empty lines and #-on-a-line-comments are allowed in the input.
 
@@ -1434,9 +1442,10 @@ version 0.6::
 	__system__/services/overview/external odoc
 	__system__/dc_tables/show/tablenote tablenote
 	__system__/dc_tables/show/tableinfo tableinfo
-	__system__/adql/query/form adql !redirect
 	__system__/services/overview/admin seffe
 	__system__/tap/run/tap tap
+	__system__/adql/query/form adql !redirect
+
 
 Note again that ``<key>`` must be a *single* path element only. 
 
