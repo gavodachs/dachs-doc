@@ -1357,6 +1357,9 @@ Cores
 
 TBD.
 
+For the SIAP cutout core, the SIAP human condDesc must have ``required``
+True, since the core will retrieve the default cutout size from the field
+size.  The SIAP protocol condDesc is required anyway.
 
 Service
 '''''''

@@ -34,9 +34,9 @@ an appropriate place.  Usually, this will be a sourceFields element,
 like this::
 
   <reGrammar>
-		<sourceFields>
-			<code>
-				if len(sourceToken)>22:
+    <sourceFields>
+      <code>
+        if len(sourceToken)>22:
           raise base.SkipThis("%s skipped since I didn't like the name"%
             sourceToken)
        </code>
@@ -62,8 +62,8 @@ Use a service input key with a Hidden widget factory and a default::
 
 Use a widgetFactory, like this::
 
-		<inputKey original="adqlInput.query"
-				widgetFactory="widgetFactory(ScalingTextArea, rows=15)"/>
+    <inputKey original="adqlInput.query"
+        widgetFactory="widgetFactory(ScalingTextArea, rows=15)"/>
 
 
 
@@ -304,3 +304,39 @@ Then, exececute a query like::
     from <your-table>
     group by <primary-col>) as q 
   where ct>1;
+
+
+...define an input field doing google-type full text searches?
+--------------------------------------------------------------
+
+Since version 8.3 (or so), postgres supports query modes inspired by
+information retrieval on text columns -- basically, you enter a couple
+of terms, and postgres matches all strings containing them.
+
+Within DaCHS, this is currently only supported using custom phrase
+makers.  This would look like this:
+
+  <condDesc>
+    <inputKey name="columnwords" 
+      description="Terms in column description (case does not 
+        matter, patterns not allowed)"
+      type="text" tablehead="Column words"/>
+    <phraseMaker>
+      <code>
+        yield ("to_tsvector('english', description)"
+          " @@ plainto_tsquery('english', %%(%s)s)"%(
+          base.getSQLKey("columnwords", inPars["columnwords"], outPars))
+      </code>
+    </phraseMaker>
+  </condDesc>
+
+-- here, ``description`` is the column containing the strings, and the
+``'english'`` in the function arguments gives the language according
+to which the strings should be interpreted.
+
+You may want to create an index supporting this type of query on the
+respective columns, too.  To do that, say::
+
+  <index columns="bibref" method="gin">
+    to_tsvector('english', bibref)</index>
+
