@@ -314,7 +314,7 @@ information retrieval on text columns -- basically, you enter a couple
 of terms, and postgres matches all strings containing them.
 
 Within DaCHS, this is currently only supported using custom phrase
-makers.  This would look like this:
+makers.  This would look like this::
 
   <condDesc>
     <inputKey name="columnwords" 
