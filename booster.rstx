@@ -56,23 +56,18 @@ To write a booster, first define the table.  You can already specify the
 ``DirectGrammar`` as noted above.  
 
 Then call ``gavo mkboost`` with the id or the
-path to the resource descriptor and the id of the table, e.g.
-
-::
+path to the resource descriptor and the id of the table, e.g.::
 
   cd res
   gavo mkboost ../q.rd main > boosterfunc.c
 
-This will write template code for a column-based source to
-``booster.c``.  See above on what to do when your source has a different
-format.
+This will write template code for a column-based source to stdout.
+See above on what to do when your source has a different format.
 
 Place the template code anywhere (use the convention of putting it in
 res/boosterfunc.c unless you have a good reason to do otherwise).
 
-The template code starts somewhat like this:
-
-::
+The template code starts somewhat like this::
 
   #include <math.h>
   #include <string.h>
@@ -90,11 +85,11 @@ You can add includes as you need them.  The definition of QUERY_N_PARS
 be edited or removed, since the function building the booster greps it out of
 the source code to communicate this value to the booster boilerplate.
 
-Then the code contains an enumeration of the field indices; the names are
+The code continues with an enumeration of the field indices; the names are
 simple fi\_ and the field destination lowercased.  If you only use these
 names to access fields, the cut'n'paste effort if the table should later
-change should be manageable and you can hack your code directly into the
-generated code.
+change should be manageable and you can add your code directly in the
+mkboost-generated source.
 
 While you shouldn't need to change any of this, you have to change the
 function that follows::
@@ -110,7 +105,7 @@ function that follows::
 
 Here, it's your job to assign the proper values to the ``Field``
 elements of ``vals``.  The template adds parseXXX function calls that
-will to in the simplest cases, except you need to fill in ``start`` (the
+will do in the simplest cases, except you need to fill in ``start`` (the
 character index of the start of the value in C-convention, i.e.,
 the first character has index 0) and ``len``, the length of the field
 in characters.
@@ -168,7 +163,8 @@ in particular when parsing column-structured text files:
   field.
 * ``void parseChar(char *src, Field *field, int srcInd)`` -- guess.
 
-XXX TODO: document fieldscanf.
+Of course, you can also manually copy or delimit data and use fieldscanf
+as documented in `Boosters reading from separated data`_.
 
 
 Boosters reading from binary data
@@ -191,8 +187,23 @@ following macros:
 Boosters reading from seperated data
 ------------------------------------
 
-When your data comes in irregular fields split by a certain character,
-TBD.
+When the input data comes as xSV (e.g., values separated by vertical
+bars or tabs), use ``gavo mkboost -s <splitter>``, e.g.::
+
+  gavo mkboost -s '\t' q.rd sources
+
+for Tab-separated values.  This creates a source like::
+
+ 	char *curCont = strtok(inputLine, "\t");
+	fieldscanf(curCont, fi_objid, VAL_INT_64);
+	curCont = strtok(NULL, "\t");
+	fieldscanf(curCont, fi_run, VAL_SHORT);
+
+etc.  Thus, the input line is parsed using strtok, and each value is
+parsed using the fieldscanf function.  This function takes the string
+containing the literal in the first argument, the field index in the
+second, and finally the type specifier.  If the data comes in the
+sequence of the table columns, the generated source *might* just work.
 
 
 Filling in data manually
@@ -234,6 +245,18 @@ Make sure you always properly cast what you read, e.g.,
 
 You can use the ``int<len>_t`` and ``uint<len>_t`` types defined by your
 compiler's (or library's) headers.
+
+
+Utility Functions
+'''''''''''''''''
+
+While you can, of cource, manipulate ``F(fi_X).value`` as you see fit,
+it may be convenient to use boosterskel utility functions:
+
+* ``linearTransform(fi, offset, factor)`` -- computes
+  factor*value+offset for floats, doubles, and ints.
+* ``AS2DEG(field)`` -- turns a field value in arcsecs to degrees
+* ``MAS2DEG(field)`` -- turns a field value in milli-arcsecs to degrees
 
 
 Dates and times
