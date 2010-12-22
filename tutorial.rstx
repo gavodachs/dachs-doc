@@ -1331,6 +1331,62 @@ usually need to arrange things in three places:
 This section discusses the individual protocols in turn.
 
 
+SCS
+---
+
+SCS, the simple cone search, is the simplest IVOA DAL protocol -- it
+is just HTTP with RA, DEC, and SR parameters plus a special way to
+encode errors (in a way somewhat different from what has been specified for
+later DAL protocols).
+
+Tables
+''''''
+
+In principle, SCS can expose any table that has a exactly one column each
+with the UCDs pos.eq.ra;meta.main and pos.eq.dec;meta.main.  The query
+is then ran against the position specified in this way.
+
+However, you almost always want to have a spatial index on these
+columns.  To do that, use the ``//scs#q3cindex`` mixin on the tables, like
+this::
+  
+  <table id="forSCS" onDisk="true" mixin="//scs#q3cindex">
+    ...
+
+
+Cores
+'''''
+
+The SCS core simply is a dbCore.  You must include the SCS condDesc,
+like this::
+
+	<dbCore queriedTable="main">
+		<condDesc original="//scs#protoInput"/>
+	</dbCore>
+
+There is an alternative condDesc more suitable for humans.  They can be
+used in parallel.  The form renderer will then use the human-oriented
+one, the DAL renderer the protocol one.  Thus, you will ususally write::
+
+	<dbCore id="xlcore" queriedTable="main">
+		<condDesc original="//scs#humanInput"/>
+		<condDesc original="//scs#protoInput"/>
+		<condDesc buildFrom="ipix"/>
+	</dbCore>
+
+The example also shows how to add custom query field.  If you want to
+add a larger number of them, you would use an active tag::
+
+	<dbCore id="xlcore" queriedTable="main">
+		<condDesc original="//scs#humanInput"/>
+		<condDesc original="//scs#protoInput"/>
+    <LOOP listItems="ipix bmag rmag jmag pmra pmde">
+      <events>
+    		<condDesc buildFrom="\item"/>
+      </events>
+    </LOOP>
+	</dbCore>
+
 SIAP
 ----
 
@@ -1424,6 +1480,14 @@ TIME           timeCond
 For APERTURE,  SNR, REDSHIFT, TARGETNAME, TARGETCLASS, PUBDID,
 CREATORDID, and MTIME, the condDesc id simply is ``<keyname>_cond``,
 e.g., ``APERTURE_cond``.
+
+
+To have custom parameters, simply add condDesc elements as usual::
+
+		<ssapCore queriedTable="newdata">
+			<FEED source="//ssap#hcd_condDescs"/>
+			<condDesc buildFrom="t_eff"/>
+    </ssapCore>
 
 
 Service

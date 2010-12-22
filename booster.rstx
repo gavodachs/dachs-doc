@@ -255,6 +255,8 @@ it may be convenient to use boosterskel utility functions:
 
 * ``linearTransform(fi, offset, factor)`` -- computes
   factor*value+offset for floats, doubles, and ints.
+* mjdToJYear(mjd) -- returns a julian year for mjd (for when you don't
+  want actual timestamps in your tables, which your shouldn't).
 * ``AS2DEG(field)`` -- turns a field value in arcsecs to degrees
 * ``MAS2DEG(field)`` -- turns a field value in milli-arcsecs to degrees
 
