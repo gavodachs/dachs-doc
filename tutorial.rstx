@@ -1496,6 +1496,71 @@ Service
 TBD.
 
 
+The Registry Interface
+======================
+
+The whole point of running VO-compliant services is to get them
+registred.  The registry is a distributed (i.e., there are several
+entities providing the data) system giving information on what services
+and other things ("resources") are on the VO.  To find out what
+resources you offer through your copy of DaCHS, the VO infrastructure
+will ask your system using a protocol calles OAI.  You will need to tell
+the RofR (Registry of Registries) where your registry is so it can start
+harvesting you, but *before* you do that, you have to provide quite
+a bit of information about you.
+
+This information is given in then file GAVO_ROOT/etc/defaultmeta.txt.
+It has a `simple format`_, basically, ``<key>: <value>``.  In it, you
+must give basic information for fallback of service meta:
+
+* publisher
+* contact.name
+* contact.address
+* contact.email
+* contact.telephone
+* creator.name
+* creator.logo
+
+If you want to register services, you must name them, i.e., assign IVOA
+identifier.  Since these identifiers must be globally unique, not
+everyone can use every name.
+
+An identifier within the VO roughly has the form::
+
+  ivo://<authority>/<stuff>
+
+-- stuff is defined by the DaCHS software (to be ``<RD id>/<XML id of
+registred object``), and authority is a globally unique string.  It is
+recommended that you use some mogrification of your DNS name, which will
+provide some uniqueness.  "Some mogrification" means typically reversing
+the items; so, if you were reachable at dc.gavo.org, you would chose
+org.gavo.dc as your authority.
+
+You must define this authority in your config (``/etc/gavo.rc``), in the
+``[ivoa]authoriy`` item.
+
+You must then provide some metadata on the authority you just created in
+``defaultmeta.txt``, viz.,
+
+* authority.creationDate -- A UTC datetime (with trailing Z);
+  technically, it should be the date the resource record is created, but
+  realistically, just use "now".  Example: ``2007-12-19T12:00:00Z``.
+* authority.title -- A human-readable descriptor of what the authority
+  corresponds to.  Example: ``The GAVO data center``
+* authority.shortName -- A short phrase (up to 16 characters) conferring
+  as much of the title as you can cram in.  Example: ``GAVO DC``.
+* authority.description -- A sentence or two on what you're up to.
+  Example: ``The GAVO data center provides VO publication services to
+  all interested parties on behalf of the German Astrophysical Virtual
+  Observatory.`` (use backslashes an the end of the lines to break long
+  lines).
+* authority.referenceURL -- A URL at which people can learn more about
+  your organisation.  Example: ``http://www.g-vo.org``.
+
+.. _simple format: ref.html#meta-stream-format
+
+
+
 Running the DC Server
 =====================
 
