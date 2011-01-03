@@ -1499,56 +1499,90 @@ TBD.
 The Registry Interface
 ======================
 
-The whole point of running VO-compliant services is to get them
-registred.  The registry is a distributed (i.e., there are several
-entities providing the data) system giving information on what services
-and other things ("resources") are on the VO.  To find out what
-resources you offer through your copy of DaCHS, the VO infrastructure
-will ask your system using a protocol calles OAI.  You will need to tell
-the RofR (Registry of Registries) where your registry is so it can start
-harvesting you, but *before* you do that, you have to provide quite
-a bit of information about you.
+Introduction
+------------
 
-This information is given in then file GAVO_ROOT/etc/defaultmeta.txt.
-It has a `simple format`_, basically, ``<key>: <value>``.  In it, you
-must give basic information for fallback of service meta:
+Conceptually, the VO's Registry is a set of resource records (i.e.,
+descriptions of services, data, or other entities) to let users locate
+resources relevant to them (e.g., look for a service giving surface
+temperatures for OB stars).  Whatever as a resource record is called *VO
+resource* in the following to keep them apart from whatever DaCHS
+resource descriptors describe; DaCHS RDs may descibe zero, one, or
+multiple VO resources.  We apologize for the confused nomenclature.
 
-* publisher
-* contact.name
-* contact.address
-* contact.email
-* contact.telephone
-* creator.name
-* creator.logo
+Physically, there are several services that keep and update this set and
+let people query them (a "full registry"), e.g., the `AVO registry`_,
+the `ESAVO registry`_, or the Astrogrid registry.  All these should
+harvest each other and thus have identical content (this is currently
+not always true).
 
-If you want to register services, you must name them, i.e., assign IVOA
-identifier.  Since these identifiers must be globally unique, not
-everyone can use every name.
+To be part of the VO, you have to register your services.  DaCHS makes
+this fairly easy since it contains a publishing registry.  This is again
+a service that exposes a standard interface defined by the Open Archives
+Initiatives.  There is a renderer for the OAI harvesting protocol
+(`OAI-PMH`_) called ``pubreg.xml`` that goes together with
+``registryCore``.  The service ``//services#registry`` with this
+renderer has a vanity name of ``/oai.xml``, which is you data center's
+publishing registry "endpoint".  Full registries obtain the resource
+records present on your data center for there.
 
-An identifier within the VO roughly has the form::
+Each VO resource has a unique identifier of the form::
 
   ivo://<authority>/<stuff>
 
--- stuff is defined by the DaCHS software (to be ``<RD id>/<XML id of
-registred object``), and authority is a globally unique string.  It is
+-- <stuff> is defined by the DaCHS software (to be ``<RD id>/<XML id of
+registred object``), whereas <authority> is a globally unique string.  It is
 recommended that you use some mogrification of your DNS name, which will
 provide some uniqueness.  "Some mogrification" means typically reversing
 the items; so, if you were reachable at dc.gavo.org, you would chose
-org.gavo.dc as your authority.
+org.gavo.dc as your authority.  The authority is declared in your gavorc
+(see below).  Details on VO identifiers can be found in `IVOA
+Identifiers`_.
 
-You must define this authority in your config (``/etc/gavo.rc``), in the
+To claim an authority, you have to define who you -- as an organization
+-- are.  For this, DaCHS will create a resource record for your
+organization, too, where "your organization" for DaCHS means whatever
+you give as creator.name in defaultmeta (see below), which in general
+should be something like "My Institute Data Center" rather than "My
+Institute".  You can register "My Institute" as well, if you want, but,
+the way things are written now, not as the entity running managing the
+authority.
+
+To make the VO aware of the existence of your data center, you will need
+to tell the `RofR`_ (Registry of Registries) about your data center.
+Before you can do this, you need to fill in quite a bit of information
+in gavorc.  The next section explains how this is done.
+
+
+.. _ESAVO registry: http://esavo.esa.int/registry/index.jsp
+.. _AVO registry: http://nvo.stsci.edu/vor10/index.aspx
+.. _IVOA identifiers: http://www.ivoa.net/Documents/REC/Identifiers/Identifiers-20070302.html
+.. _RofR: http://rofr.ivoa.net/
+.. _OAI-PMH: http://www.openarchives.org/OAI/openarchivesprotocol.html
+
+
+DaCHS' Registry Interface
+-------------------------
+
+As explained in the introduction, you must provide 
+enough data to allow the VO to tell who you are
+before you can include your data center into the VO.
+
+The first step is to define your authority (i.e., something like
+org.g-vo.dc) in your config (``/etc/gavo.rc``), in the
 ``[ivoa]authoriy`` item.
 
-You must then provide some metadata on the authority you just created in
-``defaultmeta.txt``, viz.,
+
+Then, add metadata about yourself in ``GAVO_ROOT/etc/defaultmeta.txt``.
+It has a `simple format`_, basically, ``<key>: <value>``.  In it, you
+must give basic information on your authority and some fallback for
+services:
 
 * authority.creationDate -- A UTC datetime (with trailing Z);
   technically, it should be the date the resource record is created, but
   realistically, just use "now".  Example: ``2007-12-19T12:00:00Z``.
 * authority.title -- A human-readable descriptor of what the authority
   corresponds to.  Example: ``The GAVO data center``
-* authority.shortName -- A short phrase (up to 16 characters) conferring
-  as much of the title as you can cram in.  Example: ``GAVO DC``.
 * authority.description -- A sentence or two on what you're up to.
   Example: ``The GAVO data center provides VO publication services to
   all interested parties on behalf of the German Astrophysical Virtual
@@ -1556,6 +1590,23 @@ You must then provide some metadata on the authority you just created in
   lines).
 * authority.referenceURL -- A URL at which people can learn more about
   your organisation.  Example: ``http://www.g-vo.org``.
+* publisher -- A short, human-readable name for you
+* publisher.ivo_id -- An IVOA id for yourself;  set this to
+  ivo://<authority>/org unless you know what you are doing
+* contact.name -- A human-readable name for some entity people should
+  write to.  This is not necessarily different from publisher, but
+  ideally people can write "Dear <contact.name>" in their mails.
+* contact.address -- A contact address for surface mail
+* contact.email -- An email address.  It should be spam-proof.
+* contact.telephone -- A telephone number people can call if things
+  really look bad.
+* creator.name -- A name to use when you give no creator in your
+  resource descriptors.  Could be some error sentinel ("we foget to
+  give credit, please complain") or just contact.name if you produce
+  resources yourself.
+* creator.logo -- A URL for a logo to use when none is given in the
+  resource metadata. Use a small PNG here.
+
 
 .. _simple format: ref.html#meta-stream-format
 
