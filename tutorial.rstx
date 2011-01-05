@@ -1511,7 +1511,7 @@ resource descriptors describe; DaCHS RDs may descibe zero, one, or
 multiple VO resources.  We apologize for the confused nomenclature.
 
 Physically, there are several services that keep and update this set and
-let people query them (a "full registry"), e.g., the `AVO registry`_,
+let people query them (a "full registry"), e.g., the `VAO registry`_,
 the `ESAVO registry`_, or the Astrogrid registry.  All these should
 harvest each other and thus have identical content (this is currently
 not always true).
@@ -1531,13 +1531,11 @@ Each VO resource has a unique identifier of the form::
   ivo://<authority>/<stuff>
 
 -- <stuff> is defined by the DaCHS software (to be ``<RD id>/<XML id of
-registred object``), whereas <authority> is a globally unique string.  It is
-recommended that you use some mogrification of your DNS name, which will
-provide some uniqueness.  "Some mogrification" means typically reversing
-the items; so, if you were reachable at dc.gavo.org, you would chose
-org.gavo.dc as your authority.  The authority is declared in your gavorc
-(see below).  Details on VO identifiers can be found in `IVOA
-Identifiers`_.
+registred object``), whereas <authority> is a globally unique string.
+It is recommended that you use your DNS name (or some appropriate part
+of it), which will provide some uniqueness.  The authority is declared
+in your gavorc (see below).  Details on VO identifiers can be found in
+`IVOA Identifiers`_.
 
 To claim an authority, you have to define who you -- as an organization
 -- are.  For this, DaCHS will create a resource record for your
@@ -1555,7 +1553,7 @@ in gavorc.  The next section explains how this is done.
 
 
 .. _ESAVO registry: http://esavo.esa.int/registry/index.jsp
-.. _AVO registry: http://nvo.stsci.edu/vor10/index.aspx
+.. _VAO registry: http://nvo.stsci.edu/vor10/index.aspx
 .. _IVOA identifiers: http://www.ivoa.net/Documents/REC/Identifiers/Identifiers-20070302.html
 .. _RofR: http://rofr.ivoa.net/
 .. _OAI-PMH: http://www.openarchives.org/OAI/openarchivesprotocol.html
