@@ -334,7 +334,7 @@ If you want to use SExtractor for source extraction, add a sexControl
 class attribute.  If it is empty, extraction will be done using some
 default parameters.  You can add more (refer to the sextractor manual)::
 
-  sexScript = """
+  sexControl = """
     DETECT_MINAREA   100
     DETECT_THRESH    8
     SEEING_FWHM      1.2
@@ -458,8 +458,7 @@ astrometric calibration does, but you have been warned).
 
 To rerun SExtractor, say::
 
-  sextractor -c anet.sex -FILTER N in.fits
-  $ANET_PATH/tabsort MAG_ISO out.xyls out.fits
+  sextractor -c anet.control img.fits
 
 To get an idea what the source extraction has done, you can try anet's
 plotxy.  You could use anet's solve-field, but this probably will not
