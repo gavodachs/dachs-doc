@@ -1589,7 +1589,7 @@ services:
 * authority.referenceURL -- A URL at which people can learn more about
   your organisation.  Example: ``http://www.g-vo.org``.
 * publisher -- A short, human-readable name for you
-* publisher.ivo_id -- An IVOA id for yourself;  set this to
+* publisher.ivoId -- An IVOA id for yourself;  set this to
   ivo://<authority>/org unless you know what you are doing
 * contact.name -- A human-readable name for some entity people should
   write to.  This is not necessarily different from publisher, but
