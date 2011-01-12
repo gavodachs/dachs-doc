@@ -340,3 +340,24 @@ respective columns, too.  To do that, say::
   <index columns="bibref" method="gin">
     to_tsvector('english', bibref)</index>
 
+
+...put more than one widget into a line in web forms?
+-----------------------------------------------------
+
+Use input table groups with a <property name="style">compact</property>.
+In DB cores, however, you probably do not want to give inputTables
+explicitely since it's much less hassle to have them computed from
+the condDescs.  In this case, the widgets you want to group probably
+come from a single condDesc.  To have them in a group, define a
+group within the condDesc without any paramRefs (or colRefs) -- they
+cannot be resolved anyway.  Give the group style and label properties,
+and it will be added to the input table for all fields of the condDesc:
+
+  <condDesc name="example">
+    <inputKey original="col1"/>
+    <inputKey original="col2"/>
+    <group description="An example group that will end up in one line">
+      <property name="style">compact</property>
+      <property name="label">Example vals</property>
+    </group>
+  </condDesc>
