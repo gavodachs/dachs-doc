@@ -361,3 +361,17 @@ and it will be added to the input table for all fields of the condDesc:
       <property name="label">Example vals</property>
     </group>
   </condDesc>
+
+If you are doing this, you probably want to use the ``cssClass``
+property of input keys and the ``customCSS`` property of services.  The
+latter can contain css specifications.  They are added into form pages
+by the defaultresponse template (in your custom templates, you should
+have ``<style type="text/css" n:render="servicestyle"/>`` in the head if
+you want this ufnctionality).  These can be used to style form elements
+by their css class, which in turn is given by specifying ``cssClass``
+properties on inputKeys.
+
+Here's an example that uses CSS to insert material; this may be
+overdoing it since the usability of this widget without CSS is
+questionable (whereas it would be fine if the group were non-compact and
+no CSS tricks were played)::
