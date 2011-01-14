@@ -2,8 +2,9 @@
 How Do I?
 =========
 
-This is a list of recipies for slightly advanced things you might want
-to do with the GAVO DC.
+Recipies and tricks for solving problems using GAVO DaCHS
+=========================================================================
+
 
 
 ...skip a row from a rowmaker?
@@ -351,7 +352,7 @@ the condDescs.  In this case, the widgets you want to group probably
 come from a single condDesc.  To have them in a group, define a
 group within the condDesc without any paramRefs (or colRefs) -- they
 cannot be resolved anyway.  Give the group style and label properties,
-and it will be added to the input table for all fields of the condDesc:
+and it will be added to the input table for all fields of the condDesc::
 
   <condDesc name="example">
     <inputKey original="col1"/>
@@ -371,7 +372,69 @@ you want this ufnctionality).  These can be used to style form elements
 by their css class, which in turn is given by specifying ``cssClass``
 properties on inputKeys.
 
-Here's an example that uses CSS to insert material; this may be
-overdoing it since the usability of this widget without CSS is
-questionable (whereas it would be fine if the group were non-compact and
-no CSS tricks were played)::
+Here's an example that uses CSS to insert material, which currently is
+the only way to input something between the fields (short of redefining
+the widgets).  This may be overdoing it since the usability of this
+widget without CSS is questionable (whereas it would be fine if the
+group were non-compact and no CSS tricks were played); first a condDesc
+template::
+
+	<STREAM id="massfrac_template">
+		<doc>A condDesc for a mass fraction.  These consist of an element label,
+		a center value and a weird way of specifying the error.
+		
+		There can be a few of them for a given service, and thus you need to
+		define the macro item. It is used to disambiguate the names.
+		</doc>
+
+    <condDesc original="massfrac_cond">
+      <inputKey name="el\item" type="text" tablehead="Element \item"
+          description="Element for mass fraction \item">
+        <values>
+          <LOOP csvItems="\elements">
+            <events>
+              <option>\item</option>
+            </events>
+          </LOOP>
+        </values>
+      </inputKey>
+      <inputKey name="mfval\item" tablehead="Mass fraction \item"
+          description="Mass fraction c\item">
+        <property name="cssClass">a_val</property>
+      </inputKey>
+      <inputKey name="mffuzz\item" tablehead="Fuzz \item"
+        description="Range width r for mass fraction \item.  A mass fraction
+        matches if it is between c/10^r and c*10^r">0.3<property
+          name="cssClass">a_fuzz</property></inputKey>
+      <group name="mf\item">
+        <description>Mass fraction of an element.  The condition expands
+        to c/10^r &#8804; mass fraction(Element) &#8804; c*10^r</description>
+        <property name="label">Mass Fraction \item</property>
+        <property name="style">compact</property>
+      </group>
+    </condDesc>
+	</STREAM>
+
+And here's a service with that ``condDesc``, including the custom css::
+
+	<service id="web">
+		<meta name="title">Theoretical spectra of hot compact stars</meta>
+		
+		<dbCore queriedTable="newdata">
+			<LOOP listItems="1 2" source="massfrac_template"/>
+		</dbCore>
+		<property name="customCSS">
+			input.a_val {width:3em}
+			input.a_fuzz {width: 3em}
+			span.a_val:before { content:" in "; }
+			span.a_fuzz:before { content:" &#x00b1; "; }
+			span.a_fuzz:after { content:" dex"; }
+		</property>
+	</service>
+
+
+Note that we are styling both ``input`` and ``span`` elements with the
+css class we set.  Before and after can only be used on the span since
+input elements do not support before and after.  For that reason, DaCHS
+wraps each element within a compact group with a span of the same css
+class.
