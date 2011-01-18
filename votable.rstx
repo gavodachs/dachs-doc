@@ -126,7 +126,7 @@ Rows objects
 
 Unless you order something else, parse will yield Rows_ objects only, one
 per TABLE element.  Iterate over those to obtain the table rows,
-deserialized, with ``None`` as NULL.  Note that you **must** exhaus the
+deserialized, with ``None`` as NULL.  Note that you **must** exhaust the
 Rows iterator if you wish to continue parsing the table.  You currently
 cannot simply skip a table.
 
@@ -171,6 +171,8 @@ or::
 
   f.makeChildDict()["DESCRIPTION"]
 
+The text content of a stanxml node is available in the ``text_``
+attribute.
 
 Post-data INFOs
 '''''''''''''''
