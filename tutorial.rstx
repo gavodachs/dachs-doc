@@ -205,7 +205,26 @@ Futher metadata on columns includes:
   for any column.  For required columns, that is no longer the case.
   This is particularly important in connection with foreign keys.
 
+Column elements may have a child element 
+`values <./ref.html#element-values>`_.  This lets you specify
+metadata like maximum or minimum, or enumerate possible values.  The
+most common use is the definition of null literals though.  This is not
+necessary for floats, and usually not even strings, because these have
+useful (and actually non-overridable) null values in the VOTable
+representation (where this sort of thing counts most).  It is, however,
+highly recommended to give null literals when defining integral types
+(including chars) that may have null values.  DaCHS will try to pick
+useful null values for those automatically when possible, but when
+streaming tables, this is impossible, and errors will be raised during
+VOTable rendering when NULLs are encountered in such a situation.
 
+So, just define null values whenever you define a non-required integral
+column, like this::
+
+  <column name="n_obs" type="integer" description="Number of
+      observations, NULL if interpolated data">
+    <values nullLiteral="-1"/>
+  </column>
 
 
 Parsing Input Data
