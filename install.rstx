@@ -781,6 +781,16 @@ The following software components are not really hard dependencies, but
 they are in some ways used by very common functions of DaCHS, and this
 you *should* install them unless you know what you are doing.
 
+
+PgSphere
+--------
+
+PgSphere is a postgres extension for spherical geometry.  It is needed
+for support of the geometric types in DaCHS.  Obtain the source from
+http://pgsphere.projects.postgresql.org/ and install it as described
+there.
+
+
 Q3C
 ---
 
@@ -792,10 +802,11 @@ not particularly tricky to install, but you should skip it for now.
 
 To install it, get the source from the web site given above.  You need a
 couple of dependencies (on debian etch systems, that would at least be
-libpam-dev, libreadline-dev, and postgresql-server-dev-8.1).  Then
+libpam-dev, libreadline-dev, and postgresql-server-dev-<version>).  Then
 follow the instructions in the q3c distribution.
 
 To automatically create the necessary indices, use the q3cpositions interface.
+
 
 VOPlot
 ------
