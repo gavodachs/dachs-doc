@@ -64,6 +64,7 @@ this::
 
 FieldInfo objects have the following attributes:
 
+* type -- an SQL type name (see below for the type system).  Use lower case.
 * ucd, unit
 * tainted -- a boolean specifying whether the library had to guess
   anything (a simple scalar multiplication is enough; see below)
@@ -77,9 +78,9 @@ passed to ``annotate``.  It has the signature::
 
   getFieldInfo(tableName) -> list of info pairs,
 
-where an info pair consists of the column's name and quadruple of::
+where an info pair consists of the column's name and quintuple of::
 
-  (unit, ucd, userdata, stc)
+  (type, unit, ucd, userdata, stc)
 
 ``userdata`` is a tuple of application specific column descriptions; on
 input, these should always be tuples of length 1.  The library will
@@ -91,6 +92,11 @@ A ``tableName`` passed to getFieldInfo is a strings from ADQL, i.e., you
 must be prepared to resolve names like your database is resolving them
 (e.g., concerning default schemata and the like).
 
+
+The Type System
+---------------
+
+TBD.  See the tree in adql.fieldinfo for the names currently understood.
 
 User Functions
 --------------
