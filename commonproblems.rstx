@@ -155,3 +155,16 @@ reason why you need to manually give the table is that the grammar
 doesn't now what table the rows generated end up in.  On the other hand,
 the information needs to be added in the grammar, since it is fed both
 to your table and the system-wide products table.
+
+
+I get "Column ssa_dstitle missing" when importing SSA tables
+============================================================
+
+The ``//ssap#setMeta`` rowmaker application does not directly fill the
+output rowdict but rather defines new input symbols.  This is done to
+give you a chance to map things set by it, but it means that you must
+idmap at least all ssa symbols (or map them manually, but that's
+probably too tedious).  So, in the rowmaker definition, you write::
+
+	<rowmaker idmaps="ssa_*">
+
