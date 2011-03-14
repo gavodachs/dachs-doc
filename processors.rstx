@@ -154,6 +154,18 @@ Here's what such a classify method could look like::
 			return "botched"
 
 
+Utility Methods
+'''''''''''''''
+
+FileProcessor instances have some utility methods handy when processing
+files for DaCHS:
+
+* ``getProductKey(fName) -> str`` returns the "product key" fName would
+  have; this currently is just fName's path relative to the inputsDir
+  (or an exception if fName is not below inputsDir).  This method lets
+  you easily interchange data between your file processor and ignore
+  elements or the inputRelativePath macro in RDs.
+
 
 Basic FITS Manipulation
 -----------------------
