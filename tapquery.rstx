@@ -38,7 +38,7 @@ the root of the hierarchy, i.e., without any ``sync`` or ``async``.
 Then, you can say something like::
 
   from gavo import votable
-  accessURL = "http://vo.uni-hd.de/tap"
+  accessURL = "http://dc.zah.uni-heidelberg.de/__system__/tap/run/tap"
   query = "SELECT TOP 3 * FROM TAP_SCHEMA.tables"
   job = votable.ADQLTAPJob(accessURL, query)
   job.run()
