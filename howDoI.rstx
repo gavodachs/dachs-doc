@@ -84,8 +84,8 @@ multiplied with 5.434.
 The expression must be valid SQL.
 
 
-...make an input widget to select output columns?
-------------------------------------------------------
+...make an input widget to select which columns appear in the output table?
+------------------------------------------------------–--------------------
 
 In general, selecting fancy output options currently requires custom
 cores or custom renderers.  Ideas on how to change this are welcome.
@@ -438,3 +438,34 @@ css class we set.  Before and after can only be used on the span since
 input elements do not support before and after.  For that reason, DaCHS
 wraps each element within a compact group with a span of the same css
 class.
+
+
+...use a custom input widget for a field?
+----------------------------------------------------
+
+Right now, you cannot really; we're still waiting for an enlightenment
+on how to sensibly do that from RDs.  Pest us if you really want this.
+
+Meanwhile, to have little tags like the explanations of the
+vizier-like-expressions, you can use a custom widget with fields.  This
+could look like this::
+
+		<condDesc>
+			<inputKey original="object" type="vexpr-string">
+				<description>Designated object on the plate (i.e.,
+				the object the observers entered into their journal).
+				You can use wildcards if your prefix your expression with "~".
+				</description>
+				<widgetFactory
+					>widgetFactory(StringFieldWithBlurb, additionalMaterial=
+					T.a(href="/objectlist")[
+					"[List of known objects]"])</widgetFactory>
+			</inputKey>
+		</condDesc>
+
+Here, instead of the String in ``StringFieldWithBlurb``, you could have
+used Numeric or Date, and then used vexpr-float or vexpr-date,
+respectively, for the inputKey's date.
+
+The value of the ``additionalMaterial`` argument is some nevow stan.
+Info on what you can write there can be found elsewhere.
