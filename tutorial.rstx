@@ -687,14 +687,14 @@ applications.  Let's look at a data element for this table::
       <sourceFields procDef="insertFieldKey"/>
         <map src="PI-COI">PI_COI</map>
       </mapKeys>
-      <rowfilter predefined="//products#define">
+      <rowfilter procDef="//products#define">
         <bind key="table">"cars.images"</bind>
       </rowfilter>
     </fitsProdGrammar>
 
     <rowmaker id="make_image" idmaps="*">
-      <apply predefined="computePGSSIAP"/>
-      <apply predefined="setSIAPMeta">
+      <apply procDef="computePGSSIAP"/>
+      <apply procDef="setSIAPMeta">
         <bind key="title">vars["imageTitle"]</bind>
         <bind key="instrument">"%s, %s"%(vars["OBSERVAT"],
           vars["TELESCOP"])</bind>
@@ -784,7 +784,7 @@ are defined as direct children of the resource.  For the lmcextinction
 table above, it could look like this::
   
   <dbCore id="conecore" queriedTable="exts">
-    <condDesc predefined="humanScs"/>
+    <condDesc original="//scs#humanInput"/>
     <condDesc buildFrom="ev_i"/>
   </dbCore>
 
@@ -794,7 +794,7 @@ will run against.
 
 CondDescs define input fields (for the form renderer, these are actually
 form items people can fill in).  Most commonly, you will either define
-them using the ``predefined`` attribute or using ``buildFrom``.  The
+them using the ``original`` attribute or using ``buildFrom``.  The
 first case is typically used in connection with protocols and on tables
 having mixins; such condDescs result in zero or more input fields, and
 they typically inspect the queried table.  For example, the humanScs

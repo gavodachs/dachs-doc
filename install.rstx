@@ -311,6 +311,7 @@ So, in this sequence, run::
   gavo imp --system //users
   gavo imp --system //tap
   gavo imp --system //products
+  gavo imp --system //obscore
 
 Output of the type ``Columns affected: 0`` is ok for these commands.
 
