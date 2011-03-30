@@ -1550,6 +1550,40 @@ Service
 TBD.
 
 
+ObsTAP
+------
+
+ObsTAP is basically a single table, ivoa.ObsCore.  In DaCHS, this is a
+view generated from input tables.  To include the products within a
+table, you must use one of the mixins from the //obscore RD and fill out
+some of the mixin's parameters.  There is some documentation on what to
+put where in the mixin documentation, but frankly, as a publisher, you
+should have at least passing knowledge of the obscore data model.  See
+the corresponding IVOA document [XXX TODO: add link when there's a WD
+out].
+
+In the simplest case, a SIAP table, you could get by simply adding::
+
+		mixin="//obscore#publishSIAP"
+  
+to the table definition's start tag.  You do not have to re-import a table to
+publish it to obscore after the fact – ``gavo imp -m <rd id> && gavo imp
+//obscore create`` will include an existing table to the obscore view.
+
+Even for SIAP, you will usually want to add metadata not contained
+in DaCHS' SIAP meta.  To do this, add a mixin element to the table
+definition's body::
+
+  
+		<mixin
+      sResolution="0.5"
+			calibLevel="2"
+      >//obscore#publishSIAP</mixin>
+
+
+
+
+
 The Registry Interface
 ======================
 
