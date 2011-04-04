@@ -1423,7 +1423,7 @@ you have no pgSphere).
 
 When building them, use the ``//siap#computePGS`` and ``//siap#setMeta``
 applys.  Since SIAP tables contain products, you also need the
-``//products#describe`` row filter in the input grammar (which, of
+``//products#define`` row filter in the input grammar (which, of
 course, needs to be a fitsProdGrammar.
 
 
