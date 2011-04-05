@@ -1581,7 +1581,14 @@ definition's body::
       >//obscore#publishSIAP</mixin>
 
 
+On a table import, the obscore table will automatically be recreated to
+include the data.  If you retrofit ObsCore support to large tables, you
+can avoid having to re-import everything by adding the mixin clause and
+then updating the metadata.  In that case, you must manually remake the
+obscore table::
 
+  gavo imp -m path/to/my/rd
+  gavo imp //obscore create
 
 
 The Registry Interface
