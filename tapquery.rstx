@@ -43,7 +43,8 @@ Then, you can say something like::
   job = votable.ADQLTAPJob(accessURL, query)
   job.run()
   dataIterator, metadata = votable.load(job.openResult())
-  data = list(dataIterator)
+  job.delete()
+  print list(dataIterator)
 
 More on dataIterator and metadata can be found in the `GAVO VOTable
 library documentation`_.

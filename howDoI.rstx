@@ -444,7 +444,7 @@ class.
 ----------------------------------------------------
 
 Right now, you cannot really; we're still waiting for an enlightenment
-on how to sensibly do that from RDs.  Pest us if you really want this.
+on how to sensibly do that from RDs.  Pester us if you really want this.
 
 Meanwhile, to have little tags like the explanations of the
 vizier-like-expressions, you can use a custom widget with fields.  This
