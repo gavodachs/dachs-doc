@@ -195,6 +195,34 @@ such exceptions and translate them.  If something is wrong network-wise,
 we feel it's better to freely admit this.
 
 
+Sync Querying
+-------------
+
+TAP also supports a synchronous querying mode; for simple, quick
+queries, this is simpler and has less overhead.  So, if you are certain
+that your query will run quickly and the result set is small, you can
+use the ADQLSyncJob.  This works mostly like the ADQLTAPJob, except of
+course everything that deals with remote state management basically is a
+no-op.  Instead, either ``run`` or ``start`` just query the remote
+server and return when the server is done.  For convenience, they return
+the job itself, so that you can say things like::
+
+	print self.getJob("SELECT * FROM TAP_SCHEMA.tables"
+    ).run().openResult().read()
+
+All "unpredictable" exceptions on sync jobs are raised from within
+``run``; these will usually be ``tapquery.WrongStatus`` or
+``tapquery.NetworkError`` exceptions, for when the TAP server has
+complained or something was wrong on the way between the client and the
+server.  
+
+The error associated with the exception object will usually not be
+particularly useful.  Instead, obtain an error message from the server
+using the ``getErrorFromServer`` method like for ADQLTAPJobs.
+TAP errors (those coming back as VOTables) are parsed out, data
+that's not parseable as a TAP error message is returned as-is; thus the
+string returned may be long (e.g., some fancy 404 HTML page).
+
 ------
 
 .. _ADQLTAPJob: http://vo.ari.uni-heidelberg.de/docs/DaCHS/apidoc/gavo.votable.tapquery.ADQLTAPJob-class.html
