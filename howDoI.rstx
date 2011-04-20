@@ -469,3 +469,17 @@ respectively, for the inputKey's date.
 
 The value of the ``additionalMaterial`` argument is some nevow stan.
 Info on what you can write there can be found elsewhere.
+
+
+...cope with "Undefined"s in FITS headers?
+------------------------------------------
+
+Pyfits returns some null values from FITS headers as instances of
+"Undefined" (Note that this is unrelated to DaCHS' base.Undefined).  If
+you want to parse from values that *sometimes* are Undefined, use code
+like::
+
+	<bind name="alpha">parseWithNull(@RA,
+		lambda l: hmsToDeg(l, ":"), 
+		checker=lambda l: isinstance(l, utils.pyfits.Undefined))</bind>
+
