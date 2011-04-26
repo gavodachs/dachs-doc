@@ -51,16 +51,12 @@ Annotations
 -----------
 
 One central task of the ADQL library is the inference of column metadata
-from queries.  In this library, this is a two-step process.  First,
-a tree is parsed from the ADQL query.  Then, this tree is traversed, and
-each "typed" node (like a column reference, a literal, an expression, a
-function) is annotated with a FieldInfo object.  This would look like
-this::
+from queries.  To receive an annotated tree, use code like::
 
-  t = adql.parseToTree(query)
- 	ctx = adql.annotate(t, getFieldInfo)
+  adql.parseAnnotated(query, getFieldInfo)
 
 ``query`` is the ADQL input, ``getFieldInfo`` a function described below.
+This is the main entry point into the library.
 
 FieldInfo objects have the following attributes:
 
@@ -102,6 +98,18 @@ User Functions
 --------------
 
 TBD.
+
+
+Morphing
+--------
+
+TBD
+
+Note that ``parseAnnotated`` applies a standard morphing, mapping
+INTERSECTS calls having a POINT as one argument to a corresponding
+CONTAINS call as per 2.4.11 of the ADQL spec.  We hope this makes
+mapping the function calls to efficient database operations easier.
+
 
 
 Custom Region Specifications
