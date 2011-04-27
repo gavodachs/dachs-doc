@@ -59,12 +59,23 @@ are actually using if you plan on using non-ASCII-characters.
 You may want to use utf-8 instead of the iso-8859-1 given below
 depending on your computer's setup.
 
-The schema attribute on resource gives the schema tables for this
-resource will turn up in.  You should, in general, use the subdirectory
-name.  If you don't, you have to give the subdirectory name in a
-resdir attribute.  This attribute must be the name of the resource
+The schema attribute on resource gives the (database) schema tables for
+this resource will turn up in.  You should, in general, use the
+subdirectory name.  If you don't, you have to give the subdirectory name
+in a resdir attribute.  This attribute must be the name of the resource
 directory relative to the inputs directory specified in the
 configuration.
+
+In general, you should have exactly one RD per database
+schema.  This is not enforced, but sharing schemata between RDs will
+cause many undesirable behaviours.  An example is permissions: When
+importing a table, the schema access rights are adapted.  If you have
+one RD A defining an ADQL-queriable table in schema X and another RD B
+that has no ADQL-queriable table, importing A will make schema X
+readable to untrusted queries, whereas importing B will make it
+unreadable again; this would lead to query failures (which could, in
+this case, fixed by adding untrusted to B's readRoles manually, but you
+get the idea).
 
 Otherwise, there is only meta information so far.  This metadata is
 cruicial for later registration of the service.  In HTML forms, it is
