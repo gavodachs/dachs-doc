@@ -533,7 +533,7 @@ Let us assemble the pieces we have so far::
         description="Extinction in I"/>
     </table>
 
-    <data id="import">
+    <data id="content">
       <sources pattern="data/*.txt"/>
       <reGrammar topIgnoredLines="1">
         <names>raMin, raMax, decMin, decMax, ev_i, a_v, a_i</names>
@@ -646,7 +646,7 @@ At this point, you can run the ingestion::
 By default, ``gavo imp`` creates all data defined in a resource.  If this is
 not what you want, you can explicitely specify a data id to process::
 
-  gavo imp q import
+  gavo imp q content
 
 For larger data sets, it may be wise to first try a couple of rows::
 
@@ -692,7 +692,7 @@ mixin::
 Filling this table requires the use of a rowfilter and two procedure
 applications.  Let's look at a data element for this table::
 
-  <data id="import_images">
+  <data id="imagecontent">
     <sources recurse="True" pattern="data/images/*.cut.fits"/>
     <fitsProdGrammar qnd="True">
       <sourceFields procDef="insertFieldKey"/>
@@ -1332,7 +1332,7 @@ labeled items using macros.  For example::
         <column name="mag\band"/>
       </LOOP>
     </table>
-    <data id="import_mags">
+    <data id="magscontent">
       <columnGrammar>
         <LOOP csvItems="\bands">
           <col key="mag\band">\source</col>
@@ -1477,7 +1477,7 @@ To fill such a table, it is recommended to use the ``//products#define``
 rowfilter and the ``//ssap#setMeta`` rowmaker apply.  This could look
 like this::
 
-	<data id="import">
+	<data id="content">
 
 		<fitsProdGrammar>
 			<rowfilter procDef="//products#define">
