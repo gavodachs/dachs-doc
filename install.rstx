@@ -802,9 +802,10 @@ http://www.sai.msu.su/~megera/oddmuse/index.cgi/SkyPixelization.  It's
 not particularly tricky to install, but you should skip it for now.
 
 To install it, get the source from the web site given above.  You need a
-couple of dependencies (on debian etch systems, that would at least be
-libpam-dev, libreadline-dev, and postgresql-server-dev-<version>).  Then
-follow the instructions in the q3c distribution.
+couple of dependencies (on debian squeeze systems, that would at least
+be libedit-dev, libxslt-dev, libpam-dev, libreadline-dev, and
+postgresql-server-dev-<version>).  Then follow the instructions in the
+q3c distribution.
 
 To automatically create the necessary indices, use the q3cpositions interface.
 
