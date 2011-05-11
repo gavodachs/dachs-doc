@@ -849,7 +849,7 @@ To support cutout services, you need getfits from the wcstools package
 available at http://tdc-www.harvard.edu/software/wcstools/.   After
 building wcstools, the binary is in <build-dir>/bin/getfits.
 
-The system expects the binary getfits in inputsDir/cutout/bin/getfits,
+The system expects the binary getfits in $GAVO_INPUTSDIR/cutout/bin/getfits,
 you can optionally add a platform suffix.
 
 

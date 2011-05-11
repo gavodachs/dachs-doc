@@ -168,3 +168,16 @@ probably too tedious).  So, in the rowmaker definition, you write::
 
 	<rowmaker idmaps="ssa_*">
 
+
+"unpack requires a string argument of length"
+=============================================
+
+These typically come from a binary grammar parsing from a source with
+armor=fortran.  Then, the input parser delivers data in parcels given
+by the input file, and the grammar tries to parse it into the
+fields given in your binaryRecordDef.  The error message means that
+the two don't match.
+
+This can be because the input file is damaged, you forgot to skip
+some header, but it can also be because you forgot fields or your
+binaryRecordDef doesn't match the input in some other way.
