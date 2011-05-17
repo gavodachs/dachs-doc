@@ -116,22 +116,30 @@ Such a table definition might look like this::
     <meta name="description">
       Extinction values within certain areas on the sky.
     </meta>
-    <column name="bbox" type="box" unit="deg"
+    <column name="bbox" type="box" 
+      unit="deg"
       description="Bounding box for the extinction data"/>
-    <column name="centerAlpha" unit="deg" tablehead="RA"
-      description="Area center RA ICRS" ucd="pos.eq.ra;meta.main"
-      required="True"/>
-    <column name="centerDelta" unit="deg" tablehead="Dec"
-      description="Area center Declination ICRS" ucd="pos.eq.dec;meta.main"
-      required="True"/>
-    <column name="ev_i" unit="mag" tablehead="E(V-I)"
-      ucd="arith.diff;phys.absorption;em.opt.V;em.opt.I"
+    <column name="centerAlpha" 
+      required="True"
+      ucd="pos.eq.ra;meta.main" unit="deg" 
+      tablehead="RA"
+      description="Area center RA ICRS"/>
+    <column name="centerDelta" 
+      required="True"
+      ucd="pos.eq.dec;meta.main" unit="deg" 
+      tablehead="Dec"
+      description="Area center Declination ICRS"/>
+    <column name="ev_i" 
+      ucd="arith.diff;phys.absorption;em.opt.V;em.opt.I" unit="mag" 
+      tablehead="E(V-I)"
       description="Difference in extinction between V and I bands"/>
-    <column name="a_v" unit="mag" tablehead="A_V"
-      ucd="phys.absorption;em.opt.V"
+    <column name="a_v" 
+      ucd="phys.absorption;em.opt.V" unit="mag" 
+      tablehead="A_V"
       description="Extinction in V"/>
-    <column name="a_i" unit="mag" tablehead="A_I"
-      ucd="phys.absorption;em.opt.I"
+    <column name="a_i" 
+      ucd="phys.absorption;em.opt.I" unit="mag" 
+      tablehead="A_I"
       description="Extinction in I"/>
   </table>
 
@@ -232,7 +240,8 @@ VOTable rendering when NULLs are encountered in such a situation.
 So, just define null values whenever you define a non-required integral
 column, like this::
 
-  <column name="n_obs" type="integer" description="Number of
+  <column name="n_obs" type="integer" 
+      description="Number of
       observations, NULL if interpolated data">
     <values nullLiteral="-1"/>
   </column>
@@ -518,18 +527,25 @@ Let us assemble the pieces we have so far::
       </meta>
       <column name="bbox" type="box"
         description="Bounding box for the extinction data"/>
-      <column name="centerAlpha" unit="deg" tablehead="RA"
-        description="Area center RA ICRS" ucd="pos.eq.ra;meta.main"/>
-      <column name="centerDelta" unit="deg" tablehead="Dec"
-        description="Area center Declination ICRS" ucd="pos.eq.dec;meta.main"/>
-      <column name="ev_i" unit="mag" tablehead="E(V-I)"
-        ucd="arith.diff;phys.absorption;em.opt.V;em.opt.I"
+      <column name="centerAlpha" 
+        ucd="pos.eq.ra;meta.main" unit="deg" 
+        tablehead="RA"
+        description="Area center RA ICRS"/>
+      <column name="centerDelta" 
+        ucd="pos.eq.dec;meta.main" unit="deg" 
+        tablehead="Dec"
+        description="Area center Declination ICRS"/>
+      <column name="ev_i" 
+        ucd="arith.diff;phys.absorption;em.opt.V;em.opt.I" unit="mag" 
+        tablehead="E(V-I)"
         description="Difference in extinction between V and I bands"/>
-      <column name="a_v" unit="mag" tablehead="A_V"
-        ucd="phys.absorption;em.opt.V"
+      <column name="a_v" 
+        ucd="phys.absorption;em.opt.V" unit="mag" 
+        tablehead="A_V"
         description="Extinction in V"/>
-      <column name="a_i" unit="mag" tablehead="A_I"
-        ucd="phys.absorption;em.opt.I"
+      <column name="a_i" 
+        ucd="phys.absorption;em.opt.I" unit="mag" 
+        tablehead="A_I"
         description="Extinction in I"/>
     </table>
 
