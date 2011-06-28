@@ -207,7 +207,9 @@ no-op.  Instead, either ``run`` or ``start`` just query the remote
 server and return when the server is done.  For convenience, they return
 the job itself, so that you can say things like::
 
-	print self.getJob("SELECT * FROM TAP_SCHEMA.tables"
+	print votable.ADQLSyncJob(
+	  "http://dc.zah.uni-heidelberg.de/__system__/tap/run/tap",
+	  "SELECT * FROM TAP_SCHEMA.tables"
     ).run().openResult().read()
 
 All "unpredictable" exceptions on sync jobs are raised from within
@@ -215,6 +217,12 @@ All "unpredictable" exceptions on sync jobs are raised from within
 ``tapquery.NetworkError`` exceptions, for when the TAP server has
 complained or something was wrong on the way between the client and the
 server.  
+
+The ``WrongStatus`` instances have a payload attribute that contains any
+message body the server might have sent with the headers; frequently
+this contains explanations what may have gone wrong.  Since no http
+headers are available, there's no saying what format the error message
+came in.  Tell us if that bugs you.
 
 The error associated with the exception object will usually not be
 particularly useful.  Instead, obtain an error message from the server
