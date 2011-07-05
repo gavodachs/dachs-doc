@@ -246,6 +246,18 @@ column, like this::
     <values nullLiteral="-1"/>
   </column>
 
+After you have imported a table, it is a good idea to run ``gavo info``
+with the id of the freshly imported table, e.g.,::
+
+  gavo info myres/q#thistable
+
+This will output several properties (min, max, avg) of numeric columns
+that may help spot import errors; it will also say which columns contain
+NULLs.  Use this to mark every column containing integers either
+``required="True"`` (to tell other people that no NULLs are possible
+here) or add an explicit null literal.  Everyone will be grateful.
+
+
 
 Parsing Input Data
 ------------------
@@ -549,33 +561,28 @@ Let us assemble the pieces we have so far::
         description="Extinction in I"/>
     </table>
 
-    <data id="content">
+    <data id="import_content">
       <sources pattern="data/*.txt"/>
       <reGrammar topIgnoredLines="1">
         <names>raMin, raMax, decMin, decMax, ev_i, a_v, a_i</names>
       </reGrammar>
 
-      <rowmaker id="build_exts" idmaps="*">
-        <var name="raMin">float(raMin)</var>
-        <var name="raMax">float(raMax)</var>
-        <var name="decMin">float(decMin)</var>
-        <var name="decMax">float(decMax)</var>
-
-        <map dest="centerAlpha">(raMin+raMax)/2.</map>
-        <map dest="centerDelta">(decMin+decMax)/2.</map>
-        <map dest="bbox">coords.Box((raMin, decMin),
-              (raMax, decMax))</map>
-      </rowmaker>
       
-      <make table="exts" rowmaker="build_exts"/>
+      <make table="exts" rowmaker="build_exts">
+        <rowmaker id="build_exts" idmaps="*">
+          <var name="raMin">float(raMin)</var>
+          <var name="raMax">float(raMax)</var>
+          <var name="decMin">float(decMin)</var>
+          <var name="decMax">float(decMax)</var>
+
+          <map dest="centerAlpha">(raMin+raMax)/2.</map>
+          <map dest="centerDelta">(decMin+decMax)/2.</map>
+          <map dest="bbox">coords.Box((raMin, decMin),
+                (raMax, decMax))</map>
+        </rowmaker>
+      </make>
     </data>
   </resource>
-
-As you can see, we have put the grammar and the rowmaker into a data
-element.  While this is not exactly necessary (they could be direct
-children of resource as well, which might be a good idea if they are
-used in more than one data), this is good practice since they, in some
-sense, belong to that data element.
 
 There are two new elements in data.  For one, there's sources.  Sources
 specify where the data will find its input files in its pattern
@@ -602,6 +609,19 @@ same grammar output.
 
 Makes can also carry scripts in SQL or python.  For details, see
 `Scripting <./ref.html#scripting>`_.
+
+As you can see, we have put the grammar and the rowmaker into a data
+element.  They could also be direct children of resource, which might be
+a good idea if they are used in more than one data; you would then give
+the rowmaker an id (make_table, say) and say something like ``<make
+rowmaker="make_table" table=...`  However, for the standard case it's
+best to keep everything related to a given import together in the data
+element.
+
+Also note that the data's id is a verb phrase.  This is quite typical,
+and maybe ``data`` should really be called "recipe" – at least in RDs,
+data items usually say how to do something.  Hence, using verb phrases
+as data id is good practice.
 
 
 Indices and Mixins
