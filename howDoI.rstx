@@ -483,3 +483,31 @@ like::
 		lambda l: hmsToDeg(l, ":"), 
 		checker=lambda l: isinstance(l, utils.pyfits.Undefined))</bind>
 
+
+...force the software to accept weird file names?
+-------------------------------------------------
+
+When importing products (using //products#define or derived procDefs),
+you may see a message like::
+
+  File path
+  'rauchspectra/spec/0050000_5.00_H+He_0.000_1.meta'
+  contains characters known to the GAVO staff to be hazardous in URLs.
+  Please defuse the name before using it for published names.
+
+The machinery warns you against using characters that need escaping in
+URLs.  While the software itself should be fine with them (it's a bug if
+it isn't), such characters make other software's lives much harder – the
+plus above, for example, may be turned to a space if used in a URL.
+
+Thus, we discourage the use of such names, and if at all possible, you
+should try and use simpler names.  If, however, you insist on such 
+names, you can simply write something:
+
+ 	<rowfilter procDef="//products#define">
+ 		<bind key="table">"\schema.newdata"</bind>
+		<bind key="accref">\inputRelativePath{True}</bind>
+ 	</rowfilter>
+
+(plus whatever else you want to define for that rowfilter, of course) in
+the respective data element.
