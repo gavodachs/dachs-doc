@@ -57,15 +57,17 @@ exceptions from base; all ("public") exception types from utils.excs
 are available there (i.e., raise base.NotFoundError(...) rather than
 utils.excs.NotFoundError(...)).
 
-The base class takes a hint argument at construction that gives 
-additional information on how to fix a certain problem.  Apart from
-message (in the first argument), the exceptions must always be
-constructed using keyword arguments.
+The base class takes a hint argument at construction that should give
+additional information on how to fix the problem that gave rise to the
+exception.  All exception constructor arguments except the first one
+must always be keyword arguments as a simple hack to allow pickling
+the excepitons.
 
-When there is structured information (e.g., line numbers, keys, and the
-like), always keep the information separate and use the __str__ method
-of the exception to construct something humans want to see.  All
-built-in exceptions should accept a hint keyword.
+When defining new exceptions, if there is structured information (e.g.,
+line numbers, keys, and the like), always keep the information separate
+and use the __str__ method of the exception to construct something
+humans want to see.  All built-in exceptions should accept a hint
+keyword.
 
 
 The events subsystem
@@ -74,7 +76,7 @@ The events subsystem
 All proper DC code (i.e. above base) should do user interaction
 through base.ui.notify<something>.  In base and below, you can use
 utils.sendUIEvent, but this should be reserved for weird circumstances;
-code so far down should't need to do user interaction or similar.
+code so far down should't normally need to do user interaction or similar.
 
 The <something> can be various things.  base.events defines a class
 EventDispatcher (an instance of which then becomes base.ui) that defines
@@ -120,20 +122,22 @@ Catching exceptions
 In the DC software, is is frequently desirable to ignore the first rule
 of exception handling, viz., leave them alone as much as possible.
 Instead, we often map exceptions to DC-internal exceptions (this is very
-relevant for everything leading up to ValidationErrors).  However, to
-keep the original exception information around, whenever you "translate"
-an exception, do ``base.ui.notifyExceptionMutation(newException)``.  
-This should arrange logging the exception to the error log (although of 
-course that's up to the observer selected).
+relevant for everything leading up to ValidationErrors, since they are
+used in user interaction on the web interface).  However, to make the
+original exception information available for debugging or problem
+fixing, whenever you "translate" an exception, have
+``base.ui.notifyExceptionMutation(newException)`` called.  This should
+arrange logging the exception to the error log (although of course
+that's up to the observer selected).
 
-``ui.logOldExc(exc)`` arranges for the notification and returns its
-argument, so you can say thing like::
+The convenient way to do this is to call ``ui.logOldExc(exc)``::
 
   raise base.ui.logOldExc(GavoError(...))
 
 LoggingUI only logs the information on old exceptions when base.DEBUG is
 true.  You can set this from your code, or by passing the ``--debug``
 option to gavo.
+
 
 Testing
 =======
