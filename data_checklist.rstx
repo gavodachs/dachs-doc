@@ -59,11 +59,12 @@ The italicized text in the explanations is taken from [RMI]_.
   registry contents, the Subject element should be as specific as
   possible and include as many relevant terms as possible.* If at all
   possible, the subjects should come from a controlled vocabulary.  We
-  recommend you first check the `IVOA Vocabulary Explorer`_, but
-  both `Astronomy Journal Keywords`_ and `Vizier Keywords`_ will do fine
-  if you already have those.  In the GAVO DC the first term is *always*
-  capitalized, successive words should be lower case if at all
-  posssible.
+  recommend you first check the `IVOA Thesaurus`_ (the dictionary may be
+  useful, or download the the turtle version and use what's under
+  skos:definition), but both `Astronomy Journal Keywords`_ and `Vizier
+  Keywords`_ will do fine if you already have those.  In the GAVO DC the
+  first term is *always* capitalized, successive words should be lower
+  case if at all posssible.
 
 :Description:
   *Thorough text descriptions are particularly encouraged in order to
@@ -150,7 +151,7 @@ customization and even if we can't, we'd still like to know about them.
 
 .. _Astronomy Journal Keywords: http://www.aanda.org/index2.php?option=com_content&task=view&id=170&Itemid=184
 .. _IVOA: http://www.ivoa.net
-.. _IVOA Vocabulary Explorer: http://explicator.dcs.gla.ac.uk/WebVocabularyExplorer/
+.. _IVOA Thesaurus: http://www.ivoa.net/rdf/Vocabularies/vocabularies-20091007/IVOAT/IVOAT.html
 .. _Vizier Keywords: http://vizier.u-strasbg.fr/doc/ADCkwds.htx
 
 
