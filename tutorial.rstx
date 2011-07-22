@@ -614,7 +614,7 @@ As you can see, we have put the grammar and the rowmaker into a data
 element.  They could also be direct children of resource, which might be
 a good idea if they are used in more than one data; you would then give
 the rowmaker an id (make_table, say) and say something like ``<make
-rowmaker="make_table" table=...`  However, for the standard case it's
+rowmaker="make_table" table=...``  However, for the standard case it's
 best to keep everything related to a given import together in the data
 element.
 
@@ -1426,32 +1426,32 @@ Cores
 The SCS core simply is a dbCore.  You must include the SCS condDesc,
 like this::
 
-	<dbCore queriedTable="main">
-		<condDesc original="//scs#protoInput"/>
-	</dbCore>
+  <dbCore queriedTable="main">
+    <condDesc original="//scs#protoInput"/>
+  </dbCore>
 
 There is an alternative condDesc more suitable for humans.  They can be
 used in parallel.  The form renderer will then use the human-oriented
 one, the DAL renderer the protocol one.  Thus, you will ususally write::
 
-	<dbCore id="xlcore" queriedTable="main">
-		<condDesc original="//scs#humanInput"/>
-		<condDesc original="//scs#protoInput"/>
-		<condDesc buildFrom="ipix"/>
-	</dbCore>
+  <dbCore id="xlcore" queriedTable="main">
+    <condDesc original="//scs#humanInput"/>
+    <condDesc original="//scs#protoInput"/>
+    <condDesc buildFrom="ipix"/>
+  </dbCore>
 
 The example also shows how to add custom query field.  If you want to
 add a larger number of them, you would use an active tag::
 
-	<dbCore id="xlcore" queriedTable="main">
-		<condDesc original="//scs#humanInput"/>
-		<condDesc original="//scs#protoInput"/>
+  <dbCore id="xlcore" queriedTable="main">
+    <condDesc original="//scs#humanInput"/>
+    <condDesc original="//scs#protoInput"/>
     <LOOP listItems="ipix bmag rmag jmag pmra pmde">
       <events>
-    		<condDesc buildFrom="\item"/>
+        <condDesc buildFrom="\item"/>
       </events>
     </LOOP>
-	</dbCore>
+  </dbCore>
 
 SIAP
 ----
@@ -1505,8 +1505,8 @@ For example, you could say::
 
   <table id="data" onDisk="true">
     <mixin
- 			instrument="HLT Coude"
-			fluxCalibration="RELATIVE"
+       instrument="HLT Coude"
+      fluxCalibration="RELATIVE"
     >//ssap#hcd</mixin>
   </table>
 
@@ -1514,23 +1514,23 @@ To fill such a table, it is recommended to use the ``//products#define``
 rowfilter and the ``//ssap#setMeta`` rowmaker apply.  This could look
 like this::
 
-	<data id="content">
+  <data id="content">
 
-		<fitsProdGrammar>
-			<rowfilter procDef="//products#define">
-				<bind name="table">"\schema.data"</bind>
-			</rowfilter>
-		</fitsProdGrammar>
+    <fitsProdGrammar>
+      <rowfilter procDef="//products#define">
+        <bind name="table">"\schema.data"</bind>
+      </rowfilter>
+    </fitsProdGrammar>
 
-		<make table="data">
-			<rowmaker idmaps="ssa_*">
+    <make table="data">
+      <rowmaker idmaps="ssa_*">
         <apply procDef="//ssap#setMeta">
           <bind name="dstitle">@FILENAME</bind>
           <bind name="pubDID">"ivo://org.gavo.dc/ccd700/q#"+@FILENAME</bind>
          </apply>
-			</rowmaker>
-		</make>
-	</data>
+      </rowmaker>
+    </make>
+  </data>
 
 
 Cores
@@ -1586,9 +1586,9 @@ e.g., ``APERTURE_cond``.
 
 To have custom parameters, simply add condDesc elements as usual::
 
-		<ssapCore queriedTable="newdata">
-			<FEED source="//ssap#hcd_condDescs"/>
-			<condDesc buildFrom="t_eff"/>
+    <ssapCore queriedTable="newdata">
+      <FEED source="//ssap#hcd_condDescs"/>
+      <condDesc buildFrom="t_eff"/>
     </ssapCore>
 
 
@@ -1596,6 +1596,68 @@ Service
 '''''''
 
 TBD.
+
+Making SDM Tables
+'''''''''''''''''
+
+Compared to images, the formats situation with spectra is a mess.
+Therefore, in all likelihood, you will need some sort of conversion
+service to VOTables compliant to the spectral data model.  DaCHS has a
+facility built in to support you with this.
+
+First, you will have to define the "instance table", i.e., a table
+definition that will contain a DC-internal representation of the
+spectrum according to the data model.  There's a mixin for that::
+
+  <table id="spectrum">
+    <mixin ssaTable="hcdtest">//ssap#sdm-instance</mixin>
+  </table>
+
+In addition to adding lots and lots of params, the mixin also defines
+two columns, ``spectral`` and ``flux``; these have units and ucds as
+taken from the SSA metadata.  You can add additional columns (e.g., a
+flux error depending the the spectral coordinate) as requried.
+
+The actual spectral instances get built using data descriptors.  These
+are currently children of sdmCores [XXX TODO: fix this when we've
+moved the stuff to products].  Here's an example::
+
+  <sdmCore queriedTable="hcdtest">
+    <data>
+      <embeddedGrammar>
+        <iterator>
+          <code>
+            for i in range(20):
+              yield {"spectral": 3000+i, "flux": 30-i}
+          </code>
+        </iterator>
+      </embeddedGrammar>
+      <make table="spectrum">
+        <parmaker>
+          <apply procDef="//ssap#feedSSAToSDM"/>
+        </parmaker>
+      </make>
+    </data>
+  </sdmCore>
+
+The sdmCores are always combined with the sdm renderer.  It passes an
+accref into the core that gets turned into an row from queried table;
+this must be an "ssa" table (i.e., right now something that mixes in
+``//ssap#hcd``).  This row is the input to the embedded data descriptor.
+Hence, this has no sources element, and you must have either a custom
+or embedded grammar to deal with this input.
+
+The actual data have to be located in the grammar; if they are in a text
+file, you could have a grammar for parsing those somewhere in the RD
+(TODO: example), or you could have the actual spectral data in the
+database.  Whatever – the grammar has to return spectral and flux
+values.
+
+To set the params from the ssa row, use the ``//ssap#feedSSAToSDM``
+apply procDef in a ''parmaker''; this should mostly suffice in terms of
+metadata definition.  When you have no additional columns, the default
+rowmaker (with ``idmaps="*"``) will do in the ``make`` of the spectrum
+table.
 
 
 ObsTAP
@@ -1612,7 +1674,7 @@ out].
 
 In the simplest case, a SIAP table, you could get by simply adding::
 
-		mixin="//obscore#publishSIAP"
+    mixin="//obscore#publishSIAP"
   
 to the table definition's start tag.  You do not have to re-import a table to
 publish it to obscore after the fact – ``gavo imp -m <rd id> && gavo imp
@@ -1623,9 +1685,9 @@ in DaCHS' SIAP meta.  To do this, add a mixin element to the table
 definition's body::
 
   
-		<mixin
+    <mixin
       sResolution="0.5"
-			calibLevel="2"
+      calibLevel="2"
       >//obscore#publishSIAP</mixin>
 
 
@@ -1637,6 +1699,7 @@ obscore table::
 
   gavo imp -m path/to/my/rd
   gavo imp //obscore create
+
 
 
 The Registry Interface
