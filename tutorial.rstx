@@ -1505,7 +1505,7 @@ For example, you could say::
 
   <table id="data" onDisk="true">
     <mixin
-       instrument="HLT Coude"
+      instrument="HLT Coude"
       fluxCalibration="RELATIVE"
     >//ssap#hcd</mixin>
   </table>
@@ -1531,6 +1531,11 @@ like this::
       </rowmaker>
     </make>
   </data>
+
+Caution: In the ssa table, we force the spectral axis to be a wavelength
+in meters.  You must convert all values manually if necessary.  For the
+spectra themselves you could use different units, but in our experience
+that's more confusing than helpful.
 
 
 Cores
@@ -1651,7 +1656,8 @@ The actual data have to be located in the grammar; if they are in a text
 file, you could have a grammar for parsing those somewhere in the RD
 (TODO: example), or you could have the actual spectral data in the
 database.  Whatever – the grammar has to return spectral and flux
-values.
+values.  Also make sure that what you are return actually has the
+units promised by the metadata.
 
 To set the params from the ssa row, use the ``//ssap#feedSSAToSDM``
 apply procDef in a ''parmaker''; this should mostly suffice in terms of
