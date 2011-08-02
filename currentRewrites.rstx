@@ -8,6 +8,3 @@ In valuemappers: let them return db types rather than votable types.
 
 Have units always be unitconv-parseable, move things like "h m s" and
 such to displayHints.
-
-Add parsespecials to structs and attributes to have a clean way to
-declare things like nostrip and original, ref, etc.
