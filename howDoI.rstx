@@ -439,6 +439,38 @@ input elements do not support before and after.  For that reason, DaCHS
 wraps each element within a compact group with a span of the same css
 class.
 
+Also see the next question.
+
+...get a range input widget?
+----------------------------------------------------
+
+Well, VizieR expressions let your users specify intervals and more, but
+ok, they would need to read docs to know that, so there's a case to be
+made for widgets  like::
+
+  Phlogistics      between __________  and ___________
+
+These basically work as discussed in grouping widgets above, but since
+stuff like this is fairly common, there's built-in support for this in
+//procs#rangeCond.  This is a stream requiring three definitions:
+
+* name -- the column name in the core's queried table
+* groupdesc -- a terse phrase describing the range.  This will be
+  used in the description of both the input keys and the group
+* grouplabel -- a label (include the unit, it is not taken from InputKey)
+  written in front of the form group
+
+groupdesc has to work after "Range of", "Lower bound of", and
+"Upper bound of".  Do not include a concluding period in groupdesc.
+
+Here's an example::
+
+		<dbCore queriedTable="data">
+			<FEED source="//procs#rangeCond"
+				name="t_eff"
+				groupdesc="the atmosphere's effective temperatures to include"
+				grouplabel="Effective Temperature [K]"/>
+
 
 ...use a custom input widget for a field?
 ----------------------------------------------------
