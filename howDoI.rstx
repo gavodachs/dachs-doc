@@ -543,3 +543,41 @@ names, you can simply write something:
 
 (plus whatever else you want to define for that rowfilter, of course) in
 the respective data element.
+
+
+...handle formats in which the first line is metadata?
+---------------------------------------------------------
+
+Consider a format like the metadata for stacked spectra::
+
+  C 2.3 5.9 0
+  1 0 0 1
+  2 1 0 1
+  ...
+
+– here, the first line gives a center position in degrees, the following
+lines offsets to that.
+
+For this situation, there's the grammar's sourceFields element.  This is
+a python code fragment returning a dictionary. That dictionary's
+key-value pairs are added to each record the grammar returns.
+
+For this example, you could use the following grammar::
+
+		<reGrammar names="obsNo, dra, dde" topIgnoredLines="1">
+			<sourceFields name="getBasePos">
+				<code>
+					with open(sourceToken) as f:
+						_, cra, cde, _ = f.readline().split()
+						return {
+							"cra": float(cra),
+							"cde": float(cde)}
+				</code>
+			</sourceFields>
+		</reGrammar>
+
+In the rowmaker, you could then do something like this::
+
+				<map dest="raj2000">@cra+float(@dra)*DEG_ARCSEC</map>
+				<map dest="dej2000">@cde+float(@dde)*DEG_ARCSEC</map>
+
