@@ -534,7 +534,7 @@ plus above, for example, may be turned to a space if used in a URL.
 
 Thus, we discourage the use of such names, and if at all possible, you
 should try and use simpler names.  If, however, you insist on such 
-names, you can simply write something:
+names, you can simply write something::
 
  	<rowfilter procDef="//products#define">
  		<bind key="table">"\schema.newdata"</bind>
