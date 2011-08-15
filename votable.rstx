@@ -59,6 +59,20 @@ string naming a local file, or it can be a file-like object.
 the VOTable does not contain any tabular data at all (e.g., error
 messages from various VO protocols), ``(None, None)`` is returned.
 
+Metadata contains is the VOTable.TABLE element the data comes from in
+its votTable atttribute.  By iterating over the metadata you get the
+field objects. For example::
+
+  labels = [field.name for field in metadata]
+  print [dict(zip(labels, row)) for row in data]
+
+There's a convenience method that does the dictification for you; to
+iterate over all rows of a VOTable as dicts, you can say::
+
+  data, metadata = votable.load(source)
+  for row in metadata.iterDicts(data):
+    ...
+
 If you want to create a numpy record array from that data, you can
 say::
 
@@ -69,14 +83,6 @@ However, you cannot in general store NULL values in record arrays (as
 None, that is), so this code will fail for many tables unless one
 introduces proper null values (e.g., nan for floats; for ints, you could
 ask metadata for the null value used by the VOTable).
-
-Metadata simply is the VOTable.TABLE element the data comes from.  Most
-importantly, it holds the field definitions; you get them by simply
-iterating over the metadata.  For example::
-
-  labels = [field.name for field in metadata]
-  print [dict(zip(labels, row)) for row in data]
-
 
 
 Iterative parsing
