@@ -1537,6 +1537,35 @@ in meters.  You must convert all values manually if necessary.  For the
 spectra themselves you could use different units, but in our experience
 that's more confusing than helpful.
 
+In contrast to images where delivering FITS is likely all you need,
+there's a plethora of formats spectra are delivered in.  To help a bit,
+you should make sure one of the formats you offer are VOTables
+conforming to the spectral data model (see `Making SDM Tables`_).  If
+you want to deliver the "native" format as well, you'll have to have two
+rows for each spectrum.  The standard way to achieve that is through a
+rowmaker in the grammar importing the spectra, like this::
+
+   <rowfilter name="generateFormatLinks">
+     <code>
+       baseAccref = "\rdId/"+os.path.splitext(
+         os.path.basename(row["prodtblPath"]))[0]
+       row["prodtblAccref"] = baseAccref+".txt"
+       row["prodtblPath"] = "http://source.server/gettext?"+urllib.quote(
+         row["prodtblPath"])
+       row["prodtblMime"] = "text/plain"
+       yield row
+       relIvoId = \srcstem
+       row["prodtblAccref"] = baseAccref+".vot"
+       row["prodtblPath"] = "dcc://\rdIdDotted/mksdm?"+baseAccref+".txt"
+       row["prodtblMime"] = "application/x-votable+xml"
+       yield row
+     </code>
+   </rowfilter>
+
+SSAP's FORMAT parameter lets clients select what they want.  The way
+the default FORMAT argument works, only application/x-votable+xml
+records are considered compliant.
+
 
 Cores
 '''''
