@@ -1547,17 +1547,15 @@ rowmaker in the grammar importing the spectra, like this::
 
    <rowfilter name="generateFormatLinks">
      <code>
-       baseAccref = "\rdId/"+os.path.splitext(
-         os.path.basename(row["prodtblPath"]))[0]
+       baseAccref = os.path.splitext(row["prodtblPath"])[0]
        row["prodtblAccref"] = baseAccref+".txt"
-       row["prodtblPath"] = "http://source.server/gettext?"+urllib.quote(
-         row["prodtblPath"])
        row["prodtblMime"] = "text/plain"
+       # this is the file as delivered from upstream
        yield row
-       relIvoId = \srcstem
        row["prodtblAccref"] = baseAccref+".vot"
        row["prodtblPath"] = "dcc://\rdIdDotted/mksdm?"+baseAccref+".txt"
        row["prodtblMime"] = "application/x-votable+xml"
+       # this is our processed SDM VOTable
        yield row
      </code>
    </rowfilter>
@@ -1652,17 +1650,27 @@ two columns, ``spectral`` and ``flux``; these have units and ucds as
 taken from the SSA metadata.  You can add additional columns (e.g., a
 flux error depending the the spectral coordinate) as requried.
 
-The actual spectral instances get built using data descriptors.  These
-are currently children of sdmCores [XXX TODO: fix this when we've
-moved the stuff to products].  Here's an example::
+The actual spectral instances get built by sdmCores.  These cores,
+while potentially useful with common services, are intended to be used
+by the product renderer for dcc product table paths.  They contain a
+data item that must yield a primary table that is basically sdm
+compliant.  Most of this is done by the //ssap#feedSSAToSDM apply
+proc, but obviously you need to yield the spectral/flux pairs (plus
+potentially more stuff like errors, etc, if your spectrum table has more
+columns.  This comes from the data item's grammar, which probably must
+always be an embedded grammar, since its sourceToken is an SSA row in
+a dictionary.  Here's an example::
 
-  <sdmCore queriedTable="hcdtest">
+  <sdmCore queriedTable="hcdtest" id="mksdm">
     <data>
       <embeddedGrammar>
         <iterator>
           <code>
-            for i in range(20):
-              yield {"spectral": 3000+i, "flux": 30-i}
+            labels = ("spectral", "flux")
+            relPath = self.sourceToken["accref"].split("?")[-1]
+            with self.grammar.rd.openRes(relPath) as inF:
+              for ln in inF:
+                yield dict(zip(labels,ln.split()))
           </code>
         </iterator>
       </embeddedGrammar>
