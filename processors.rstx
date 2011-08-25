@@ -29,7 +29,7 @@ Here is an example checking whether the sizes of files match what an
   import os
 
   from gavo import api
-  from gavo.helpers import FileProcessor, procmain
+  from gavo.helpers import processing
 
   class SizeChecker(FileProcessor):
 
@@ -56,10 +56,10 @@ The processors can define command line options of their own.  You could,
 for example, read the expected sizes from some sort of catalogue.  To do
 that, define an addOptions static method, like this::
 
-  class Processor(helpers.FileProcessor):
+  class Processor(processing.FileProcessor):
     @staticmethod 
     addOptions(optParser):
-      helpers.FileProcessor.addOptions(optParser)
+      processing.FileProcessor.addOptions(optParser)
       optParser.add_option("--cat-name", help="Resdir-relative path to"
         " the plate catalogue", action="store", type="str", 
         dest="catPath", default="res/plates.cat")
@@ -92,7 +92,7 @@ available to the process method.  To allow you to do this, you can
 override the _createAuxillaries(dd) method.  It receives the data
 descriptor of the data to be processed.  Here's an example::
 
-  class Processor(helpers.FileProcessor):
+  class Processor(processing.FileProcessor):
     def _createAuxillaries(self, dd):
       self.catEntriesUsed = 0
       catPath = os.path.join(dd.rd.resdir, self.opts.catPath)
@@ -200,9 +200,9 @@ cards you want to keep from the original header (but see
 A somewhat silly example could look like this::
 
   from gavo import api
-  from gavo import helpers
+  from gavo import processing
 
-  class SillyProcessor(helpers.FileProcessor):
+  class SillyProcessor(processing.FileProcessor):
     def _isProcessed(self, srcName):
       return self.getPrimaryHeader(srcName).has_key("NUMPIXELS")
 
@@ -211,7 +211,7 @@ A somewhat silly example could look like this::
       return hdr
 
   if __name__=="__main__":
-    helpers.procmain(SillyProcessor, "testdata/theRD", "sillyData")
+    processing.procmain(SillyProcessor, "testdata/theRD", "sillyData")
 
 Processors are expected  to have an addOptions static method receiving
 an optparser.OptionParser instance and adding options it wants to see.
@@ -318,14 +318,16 @@ infrastructure is what you want to use here.
 You probably want to inherit from AnetHeaderProcessor, more or less like
 this::
 
-  class MyProcessor(helpers.AnetHeaderProcessor):
+  from gavo.helpers import anet
+
+  class MyProcessor(anet.AnetHeaderProcessor):
     sp_indices = ["index-208.fits"],
     sp_lower_pix = 0.1
     sp_upper_pix = 0.2
     sp_endob = 50
 
     def _getHeader(self, srcName):
-      hdr = helpers.AnetHeaderProcessor._getHeader(self, srcName)
+      hdr = anet.AnetHeaderProcessor._getHeader(self, srcName)
       if hdr is not None:
         hdr.update("LOCATION", "Unknown")
       return hdr

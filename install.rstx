@@ -18,6 +18,62 @@ distribution pages`_ for details on those.
 Installation
 ============
 
+Dependencies
+------------
+
+Unfortunately, DaCHS has quite a few dependencies.  Thus, you're doing
+yourself a favour if you run Debian or some Debian-derived distribution.
+
+On such a system,
+
+::
+
+  sudo aptitude install python-dev build-essential \
+    python-nevow python-psycopg2 python-pyparsing python-pyfits\
+    python-numpy python-imaging python-soappy python-zsi\
+    python-setuptools libxml2 subversion \
+    libedit-dev libxslt-dev libpam-dev libreadline-dev
+
+should pull in everything that's required apart from the postgres engine
+itself.  For that, install ``postgresql-<version>``; versions supported
+right now include 8.3 and 8.4, but it's worth trying more recent ones.
+You will also need to install the server development package.  On
+2011 Debian stable, this would look like this::
+
+  PGVERSION=8.4
+  aptitiude install postgresql-$VERSION postgresql-server-dev-$VERSION
+
+
+PgSphere
+''''''''
+
+PgSphere is a postgres extension for spherical geometry.  It is needed
+for support of the geometric types in DaCHS' ADQL implementation and in
+the preferred SIAP backend, so you should definitely install it.  Obtain
+the source from http://pgsphere.projects.postgresql.org/, and in the
+source directory run::
+
+  USE_PGXS=1 make
+  sudo USE_PGXS=1 make install
+
+
+Q3C
+'''
+
+DaCHS uses the Q3C library by Sergey Koposov et al,
+http://www.sai.msu.su/~megera/oddmuse/index.cgi/SkyPixelization for
+positional indexes.  DaCHS uses it for positional indexes (the
+scs#q3cindex mixin) and in the interpretation of ADQL.  It is therefore
+highly recommended to install it.
+
+To do that, get the source from the web site given above, and in the
+source directory run::
+
+  make
+  sudo make install
+
+
+
 Debian systems
 --------------
 
@@ -67,23 +123,10 @@ Installing from source
 
 The DaCHS installer is based on setuptools; we do not use setuptools'
 dependency management, though, since in practice it seems more trouble
-than it's worth.  So, first install the python dependencies: twisted,
-nevow, pyfits, numpy, pyparsing, PIL, soappy, the Zolera soap
-infrastructre, setuptools, and psycopg2.  Furthermore, you will
-need a python that can build (python) packages, and (usually) a C
-compiler.
+than it's worth, which means you need to manually install Dependencies_.
 
-On Debian Lenny systems, the following should work::
- 
-  sudo aptitude install python-dev build-essential \
-    python-nevow python-psycopg2 python-pyparsing python-pyfits\
-    python-numpy python-imaging python-soappy python-zsi\
-    python-setuptools libxml2
-
-(it's not important that the server-dev version matches the version of
-your sever at this point).
-
-Finally, in the ``dachs`` directory you checked out above, say::
+To install the software, in the ``dachs`` directory you checked out
+above, say::
 
   sudo python setup.py develop
 
@@ -99,6 +142,9 @@ necessary).
 Setup
 =====
 
+Account Management
+------------------
+
 You should first create a user that the DaCHS server runs as later,
 and a group for running DC-related processes in::
 
@@ -107,10 +153,10 @@ and a group for running DC-related processes in::
   sudo adduser gavo gavo
 
 (or similar, depending on your environment). This user should not be
-able to log in, but it should have a home directory.  Everyone working
-on the data center must be in the group created (this is because the log
-directory will be writable by this group); in particular, you should add
-yourself::
+able to log in, but it should have a home directory.  Everyone that may
+issue a ``gavo serve debug`` must be in the group created (this is
+because the log directory will be writable by this group); in
+particular, you should add yourself::
 
   sudo adduser `id -nu` gavo
 
@@ -118,6 +164,10 @@ You may want to create another account for "maintenance", or just use
 your normal account; if more than one person will feed the data center,
 you'll need more elaborate schemes;  do not use the gavo group as the
 "data center maintenance group".
+
+
+Configuration File
+------------------
 
 Next, you need to decide on a "root" directory for DaCHS.  Below it,
 there are data descriptions, cache files, logs, etc. (these locations
@@ -131,8 +181,8 @@ have ~/.gavorc files, the contents of which override settings in
 /etc/gavo.rc.
 
 `Configuration Settings`_ gives a walkthrough through the most important
-settings; for now, if you want to change the DaCHS root dir, use
-something like::
+settings; for now, you must set the DaCHS root dir if you are not happy
+with ``/var/gavo``:
 
   [general]
   rootDir: /data/gavo
@@ -143,11 +193,11 @@ You can now let DaCHS create its file system hierarchy::
 
   gavo init
 
-For this to work, you must ``rootDir`` must exist and be writable by
-you, or you must have sufficient privileges to create it.  Do *not* run
-``gavo init`` as root, since the files and directories it creates will
-be owned by whoever ran the program.  In the typical situation in which
-you may not write to ``rootDir``'s parent, do something like::
+For this to work, ``rootDir`` must exist and be writable by you, or you
+must have sufficient privileges to create it.  Do *not* run ``gavo
+init`` as root, since the files and directories it creates will be owned
+by whoever ran the program.  In the typical situation in which you may
+not write to ``rootDir``'s parent, do something like::
 
   sudo mkdir -p /data/gavo
   sudo chown `id -nu`:staff /data/gavo
@@ -214,57 +264,29 @@ On Debian systems dedicated for GAVO DaCHS, you can try the following:
     allow you databases with all kinds of encodings.
     The database stores descriptions and similar
     entities, and you may encounter funny characters in there.  It would
-    be a shame if you couldn't store them (plus, you would get funny
+    be a shame if you couldn't store them (plus, you would get odd
     error messages for those).
 
 (#) Start the server::
     
        sudo /etc/init.d/postgresql-$PGVERSION start
 
-(#) You probably want to make yourself a superuser account so you don't
-    need to become postgres all the time.  To do that, say::
+(#) Make yourself a superuser on the newly created database cluster::
 
       sudo -u postgres createuser -P -adsr `id -un`
 
+    You can drop those privileges later if they make you nervous,
+    but for gavo init you need to be DB superuser.  Also note
+    that DaCHS assumes your server is trusted, and if people have
+    managed to take over an account in the gavo group, they can
+    do with your database whatever they please anyway.
+
+(#) Create the database itself::
+
+       createdb --encoding=UTF-8 gavo  
+
 On Debian, the configuration files for this cluster are at
 ``/etc/postgresql/$PGVERSION/pgdata/``.
-
-
-Database Preparation
-''''''''''''''''''''
-
-The data center software accesses the database in various functions.
-These are mapped to profiles which correspond to access information
-(basically, the DSN, user, and password).  There are three of them:
-
-* feed -- the "admin" profile, used for feeding tables into the normal
-  database, for user management, credentials checking and the like.
-* trustedquery -- this profile is used for queries generated  by the DC
-  software (though usually on behalf of a user).  The corresponding DB
-  role can access all "normal" tables, privilege management is supposed
-  to happen throught the web interface.
-* untrustedquery -- the profile used for user-contributed SQL.  Only
-  tables expressly opened up are accessible to it.
-
-You can adapt those names as necessary in the corresponding profiles.
-See `The profiles Section`.
-
-The following procedure sets up users and databases as expected by the
-default profiles (if you made yourself a superuser account as described
-above you do not need the ``sudo -u postgres`` in these commands)::
-
-  # create the database that'll hold your data
-  sudo -u postgres createdb --encoding=UTF-8 gavo  
-  # create the user that feeds the db...
-  sudo -u postgres createuser -P -ADsr gavoadmin
-  # and a user that usually has no write privileges
-  sudo -u postgres createuser -P -ADSR gavo
-  # and a user for ADQL queries (i.e., untrusted queries from the net)
-  sudo -u postgres createuser -P -ADSR untrusted
-
-Enter the passwords you assign here into the ``feed``, ``trustedquery``,
-and ``untrustedquery`` profiles, respectively.  These profiles are found
-in ``$GAVO_ROOT/etc``.
 
 Note that running a database server always is a security
 liability.  You should make sure you understand what the pg_hba.conf (in
@@ -286,49 +308,22 @@ on having the data between DaCHS and the postgres server go through
 untrusted lines, see the postgres docs on how to set up an SSL
 connection.
 
-Finally, you need to let the various roles you just created access the 
-database; you do this using the command line interface to postgres::
+DaCHS setup
+'''''''''''
 
-  sudo -u postgres psql gavo \
-    -c "GRANT ALL ON DATABASE gavo TO gavoadmin"
+DaCHS should be able to take it from here.  Say::
 
-For the individual tables, rights to gavo and untrusted are granted by
-``gavo imp``, so you do not need to specify any rights for them.
+  gavo init
 
+and after a while you should be able to start.  If you database server
+is not on the same machine as your web server (which is not recommended
+for a test setup), you cannot use the automatic database setup.  In
+that case, say::
 
-Importing the first resources
-=============================
+  gavo --nodb init
 
-There are some built-in tables in DaCHS, related to metadata storage,
-certain protocols, and the like.  You must import them before the DC
-software can be used.  This also is a nice test that at least some
-things work.
+and read `Manual Database Preparation`_
 
-So, in this sequence, run::
-
-  gavo imp --system //dc_tables
-  gavo imp --system //services
-  gavo imp --system //users
-  gavo imp --system //tap
-  gavo imp --system //products
-  gavo imp --system //obscore
-
-Output of the type ``Columns affected: 0`` is ok for these commands.
-
-The double slash in the identifiers above means "use system
-resources".  All these really refer to resource descriptors (RD) in the
-__system__ resource directory; at this point, they are the RDs shipped
-with DaCHS.
-
-If you get error messages, add a ``--hints`` after the gavo command,
-like this::
-
-  gavo --hints imp --system //dc_tables
-  
-This will (for the ``gavo`` command in general) give additional error
-info where available.
-
-You should now be able to run the examples in the tutorial.
 
 
 Configuration Settings
@@ -783,32 +778,6 @@ they are in some ways used by very common functions of DaCHS, and this
 you *should* install them unless you know what you are doing.
 
 
-PgSphere
---------
-
-PgSphere is a postgres extension for spherical geometry.  It is needed
-for support of the geometric types in DaCHS.  Obtain the source from
-http://pgsphere.projects.postgresql.org/ and install it as described
-there.
-
-
-Q3C
----
-
-If at some point you have large data sets (more than 20000 rows, say)
-and you want to do positional searches on them (cone search, crossmatch,
-siap and such), you will want the Q3C library by Sergey Koposov et al,
-http://www.sai.msu.su/~megera/oddmuse/index.cgi/SkyPixelization.  It's
-not particularly tricky to install, but you should skip it for now.
-
-To install it, get the source from the web site given above.  You need a
-couple of dependencies (on debian squeeze systems, that would at least
-be libedit-dev, libxslt-dev, libpam-dev, libreadline-dev, and
-postgresql-server-dev-<version>).  Then follow the instructions in the
-q3c distribution.
-
-To automatically create the necessary indices, use the q3cpositions interface.
-
 
 VOPlot
 ------
@@ -827,12 +796,12 @@ docs/user_guide to some location your webserver can serve from, e.g.,
 
 ::
 
-  mkdir /var/www/htdocs/VOPlot
-  cp -r binaries/VOPlot  /var/www/htdocs/VOPlot/bin
-  cp -r docs/user_guide/  /var/www/htdocs/VOPlot/doc
+  mkdir /var/www/VOPlot
+  cp -r binaries/VOPlot  /var/www/VOPlot/bin
+  cp -r docs/user_guide/  /var/www/VOPlot/doc
 
 
-Assuming that /var/www/htdocs corresponds to the root of your webserver,
+Assuming that /var/www corresponds to the root of your webserver,
 you can then tell the GAVO software where it can find VOPlot in your
 /etc/gavo.rc (see below)::
 
@@ -851,5 +820,110 @@ building wcstools, the binary is in <build-dir>/bin/getfits.
 
 The system expects the binary getfits in $GAVO_INPUTSDIR/cutout/bin/getfits,
 you can optionally add a platform suffix.
+
+
+
+Manual Database Preparation
+===========================
+
+Creating database users
+'''''''''''''''''''''''
+
+Normally, the following steps are done by ``gavo init``.  If this fails
+or you want to play tricks (e.g., remote database server), these
+instructions should help.
+
+The data center software accesses the database in various functions.
+These are mapped to profiles which correspond to access information
+(basically, the DSN, user, and password).  There are three of them:
+
+* feed -- the "admin" profile, used for feeding tables into the normal
+  database, for user management, credentials checking and the like.
+* trustedquery -- this profile is used for queries generated  by the DC
+  software (though usually on behalf of a user).  The corresponding DB
+  role can access all "normal" tables, privilege management is supposed
+  to happen throught the web interface.
+* untrustedquery -- the profile used for user-contributed SQL.  Only
+  tables expressly opened up are accessible to it.
+
+You can adapt those names as necessary in the corresponding profiles.
+See `The profiles Section`.
+
+The following procedure sets up users and databases as expected by the
+default profiles (if you made yourself a superuser account as described
+above you do not need the ``sudo -u postgres`` in these commands)::
+
+  # create the database that'll hold your data
+  sudo -u postgres createdb --encoding=UTF-8 gavo  
+  # create the user that feeds the db...
+  sudo -u postgres createuser -P -ADsr gavoadmin
+  # and a user that usually has no write privileges
+  sudo -u postgres createuser -P -ADSR gavo
+  # and a user for ADQL queries (i.e., untrusted queries from the net)
+  sudo -u postgres createuser -P -ADSR untrusted
+
+Enter the passwords you assign here into the ``feed``, ``trustedquery``,
+and ``untrustedquery`` profiles, respectively.  These profiles are found
+in ``$GAVO_ROOT/etc``.
+
+Finally, you need to let the various roles you just created access the 
+database; you do this using the command line interface to postgres::
+
+  sudo -u postgres psql gavo \
+    -c "GRANT ALL ON DATABASE gavo TO gavoadmin"
+
+For the individual tables, rights to gavo and untrusted are granted by
+``gavo imp``, so you do not need to specify any rights for them.
+
+
+Reading the extensions' SQL files
+'''''''''''''''''''''''''''''''''
+
+Both pgsphere and q3c have files that define SQL functions and such.
+You'll have to manually read them into your new database.  You can find
+these SQL files in the source directories of the packages, or in your
+server's contrib directory.  On Debian systems, these contribution
+directories are in ``/usr/share/postgresql/<VERSION>/contrib``.
+
+So, on postgres 8.4 you could say::
+
+  SRCDIR=/usr/share/postgresql/8.4/contrib
+  psql gavo < $SRCDIR/q3c.sql
+  psql gavo < $SRCDIR/pg_sphere.sql
+
+
+Importing basic resources
+'''''''''''''''''''''''''
+
+There are some built-in tables in DaCHS, related to metadata storage,
+certain protocols, and the like.  You must import them before the DC
+software can be used.  This also is a nice test that at least some
+things work.
+
+So, in this sequence, run::
+
+  gavo imp --system //dc_tables
+  gavo imp --system //services
+  gavo imp --system //users
+  gavo imp --system //tap
+  gavo imp --system //products
+  gavo imp --system //obscore
+
+Output of the type ``Columns affected: 0`` is ok for these commands.
+
+The double slash in the identifiers above means "use system
+resources".  All these really refer to resource descriptors (RD) in the
+__system__ resource directory; at this point, they are the RDs shipped
+with DaCHS.
+
+If you get error messages, add a ``--hints`` after the gavo command,
+like this::
+
+  gavo --hints imp --system //dc_tables
+  
+This will (for the ``gavo`` command in general) give additional error
+info where available.
+
+You should now be able to run the examples in the tutorial.
 
 

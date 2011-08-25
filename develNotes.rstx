@@ -142,25 +142,25 @@ option to gavo.
 Testing
 =======
 
-Many of the tests will require database connectivity.  They should, in
-general, not need resources apart from the availability of a test db
-profile.  I have this set up on my private machine like this::
+All unit tests must import gavo.helpers.testhelpers before importing
+anything else from the gavo namespace.  This is because testhelpers
+sets up a test environment in /var/tmp/gavo_test (set in
+tests/data/test-gavorc).  To make this work reliably, it must manipulate
+the normal way configuration files are read.
 
-  [profiles]
-  test:test
+helpers.testhelpers needs a gavotest database for which the current user
+is a superuser; so, before running tests, do::
 
-in ~/.gavorc and
+  createdb --encoding=UTF-8 dachstest
 
-::
+You'll also need lines like::
+  
+  local   dachstest        <your user id>  ident
+  local   dachstest        all             md5
 
-  database=gavo
-  user=msdemlei
+in your pg_hba.conf.
 
-in ~/.gavo/etc -- of course, for this to work, you need a postgresql
-engine running on your machine with a database gavo in which your role
-is superuser (well, has sufficient rights...).
-
-There are doctests in modules (though rarely), and pyunit- and
+There are doctests in modules (though fewer than I'd like), and pyunit- and
 trial-based tests in ``<project root>/tests``.  ``tests/runAllTests.py``
 takes care of locating and executing them all.
 
