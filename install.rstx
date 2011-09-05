@@ -827,7 +827,7 @@ Manual Database Preparation
 ===========================
 
 Creating database users
-'''''''''''''''''''''''
+-----------------------
 
 Normally, the following steps are done by ``gavo init``.  If this fails
 or you want to play tricks (e.g., remote database server), these
@@ -877,7 +877,7 @@ For the individual tables, rights to gavo and untrusted are granted by
 
 
 Reading the extensions' SQL files
-'''''''''''''''''''''''''''''''''
+---------------------------------
 
 Both pgsphere and q3c have files that define SQL functions and such.
 You'll have to manually read them into your new database.  You can find
@@ -893,7 +893,7 @@ So, on postgres 8.4 you could say::
 
 
 Importing basic resources
-'''''''''''''''''''''''''
+-------------------------
 
 There are some built-in tables in DaCHS, related to metadata storage,
 certain protocols, and the like.  You must import them before the DC
@@ -925,5 +925,3 @@ This will (for the ``gavo`` command in general) give additional error
 info where available.
 
 You should now be able to run the examples in the tutorial.
-
-
