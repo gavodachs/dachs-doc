@@ -165,6 +165,12 @@ your normal account; if more than one person will feed the data center,
 you'll need more elaborate schemes;  do not use the gavo group as the
 "data center maintenance group".
 
+At least during setup, you also need superuser privileges on the
+database.  For ``gavo init`` below to work, your normal account must
+have such privileges.  On Debian systems, you can simply say::
+
+  sudo -u postgres createuser -s `id -nu`
+
 
 Configuration File
 ------------------
