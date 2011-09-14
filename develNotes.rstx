@@ -164,11 +164,10 @@ There are doctests in modules (though fewer than I'd like), and pyunit- and
 trial-based tests in ``<project root>/tests``.  ``tests/runAllTests.py``
 takes care of locating and executing them all.
 
-Most DaCHS test use gavo.helpers.testhelpers.  The module provides
+In addition to setting up the test environment, testhelpers provides
 (check out the source) some useful helper functions (like
 ``getTestRD``), the ``VerboseTest`` class adding test resources and some
-assertions to the normal ``unittest.TestCase``, and it sets up the
-inputdir and the database profile. Thus, do *not* import it in
+assertions to the normal ``unittest.TestCase``. Do *not* import it in
 production code.  Test-like functionality interesting to production code
 should go to ``helpers.testtricks``.  
 
@@ -186,28 +185,35 @@ Structures
 
 Resource description within the DC works via instances of
 base.Structure.  These parse themselves from XML strings, do validation,
-etc.
+etc.  All compound RD elements correspond to a structure class (well,
+almost; meta is an exception).
 
-A complete structure instance has the following callbacks:
+A structure instance has the following callbacks:
 
-* ``completeElement`` -- called when the element closing tag is encountered,
-  used to fill in computed defaults
-* ``validate`` -- called after completeElement, used to raise errors if
+* ``completeElement(ctx)`` -- called when the element's closing tag 
+  is encountered, used to fill in computed defaults.  ``ctx`` is a
+  parse context that you can use to, e.g. resolve XML ids.
+* ``validate()`` -- called after completeElement, used to raise errors if
   some gross ("syntactic") mistakes are in the element
-* ``onElementComplete`` -- called after validate, i.e., elementCompleted
+* ``onElementComplete()`` -- called after validate, i.e., elementCompleted
   can rely on seeing a "valid" structure
 
-In addition, structures can register ``onParentCompleted`` callbacks.  These
-are called after onElementCompleted of the parent element is run.
+In addition, attributes can define ``onParentCompleted`` methods.  These
+are called after onElementCompleted of the parent element is run when
+the attribute value is different from its default.  They receive the new
+attribute value as the single argument.  Maybe this is bad design.
 
 This processing is done automatically when parsing elements from XML.
-When building elements manually, you should call the finishElement
-method when done to arrange for these methods being called.
+When building elements manually, you should call the structure's
+finishElement method when done to arrange for these methods being
+called.
 
 If you override these methods, make sure you call the methods of the
 superclass.  Since we might, at some point, want mixins to be able
 to define validators etc, use super()-based superclass calling, through
-_completeElementNext, _validateNext, and _onElementCompleteNext
+``_completeElementNext(cls, ctx)``, ``_validateNext(cls)``, and 
+``_onElementCompleteNext(cls)``.
+
 
 
 Metadata
@@ -220,15 +226,15 @@ since the current implementation is incredibly messy and liable to
 change.
 
 For this kind of metadata, a simple inheritance exists.  MetaMixins have
-a ``setMetaParent`` method that declares another MetaMixin as the
-current's parent.  Any request for metadata that cannot be satisfied
+a ``setMetaParent`` method that declares another structure as the
+current's meta parent.  Any request for metadata that cannot be satisfied
 from self will then be propagated up to this parent (unless propagation
 is suppressed).  Usually, parents will call their children's
 setMetaParent methods.
 
 The metdata is organized in a tree with ``MetaItem``s as nodes.  Each
 MetaItem contains one or more children that are instances ``MetaValue``
-(or more specialized classes).  A MetaValue can have more MetaItem
+(or more specialized classes).  A MetaValue in turn can have more MetaItem
 children.
 
 
@@ -283,9 +289,10 @@ m.addMeta("p.r", "v")
 More complex structures require direct construction of MetaValues.  Use
 the makeMetaValue factory for this.  This function takes a value (default
 empty), and possibly a key and/or type arguments.  All additional
-arguments depend on the meta type desired.
+arguments depend on the meta type desired.  These are documented in the
+`reference manual <./ref.html>`_.
 
-The type argument selects and an entry in the meta._typesForKeys table
+The type argument selects an entry in the meta._typesForKeys table
 that specifies that, e.g., _related meta items always are links.  You
 can also give the type directly (which overrides any specification
 through a key).
@@ -301,7 +308,7 @@ Memoization
 ===========
 
 The base.caches module should be the central point for all kinds of
-memoization/caching issues; in particular, if you use base.caches,
+memoization/caching tasks; in particular, if you use base.caches,
 your caches will automatically be cleared on ``gavo serve reload``.  To
 keep dependencies and risks of recursive imports low, it is the
 providing modules' responsibility to register caching functions.  The
@@ -355,7 +362,7 @@ If you want to profile server actions, try a script like this::
 
 After running, you can use pstats on the file profile.data.
 
-To profile actually running GAVO operations, use the --profile <profile
+To profile actually running DaCHS operations, use the --profile <profile
 file> option of the gavo program.  For the server, you must make sure
 in cleanly exists in order to have meaningful stats.  Do this by
 accessing /exit on a debug server.
@@ -474,8 +481,9 @@ providing a default.
 The other parameter, identifier, is a "late" identifier.  This means
 that it is evaluated on each application of the procedure, much like a
 function argument.  These are just translated into assignments at the
-top of the function body, which means that for rowmaker procedures 
-(i.e., type="apply"), you can access ``vars`` here.
+top of the function body, which means that everything available in the
+procedure code is available; e.g., for rowmaker procedures (i.e.,
+type="apply"), you can access ``vars`` here.
 
 Taken together, late and immediate ``par``s should allow for all kinds
 of configuration of procedures.  This is particularly convenient
@@ -491,7 +499,7 @@ procedure application without a procDef by giving ``setup`` and ``code``.
 Procedure application have "types" -- these give where they can be used.
 In particular, the type determines the signature of the python callable
 that the procedure application is compiled into.  ``procdef.ProcApp``
-has no type, and thus is "abstract"; it should never a child factory of
+has no type, and thus is "abstract"; it should never be a child factory of
 any ``StructAttribute``.
 
 Instead, inherit from it and give
@@ -503,8 +511,7 @@ Instead, inherit from it and give
   this defines the signature.
 * ``requiredType`` -- a type name that specifies what kind of ProcDef
   the application will accept.  This will in general be the same as
-  ``name_``.  None would mean accept all, so that's a safe setting, too,
-  but the whole thing is not used right now.
+  ``name_``.  None would mean accept all, which probably is useless.
 
 
 So, all you need to do to define a new sort of ProcApp is write
