@@ -85,6 +85,27 @@ introduces proper null values (e.g., nan for floats; for ints, you could
 ask metadata for the null value used by the VOTable).
 
 
+Simple writing
+--------------
+
+You can do some manipulations on data and metadata as returned by
+``votable.load`` (in lockstep) and write back the result using
+``votable.save(data, metadata, destF)``, where ``destF`` is a writable
+file object.  This could look like this::
+
+  data, metadata = votable.load("in.vot")
+  tableDef = metadata.votTable.deepcopy()
+  tableDef[V.FIELD(name="sum", datatype="double")]
+  newData = [row+(row[1]+row[2],) for row in data]
+  with open("res.vot", "w") as f:
+    votable.save(newData, tableDef, f)
+
+Manipulating the table definitions is not convenient in this library so
+far.  If you need such functionality, we would probably provide funtions
+to manipulation fields and params (or maybe just expose the child
+lists).
+
+
 Iterative parsing
 -----------------
 
