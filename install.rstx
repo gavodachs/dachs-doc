@@ -165,11 +165,111 @@ your normal account; if more than one person will feed the data center,
 you'll need more elaborate schemes;  do not use the gavo group as the
 "data center maintenance group".
 
+
+Database setup
+--------------
+
+The most complicated step in setting up DaCHS is actually setting up the
+database.  We currently only support postgres.
+
+While it is conceivable to use DaCHS together with an existing postgres
+database, we do not recommend trying this the first time.  Experiment
+with a database dedicated to DaCHS first, then consider whether it's
+worth interfacing to your existing database or whether a copy of that
+data is more convenient.
+
+
+Cluster Creation
+''''''''''''''''
+
+You first need a database to play with, preferably in a suitable
+cluster (you could skip this, but the all bets are off as to whether
+you'll be able to store non-ASCII characters in strings).
+
+Database cluster generator is very system-dependent, and ideally a
+database admin would assist you.  
+
+On Debian systems dedicated for GAVO DaCHS, you can try the following:
+
+(#) Find out the version of the server you will be running (e.g., using
+    ``dpkg -l``; in Debian, more than one version may be installed in
+    parallel.  It's probably a good idea to use the most recent one.
+    Set your desired version for subsequent use::
+
+      export PGVERSION=8.3
+
+(#) Drop the Debian default cluster (this will delete everything in
+    there -- for a fresh install, that doesn't matter, but don't do this
+    if other people use the database).  If you don't do this, your
+    database will listen do a different port, and you will have to
+    adapt the default profiles::
+
+      sudo pg_dropcluster --stop $PGVERSION main
+
+(#) Create the new cluster used by DaCHS::
+
+      sudo pg_createcluster -d /<path-to-where-your-db-should-reside> \
+        --locale=C -e UNICODE\
+        --lc-collate=C --lc-ctype=C $PGVERSION pgdata
+
+    The locale should currently be C, because only the C locale will
+    allow you databases with all kinds of encodings.  The database
+    stores descriptions and similar entities, and you may encounter
+    funny characters in there.  It would be a shame if you couldn't
+    store them (plus, you would get odd error messages for those).
+
+(#) Start the server::
+    
+       sudo /etc/init.d/postgresql-$PGVERSION start
+
+(#) Create the database itself::
+
+       createdb --encoding=UTF-8 gavo  
+
+On Debian, the configuration files for this cluster are at
+``/etc/postgresql/$PGVERSION/pgdata/``.
+
+Note that running a database server always is a security
+liability.  You should make sure you understand what the pg_hba.conf (in
+postgres' configuration directory) says.  As a minimum, you should have a 
+line like::
+
+  local   gavo        gavo,gavoadmin,untrusted          md5
+
+in there, probably right below the line allowing the postgres user
+complete access (the order of lines in pg_hba.conf is significant); it
+allows password authentication for the three users above from the local
+machine.  If you have two machines sitting on a reasonably trusted local
+network, you could say something like::
+
+  host    gavo gavo,gavoadmin,untrusted   xxx.xxx.xxx.0/24    md5
+
+(where the x must be replaced with your network number).  If you insist
+on having the data between DaCHS and the postgres server go through
+untrusted lines, see the postgres docs on how to set up an SSL
+connection.
+
+
+Initial Account Setup
+'''''''''''''''''''''
+
 At least during setup, you also need superuser privileges on the
 database.  For ``gavo init`` below to work, your normal account must
 have such privileges.  On Debian systems, you can simply say::
 
   sudo -u postgres createuser -s `id -nu`
+
+You can drop those privileges later if they make you nervous, but for
+gavo init you need to be DB superuser.  Also note that DaCHS assumes
+your server is trusted, and if people have managed to take over an
+account in the gavo group, they can do with your database whatever they
+please anyway.  In particular (don't complain we didn't tell you), DaCHS
+currently encrypts *no* passwords; for the DB passwords, sensible
+encryption would mean the software requires some passphrase during
+startup, which we don't want.  For user passwords (for protecting web
+resources), it would make no sense since with HTTP basic authentication
+as employed by DaCHS, they travel through the net unencrypted anyway
+(which is sometimes called "mild security").
 
 
 Configuration File
@@ -206,130 +306,23 @@ by whoever ran the program.  In the typical situation in which you may
 not write to ``rootDir``'s parent, do something like::
 
   sudo mkdir -p /data/gavo
-  sudo chown `id -nu`:staff /data/gavo
-
-(replacing staff with some appropriate group).
+  sudo chown `id -nu`:gavo /data/gavo
 
 ``gavo init`` may spit out a warning or two on the first run.  On repeated runs
 no output at all should appear.
 
-You can later run gavo init again. It will not clobber anything you did
-in the meantime (well, if it does, it's a bug and you should fiercely
-complain).  In particular, this is the most convenient way to create
-directories if you changed locations in ``gavo.rc``.
-
-Next, you need to prepare the database.
-
-Database setup
---------------
-
-To make things work, you will also need to set up a database; the
-software requires at least two users, three if you let people to ADQL
-queries.
-
-Currently, we only support postgres.  You should have one user that may
-create tables and schemas, so you probably need a dedicated database.
-
-
-Cluster Creation
-''''''''''''''''
-
-You first need a database to play with, preferably in a suitable
-cluster; even if you want to use DaCHS to expose an existing database,
-we recommend you create a playground first to get a feeling for how
-things should look like.  You can then switch to your existing database,
-e.g., by having a .gavorc setting configDir.  
-
-Database cluster generator is very system-dependent, and ideally a
-database admin would assist you.  
-
-On Debian systems dedicated for GAVO DaCHS, you can try the following:
-
-(#) Find out the version of the server you will be running (e.g., using
-    ``dpkg -l``; in Debian, more than one version may be installed in
-    parallel.  It's probably a good idea to use the most recent one.
-    Set your desired version for subsequent use::
-
-      export PGVERSION=8.3
-
-(#) Drop the Debian default cluster (this will delete everything in
-    there -- for a fresh install, that doesn't matter, but don't do this
-    if other people use the database).  If you don't do this, your
-    database will listen do a different port, and you will have to
-    adapt the default profiles::
-
-      sudo pg_dropcluster --stop $PGVERSION main
-
-(#) Create the new cluster used by DaCHS::
-
-      sudo pg_createcluster -d /<path-to-where-your-db-should-reside> \
-        --locale=C -e UNICODE\
-        --lc-collate=C --lc-ctype=C $PGVERSION pgdata
-
-    The locale should currently be C, because only the C locale will
-    allow you databases with all kinds of encodings.
-    The database stores descriptions and similar
-    entities, and you may encounter funny characters in there.  It would
-    be a shame if you couldn't store them (plus, you would get odd
-    error messages for those).
-
-(#) Start the server::
-    
-       sudo /etc/init.d/postgresql-$PGVERSION start
-
-(#) Make yourself a superuser on the newly created database cluster::
-
-      sudo -u postgres createuser -P -adsr `id -un`
-
-    You can drop those privileges later if they make you nervous,
-    but for gavo init you need to be DB superuser.  Also note
-    that DaCHS assumes your server is trusted, and if people have
-    managed to take over an account in the gavo group, they can
-    do with your database whatever they please anyway.
-
-(#) Create the database itself::
-
-       createdb --encoding=UTF-8 gavo  
-
-On Debian, the configuration files for this cluster are at
-``/etc/postgresql/$PGVERSION/pgdata/``.
-
-Note that running a database server always is a security
-liability.  You should make sure you understand what the pg_hba.conf (in
-postgres' configuration directory) says.  As a minimum, you should have a 
-line like::
-
-  local   gavo        gavo,gavoadmin,untrusted          md5
-
-in there, probably right below the line allowing the postgres user
-complete access (the order of lines in pg_hba.conf is significant); it
-allows password authentication for the three users above from the local
-machine.  If you have two machines sitting on a reasonably trusted local
-network, you could say something like::
-
-  host    gavo gavo,gavoadmin,untrusted   xxx.xxx.xxx.0/24    md5
-
-(where the x must be replaced with your network number).  If you insist
-on having the data between DaCHS and the postgres server go through
-untrusted lines, see the postgres docs on how to set up an SSL
-connection.
-
-DaCHS setup
-'''''''''''
-
-DaCHS should be able to take it from here.  Say::
-
-  gavo init
-
-and after a while you should be able to start.  If you database server
-is not on the same machine as your web server (which is not recommended
-for a test setup), you cannot use the automatic database setup.  In
-that case, say::
+If you database server is not on the same machine as your web server
+(which is not recommended for a test setup), you cannot use the
+automatic database setup.  In that case, say::
 
   gavo --nodb init
 
 and read `Manual Database Preparation`_
 
+You can later run gavo init again. It will not clobber anything you did
+in the meantime (well, if it does, it's a bug and you should fiercely
+complain).  In particular, this is the most convenient way to create
+directories if you changed locations in ``gavo.rc``.
 
 
 Configuration Settings
@@ -447,6 +440,7 @@ Reference
 You can get an up-to-date version of this by running ``gavo config``.
 
 
+
 Section [general]
 '''''''''''''''''
 
@@ -464,6 +458,9 @@ Paths and other general settings.
 * gavoGroup: string; 
   defaults to 'gavo' --
   Name of the unix group that administers the DC
+* group: string; 
+  defaults to 'gavo' --
+  Name of the group that may write into the log directory
 * inputsDir: path relative to rootDir; 
   defaults to 'inputs' --
   Path to the DC's data holdings
@@ -490,9 +487,17 @@ Paths and other general settings.
 * tempDir: path relative to rootDir; 
   defaults to 'tmp' --
   Path to the DC's scratch space (should be local)
+* uwsWD: path relative to rootDir; 
+  defaults to 'state/uwsjobs' --
+  Directory to keep uws jobs in.  This may need lots of space if your
+  users do large queries
 * webDir: path relative to rootDir; 
   defaults to 'web' --
   Path to the DC's web related data (docs, css, js, templates...)
+* xsdclasspath: shell-type path; 
+  defaults to 'None' --
+  Classpath necessary to validate XSD using an xsdval java class.  You
+  want GAVO's VO schemata collection for this.
 
 Section [adql]
 ''''''''''''''
@@ -501,10 +506,32 @@ Settings concerning the built-in ADQL core
 
 * webDefaultLimit: integer; 
   defaults to '2000' --
-  Default match limit for ADQL queries via the web form
-* webTimeout: integer; 
-  defaults to '15' --
-  Default timeout for adql queries via the web form
+  Default match limit for ADQL queries via a web form
+
+Section [async]
+'''''''''''''''
+
+Settings concerning TAP, UWS, and friends
+
+* csvDialect: string; 
+  defaults to 'excel' --
+  CSV dialect as defined by the python csv module used when writing CSV
+  files.
+* defaultExecTime: integer; 
+  defaults to '3600' --
+  Default timeout for UWS jobs, in seconds
+* defaultExecTimeSync: integer; 
+  defaults to '60' --
+  Default timeout for synchronous UWS jobs, in seconds
+* defaultLifetime: integer; 
+  defaults to '172800' --
+  Default time to destruction for UWS jobs, in seconds
+* defaultMAXREC: integer; 
+  defaults to '2000' --
+  Default match limit for ADQL queries via the UWS/TAP
+* hardMAXREC: integer; 
+  defaults to '20000000' --
+  Default match limit for ADQL queries via the UWS/TAP
 
 Section [db]
 ''''''''''''
@@ -541,14 +568,14 @@ Section [ivoa]
 The interface to the Greater VO.
 
 * authority: string; 
-  defaults to 'org.gavo.dc' --
-  the authority id for this DC
+  defaults to 'x-unregistred' --
+  The authority id for this DC
 * dalDefaultLimit: integer; 
   defaults to '10000' --
   Default match limit on DAL queries
-* registryIdentifier: string; 
-  defaults to 'ivo://org.gavo.dc/static/registryrecs/registry.rr' --
-  The IVOAid for this DC's registry
+* dalHardLimit: integer; 
+  defaults to '10000000' --
+  Hard match limit on DAL queries
 
 Magic Section [profiles]
 ''''''''''''''''''''''''
@@ -559,8 +586,6 @@ section are all of type profile name.  You can add keys as required.
 * admin: profile name; 
   A name of a file in [db]profilePath
 * deploydb: profile name; 
-  A name of a file in [db]profilePath
-* test: profile name; 
   A name of a file in [db]profilePath
 * trustedquery: profile name; 
   A name of a file in [db]profilePath
@@ -594,10 +619,6 @@ Settings related to serving content to the web.
 * enableTests: boolean; 
   defaults to 'False' --
   Enable test pages (don't if you don't know why)
-* errorPage: string; 
-  defaults to 'debug' --
-  set to 'debug' for error pages with tracebacks, anything else for a
-  less informative page
 * favicon: path relative to webDir; 
   defaults to 'None' --
   Webdir-relative path to a favicon
@@ -608,12 +629,22 @@ Settings related to serving content to the web.
   defaults to '300' --
   Hard limit for the width of previews (necessary because previews on
   protected items are free)
+* maxUploadSize: integer; 
+  defaults to '20000000' --
+  Maximal size of file uploads in bytes.
+* mochiURL: URL fragment relative to the server's root; 
+  defaults to 'http://vo.ari.uni-heidelberg.de/mochi/1.4' --
+  (potentially relative) URL pointing to a compiled MochiKit pack
 * nevowRoot: path fragment; 
   defaults to '/' --
   Path fragment to the server's root for operation off the server's root
 * previewCache: path relative to webDir; 
   defaults to 'previewcache' --
   Webdir-relative directory to store cached previews in
+* realm: string; 
+  defaults to 'Gavo' --
+  Authentication realm to be used (currently, only one, server-wide, is
+  supported)
 * serverPort: integer; 
   defaults to '8080' --
   Port to bind the server to
@@ -630,26 +661,24 @@ Settings related to serving content to the web.
   defaults to 'templates' --
   webDir-relative location of global nevow templates
 * user: string; 
-  defaults to 'None' --
-  Run server as this user (leave empty to not change user)
-* vanityNames: path relative to webDir; 
-  defaults to 'vanitynames.txt' --
-  Webdir-realtive path to the name map for vanity names
+  defaults to 'gavo' --
+  Run server as this user.
 * voplotCodeBase: URL fragment relative to the server's root; 
-  defaults to 'static/voplot/VOPlot' --
+  defaults to 'None' --
   URL of the code base for VOPlot
-* voplotEnable: boolean; 
-  defaults to 'False' --
-  Enable the VOPlot output format (requires some external software)
 * voplotUserman: URL fragment relative to the server's root; 
   defaults to 'static/voplot/docs/VOPlot_UserGuide_1_4.html' --
   URL to the documentation of VOPlot
 
 
 Binaries
---------
+========
 
-For extended functionality, the system uses external binaries.
+If you want to provide previews for images, you must compile some
+binaries.  these are in the ``src`` subdirectory of the source tree.
+Just enter all subdirectories there in turn and say ``make install`` in
+each.  Run these as yourself, not as root.
+
 If your GAVO_ROOT is accessible from more than one machine and the
 machines have different architectures, this may be a problem, because
 one platform may not be able to execute another platform's binaries.
