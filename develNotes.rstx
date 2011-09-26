@@ -540,6 +540,38 @@ in some structure.  To produce something you can execute, then say::
 or somesuch.
 
 
+Javascript
+==========
+
+While it's our goal to let people operate the web-based part of DaCHS
+without javascript enabled, it's ok if fancier functionality depends on
+javascript.
+
+After some hesitation, we decided to use the jquery javascript library
+(we used to have MochiKit but left that when we wanted nice in-browser
+plotting; so, if you still see MochiKit somewhere, please disregard).
+We also include some of jquery-ui.  
+
+The result is shipped in minimized form within DaCHS, which means that
+we have a little GPL issue here.  I guess we should keep a copy of the
+non-minimized source for the current DaCHS js somewhere.  On the other
+hand, jquery and jquery-ui currently has fine DVCSes, so I think we're
+fine with the spirit of the GPL...
+
+
+Building jquery-gavo.js
+'''''''''''''''''''''''''
+
+* Go to a temporary directory
+* Go to http://jqueryui.com/download and make yourself a jquery-ui
+  archive.  Currently, we want all the core, plus draggable and
+  resizable.  Do not select any theme.
+* Unzip the file, cd js, cat jquery-*.min.js jquery-ui-*.js > ../jquery-gavo.js
+* copy jquery-gavo.js to gavo/resources/web/js
+
+Whatever CSS is necessary for jquery should go into gavo_dc.css.
+
+
 Implementing Protocols
 ======================
 
