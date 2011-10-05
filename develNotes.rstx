@@ -362,10 +362,10 @@ If you want to profile server actions, try a script like this::
 
 After running, you can use pstats on the file profile.data.
 
-To profile actually running DaCHS operations, use the --profile <profile
+To profile actually running DaCHS operations, use the --profile-to <profile
 file> option of the gavo program.  For the server, you must make sure
 in cleanly exists in order to have meaningful stats.  Do this by
-accessing /exit on a debug server.
+accessing /test/exit on a debug server.
 
 
 Delimited SQL identifiers
