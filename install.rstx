@@ -224,7 +224,7 @@ On Debian systems dedicated for GAVO DaCHS, you can try the following:
 
 (#) Create the database itself::
 
-       createdb --encoding=UTF-8 gavo  
+       sudo -u postgres createdb --encoding=UTF-8 gavo  
 
 On Debian, the configuration files for this cluster are at
 ``/etc/postgresql/$PGVERSION/pgdata/``.
@@ -288,7 +288,7 @@ have ~/.gavorc files, the contents of which override settings in
 
 `Configuration Settings`_ gives a walkthrough through the most important
 settings; for now, you must set the DaCHS root dir if you are not happy
-with ``/var/gavo``:
+with ``/var/gavo``::
 
   [general]
   rootDir: /data/gavo
