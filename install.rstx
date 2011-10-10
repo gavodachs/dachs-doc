@@ -15,8 +15,8 @@ distribution pages`_ for details on those.
 .. _GAVO DC's software distribution pages: http://vo.ari.uni-heidelberg.de/soft
 
 
-Installation
-============
+Basic Installation
+==================
 
 Dependencies
 ------------
@@ -732,77 +732,6 @@ comes with the distribution (it doesn't, yet, for all such files).
 
 This is clearly suboptimal.  Good ideas for "shallow" configurability
 are welcome.
-
-
-Server startup
-==============
-
-The server startup is done using the ``gavo serve`` command that already
-understands the ``start``, ``stop``, ``reload``, and ``restart`` actions
-(``reload`` currently is mostly a no-op).  So, a sysv startup script
-largely is a trivial wrapper.  We have the following in our
-/etc/init.d/dachs::
-
-  #!/bin/sh -e
-  ### BEGIN INIT INFO
-  # Provides:          DaCHS
-  # Required-Start:    $local_fs $remote_fs $network
-  # Required-Stop:     $local_fs $remote_fs $network
-  # Default-Start:     2 3 4 5
-  # Default-Stop:      0 1 6
-  # Short-Description: Start/stop DaCHS Virtual Observatory server
-  ### END INIT INFO
-  #
-
-  ENV="env -i LANG=C PATH=/usr/local/bin:/usr/bin:/bin"
-
-
-  . /lib/lsb/init-functions
-
-  test -f /etc/default/rcS && . /etc/default/rcS
-  test -f /etc/default/apache2 && . /etc/default/apache2
-
-  SERVER_BIN="$ENV /usr/bin/gavo --disable-spew serve"
-
-  case $1 in
-    start)
-      log_daemon_msg "Starting VO server" "dachs"
-      if $SERVER_BIN start; then
-        log_end_msg 0
-      else
-        log_end_msg 1
-        fi
-    ;;
-    stop)
-      log_daemon_msg "Stopping VO server" "dachs"
-      if $SERVER_BIN stop; then
-              log_end_msg 0
-          else
-              log_end_msg 1
-          fi
-    ;;
-    reload | force-reload)
-          log_daemon_msg "Reloading VO server config" "dachs"
-          if $SERVER_BIN reload $2 ; then
-              log_end_msg 0
-          else
-              log_end_msg 1
-          fi
-    ;;
-    restart)
-      log_daemon_msg "Restarting VO server" "dachs"
-      if $SERVER_BIN restart; then
-             log_end_msg 0
-          else
-             log_end_msg 1
-          fi
-    ;;
-    *)
-      log_success_msg "Usage: /etc/init.d/dachs {start|stop|restart|reload|force-reload}"
-      exit 1
-    ;;
-  esac
-
 
 
 More dependencies

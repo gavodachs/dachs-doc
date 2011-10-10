@@ -20,7 +20,9 @@ For Data Center Operators
 
 * Installation and configuration (`install.html <./install.html>`_, 
   `install.pdf <./install.pdf>`_, `install.rstx <./install.rstx>`_)
-* Tutorial (`tutorial.html <./tutorial.html>`_, 
+* Operator's guide (`opguide.html <./opguide.html>`_, 
+  `opguide.pdf <./opguide.pdf>`_, `opguide.rstx <./opguide.rstx>`_)
+* Tutorial on importing data (`tutorial.html <./tutorial.html>`_, 
   `tutorial.pdf <./tutorial.pdf>`_, `tutorial.rstx <./tutorial.rstx>`_)
 * Reference (`ref.html <./ref.html>`_, 
   `ref.pdf <./ref.pdf>`_, `ref.rstx <./ref.rstx>`_)
@@ -64,10 +66,11 @@ DaCHS developer Documentation
   as it is; but of course you should tell us "I need this
   function in a stable API" when you do, and we promise to regard
   such requests with favor.
-
+* Development notes (`develNotes.html <./develNotes.html>`_,
+  `develNotes.pdf <./develNotes.pdf>`_, `develNotes.rstx <./develNotes.rstx>`_)
 
 Software
 ========
 
-To obtain the software (or parts of it), refer to
+To obtain the software (or parts of it), see
 http://vo.ari.uni-heidelberg.de/soft.
