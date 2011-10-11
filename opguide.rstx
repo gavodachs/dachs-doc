@@ -1,0 +1,524 @@
+===========================
+GAVO DaCHS operator's guide
+===========================
+
+.. contents:: 
+  :depth: 3
+  :backlinks: entry
+  :class: toc
+
+This document details the configuration and operation of the GAVO DaCHS
+server.  For information on installing the software, please refer to
+the `installation guide`_, to learn how to import data, see the
+tutorial_.  For an overview of the available documentation, see `DaCHS
+documentation`_
+
+.. _DaCHS documentation: http://docs.g-vo.org/DaCHS
+.. _installation guide: http://docs.g-vo.org/DaCHS/install.html
+.. _tutorial: http://docs.g-vo.org/DaCHS/tutorial.html
+
+
+Starting and stopping the server
+================================
+
+The ``gavo serve`` subcommand is used to control the server.  ``gavo
+serve start`` starts the server, changes the user to what is specified
+in the [web] user config item if it has the privileges to do so
+(that's "gavo" by default; you will already have
+created that user if you followed the installation instructions) and
+detaches from the terminal.
+
+Analoguosly, ``gavo serve stop`` stops the server.  To reload some of
+the server configuration (e.g., the resource descriptors, the vanity
+map, and the /etc/gavo.rc and ~/.gavorc files), run ``gavo
+serve reload``.  This does not reload database profiles, and not all
+configuration items are applied (e.g., changes to the bind address and
+port only take effect after a restart).  If you remove a configuration
+item entriely, their built-in defaults do not get restored on reload
+either.
+
+Finally, ``gavo serve restart`` restarts the server.  The start, stop,
+reload, and restart operations generally should be run as root; you
+can obviously run them as the server user (by default, gavo), too.
+
+
+All this can and should be packed into a startup script.  With a system
+V init system, you could use something like this
+(e.g., as ``/etc/init.d/dachs``; some paths may need adaption for
+non-Debian systems)::
+
+  #!/bin/sh -e
+  ### BEGIN INIT INFO
+  # Provides:          DaCHS
+  # Required-Start:    $local_fs $remote_fs $network
+  # Required-Stop:     $local_fs $remote_fs $network
+  # Default-Start:     2 3 4 5
+  # Default-Stop:      0 1 6
+  # Short-Description: Start/stop DaCHS Virtual Observatory server
+  ### END INIT INFO
+  #
+
+  ENV="env -i LANG=C PATH=/usr/local/bin:/usr/bin:/bin"
+
+
+  . /lib/lsb/init-functions
+
+  test -f /etc/default/rcS && . /etc/default/rcS
+  test -f /etc/default/apache2 && . /etc/default/apache2
+
+  SERVER_BIN="$ENV /usr/bin/gavo --disable-spew serve"
+
+  case $1 in
+    start)
+      log_daemon_msg "Starting VO server" "dachs"
+      if $SERVER_BIN start; then
+        log_end_msg 0
+      else
+        log_end_msg 1
+        fi
+    ;;
+    stop)
+      log_daemon_msg "Stopping VO server" "dachs"
+      if $SERVER_BIN stop; then
+              log_end_msg 0
+          else
+              log_end_msg 1
+          fi
+    ;;
+    reload | force-reload)
+          log_daemon_msg "Reloading VO server config" "dachs"
+          if $SERVER_BIN reload $2 ; then
+              log_end_msg 0
+          else
+              log_end_msg 1
+          fi
+    ;;
+    restart)
+      log_daemon_msg "Restarting VO server" "dachs"
+      if $SERVER_BIN restart; then
+             log_end_msg 0
+          else
+             log_end_msg 1
+          fi
+    ;;
+    *)
+      log_success_msg "Usage: /etc/init.d/dachs {start|stop|restart|reload|force-reload}"
+      exit 1
+    ;;
+  esac
+
+
+For development work or to see what is going on, you can run ``gavo
+serve debug``; this does not detach and does not change users.
+
+
+Specifying meta information fallbacks
+=====================================
+
+The file ``rootDir/etc/defaultmeta.txt`` gives metadata on you.  You
+must fill this out when you start generating your own resource records
+(i.e., publish services or data using the built-in registry interface).
+
+``gavo init`` creates a file with the commonly useful keys.
+
+Configuration Settings
+======================
+
+Many aspects of the data center can be configured using INI-style
+configuration files.  DaCHS tries to obtain them from a global location
+(``/etc/gavo.rc`` or whatever is in the ``GAVOSETTINGS`` environment variable)
+and a user-specific file (``~/gavo.rc`` or whatever is in the
+``GAVOCUSTOM`` variable).  The server should probably be configured in
+the global location exclusively, since otherwise it will behave
+differently depending on which user starts the server.
+
+This section starts with a walkthrough through the more relevant
+settings, section by section; below, there is a reference of all
+supported configuration items.
+
+Walkthrough
+-----------
+
+The general Section
+'''''''''''''''''''
+
+This mainly sets paths.  The most important is ``rootDir``, a directory
+most other paths are relative to.  This is the one you'll most likely
+want to change.  If you, e.g., wanted to have a private DaCHS tree, you
+could put::
+
+  [general]
+  rootDir: /home/user/gavo
+
+into your ``~/.gavorc``.
+
+The other paths in this section are interpreted relative to rootDir
+unless they start with a slash.
+
+You may want to set tempDir and cacheDir to a directory local to your
+maching if rootDir is mounted via a network.  Also note that we do
+no synchronization for writing to the log (and never will -- we will
+provide syslog based logging if necessary), so you may want to tweak
+logDir too to keep actions from seperate users seperate.
+
+
+The web Section
+'''''''''''''''
+
+You typically want to adapt several settings here.  First
+``bindAddress`` gives the IP address of the interface DaCHS will accept
+requests from.  By default, that's localhost, meaning that your server
+will only talk to the machine it runs on.  Once you want to serve other
+people, you will need to change this.  For most systems, binding to all
+interfaces is what you want; keep bindAddress empty to accomplish that.
+
+You may also want to change ``serverPort``.  That is the TCP port DaCHS
+listens to.  The default, 8080, is what's commonly used in test setups.
+On machines dedicated to DaCHS, you would set it to 80, the standard
+HTTP port; this will of course fail if there's already another web
+server running.
+
+DaCHS frequently needs to produce full URLs to itself.  to do that, it
+uses ``serverURL``.  While we could potentially infer that from
+``bindAddress`` and ``serverPort``, today's web setups are frequently
+too complicated to make that work.  So, adapt ``serverURL``, too, to the
+base URL of your server, without any trailing slash.  A complete setup
+for a public server would thus look like this::
+
+  [web]
+  bindAddress:
+  serverPort: 80
+  serverURL: http://mydc.myvo.org
+
+While you are at it, set ``sitename`` to a short string describing your
+server (this is currently only used in the registry interface).
+
+You will probably also want to set ``adminpasswd``.  If set, you can
+log in on your server as user gavoadmin with this password.  Gavoadmin
+basically may do everything (access protected resources, clear caches,
+etc).  The password is given in clear text; doing some kind of
+encryption would only make sense if you were prepared to enter some kind
+of passphrase every time you start the server.  As in other places,
+DaCHS assumes the machine it runs on is trusted.
+
+
+The db Section
+''''''''''''''
+
+In the db section, some global properties of the database access layer
+are defined.  Currently, the most releveant one is profilePath.  This is
+a colon-separated list of rootDir-relative paths in which DaCHS looks for
+database profiles (expansion of home directories is supported).  The
+first match in any of these directories wins.  This is useful when you
+have a test setup and a production setup -- just say ``include dsn`` in
+the common profiles (by default in configDir) and have separate dsn
+files in the ~/.gavo directories of the accounts feeding the test and
+production databases.
+
+You probably do not want to to mess with any settings ending in Roles.
+These are for rather exotic setups where DaCHS needs to accomodate other
+software.
+
+
+The profiles Section
+''''''''''''''''''''
+
+The profile section maps profile names to file names.  These file names
+are relative to any of the directories in db.profilePath.  Usually, you
+should keep whatever gavo init has come up with and hence not change
+anything here.
+
+The profiles contain a specification of the access to the database in
+(unfortunately yet another, but simple) language.  Each line in 
+such a profile is either a comment (starting with #), an assignment
+(with "=") or an instruction (consisting of a command and arguments,
+separated by whitespace).
+
+Keywords available for assignment are
+
+* host -- the host the database resides on.  Leave empty for a Unix
+  socket connection. 
+* port -- the port the database listens on.  Leave empty for default
+  5432.
+* database -- the database your tables live in.
+* user -- the user through which the db is accessed.  
+* password -- the password of user.
+
+There's just one command available, viz.,
+
+* include -- read assignments and instructions from the profile given in
+  the argument
+
+``gavo init`` creates four profile files, ``dsn``, ``feed``,
+``trustedquery``, and ``untrustedquery``.  These are referred to in the
+default profiles section, and are basically required by the python code.
+
+Reference
+---------
+
+You can get an up-to-date version of this by running ``gavo config``.
+
+.. BEGIN CONFIG REFERENCE
+   refresh by going one line below this comment in vi and saying
+   :.,/^.. END CONFIG REFERENCE/-1!gavo config
+
+Section [general]
+'''''''''''''''''
+
+Paths and other general settings.
+
+* cacheDir: path relative to rootDir; 
+  defaults to 'cache' --
+  Path to the DC's persistent scratch space
+* configDir: path relative to rootDir; 
+  defaults to 'etc' --
+  Path to the DC's non-ini configuration (e.g., DB profiles)
+* defaultProfileName: string; 
+  defaults to 'admin' --
+  Default profile name (used to construct system entities)
+* gavoGroup: string; 
+  defaults to 'gavo' --
+  Name of the unix group that administers the DC
+* group: string; 
+  defaults to 'gavo' --
+  Name of the group that may write into the log directory
+* inputsDir: path relative to rootDir; 
+  defaults to 'inputs' --
+  Path to the DC's data holdings
+* logDir: path relative to rootDir; 
+  defaults to 'logs' --
+  Path to the DC's logs (should be local)
+* logLevel: value from the list info, debug, warning, error; 
+  defaults to 'info' --
+  Verboseness of importer
+* operator: string; 
+  defaults to '' --
+  Mail address of the DC's operator(s).
+* platform: string; 
+  defaults to '' --
+  Platform string (can be empty if inputsDir is only accessed by
+  identical machines)
+* rootDir: string; 
+  defaults to '/var/gavo' --
+  Path to the root of the DC file (all other paths may be relative to
+  this
+* stateDir: path relative to rootDir; 
+  defaults to 'state' --
+  Path to the DC's state information (last imported,...)
+* tempDir: path relative to rootDir; 
+  defaults to 'tmp' --
+  Path to the DC's scratch space (should be local)
+* uwsWD: path relative to rootDir; 
+  defaults to 'state/uwsjobs' --
+  Directory to keep uws jobs in.  This may need lots of space if your
+  users do large queries
+* webDir: path relative to rootDir; 
+  defaults to 'web' --
+  Path to the DC's web related data (docs, css, js, templates...)
+* xsdclasspath: shell-type path; 
+  defaults to 'None' --
+  Classpath necessary to validate XSD using an xsdval java class.  You
+  want GAVO's VO schemata collection for this.
+
+Section [adql]
+''''''''''''''
+
+Settings concerning the built-in ADQL core
+
+* webDefaultLimit: integer; 
+  defaults to '2000' --
+  Default match limit for ADQL queries via a web form
+
+Section [async]
+'''''''''''''''
+
+Settings concerning TAP, UWS, and friends
+
+* csvDialect: string; 
+  defaults to 'excel' --
+  CSV dialect as defined by the python csv module used when writing CSV
+  files.
+* defaultExecTime: integer; 
+  defaults to '3600' --
+  Default timeout for UWS jobs, in seconds
+* defaultExecTimeSync: integer; 
+  defaults to '60' --
+  Default timeout for synchronous UWS jobs, in seconds
+* defaultLifetime: integer; 
+  defaults to '172800' --
+  Default time to destruction for UWS jobs, in seconds
+* defaultMAXREC: integer; 
+  defaults to '2000' --
+  Default match limit for ADQL queries via the UWS/TAP
+* hardMAXREC: integer; 
+  defaults to '20000000' --
+  Default match limit for ADQL queries via the UWS/TAP
+
+Section [db]
+''''''''''''
+
+Settings concerning database access.
+
+* adqlRoles: set of strings; 
+  defaults to 'untrusted' --
+  Name(s) of DB roles that get access to tables opened for ADQL
+* defaultLimit: integer; 
+  defaults to '100' --
+  Default match limit for DB queries
+* interface: string; 
+  defaults to 'psycopg2' --
+  Don't change
+* maintainers: set of strings; 
+  defaults to 'gavoadmin' --
+  Name(s) of DB roles that should have full access to gavoimp-created
+  tables by default
+* msgEncoding: string; 
+  defaults to 'utf-8' --
+  Encoding of the messages coming from the database
+* profilePath: shell-type path; 
+  defaults to ' ~/.gavo:$configDir' --
+  Path for locating DB profiles
+* queryRoles: set of strings; 
+  defaults to 'gavo' --
+  Name(s) of DB roles that should be able to read gavoimp-created tables
+  by default
+
+Section [ivoa]
+''''''''''''''
+
+The interface to the Greater VO.
+
+* authority: string; 
+  defaults to 'x-unregistred' --
+  The authority id for this DC
+* dalDefaultLimit: integer; 
+  defaults to '10000' --
+  Default match limit on DAL queries
+* dalHardLimit: integer; 
+  defaults to '10000000' --
+  Hard match limit on DAL queries
+
+Magic Section [profiles]
+''''''''''''''''''''''''
+
+Mapping of DC profiles to profile definitions.  The items in this
+section are all of type profile name.  You can add keys as required.
+
+* admin: profile name; 
+  A name of a file in [db]profilePath
+* deploydb: profile name; 
+  A name of a file in [db]profilePath
+* trustedquery: profile name; 
+  A name of a file in [db]profilePath
+* untrustedquery: profile name; 
+  A name of a file in [db]profilePath
+
+Section [ui]
+''''''''''''
+
+Settings concerning the local user interface
+
+* outputEncoding: string; 
+  defaults to 'iso-8859-1' --
+  Encoding for system messages.  This should match what your terminal
+  emulator is set to
+
+Section [web]
+'''''''''''''
+
+Settings related to serving content to the web.
+
+* adminpasswd: string; 
+  defaults to '' --
+  Password for online administration, leave empty to disable
+* adsMirror: string; 
+  defaults to 'http://ads.ari.uni-heidelberg.de' --
+  Root URL of ADS mirror to be used
+* bindAddress: string; 
+  defaults to '127.0.0.1' --
+  Interface to bind to
+* enableTests: boolean; 
+  defaults to 'False' --
+  Enable test pages (don't if you don't know why)
+* favicon: path relative to webDir; 
+  defaults to 'None' --
+  Webdir-relative path to a favicon
+* graphicMimes: list of strings; 
+  defaults to 'image/fits,image/jpeg' --
+  MIME types considered as graphics (for SIAP, mostly)
+* maxPreviewWidth: integer; 
+  defaults to '300' --
+  Hard limit for the width of previews (necessary because previews on
+  protected items are free)
+* maxUploadSize: integer; 
+  defaults to '20000000' --
+  Maximal size of file uploads in bytes.
+* nevowRoot: path fragment; 
+  defaults to '/' --
+  Path fragment to the server's root for operation off the server's root
+* previewCache: path relative to webDir; 
+  defaults to 'previewcache' --
+  Webdir-relative directory to store cached previews in
+* realm: string; 
+  defaults to 'Gavo' --
+  Authentication realm to be used (currently, only one, server-wide, is
+  supported)
+* serverPort: integer; 
+  defaults to '8080' --
+  Port to bind the server to
+* serverURL: string; 
+  defaults to 'http://localhost:8080' --
+  URL fragment used to qualify relative URLs where necessary
+* sitename: string; 
+  defaults to 'GAVO data center' --
+  A short name for your site
+* sqlTimeout: integer; 
+  defaults to '15' --
+  Default timeout for db queries via the web
+* templateDir: path relative to webDir; 
+  defaults to 'templates' --
+  webDir-relative location of global nevow templates
+* user: string; 
+  defaults to 'gavo' --
+  Run server as this user.
+* voplotCodeBase: URL fragment relative to the server's root; 
+  defaults to 'None' --
+  URL of the code base for VOPlot
+* voplotUserman: URL fragment relative to the server's root; 
+  defaults to 'static/voplot/docs/VOPlot_UserGuide_1_4.html' --
+  URL to the documentation of VOPlot
+.. END CONFIG REFERENCE
+
+
+
+Admin web interfaces
+====================
+
+Some operation on the data center can be done from its web interface.
+To use these features, you have to set the ``[web] adminpasswd``
+configuration item.  You can then use the "Log in" link in the side bar
+using ``gavoadmin`` as the user name.
+
+If you are logged in as gavoadmin, you should see an "Admin me"-link in
+the side bar of services.  The page behind that link lets you block all
+services on the respective RD – where blocking means all requests are
+rejected until the RD is reloaded – and reload the RD.  This is the
+recommended way to notify DaCHS that an RD has changed and needs
+re-reading.
+
+In the form, you can also set scheduled down times.  This is for VOSI,
+an interface clients could use to figure out whether a service can
+reasonable be expected to work.  Since there don't seem to be clients
+exploiting the VOSI endpoints for such purposes so far, you probably
+don't need to bother.
+
+There are several more or less introspective resources within DaCHS that
+do not need authentication.
+
+First, there's ``/browse``.  That's a list of all RDs that have
+(ivo or local) published services or data in them.  Links on the RDs
+lead to info pages on the RDs, in particular giving tables and services
+within the RD.
+
+
+
