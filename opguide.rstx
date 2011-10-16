@@ -512,6 +512,9 @@ reasonable be expected to work.  Since there don't seem to be clients
 exploiting the VOSI endpoints for such purposes so far, you probably
 don't need to bother.
 
+You can directly access the administraion panel for an RD by accessing
+``/seffe<rdId>``, e.g , ``seffe/__system__/services``.
+
 There are several more or less introspective resources within DaCHS that
 do not need authentication.
 
@@ -520,5 +523,36 @@ First, there's ``/browse``.  That's a list of all RDs that have
 lead to info pages on the RDs, in particular giving tables and services
 within the RD.
 
+
+Publication
+===========
+
+To publish a resource, add a ``publish`` element to a ``service`` element
+or a ``register`` element to data or table elements.  Both of these let
+you specify the sets the resources shall be published to.  Unless you
+have specific application, only two sets are relevant: ``ivo_managed``
+for publishing to the VO, and ``local`` for publishing to your data
+center's service roster.  Other sets can be introduced and used for,
+e.g., specific sub-rosters.
+
+The ``publish`` element needs, in addition, a render attribute, giving a
+comma-separated list of renderers the publication is for.  The various
+renderers are translated into capability element in the VO resource
+records.  For example, a typical pattern could be::
+
+		<publish render="scs.xml" sets="ivo_managed"/>
+		<publish render="form" sets="local,ivo_managed"/>
+
+This generates a capability each for the simple cone search and a
+browser-based interface; the browser-based interface is, in addition,
+listed in the local service roster.
+
+Once you have done this, run ``gavo pub <rdid>``.  This causes all
+publishable items in the RD to be published.  It also unpublishes
+everything that was published through the RD before and is no longer
+published.  The running server is not automatically made aware of these
+changes.  You need to either ``gavo serve reload`` or reload the RD
+published *and* the ``__system__/services`` RD using DaCHS' web
+interface.
 
 
