@@ -29,8 +29,8 @@ factoring out libraries).
   hierarchy may not import anything from the higher or equal levels, but 
   only from lower levels.  This hierarchy currently looks like this:
   imp [<] utils < stc < (votable, adql) < base < rscdef < grammars 
-   < formats < rsc < svcs < registry < protocols < web < rscdesc 
-   < (helpers, user)
+  < formats < rsc < svcs < registry < protocols < web < rscdesc 
+  < (helpers, user)
   utils should never assume anything from imp is present, i.e., it may
   *attempt* to import from there, but it should not fail hard if the
   import doesn't work.  Of course, concrete functions (e.g., from
@@ -475,8 +475,8 @@ setup code; this happens only once per creation of the embedding RD::
 
 The setup definition introduced two parameters.  One is ignoreUnknowns,
 which is "immediate" and just lets the code see a name ignoreUnknowns.
-As with all ``par``s, the content of the element is a python expression
-providing a default.
+As with all ``par`` elements, the content of the element is a python
+expression providing a default.
 
 The other parameter, identifier, is a "late" identifier.  This means
 that it is evaluated on each application of the procedure, much like a
@@ -485,7 +485,7 @@ top of the function body, which means that everything available in the
 procedure code is available; e.g., for rowmaker procedures (i.e.,
 type="apply"), you can access ``vars`` here.
 
-Taken together, late and immediate ``par``s should allow for all kinds
+Taken together, late and immediate ``par`` allow for all kinds
 of configuration of procedures.  This is particularly convenient
 together with macros.
 
@@ -560,7 +560,7 @@ fine with the spirit of the GPL...
 
 
 Building jquery-gavo.js
-'''''''''''''''''''''''''
+–----------------------
 
 * Go to a temporary directory
 * Go to http://jqueryui.com/download and make yourself a jquery-ui
