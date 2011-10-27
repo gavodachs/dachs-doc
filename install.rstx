@@ -41,7 +41,7 @@ You will also need to install the server development package.  On
 2011 Debian stable, this would look like this::
 
   PGVERSION=8.4
-  aptitiude install postgresql-$VERSION postgresql-server-dev-$VERSION
+  aptitude install postgresql-$PGVERSION postgresql-server-dev-$PGVERSION
 
 
 PgSphere
@@ -286,7 +286,8 @@ DaCHS is configured in an INI-style configuration file in
 have ~/.gavorc files, the contents of which override settings in
 /etc/gavo.rc.
 
-`Configuration Settings`_ gives a walkthrough through the most important
+`Configuration Settings <./opguide.html#configuration-settings>`_ 
+gives a walkthrough through the most important
 settings; for now, you must set the DaCHS root dir if you are not happy
 with ``/var/gavo``::
 
