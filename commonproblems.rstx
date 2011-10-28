@@ -3,6 +3,28 @@ Common Problems with DaCHS
 ==========================
 
 
+DistributionNotFound
+====================
+
+When trying to run any program, you may see tracebacks like::
+
+  Traceback (most recent call last):
+    File "/usr/local/bin/gavo", line 5, in <module>
+      from pkg_resources import load_entry_point
+    [...]
+    File "/usr/lib/python2.6/dist-packages/pkg_resources.py", line 552, in resolve
+      raise DistributionNotFound(req)
+  pkg_resources.DistributionNotFound: gavodachs==0.6.3
+
+This is usually due to updates to the source code when you have
+installed your source in development mode.  Simple do ``sudo python
+setup.py develop`` in the root of the source distribution again.
+
+Another source of this error can be unreadable source directories.
+Please check that the user that's trying to execute the command can
+actually read the sources you checked out.
+
+
 ignoreOn in a rowmaker doesn't seem to work
 ===========================================
 

@@ -132,7 +132,10 @@ above, say::
 
 (there are various options to get the stuff installed when you prefer 
 not to install as root; refer to the `setuptools documentation`_ if 
-necessary).
+necessary).  The checkout itself needs to be readable by whoever later
+runs the server in this mode.  You can also use ``install`` instead of
+``develop``; in that case, you will have to rerun setup.py everytime
+you update the source.
 
 .. _nevow: http://divmod.org/trac/wiki/DivmodNevow
 .. _setuptools documentation: http://peak.telecommunity.com/DevCenter/EasyInstall
