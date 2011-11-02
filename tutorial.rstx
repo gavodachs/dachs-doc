@@ -1744,6 +1744,50 @@ obscore table::
   gavo imp //obscore create
 
 
+Publishing existing tables via TAP
+----------------------------------
+
+If you already have a database table and now want to use DaCHS to
+publish it via TAP, just write an RD as described above, except that the
+data element is trivial.  Here's an example of how that could look
+like::
+
+  <resource schema="mydata">
+    <meta name="title">My great table</meta>
+    <meta name="creationDate">... (more metadata)
+    
+    <table id="values" onDisk="True" adql="True">
+       <column name="id" type="bigint" unit="" ucd="meta.id;meta.main">
+         <description>id of object covered here</description></column>
+    </table>
+
+    <data id="import">
+      <make table="values"/>
+    </data>
+  </resource>
+
+
+Then, say ``gavo imp -m <rd-id>``; make sure you don't forget the
+``-m``, because without it, ``gavo imp`` will drop the existing if it
+can, i.e., if gavoadmin has write access to the schema in question, and
+it should have that for reasons explained in the next paragraph.
+
+This adds the metadata you've given to all kinds of administrative
+tables DaCHS keeps but does not touch the data.  It will also try to fix
+the permissions of the table such that DaCHS's untrusted user can read
+it.  To let DaCHS manage the permissions, in psql say (assuming standard 
+profiles)::
+
+  GRANT ALL PRIVILEGES ON SCHEMA <your schema> TO gavoadmin 
+    WITH GRANT OPTION;
+  GRANT SELECT ON TABLE <your schema>.<your table> TO gavoadmin
+    WITH GRANT OPTION;
+
+If you have local users accessing the table, you should declare
+them in either the allRoles or readRoles attributes to the table
+definiton.  Maybe even adapting the profiles in GAVOROOT/etc to match
+your existing infrastructure could make sense.
+
 
 The Registry Interface
 ======================
