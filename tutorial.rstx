@@ -1453,6 +1453,26 @@ add a larger number of them, you would use an active tag::
     </LOOP>
   </dbCore>
 
+
+Service
+'''''''
+
+To expose that core through a service, just allow the scs.xml renderer
+on it.  As the core is built, you can have a web-based form interface
+for free::
+
+  <service id="cone" core="xlcore" allowed="scs.xml,form">
+		<meta name="title">Nice Catalog Cone Search</meta>
+		<meta name="shortName">NC Cone</meta>
+		<meta name="testQuery.ra">10</meta>
+		<meta name="testQuery.dec">10</meta>
+		<meta name="testQuery.sr">0.01</meta>
+  </service>
+
+The meta information given is used when generating registration
+records.  In particular, you should make sure that a query with the
+given ra, dec, and sr actually returns some data.
+
 SIAP
 ----
 
@@ -1780,7 +1800,7 @@ profiles)::
 
   GRANT ALL PRIVILEGES ON SCHEMA <your schema> TO gavoadmin 
     WITH GRANT OPTION;
-  GRANT SELECT ON TABLE <your schema>.<your table> TO gavoadmin
+  GRANT SELECT ON <your schema>.<your table> TO gavoadmin
     WITH GRANT OPTION;
 
 If you have local users accessing the table, you should declare
@@ -1900,6 +1920,43 @@ services:
 
 
 .. _simple format: ref.html#meta-stream-format
+
+
+Registering DaCHS-external services
+-----------------------------------
+
+The registry interface of DaCHS can be used to register entities
+external to DaCHS; actually, you're already doing this when you're
+claiming an authority.
+
+To register a non-service "resource", you can fill out a resRec RD
+element.  You could reserve an RD (say, ``GAVOROOT/inputs/ext.rd`` to
+collect such external registrations, or you could put them alongside
+internal services into their respective RDs.  You will then usually just
+use the resRec's id attribute to determine the IVORN of resource record.
+It will then be ``ivo://<your authority>/<rd id>/<id of resRec>``.
+
+In all likelihood, however, you will want to register services.  To
+do that, use a normal service definition with with a nullCore.  You
+probably need to manually give an accessURL.  The most common case is
+that of a service with a ``WebBrowser`` capability.  These result from
+``external`` or ``static`` renderers.  Thus, the pattern here usually
+is::
+
+  <service id="myservice" allowed="external">
+    <nullCore/>
+    <meta>
+      shortName: My external service
+      description: This service does wonderful things, even though\
+        it's not based on GAVO's DaCHS software.
+    </meta>
+    <publish render="external" sets="ivo_managed">
+      <meta name="accessURL">http://wherever.else/svc</meta>
+    </publish>
+  </service>
+
+Of course, you will normally need to add further metadata as discussed
+above.
 
 
 
