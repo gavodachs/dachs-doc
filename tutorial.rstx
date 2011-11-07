@@ -1643,11 +1643,66 @@ To have custom parameters, simply add condDesc elements as usual::
       <condDesc buildFrom="t_eff"/>
     </ssapCore>
 
+For SSAP cores, ``buildFrom`` will enable "PQL"-like query syntax such
+that users can post arguments like ``20000/30000,35000`` to ``t_eff``.
+
 
 Service
 '''''''
 
-TBD.
+To expose SSAP services, use the `ssap.xml renderer`_.  The metadata
+keys required for registration of these are documented in the reference
+manual.  A complete declaration of a published SSAP service would then
+look like this::
+
+	<service id="ssa" allowed="form,ssap.xml">
+		<meta name="shortName">mydata SSAP</meta>
+		<meta name="ssap.dataSource">theory</meta>
+		<meta name="ssap.creationType">archival</meta>
+		<meta name="ssap.testQuery">MAXREC=1</meta>
+
+		<publish render="ssap.xml" sets="ivo_managed"/>
+
+		<ssapCore queriedTable="data">
+			<FEED source="//ssap#hcd_condDescs"/>
+			<condDesc buildFrom="t_eff"/>
+			<condDesc buildFrom="log_g"/>
+		</ssapCore>
+	</service>
+
+This service will expose all standard SSAP query parameters, and
+additionally condDescs built from the ``t_eff`` and ``log_g`` columns in
+the source table (see above).
+
+Incidentally, in web versions of such services, you may want to have
+specview-based "quick-view" links based on the ``run`` system rd that
+exposes the specview template.  Here's an example of an ``outputTable``
+(that would reside in the service element)::
+
+	<outputTable>
+		<outputField original="accref">
+		  <formatter><![CDATA[
+				res[T.a(href=makeProductLink(data))[
+					"[Spectrum as VOTable]"]]
+				res[" ", T.a(href=base.makeAbsoluteURL(
+					"__system__/run/specview/fixed?source=%s%%3fdm=sed"%
+					urllib.quote(makeProductLink(data))))["[in VOSpec]"]]
+				return res
+			]]></formatter>
+		</outputField>
+		<outputField original="ssa_specstart" displayHint="displayUnit=Å"/>
+		<outputField original="ssa_specend" displayHint="displayUnit=Å"/>
+	</outputTable>
+
+Some less cody approach would be welcome, but we'd need to collect some
+experience what people expect there.  Also note that specview is (or
+possibly was, when you're reading this) very picky in what it accepts as
+VOTables; in the example, the ``dm=sed`` parameter is used to instruct
+DaCHS' SDM-making machinery to come up with a table palatable by current
+specviews.
+
+.. _ssap.xml renderer: ./ref.html#the-ssap-xml-renderer
+
 
 Making SDM Tables
 '''''''''''''''''

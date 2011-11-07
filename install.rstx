@@ -405,34 +405,34 @@ you *should* install them unless you know what you are doing.
 VOPlot
 ------
 
-The software can generate code to load VOTable into VOPlot, a Java
-applet for working with VOTables.  Due to the applet security model, the
-applet has to originate from the server that will deliver the data, and
-so you will need to install VOPlot locally if you want to use this
-feature.
-
-Do do this, `download VOPlot
-<http://vo.iucaa.ernet.in/~voi/voplot.htm>`_ and unpack the distribution
-at a convenient place.  In the resulting folder, you'll find a
-subdirectory binaries/VOPlot.  Copy that and (less importantly)
-docs/user_guide to some location your webserver can serve from, e.g.,
+While DaCHS contains a very rudimentary Javascript-based plotting
+component, in-browser plotting is better done through VO India's VOPlot.
+Due to the applet security model, the applet has to originate from the
+server that will deliver the data, and so you will need to install
+VOPlot locally if you want to use this feature; if you don't do this,
+you should comment out or delete
 
 ::
 
-  mkdir /var/www/VOPlot
-  cp -r binaries/VOPlot  /var/www/VOPlot/bin
-  cp -r docs/user_guide/  /var/www/VOPlot/doc
+  <button onClick="openVOPlot()">Open in VOPlot</button>
 
+from ``$INSTALLROOT/gavo/resources/templates/defaultresponse.html`` (or
+leave this out from your local defaultresponse.html).
 
-Assuming that /var/www corresponds to the root of your webserver,
-you can then tell the GAVO software where it can find VOPlot in your
-/etc/gavo.rc (see below)::
+To make this work, first `download VOPlot
+<http://vo.iucaa.ernet.in/~voi/voplot.htm>`_ and unpack the distribution
+at a convenient place.  In the resulting folder, you'll find a
+subdirectory binaries.  Its contents is expected at
+``$GAVOROOT/web/nv_static/voplot``.
 
-  [web]
-  voPlotEnable: True
-  voplotCodeBase: /VOPlot/bin
-  voplotUserman: /VOPlot/doc
+Thus, within this ``binaries`` subdirectory, you could do::
+  
+  DESTDIR=`gavo config webDir`/nv_static/voplot
+  mkdir -p $DESTDIR
+  cp -r voplot* $DESTDIR
 
+(for VOPlot 1.2 – recommended for its compact size –, you can just copy
+voplot.jar).
 
 wcstools
 --------
