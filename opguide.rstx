@@ -524,6 +524,24 @@ lead to info pages on the RDs, in particular giving tables and services
 within the RD.
 
 
+robots.txt
+----------
+
+DaCHS answers to requests for robots.txt  with a built-in resource that
+forbids to index URLs with ``/seffe`` and ``/login``.  You may want to
+keep other pages out of indices.  In particular, ``/browse`` will let
+robots find unpublished services.  To exclude those, add a file
+``robots.txt`` in your ``webDir`` (run ``gavo config webDir`` to find
+out where that is) and add lines like::
+
+  Disallow: /browse
+
+The built-in rules will be prepended to whatever you specify in your
+user robots.txt.  For more information on what you can put into
+robots.txt, see `Robot exclusion standard`_
+
+.. _Robot exclusion standard: http://www.robotstxt.org/orig.html
+
 Publication
 ===========
 
@@ -554,5 +572,6 @@ published.  The running server is not automatically made aware of these
 changes.  You need to either ``gavo serve reload`` or reload the RD
 published *and* the ``__system__/services`` RD using DaCHS' web
 interface.
+
 
 
