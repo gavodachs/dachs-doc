@@ -1255,7 +1255,11 @@ In general, most metadata for services and resources rather closely
 follows what's defined in `Resource Metadata for the Virtual
 Observatory`_; see also the `Reference Manual on RMI-style metadata`_.
 
-One tricky spot is coverage.  In general, you will define coverage more
+Coverage
+--------
+
+One tricky spot is coverage, i.e., the parts of the STC space covered
+by what's in the resource.  In general, you will define coverage more
 or less like this::
 
   <meta name="coverage">
@@ -1284,9 +1288,41 @@ get fancy here; for example, you could write::
   </meta>
 
 However, the registries probably evaluate not very much of this
-information, and you most certainly should try to give positions
+information as yet, and you most certainly should try to give positions
 in ICRS.
 
+Copyright
+---------
+
+Within the astronomical community, licensing issues have traditionally
+played a minor role – if you referenced properly, using data from other
+people was not only ok, it was encouraged.  We should keep it that way,
+even in the days of easy reproducability.  Still, formal statements
+about how your data may be used may be useful.  These statements are 
+called licenses.
+
+RMI has the copyright meta for this purpose.  Right now, DaCHS doesn't do much
+with this information; it includes it in VOResource records, and the
+default response template shows it below the query form.  We recommend
+either specifying something like "The data is in the public domain" or,
+if you want to use something that's more in line with scientific habits,
+the `Creative Commons Attribution`_ ("CC-BY").  To support this, DaCHS
+includes a macro that can be used in meta elements that are direct
+children of the resource element.  Use it like this::
+
+  <resource...
+    <meta name="copyright" format="rst">
+      \RSTccby{Image metadata}
+
+      Usage conditions for individual images could differ.  See the
+      COPYING FITS header.
+    </meta>
+  </resource>
+
+The advantage of using the macro is that you get a nice image, and in
+the future we may expand this to a formal, machine-readable declaration.
+
+.. _Creative Commons Attribution: http://creativecommons.org/licenses/by/3.0/
 .. _Reference Manual on RMI-style metadata: ./ref.html#rmi-style-metadata
 .. _STC library documentation: ./stc.html
 .. _STC-S Note: http://www.ivoa.net/Documents/Notes/STC-S/
