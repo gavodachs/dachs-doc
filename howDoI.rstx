@@ -26,6 +26,25 @@ However, it's probably more desirable to use the rowmakers' built-in
 ``ignoreOn`` feature, possibly in connection with a procedure, since it is
 more declarative.
 
+Still, the following is the recommended way to selectively ignore broken
+records defined via certain identifiers::
+
+	<apply name="ignoreBrokenRecords">
+		<doc>This proc filters out records too broken to ingest.
+		for the set of ids in the toIgnorePar
+		</doc>
+		<setup>
+			<par name="toIgnore">set([
+				202, 405])
+			</par>
+		</setup>
+		<code>
+			if @catid in toIgnore:
+				raise IgnoreThisRow("Manually ignored from RD")
+		</code>
+	</apply>
+
+
 
 ...skip a single source?
 ------------------------
