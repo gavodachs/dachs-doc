@@ -158,7 +158,8 @@ You'll also need lines like::
   local   dachstest        <your user id>  ident
   local   dachstest        all             md5
 
-in your pg_hba.conf.
+(the second line is for the DaCHS admin, trustedquery, and untrusted
+profiles) in your pg_hba.conf.
 
 There are doctests in modules (though fewer than I'd like), and pyunit- and
 trial-based tests in ``<project root>/tests``.  ``tests/runAllTests.py``
@@ -178,6 +179,10 @@ argument (that will be interpreted as a method prefix to locate tests on
 the default TestCase) or with two arguments (a TestCase name and a
 method prefix to find the methods to be run).  All pyunit-based tests
 use this main.
+
+``testhelpers.main`` evaluates the ``TEST_VERBOSITY`` environment variable.
+With ``TEST_VERBOSITY=2``, you'll see the test names as they are
+executed.
 
 
 Structures
