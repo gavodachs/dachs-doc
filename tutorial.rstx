@@ -1855,6 +1855,69 @@ obscore table::
   gavo imp //obscore create
 
 
+Publishing DaCHS-managed tables via TAP
+---------------------------------------
+
+In the simplest form, all you need to do to publish a table through
+the TAP endpoint is to add an ``adql="True"`` attribute to the table
+definition and update the metadata (by saying ``gavo imp -m <rd>``).
+
+You should, however, take particular care that there's a useful
+description of the table, usually as a direct meta on the table.
+Keep in mind that people will stumble across the table in some sort of
+registry and need to be able to figure out whether the table contains
+useful data by that description and the column metadata alone.
+
+The TAP endpoint only exposes rather limited metadata.  At least when
+there is no published service on the table, you may want to just publish
+the data to the registry, too.  This leads to a much richer set of
+metadata, increasing people's chances to able to locate the data.
+
+To publish a nonservice (usually a table definition, but you can
+register data descriptors containing multiple tables, too), use
+the `register Element <./ref.html#element-register>`_ .  For a simple
+table, just wringing ``<register/>`` is enough, since the set name
+defaults to ``ivo_managed`` and ADQL-accessible tables are automatically
+related to the TAP services.
+
+When ``register`` is the child of a data item, you need to manually
+declare that child tables are TAP-accessible, like this::
+
+	<data id="collection" auto="false">
+		<register services="__system__/tap#run"/>
+		<make table="part1"/>
+		<make table="part3"/>
+	</data>
+
+Another thing you might want to do when publishing tables to TAP is add
+sample queries for them.  As an extension to the usual tap_schema, DaCHS
+has an example table giving a name, a query and a description.  TAP
+clients may exploit these examples to help users figure out what to
+usefully do with more arcane tables, and of course you can explain
+more interesting features of your server or data here.
+
+To add an example, create a file with a name ending in ``.sample`` in
+``$GAVO_INPUTS/__system/adqlsamples/``.  The grammar for theses files is
+defined in ``//tap#import_examples``.  You write the three keys, viz., name,
+query and description, in this sequence, each followed by a double colon
+and any material you want in the field.  The keys must start at the
+beginning of a line.  Here's an example::
+
+  name::katkat bibliography
+  query:: 
+  select * 
+  from katkat.katkat 
+  where gavo_hasword('variable', source) 
+	  and minEpoch<1900
+  description::To search for title (or other) words in katkat's source field in
+  some sort of bibliographic query, use the gavo_hasword locally defined
+  function.  This basically works a bit like you'd expect from search engines:
+  case-insensitive, and oblivious to any context.
+
+After adding an example, run ``gavo imp //tap import_examples`` to
+update the database table.
+
+
 Publishing existing tables via TAP
 ----------------------------------
 
