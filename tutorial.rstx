@@ -1901,7 +1901,9 @@ To add an example, create a file with a name ending in ``.sample`` in
 defined in ``//tap#import_examples``.  You write the three keys, viz., name,
 query and description, in this sequence, each followed by a double colon
 and any material you want in the field.  The keys must start at the
-beginning of a line.  Here's an example::
+beginning of a line.  You must add a double period at the and of the
+file, and it's one file per example.  Here's what this should look
+like::
 
   name::katkat bibliography
   query:: 
@@ -1913,6 +1915,7 @@ beginning of a line.  Here's an example::
   some sort of bibliographic query, use the gavo_hasword locally defined
   function.  This basically works a bit like you'd expect from search engines:
   case-insensitive, and oblivious to any context.
+  ..
 
 After adding an example, run ``gavo imp //tap import_examples`` to
 update the database table.
