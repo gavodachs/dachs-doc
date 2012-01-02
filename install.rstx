@@ -336,39 +336,8 @@ Binaries
 If you want to provide previews for images, you must compile some
 binaries.  these are in the ``src`` subdirectory of the source tree.
 Just enter all subdirectories there in turn and say ``make install`` in
-each.  Run these as yourself, not as root.
-
-If your GAVO_ROOT is accessible from more than one machine and the
-machines have different architectures, this may be a problem, because
-one platform may not be able to execute another platform's binaries.
-
-To fix this, set platform in the DEFAULTS section of your config file.
-You can then rename any platform-dependent executable
-base-<platform>, and if on the respective platform, that binary will be
-used. This also works for computed resources using binaries, and those
-parts of the DC software that build binaries (e.g., the booster
-machinery) will automatically add the platform postfix.
-
-If you build your own software, a make file like the following could be
-helpful:
-
-::
-
-  PLATFORM=$(shell gavo config platform)
-  TARGET=@@@binName@@@-$(PLATFORM)
-  OBJECTS=@@@your object files@@@
-
-  $(REG_TARGET): buildstamp-$(PLATFORM) $(OBJECTS)
-          $(CC) -o $@ $(OBJECTS)
-
-  buildstamp-$(PLATFORM):
-          make clean
-          rm -f buildstamp-*
-          touch buildstamp-$(PLATFORM)
-
-You'll have to fill in the @@@.*@@@ parts and probably write rules for
-building the files in $OBJECT, but otherwise it's a simple hack to make
-sure a make on the respective machine builds a suitable binary.
+each.  Run these as yourself (i.e., as datacenter administrator), not as
+root.
 
 
 Specifying meta information fallbacks
@@ -397,7 +366,7 @@ More dependencies
 =================
 
 The following software components are not really hard dependencies, but
-they are in some ways used by very common functions of DaCHS, and this
+they are in some ways used by very common functions of DaCHS, and thus
 you *should* install them unless you know what you are doing.
 
 
@@ -441,20 +410,25 @@ To support cutout services, you need getfits from the wcstools package
 available at http://tdc-www.harvard.edu/software/wcstools/.   After
 building wcstools, the binary is in <build-dir>/bin/getfits.
 
-The system expects the binary getfits in $GAVO_INPUTSDIR/cutout/bin/getfits,
-you can optionally add a platform suffix.
+The system expects the binary getfits in $GAVO_INPUTSDIR/cutout/bin/getfits.
 
+
+This concludes the installation instructions for the normal case.  Only
+read on if you're curious and/or courageous.
 
 
 Manual Database Preparation
 ===========================
 
+Normally, the following steps are done by ``gavo init``.  So, on a
+normal install you can stop reading here.
+
+However, if you want to play tricks (e.g., remote database server), the
+following instructions should help.
+
+
 Creating database users
 -----------------------
-
-Normally, the following steps are done by ``gavo init``.  If this fails
-or you want to play tricks (e.g., remote database server), these
-instructions should help.
 
 The data center software accesses the database in various functions.
 These are mapped to profiles which correspond to access information

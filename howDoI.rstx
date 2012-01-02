@@ -600,3 +600,40 @@ In the rowmaker, you could then do something like this::
 				<map dest="raj2000">@cra+float(@dra)*DEG_ARCSEC</map>
 				<map dest="dej2000">@cde+float(@dde)*DEG_ARCSEC</map>
 
+
+...use binaries when the gavo directory is mounted from multiple hosts?
+-----------------------------------------------------------------------
+
+
+If your GAVO_ROOT is accessible from more than one machine and the
+machines have different architectures (e.g., i386 and amd64 or ppc,
+corresponding to test machine and production server), compiled binaries
+(e.g., getfits, or the preview generating code) will only work on one of
+the machines.
+
+To fix this, set platform in the [general] section of your config file.
+You can then rename any platform-dependent executable base-<platform>,
+and if on the respective platform, that binary will be used. This also
+works for computed resources using binaries, and those parts of the DC
+software that build binaries (e.g., the booster machinery) will
+automatically add the platform postfix.
+
+If you build your own software, a make file like the following could be
+helpful::
+
+  PLATFORM=$(shell gavo config platform)
+  TARGET=@@@binName@@@-$(PLATFORM)
+  OBJECTS=@@@your object files@@@
+
+  $(REG_TARGET): buildstamp-$(PLATFORM) $(OBJECTS)
+          $(CC) -o $@ $(OBJECTS)
+
+  buildstamp-$(PLATFORM):
+          make clean
+          rm -f buildstamp-*
+          touch buildstamp-$(PLATFORM)
+
+You'll have to fill in the @@@.*@@@ parts and probably write rules for
+building the files in $OBJECT, but otherwise it's a simple hack to make
+sure a make on the respective machine builds a suitable binary.
+
