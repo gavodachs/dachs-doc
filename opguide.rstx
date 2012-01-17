@@ -39,8 +39,8 @@ either.
 
 Finally, ``gavo serve restart`` restarts the server.  The start, stop,
 reload, and restart operations generally should be run as root; you
-can obviously run them as the server user (by default, gavo), too.
-
+can run them as the server user (by default, gavo), too, as long as the
+server doesn't try to bind to a privileged (lower than 1025).
 
 All this can and should be packed into a startup script.  With a system
 V init system, you could use something like this
