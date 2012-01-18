@@ -1897,11 +1897,11 @@ usefully do with more arcane tables, and of course you can explain
 more interesting features of your server or data here.
 
 To add an example, create a file with a name ending in ``.sample`` in
-``$GAVO_INPUTS/__system/adqlsamples/``.  The grammar for theses files is
+``$GAVO_INPUTS/__system/adqlexamples/``.  The grammar for theses files is
 defined in ``//tap#import_examples``.  You write the three keys, viz., name,
 query and description, in this sequence, each followed by a double colon
 and any material you want in the field.  The keys must start at the
-beginning of a line.  You must add a double period at the and of the
+beginning of a line.  You must add a double period at the end of the
 file, and it's one file per example.  Here's what this should look
 like::
 
@@ -1911,11 +1911,18 @@ like::
   from katkat.katkat 
   where gavo_hasword('variable', source) 
 	  and minEpoch<1900
-  description::To search for title (or other) words in katkat's source field in
-  some sort of bibliographic query, use the gavo_hasword locally defined
-  function.  This basically works a bit like you'd expect from search engines:
+  description::To search for title (or other) words in the source
+  field of :taptable:`katkat.katkat` (or in some other similar
+  query), use the gavo_hasword locally defined function.  
+  This basically works a bit like you'd expect from search engines:
   case-insensitive, and oblivious to any context.
   ..
+
+The description can be reStructured text.  We have added an interpreted
+text role taptable (see the description above on how to use it).  Its
+effect is to declare the table name that follows as "pertinent" to the
+query.  Smart clients would then show that query together with the
+table metadata in their metadata browsers.
 
 After adding an example, run ``gavo imp //tap import_examples`` to
 update the database table.  The result of this query is cached in the
