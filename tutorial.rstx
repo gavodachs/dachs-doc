@@ -1918,7 +1918,10 @@ like::
   ..
 
 After adding an example, run ``gavo imp //tap import_examples`` to
-update the database table.
+update the database table.  The result of this query is cached in the
+server, so to see the result on TAP's example endpoint, you need to
+reload the tap service (e.g., by going to /tap, logging in as gavoadmin,
+clicking on "Admin me" and then on "Reload RD").
 
 
 Publishing existing tables via TAP
