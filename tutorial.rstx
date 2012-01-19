@@ -2067,7 +2067,15 @@ services:
   Observatory.`` (use backslashes an the end of the lines to break long
   lines).
 * authority.referenceURL -- A URL at which people can learn more about
-  your organisation.  Example: ``http://www.g-vo.org``.
+  your data center.  Example: ``http://www.g-vo.org``.
+* authority.managingOrg – an ivo id of the organization you're running
+  the dc for.  The default is ivo://<your authority>/org, the content
+  of which can be configured using the organization meta items.  If
+  your institution has a registry entry independent of your DC, you
+  can enter that IVORN here as well.
+* organization.description and organization.referenceURL – as the
+  analoguous items for authority, just for the organization for which
+  you are running the data center (e.g., your "home institute")
 * publisher -- A short, human-readable name for you
 * publisher.ivoId -- An IVOA id for yourself;  set this to
   ivo://<authority>/org unless you know what you are doing
