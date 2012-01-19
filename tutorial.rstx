@@ -2073,6 +2073,8 @@ services:
   of which can be configured using the organization meta items.  If
   your institution has a registry entry independent of your DC, you
   can enter that IVORN here as well.
+* organization.title -- the name of the organization on behalf of which
+  you are running the data center.
 * organization.description and organization.referenceURL – as the
   analoguous items for authority, just for the organization for which
   you are running the data center (e.g., your "home institute")
