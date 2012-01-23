@@ -145,6 +145,32 @@ you update the source.
 Setup
 =====
 
+Introduction
+------------
+
+GAVO DaCHS is quite sensitive to a correct setup as regards permissions.
+Experience has shown that user setup is the number one reason for
+installation problems.  So, up front, here's what the steps given
+below should create:
+
+* A group  that will own certain directories that must be writable by 
+  the server (by default gavo).
+* A user  that the server will run as (by default gavo).
+* A unix account for you that should not be root (in particular not if
+  you're using setup.py develop on an SVN checkout).  This should be in
+  the gavo group (for when you're running ``gavo serve debug``) and will
+  usually own resource directories and the like.
+
+On the database side, the following must be ascertained:
+
+* There's a postgres database cluster in the C locale, with a database
+  already created (named, by default gavo).
+* "you" (i.e., your unix id) have admin privileges on this (at least
+  for installation) using ident authentication
+* for connections from the local host, the three roles the server use
+  can access the database using md5 authentication.
+
+
 Account Management
 ------------------
 
