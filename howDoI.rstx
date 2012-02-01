@@ -104,7 +104,7 @@ The expression must be valid SQL.
 
 
 ...make an input widget to select which columns appear in the output table?
-------------------------------------------------------–--------------------
+---------------------------------------------------------------------------
 
 In general, selecting fancy output options currently requires custom
 cores or custom renderers.  Ideas on how to change this are welcome.
@@ -196,12 +196,10 @@ In a custom renderer or core, you can use code like::
   ...
 
   def import(self, srcName, srcFile):
-    connection = api.getDBConnection("admin")
     dd = self.service.rd.getById("myDataId")
-    self.nAffected = api.makeData(dd, forceSource=srcFile,
-      connection=connection).nAffected
-    connection.commit()
-    connection.close()
+    with api.getWritableAdminConn() as conn:
+      self.nAffected = api.makeData(dd, forceSource=srcFile,
+        connection=conn).nAffected
 
 You want to use a separate connection since the default connections
 obtained by cores and friends are unprivileged and typically cannot
@@ -216,14 +214,16 @@ submitActions, you obtain them like::
   srcName, srcFile = data["inFile"]
 
 
-Note that you can get really fancy and manipulate data in some way up
+Note that you can get really fancy and manipulate ``data`` in some way up
 front.  That could look like this::
 
+  from gavo import rsc
+  ...
   data = rsc.Data.create(dd, parseOptions=api.parseValidating,
-    connection=connection)
+    connection=conn)
   data.addMeta("_stationId", self.stationRecord["stationId"])
   self.nAffected = api.makeData(dd, forceSource=srcFile, data=data,
-    connection=connection).nAffected
+    connection=conn).nAffected
 
 
 ...change the query issued on SCS queries?
