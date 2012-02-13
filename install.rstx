@@ -500,6 +500,18 @@ For the individual tables, rights to gavo and untrusted are granted by
 ``gavo imp``, so you do not need to specify any rights for them.
 
 
+Owner-only DB setup
+-------------------
+
+There is some setup that the database owner or at least a superuser must
+do.  Right now, that is allowing stored procedures in Postgres' own
+procedural language::
+
+  psql gavo <<EOF
+  CREATE LANGUAGE plpgsql
+  EOF
+
+
 Reading the extensions' SQL files
 ---------------------------------
 
