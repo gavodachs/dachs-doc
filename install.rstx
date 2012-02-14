@@ -363,7 +363,11 @@ If you want to provide previews for images, you must compile some
 binaries.  these are in the ``src`` subdirectory of the source tree.
 Just enter all subdirectories there in turn and say ``make install`` in
 each.  Run these as yourself (i.e., as datacenter administrator), not as
-root.
+root.  [If you're looking for a nice project to contribute, replacing
+those with python equivalents would be welcome and doesn't take
+much knowledge of DaCHS' internals.  products.ScaledFITSProduct shows
+how this could work for the FITS case, and jpegpreview should
+probably be done by PIL in-memory]
 
 
 Specifying meta information fallbacks
