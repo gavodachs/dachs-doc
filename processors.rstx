@@ -494,4 +494,24 @@ for smaller images.  Also, change the argument to -N if you change endob
 in the solverParameters to get an idea which objects are actually looked
 at.
 
+What to Try
+'''''''''''
+
+In the case of calibration failures you may play around with SExtractor's
+parameters DETECT_MINAREA and DETECT_THRESH. This is done by running::
+
+  calibrate.py --minarea=MINAREA --detectthreshold=DETECTTHRESH
+
+DETECT_THRESH refers to the detection threshold (in sigma) above the local
+background. A group (of pixels) is formed by a number of pixels connected
+to each other whose values exceed the local threshold. DETECT_MINAREA sets
+a lower bound on the number of pixels a group should have to trigger a
+detection.
+
+The default values used for the calibration are MINAREA = 300 and
+DETECTTHRESH = 4. In some cases it is useful to decrease the MINAREA
+parameter and to increase the detection reliability by increasing the
+threshold value, e.g.::
+
+  calibrate.py --minarea=10 --detectthreshold=6
 
