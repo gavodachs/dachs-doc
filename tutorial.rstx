@@ -568,17 +568,17 @@ Let us assemble the pieces we have so far::
       </reGrammar>
 
       
-      <make table="exts" rowmaker="build_exts">
+      <make table="exts">
         <rowmaker id="build_exts" idmaps="*">
-          <var name="raMin">float(raMin)</var>
-          <var name="raMax">float(raMax)</var>
-          <var name="decMin">float(decMin)</var>
-          <var name="decMax">float(decMax)</var>
+          <var name="raMin">float(@raMin)</var>
+          <var name="raMax">float(@raMax)</var>
+          <var name="decMin">float(@decMin)</var>
+          <var name="decMax">float(@decMax)</var>
 
-          <map dest="centerAlpha">(raMin+raMax)/2.</map>
-          <map dest="centerDelta">(decMin+decMax)/2.</map>
-          <map dest="bbox">coords.Box((raMin, decMin),
-                (raMax, decMax))</map>
+          <map dest="centerAlpha">(@raMin+@raMax)/2.</map>
+          <map dest="centerDelta">(@decMin+@decMax)/2.</map>
+          <map dest="bbox">coords.Box((@raMin, @decMin),
+                (@raMax, @decMax))</map>
         </rowmaker>
       </make>
     </data>
