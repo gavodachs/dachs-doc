@@ -38,12 +38,12 @@ attribute on the ``DirectGrammar`` element::
 
   <DirectGrammar cBooster="path" recordSize="300"/>
 
-Note that  ``recordSize``s larger than ``INPUT_LINE_MAX`` will cause a buffer
+Note that  a ``recordSize`` larger than ``INPUT_LINE_MAX`` will cause a buffer
 overflow.  You will, in this case, want to generate the booster using
 the -b flag.
 
-Aonther type of booster reads from text files, but the fields are not
-defined by extent but by seperator characters.  For the booster
+Another type of booster reads from text files, but the fields are not
+defined by extent but by separator characters.  For the booster
 environment, this doesn't make any difference, so you don't need to
 declare it.  The booster itself should be generated using the -s flag to
 ``gavo mkboost``.
@@ -184,7 +184,7 @@ following macros:
   unless value==nullvalue; in that case, fi becomes a NULL
 
 
-Boosters reading from seperated data
+Boosters reading from separated data
 ------------------------------------
 
 When the input data comes as xSV (e.g., values separated by vertical
@@ -210,7 +210,7 @@ Filling in data manually
 ------------------------
 
 The ``F(index)`` macro lets you access the field info directly.  So, you
-could enter a fixed-length piece of memory into ``fi_magic``like this::
+could enter a fixed-length piece of memory into ``fi_magic`` like this::
 
   static char bufForMagic[8];
 
