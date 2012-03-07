@@ -490,8 +490,37 @@ Settings related to serving content to the web.
 .. END CONFIG REFERENCE
 
 
+Managing Runtime Resources
+==========================
 
-Admin web interfaces
+DaCHS caches quite a lot of information rather aggressively, which means
+that editing information on disk may not immediately influence the
+behaviour of the server.  This is particularly true for the default
+meta (``etc/defaultmeta.txt``), the vanity name translations
+(``etc/vanitynames.txt``), and the database profiles.  Most
+of this can is reloaded on ``gavo serve reload``, but certain settings
+(like ``serverPort`` and ``bindAddress``) only take effect on a restart.
+
+The resource descriptors are special.  The server should pick up edits
+on RDs automatically, with the following exceptions: 
+
+* Built-in ``__system__`` RDs are not controlled.  The main reason here
+  is that these may not actually have disk files behind them, depending
+  on the installation they may come from an archive.
+* Only the file the RD was loaded from is checked.  This means that if
+  you override a built-in ``__system__`` RD with your own version in
+  ``inputs/__system__``, DaCHS will not automatically pick that up
+* If you access an RD with no corresponding file and create that file
+  afterwards, that change will also not be picked up automatically.
+
+``gavo serve reload`` will reload even those RDs.  To selectively
+invalidate RDs that fall under these categories when you don't want to
+reload or restart the server, use the administration panel for the RD
+through the webserver; see `Admin Web Interfaces`_
+
+
+
+Admin Web Interfaces
 ====================
 
 Some operation on the data center can be done from its web interface.
@@ -518,7 +547,7 @@ You can directly access the administraion panel for an RD by accessing
 There are several more or less introspective resources within DaCHS that
 do not need authentication.
 
-First, there's ``/browse``.  That's a list of all RDs that have
+Among those, there's ``/browse``.  That's a list of all RDs that have
 (ivo or local) published services or data in them.  Links on the RDs
 lead to info pages on the RDs, in particular giving tables and services
 within the RD.
