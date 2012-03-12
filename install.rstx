@@ -213,7 +213,11 @@ Cluster Creation
 
 You first need a database to play with, preferably in a suitable
 cluster (you could skip this, but the all bets are off as to whether
-you'll be able to store non-ASCII characters in strings).
+you'll be able to store non-ASCII characters in strings).  It is
+recommended to create a dedicated cluster first even if you want to
+connect DaCHS to a pre-existing database later to get a feel for how it
+works.  See `Connecting to a remote database`_ for information on
+what setup is necessary in this case.
 
 Database cluster generator is very system-dependent, and ideally a
 database admin would assist you.  
@@ -258,6 +262,10 @@ On Debian systems dedicated for GAVO DaCHS, you can try the following:
 On Debian, the configuration files for this cluster are at
 ``/etc/postgresql/$PGVERSION/pgdata/``.
 
+
+Adapting pg_hba.conf
+''''''''''''''''''''
+
 Note that running a database server always is a security
 liability.  You should make sure you understand what the pg_hba.conf (in
 postgres' configuration directory) says.  As a minimum, you should have a 
@@ -301,6 +309,17 @@ as employed by DaCHS, they travel through the net unencrypted anyway
 (which is sometimes called "mild security").
 
 
+Connecting to a Remote Database
+'''''''''''''''''''''''''''''''
+
+If you already have a database and are fed up with playing around in the
+toy database we advised you to start with at the top of `Cluster
+Creation`_, you still need to prepare the database server.  Again, you
+will need to edit pg_hba.conf as discussed in `adapting pg_hba.conf`_ to
+allow password authenticated access from the host that runs DaCHS.  And,
+during initialization, you will need access to a superuser profile.
+
+
 Configuration File
 ------------------
 
@@ -342,18 +361,25 @@ not write to ``rootDir``'s parent, do something like::
 no output at all should appear.
 
 If you database server is not on the same machine as your web server
-(which is not recommended for a test setup), you cannot use the
-automatic database setup.  In that case, say::
+(which is not recommended for a test setup), you have to pass a complete
+DSN that lets DaCHS connect as a superuser to ``gavo init``.  A DSN
+("Data Source Name") is a sequence of key-values pairs as used  by ODBC
+or Postgres itself (with keys discussed in `Database Connection Control
+Functions in the postgres documentation`_).  You would say something
+like::
 
-  gavo --nodb init
+  gavo init --dsn "host=myhost.xy port=5546 user=super password=secret dbname=wisdom"
 
-and read `Manual Database Preparation`_
+– make sure you give at least dbname and whatever role DaCHS ends up
+using has superuser privileges during setup (that role is not used
+during normal DaCHS operation any more).
 
 You can later run gavo init again. It will not clobber anything you did
 in the meantime (well, if it does, it's a bug and you should fiercely
 complain).  In particular, this is the most convenient way to create
 directories if you changed locations in ``gavo.rc``.
 
+.. _Database Connection Control Functions in the postgres documentation: http://www.postgresql.org/docs/current/static/libpq-connect.html
 
 
 Binaries
