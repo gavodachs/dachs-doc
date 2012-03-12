@@ -2,6 +2,16 @@
 Common Problems with DaCHS
 ==========================
 
+This document tries to discuss some error messages you might encounter
+while running DaCHS.  The rough idea is that when you can grep in this
+file and get some deeper insight as to what happened and how to fix
+it.
+
+We freely admit that some error messages DaCHS spits out are not too
+helpful.  Therefore, you're welcome to complain to the authors whenever
+you don't understand something DaCHS said.  Of course, we're grateful if
+you checked this file first.
+
 
 DistributionNotFound
 ====================
@@ -203,3 +213,36 @@ the two don't match.
 This can be because the input file is damaged, you forgot to skip
 some header, but it can also be because you forgot fields or your
 binaryRecordDef doesn't match the input in some other way.
+
+
+"resource directory '<whatever>' does not exist"
+================================================
+
+DaCHS expects each RD to have a "resource directory" that contains
+input files, auxillary data, etc.  Multiple RDs may share a single
+resource directory.  
+
+By default, the resource directory is <inputsDir>/<schema>. If you don't
+need any auxillary files, the resdir doesn't need to exist. In that
+case, you'll see the said warning.  To suppress it, you could just say::
+
+  <resource schema="<whatever>" resdir="__system">
+
+The ``__system`` resource directory is used by the built-in RDs and thus
+should in general exist.
+
+However, the recommended layout is, below ``inputsDir``, a subdirectory
+named like the resource schema, and the RD immediately within that
+subdirectory.  In that case, you don't need a resdir attribute.
+
+
+Only RDs from below inputsDir may be imported
+=============================================
+
+RDs in DaCHS must reside below ``inputsDir`` (to figure out what that is
+on your installation, say ``gavo config inputsDir``).  The main reason
+for that restriction is that RDs have identifiers, and these are
+essentially the inputsDir-relative paths of the file.  Out-of-tree RDs
+just cannot compute this.  Therefore, most subcommands that accept file
+paths just refuse to work when the file in question is not below
+inputsDir.

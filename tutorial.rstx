@@ -1954,10 +1954,16 @@ like::
   </resource>
 
 
-Then, say ``gavo imp -m <rd-id>``; make sure you don't forget the
-``-m``, because without it, ``gavo imp`` will drop the existing if it
-can, i.e., if gavoadmin has write access to the schema in question, and
-it should have that for reasons explained in the next paragraph.
+Within the data element you need one make each for each table you want
+in ADQL; it would cause the tables to be created on a plain ``gavo
+imp``, in the present context, it just says something like "put the
+table metadata into DaCHS' internal catalogs".
+
+After that, say ``gavo imp -m <rd-id>``; make sure you don't forget the
+``-m``, because without it, ``gavo imp`` will drop the existing tables
+if it can, i.e., if gavoadmin has write access to the schema in
+question, and it should have that for reasons explained in the next
+paragraph.
 
 This adds the metadata you've given to all kinds of administrative
 tables DaCHS keeps but does not touch the data.  It will also try to fix
@@ -1974,6 +1980,30 @@ If you have local users accessing the table, you should declare
 them in either the allRoles or readRoles attributes to the table
 definiton.  Maybe even adapting the profiles in GAVOROOT/etc to match
 your existing infrastructure could make sense.
+
+Also do not forget that people should have some way to locate your data
+collection (i.e., the table(s) that you are exposing).  If you have
+sufficient metadata defined – basically as for services –, you can
+register your data collection.  To do this, just add an empty
+``<register/>`` element to either a table definition or, more
+convenient in multi-table setups, a data element for your data
+collection.  The defaults for register are publication to the VO and,
+for ADQL-exposed tables, serviced by the TAP service, which is about
+what you want in this situation.
+
+Here's an example for the case of a multi-table publication::
+
+	<data id="collection" auto="false">
+		<register services="__system__/tap#run"/>
+		<make table="part1"/>
+		<make table="part3"/>
+	</data>
+
+Don't forget that you need to execute::
+
+  gavo pub the/rdid
+
+to make DaCHS actually publish the table.
 
 
 The Registry Interface
