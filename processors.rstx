@@ -2,6 +2,10 @@
 GAVO DaCHS: File Processing
 ===========================
 
+:Author: Markus Demleitner
+:Email: gavo@ari.uni-heidelberg.de
+
+
 This is a short manual on how to use DaCHS' helpers to preprocess data
 before ingesting it.
 
@@ -473,6 +477,11 @@ astrometric calibration does, but you have been warned).
 To rerun SExtractor, say::
 
   sextractor -c anet.control img.fits
+
+You should sort the result by magnitude, since that's what anet's solver
+expects.  In the normal case, you can do this like so::
+
+  $ANET_PATH/tabsort  MAG_ISO img.axy out.axy && mv out.axy img.axy
 
 To get an idea what the source extraction has done, you can try anet's
 plotxy.  You could use anet's solve-field, but this probably will not

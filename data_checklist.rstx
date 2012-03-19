@@ -1,6 +1,10 @@
 Metadata for publication in GAVO's Data Center
 ==============================================
 
+:Author: Markus Demleitner
+:Email: gavo@ari.uni-heidelberg.de
+
+
 To make your data visible to other astronomers and the general public,
 the umbrella organization of the VO, the IVOA_, runs a registry of
 services.  To feed it meaningful data, and also to enable users of your

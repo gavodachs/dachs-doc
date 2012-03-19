@@ -2,6 +2,10 @@
 The GAVO VOTable Library
 ========================
 
+:Author: Markus Demleitner
+:Email: gavo@ari.uni-heidelberg.de
+
+
 A library to process VOTables using python
 ========================================================================
 

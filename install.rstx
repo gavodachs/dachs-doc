@@ -2,6 +2,9 @@
 GAVO DaCHS installation and configuration
 =========================================
 
+:Author: Markus Demleitner
+:Email: gavo@ari.uni-heidelberg.de
+
 .. contents:: 
   :depth: 3
   :backlinks: entry
@@ -405,17 +408,16 @@ metadata themselves.  Don't sweat it for now, but you must fix it before
 you run your own registry.
 
 
-Customizing the appearance on the web
-=====================================
+The init script
+===============
 
-Uh.  I need to work on this.  Basically, you'd have to check out
-``resources/web`` in the source distribution.  You can take these files
-and copy them to ``$GAVO_ROOT/web/<path>`` to edit them there.  The
-machinery should then pick them up and use them instead of what
-comes with the distribution (it doesn't, yet, for all such files).
+Though you can operate the server manually through ``gavo serve
+(start|stop|reload)``, you will probably want to install an init script
+to ``/etc/init.d`` (or your system's equivalent place).  More
+information on this is in `Starting and Stopping the Server in the 
+operator's guide`_
 
-This is clearly suboptimal.  Good ideas for "shallow" configurability
-are welcome.
+.. _Starting and Stopping the Server in the operator's guide: opguide.html#starting-and-stopping-the-server
 
 
 More dependencies

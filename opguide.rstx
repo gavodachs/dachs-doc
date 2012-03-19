@@ -2,6 +2,9 @@
 GAVO DaCHS operator's guide
 ===========================
 
+:Author: Markus Demleitner
+:Email: gavo@ari.uni-heidelberg.de
+
 .. contents:: 
   :depth: 3
   :backlinks: entry
@@ -112,14 +115,300 @@ For development work or to see what is going on, you can run ``gavo
 serve debug``; this does not detach and does not change users.
 
 
-Specifying meta information fallbacks
-=====================================
+Publication
+===========
 
-The file ``rootDir/etc/defaultmeta.txt`` gives metadata on you.  You
-must fill this out when you start generating your own resource records
-(i.e., publish services or data using the built-in registry interface).
+To "publish" a resource – which means include it either on your site's
+home page or in what you report to the VO registry –, add a ``publish``
+element to a ``service`` element or a ``register`` element to data or
+table elements.  Both of these let you specify the sets the resources
+shall be published to.  Unless you have specific application, only two
+sets are relevant: ``ivo_managed`` for publishing to the VO (see
+`Registry Matters`_, and ``local`` for publishing to your data center's
+service roster.  Other sets can be introduced and used for, e.g.,
+specific sub-rosters.
 
-``gavo init`` creates a file with the commonly useful keys.
+The ``publish`` element needs, in addition, a render attribute, giving a
+comma-separated list of renderers the publication is for.  The various
+renderers are translated into capability element in the VO resource
+records.  For example, a typical pattern could be::
+
+		<publish render="scs.xml" sets="ivo_managed"/>
+		<publish render="form" sets="local,ivo_managed"/>
+
+This generates a capability each for the simple cone search and a
+browser-based interface; the browser-based interface is, in addition,
+listed in the local service roster.
+
+Once you have done this, run ``gavo pub <rdid>``.  This causes all
+publishable items in the RD to be published.  It also unpublishes
+everything that was published through the RD before and is no longer
+published.  If the ``serverURL`` config item on the machine running gavo
+pub is pointing to the actual running server, the latter will
+automatically be made aware of these changes.  Otherwise, you need to
+prod the server as discussed in `Managing Runtime Resources`_.
+
+
+Registry Matters
+================
+
+As explained in the `tutorial chapter on the registry`_, you must provide 
+enough data to allow the VO to tell who you are before the VO registry
+can usefully include your registry records.
+
+Once that's done, you can add the publishing registry included in DaCHS
+to the list of registries harvested by VO full registries.
+
+This chapter tries to guide you through this process.
+
+
+Defining Basic Metadata
+-----------------------
+
+The first step is to define your authority (i.e., something like
+org.g-vo.dc) in your config (``/etc/gavo.rc``), in the
+``[ivoa]authoriy`` item.  Please make sure that the authority is not
+already taken by someone else; you have probably fulfilled your due
+diligence if you've run an `authority query against the registry`_ and
+did not find a match.  Using your DNS name is not a bad idea.  Please
+don't repeat our (the GAVO DC's) mistake and invert the sequence of
+particles in your DNS name.
+
+Then, add metadata about yourself in ``GAVO_ROOT/etc/defaultmeta.txt``.
+It is a file in the `meta stream format`_; basically it's lines
+of ``<key>: <value>``.  
+
+In defaultmeta.txt, you must give basic information on your authority
+and some fallback for services (the defaults all make no sense at all
+and should never escape to the VO registry):
+
+* authority.creationDate -- A UTC datetime (with trailing Z);
+  technically, it should be the date the resource record is created, but
+  realistically, just use "now".  Example: ``2007-12-19T12:00:00Z``.
+* authority.title -- A human-readable descriptor of what the authority
+  corresponds to.  Example: ``The GAVO data center``
+* authority.description -- A sentence or two on what you're up to.
+  Example: ``The GAVO data center provides VO publication services to
+  all interested parties on behalf of the German Astrophysical Virtual
+  Observatory.`` (use backslashes an the end of the lines to break long
+  lines).
+* authority.referenceURL -- A URL at which people can learn more about
+  your data center.  Example: ``http://www.g-vo.org``.
+* authority.managingOrg – an ivo id of the organization you're running
+  the dc for.  The default is ivo://<your authority>/org, the content
+  of which can be configured using the organization meta items.  If
+  your institution has a registry entry independent of your DC, you
+  can enter that IVORN here as well.
+* organization.title -- the name of the organization on behalf of which
+  you are running the data center.
+* organization.description and organization.referenceURL – as the
+  analoguous items for authority, just for the organization for which
+  you are running the data center (e.g., your "home institute")
+* publisher -- A short, human-readable name for you
+* publisher.ivoId -- An IVOA id for yourself;  set this to
+  ivo://<authority>/org unless you know what you are doing
+* contact.name -- A human-readable name for some entity people should
+  write to.  This is not necessarily different from publisher, but
+  ideally people can write "Dear <contact.name>" in their mails.
+* contact.address -- A contact address for surface mail
+* contact.email -- An email address.  It should be spam-proof.
+* contact.telephone -- A telephone number people can call if things
+  really look bad.
+* creator.name -- A name to use when you give no creator in your
+  resource descriptors.  Could be some error sentinel ("we foget to
+  give credit, please complain") or just contact.name if you produce
+  resources yourself.
+* creator.logo -- A URL for a logo to use when none is given in the
+  resource metadata. Use a small PNG here.
+
+.. _tutorial chapter on the registry: tutorial.html#the-registry-interface
+.. _authority query against the registry: http://dc.zah.uni-heidelberg.de/__system__/adql/query/form?query=select%20ivoid%2C%20contact_email%20from%20rr.resource%20where%20resource_type%3D%27vg%3AAuthority%27%20and%20ivoid%3D%27ivo%3A%2F%2Forg.gavo.dc%27
+.. _meta stream format: ref.html#meta-stream-format
+
+Registering DaCHS-external Services
+-----------------------------------
+
+The registry interface of DaCHS can be used to register entities
+external to DaCHS; actually, you're already doing this when you're
+claiming an authority.
+
+To register a non-service "resource", you can fill out a resRec RD
+element.  You could reserve an RD (say, ``GAVOROOT/inputs/ext.rd`` to
+collect such external registrations, or you could put them alongside
+internal services into their respective RDs.  You will then usually just
+use the resRec's id attribute to determine the IVORN of resource record.
+It will then be ``ivo://<your authority>/<rd id>/<id of resRec>``.
+
+In all likelihood, however, you will want to register services.  To
+do that, use a normal service definition with with a nullCore.  You
+probably need to manually give an accessURL.  The most common case is
+that of a service with a ``WebBrowser`` capability.  These result from
+``external`` or ``static`` renderers.  Thus, the pattern here usually
+is::
+
+  <service id="myservice" allowed="external">
+    <nullCore/>
+    <meta>
+      shortName: My external service
+      description: This service does wonderful things, even though\
+        it's not based on GAVO's DaCHS software.
+    </meta>
+    <publish render="external" sets="ivo_managed">
+      <meta name="accessURL">http://wherever.else/svc</meta>
+    </publish>
+  </service>
+
+Of course, you will normally need to add further metadata as discussed
+above.
+
+
+Simple OAI operation
+--------------------
+
+If you want to check what you have published, see the ``/oai.xml`` on
+your server, e.g., http://localhost:8080/oai.xml.  This is a plain
+OAI-PMH interface with some style sheets (if you want to customize them,
+copy them to ``$GAVO_ROOT/web/xsl/``).  The default style sheets add a
+link to "All identifiers defined here".  Follow it to a list of all
+records you currently publish.
+
+
+Making the VO see your Registry
+-------------------------------
+
+The VO registry is a distributed system.  There still is some sort of
+root, the `Registry of Registryies`_ or RofR.  Once your system provides
+sufficient metadata, go to
+http://rofr.ivoa.net/regvalidate/regvalidate.html and enter your
+registry endpoint (i.e., your installation's root URL with /oai.xml
+appended).
+
+GAVO DaCHS is lenient with missing metadata and will deliver invalid
+VOResource for records missing some.  It is not unlikely that your
+registry will not validate on the first attempt.  Reading the error
+messages should give you a hint what's wrong.  You can also use the
+``gavo val`` command on the RDs that generate invalid records to figure
+out what's wrong.
+
+Once your registry passes the validation test, you can add it to the
+RofR, and the full registries will start to harvest your registry (after
+a while).
+
+.. _Registry of Registries: http://rofr.ivoa.net/
+
+
+
+Adapting DaCHS for Your Site
+============================
+
+As delivered, the web interface of DaCHS will make it seem you're
+running a copy of the GAVO data center, with some metadata defused such
+that you are not actually disturbing our operation if you accidentally
+activate your registry interface.  You should thus first
+customize the items given in ``etc/defaultmeta.txt`` (as discussed 
+in `Registry Matters`_).
+
+As to the web interface, you must at least adapt the setting for
+[web]/sitename in your gavorc (see `Configuration Settings`_).  This
+should be a terse identifier for the site (like "GAVO Data Center").  It
+will be shown in titles and top headlines in many places.
+
+Most customization relies on overriding built-in resources.  There are three
+major entities that you can override:
+
+* `Simple Web Resources`_
+* `Templates`_
+* `Overridden System RDs`_
+
+Simple Web Resources
+--------------------
+
+For items coming from ``static`` (e.g., images, css, javascript), this
+overriding works by dropping same-named files in ``$GAVO_ROOT/web/nv_static``.
+
+Thus, you should put a PNG of your logo into 
+``$GAVO_ROOT/web/nv_static/img/logo_medium.png``.
+
+Other files you may want to override in this way include
+
+* ``css/gavo_dc.css`` – the central CSS; you could use this for 
+   skinning.  However, we recommend you just add an 
+   ``@import url("<your css url>");`` to the file the server 
+   delivers by default, since some of the css is almost necessary, 
+   and you want easy upgrade paths when we change the master CSS.
+* ``help.shtml`` – the help file.  Unfortunately, we blurb quite 
+  a lot about GAVO in there right now.  We'll think of something 
+  more parametrizable, but meanwhile you may want to have your own version
+* ``img/logo_big.png``, ``img/logo_tiny.png`` – 
+  scaled versions of your logo; logo_big should be 200 pixels wide or 
+  more, logo_tiny of order 50 pixels wide.
+* ``js/gavo.js`` – could be the place for additional javascript; 
+  but frankly, if you want custom javascript, write to us and we'll 
+  think of a sane mechanism.
+* ``xsl/oai.xsl``, ``xsl/uws-joblist-to-html.xsl``, 
+  ``xsl/uws-job-to-html.xsl``, and ``vosi.xsl`` – XSLT stylesheet files.  
+  If you override these to customize them, please let us know.  We'd try 
+  to put out generic stylesheets that are customizable without having 
+  to muck around in stuff that's basically functionality.
+
+
+Templates
+---------
+
+Note: If you just need some special behaviour in one or two services,
+use the ```template`` children of `service elements`_
+
+You will find the built-in templates in the unpacked DaCHS distribution,
+at ``gavo/resources/templates``.  Copy the one you want to override to
+``$GAVO_ROOT/web/templates`` and edit it there.  You will need to
+restart the server to make it pick up a new file; changes in the
+templates should propagate without any intervention.
+
+One likely candidate you might want to change is sidebar.html.  However,
+in particular with the sidebar, functional changes are likely to come
+from us, so we'd put some work into making it possible to insert
+custom stuff into the sidebar without having to change the template.
+Please talk to us.
+
+Much less critical is root.html – you'll pretty definitely want to
+change it.
+
+Another candidate is serviceinfo.html – it contains an explanation of
+the various sets you may create.  Grep for GAVO in that file to see how
+we use it.
+
+Currently, we don't have good docs on the template language in use.
+There's http://docs.g-vo.org/meetstan.html on the templating engine,
+but the section on the render functions and data generators available
+is still missing.  Complain to make us write it sooner.
+
+.. _service elements: ref.html#element-service
+
+
+Overridden System RDs
+---------------------
+
+You can copy system RDs from ``gavo/resources/inputs/__system__`` in the
+distribution to ``$GAVO_ROOT/inputs/__system__`` (adapt if you have
+played tricks with ``inputsDir``) and edit them there.  Again, if you
+feel you need to do that, contact us first, maybe we can work something
+out; it's a liability for upgrades.
+
+
+Other documents
+---------------
+
+The default help file and the default sidebar link to a privacy policy
+that you should put down in
+``$GAVO_ROOT/web/nv_static/doc/privpol.shtml``.  The document must be
+well-formed XHTML.  Also, files with an extension shtml will be
+interpreted as templates over the service ``//services/root``, which
+means that you can use the usual render functions and data items; the
+same goes for ``disclaimer.html`` (referenced from the standard
+sidebar) and, if you offer SOAP services, ``soaplocal.html``.  See the
+respective pages in the GAVO DC (``http://dc.g-ov.org/static/doc/...``)
+for ideas as to what to include.
+
 
 Configuration Settings
 ======================
@@ -570,37 +859,6 @@ user robots.txt.  For more information on what you can put into
 robots.txt, see `Robot exclusion standard`_
 
 .. _Robot exclusion standard: http://www.robotstxt.org/orig.html
-
-Publication
-===========
-
-To publish a resource, add a ``publish`` element to a ``service`` element
-or a ``register`` element to data or table elements.  Both of these let
-you specify the sets the resources shall be published to.  Unless you
-have specific application, only two sets are relevant: ``ivo_managed``
-for publishing to the VO, and ``local`` for publishing to your data
-center's service roster.  Other sets can be introduced and used for,
-e.g., specific sub-rosters.
-
-The ``publish`` element needs, in addition, a render attribute, giving a
-comma-separated list of renderers the publication is for.  The various
-renderers are translated into capability element in the VO resource
-records.  For example, a typical pattern could be::
-
-		<publish render="scs.xml" sets="ivo_managed"/>
-		<publish render="form" sets="local,ivo_managed"/>
-
-This generates a capability each for the simple cone search and a
-browser-based interface; the browser-based interface is, in addition,
-listed in the local service roster.
-
-Once you have done this, run ``gavo pub <rdid>``.  This causes all
-publishable items in the RD to be published.  It also unpublishes
-everything that was published through the RD before and is no longer
-published.  The running server is not automatically made aware of these
-changes.  You need to either ``gavo serve reload`` or reload the RD
-published *and* the ``__system__/services`` RD using DaCHS' web
-interface.
 
 
 

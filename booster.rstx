@@ -2,6 +2,10 @@
 GAVO DaCHS: DirectGrammars and Boosters
 =======================================
 
+:Author: Markus Demleitner
+:Email: gavo@ari.uni-heidelberg.de
+
+
 A DirectGrammar is some program that gets called by the ingestor and
 outputs binary COPY material to be dumped into the table to stdout.
 Note that, by these restrictions, direct grammars can only operate on

@@ -2,6 +2,15 @@
 Common Problems with DaCHS
 ==========================
 
+:Author: Markus Demleitner
+:Email: gavo@ari.uni-heidelberg.de
+
+.. contents:: 
+  :depth: 1
+  :backlinks: entry
+  :class: toc
+
+
 This document tries to discuss some error messages you might encounter
 while running DaCHS.  The rough idea is that when you can grep in this
 file and get some deeper insight as to what happened and how to fix
@@ -246,3 +255,23 @@ essentially the inputsDir-relative paths of the file.  Out-of-tree RDs
 just cannot compute this.  Therefore, most subcommands that accept file
 paths just refuse to work when the file in question is not below
 inputsDir.
+
+
+Not reloading services RD on server since no admin password available
+=====================================================================
+
+That's a warning you can get when you run ``gavo pub``.  The reason for
+it is that the DaCHS server caches quite a bit of information (e.g., the
+root page) that may depend on the table of published services (see also
+`Managing Runtime Resources`_.  Therefore, ``gavo pub`` tries to make
+the running server discard such caches.  To do this, it inspects the
+``serverURL`` config item and tries access a protected resource.  Thus,
+it needs the value of the config setting ``adminpasswd`` (if set), and
+that needs to be identical on the machine gavo pub executes on and on
+whatever serverURL points to.
+
+If anything goes wrong, a warning is emitted.  The publication has
+happened still, but you may need to run ``gavo serve reload`` on the
+server to make it visible.
+
+.. _Managing Runtime Resources: opguide.html#managing-runtime-resources

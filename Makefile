@@ -38,8 +38,10 @@ apidoc: gavo-epydoc.conf apidoc-stamp
 	rm -rf apidoc
 	epydoc -v --config gavo-epydoc.conf
 
-install: $(HTML_FILES) $(ALL_PDF)
+install: all
 	rsync -av *.css $(HTML_FILES) $(ALL_PDF) $(RST_SOURCES) apidoc $(HTMLTARGET) 
+
+all: $(HTML_FILES) $(ALL_PDF)
 
 clean:
 	rm -f $(ALL_HTML)

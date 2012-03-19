@@ -2,6 +2,9 @@
 GAVO DaCHS
 ==========
 
+:Author: Markus Demleitner
+:Email: gavo@ari.uni-heidelberg.de
+
 The GAVO Data Center Helper Suite (DaCHS) is a publishing infrastructure
 for the Virtual Observatory, including a flexible component for
 ingesting and mapping data, integrated metadata handling with a
@@ -13,6 +16,27 @@ Documentation
 
 All of this is very much work in progress.  Users asking for elaboration
 are certainly good indicators of where need is greatest.
+
+What to read when?
+------------------
+
+Obviously, you should start with the installation instructions.  You
+should then probably read and work through the tutorial to get a feel
+for how DaCHS works.  Once you have data and want to go live, you'll
+have to read the operator's guide.  That's about all there is to read
+sequentially.
+
+When you get error messages you don't understand, check the "Hints on
+common problems".  When you have some funky litte requirement the
+solution for which is not immediately obvious, try the "How do I"
+document.  If what you want is not covered, ask the authors.
+
+The reference is, well, the reference, and I'm afraid you'll have to
+look up things in there fairly regularly.
+
+You can ignore the topic guides (booster grammars, preprocessing,
+anything else that might yet come) until you notice you need to read
+them.
 
 
 For Data Center Operators
@@ -28,14 +52,14 @@ For Data Center Operators
   `ref.pdf <./ref.pdf>`_, `ref.rstx <./ref.rstx>`_)
 * How do I? (`howDoI.html <./howDoI.html>`_, 
   `howDoI.pdf <./howDoI.pdf>`_, `howDoI.rstx <./howDoI.rstx>`_)
+* Hints on common problems (`commonproblems.html <./commonproblems.html>`_,
+  `commonproblems.pdf <./commonproblems.pdf>`_, 
+  `commonproblems.rstx <./commonproblems.rstx>`_)
 * Guide to write booster grammars (`booster.html <./booster.html>`_,
   `booster.pdf <./booster.pdf>`_, `booster.rstx <./booster.rstx>`_)
 * Guide to preprocessing input files (`processors.html <./processors.html>`_,
   `processors.pdf <./processors.pdf>`_, 
   `processors.rstx <./processors.rstx>`_)
-* Hints on common problems (`commonproblems.html <./commonproblems.html>`_,
-  `commonproblems.pdf <./commonproblems.pdf>`_, 
-  `commonproblems.rstx <./commonproblems.rstx>`_)
 
 For VO Data Providers
 ---------------------

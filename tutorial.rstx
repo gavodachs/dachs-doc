@@ -2,6 +2,9 @@
 GAVO DaCHS Tutorial
 ===================
 
+:Author: Markus Demleitner
+:Email: gavo@ari.uni-heidelberg.de
+
 .. contents:: 
   :depth: 2
   :backlinks: entry
@@ -2009,9 +2012,6 @@ to make DaCHS actually publish the table.
 The Registry Interface
 ======================
 
-Introduction
-------------
-
 Conceptually, the VO's Registry is a set of resource records (i.e.,
 descriptions of services, data, or other entities) to let users locate
 resources relevant to them (e.g., look for a service giving surface
@@ -2059,7 +2059,8 @@ authority.
 To make the VO aware of the existence of your data center, you will need
 to tell the `RofR`_ (Registry of Registries) about your data center.
 Before you can do this, you need to fill in quite a bit of information
-in gavorc.  The next section explains how this is done.
+in your gavorc and ``etc/defaultmeta.txt``.  The `registry section
+in the operator's guide`_ has information on what to do.
 
 
 .. _ESAVO registry: http://esavo.esa.int/registry/index.jsp
@@ -2067,116 +2068,12 @@ in gavorc.  The next section explains how this is done.
 .. _IVOA identifiers: http://www.ivoa.net/Documents/REC/Identifiers/Identifiers-20070302.html
 .. _RofR: http://rofr.ivoa.net/
 .. _OAI-PMH: http://www.openarchives.org/OAI/openarchivesprotocol.html
-
-
-DaCHS' Registry Interface
--------------------------
-
-As explained in the introduction, you must provide 
-enough data to allow the VO to tell who you are
-before you can include your data center into the VO.
-
-The first step is to define your authority (i.e., something like
-org.g-vo.dc) in your config (``/etc/gavo.rc``), in the
-``[ivoa]authoriy`` item.
-
-
-Then, add metadata about yourself in ``GAVO_ROOT/etc/defaultmeta.txt``.
-It has a `simple format`_, basically, ``<key>: <value>``.  In it, you
-must give basic information on your authority and some fallback for
-services:
-
-* authority.creationDate -- A UTC datetime (with trailing Z);
-  technically, it should be the date the resource record is created, but
-  realistically, just use "now".  Example: ``2007-12-19T12:00:00Z``.
-* authority.title -- A human-readable descriptor of what the authority
-  corresponds to.  Example: ``The GAVO data center``
-* authority.description -- A sentence or two on what you're up to.
-  Example: ``The GAVO data center provides VO publication services to
-  all interested parties on behalf of the German Astrophysical Virtual
-  Observatory.`` (use backslashes an the end of the lines to break long
-  lines).
-* authority.referenceURL -- A URL at which people can learn more about
-  your data center.  Example: ``http://www.g-vo.org``.
-* authority.managingOrg – an ivo id of the organization you're running
-  the dc for.  The default is ivo://<your authority>/org, the content
-  of which can be configured using the organization meta items.  If
-  your institution has a registry entry independent of your DC, you
-  can enter that IVORN here as well.
-* organization.title -- the name of the organization on behalf of which
-  you are running the data center.
-* organization.description and organization.referenceURL – as the
-  analoguous items for authority, just for the organization for which
-  you are running the data center (e.g., your "home institute")
-* publisher -- A short, human-readable name for you
-* publisher.ivoId -- An IVOA id for yourself;  set this to
-  ivo://<authority>/org unless you know what you are doing
-* contact.name -- A human-readable name for some entity people should
-  write to.  This is not necessarily different from publisher, but
-  ideally people can write "Dear <contact.name>" in their mails.
-* contact.address -- A contact address for surface mail
-* contact.email -- An email address.  It should be spam-proof.
-* contact.telephone -- A telephone number people can call if things
-  really look bad.
-* creator.name -- A name to use when you give no creator in your
-  resource descriptors.  Could be some error sentinel ("we foget to
-  give credit, please complain") or just contact.name if you produce
-  resources yourself.
-* creator.logo -- A URL for a logo to use when none is given in the
-  resource metadata. Use a small PNG here.
-
-
-.. _simple format: ref.html#meta-stream-format
-
-
-Registering DaCHS-external services
------------------------------------
-
-The registry interface of DaCHS can be used to register entities
-external to DaCHS; actually, you're already doing this when you're
-claiming an authority.
-
-To register a non-service "resource", you can fill out a resRec RD
-element.  You could reserve an RD (say, ``GAVOROOT/inputs/ext.rd`` to
-collect such external registrations, or you could put them alongside
-internal services into their respective RDs.  You will then usually just
-use the resRec's id attribute to determine the IVORN of resource record.
-It will then be ``ivo://<your authority>/<rd id>/<id of resRec>``.
-
-In all likelihood, however, you will want to register services.  To
-do that, use a normal service definition with with a nullCore.  You
-probably need to manually give an accessURL.  The most common case is
-that of a service with a ``WebBrowser`` capability.  These result from
-``external`` or ``static`` renderers.  Thus, the pattern here usually
-is::
-
-  <service id="myservice" allowed="external">
-    <nullCore/>
-    <meta>
-      shortName: My external service
-      description: This service does wonderful things, even though\
-        it's not based on GAVO's DaCHS software.
-    </meta>
-    <publish render="external" sets="ivo_managed">
-      <meta name="accessURL">http://wherever.else/svc</meta>
-    </publish>
-  </service>
-
-Of course, you will normally need to add further metadata as discussed
-above.
+.. _registry section in the operator's guide: opguide.html#registry-matters
 
 
 
 Running the DC Server
 =====================
-
-You will probably want to run the DC server software from a start
-script.  The ``gavo`` interface already works a bit like a SYSV
-initscript -- you can say ``gavo start``, ``gavo stop``, ``gavo
-restart`` and ``gavo reload``; you may want to define an init script
-anyway (instead of just linking) in order to define metadata.
-
-TBD.
 
 Updates to metadata are not usually picked up by the running software.
 If you change an RD, you may have to say ``gavo imp -m <rd id>`` if
@@ -2187,14 +2084,9 @@ Even then, the home page will not show new local publications since
 those lists are currently cached.  To update them, you could run ``gavo
 reload``, but it's better to just reload the services data.  To do this,
 log in as gavoadmin and go to the service overview at 
-``/__system__/services/overview/form`` (the standard root has that in a
-small [s] link at the very bottom of the page).  Choose "Admin me" from
-the sidebar and then the reload RD button.
-
-Similarly, if you edit anything in an RD, you will have to reload it,
-preferably through "Admin me", before the changes will be reflected.
-Note that right now, if your RD is invalid, any services on it will stop
-working on a reload.
+``/__system__/services/overview/form`` (the standard template root has
+that in a small [s] link at the very bottom of the page).  Choose "Admin
+me" from the sidebar and then the reload RD button.
 
 
 The Vanity Map
