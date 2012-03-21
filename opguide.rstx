@@ -187,11 +187,13 @@ and should never escape to the VO registry):
   realistically, just use "now".  Example: ``2007-12-19T12:00:00Z``.
 * authority.title -- A human-readable descriptor of what the authority
   corresponds to.  Example: ``The GAVO data center``
-* authority.description -- A sentence or two on what you're up to.
-  Example: ``The GAVO data center provides VO publication services to
-  all interested parties on behalf of the German Astrophysical Virtual
-  Observatory.`` (use backslashes an the end of the lines to break long
-  lines).
+* authority.description -- A sentence or two on what the authority
+  you are using means.  This could be the same as site.description if
+  all you're claiming authority for is that; if you're claiming
+  authority for your institute or organization, this obviously should
+  be different.  Example: ``The Observatory of Utopia is Lilliput's
+  largest astronomical institution with ten large telescopes.``
+  (use backslashes an the end of the lines to break long lines).
 * authority.referenceURL -- A URL at which people can learn more about
   your data center.  Example: ``http://www.g-vo.org``.
 * authority.managingOrg – an ivo id of the organization you're running
@@ -220,6 +222,11 @@ and should never escape to the VO registry):
   resources yourself.
 * creator.logo -- A URL for a logo to use when none is given in the
   resource metadata. Use a small PNG here.
+* site.description -- A description of your site (i.e., "data center")
+  Example: ``The GAVO data center provides VO publication services to
+  all interested parties on behalf of the German Astrophysical Virtual
+  Observatory.`` (use backslashes an the end of the lines to break long
+  lines).
 
 .. _tutorial chapter on the registry: tutorial.html#the-registry-interface
 .. _authority query against the registry: http://dc.zah.uni-heidelberg.de/__system__/adql/query/form?query=select%20ivoid%2C%20contact_email%20from%20rr.resource%20where%20resource_type%3D%27vg%3AAuthority%27%20and%20ivoid%3D%27ivo%3A%2F%2Forg.gavo.dc%27
@@ -277,7 +284,7 @@ Making the VO see your Registry
 -------------------------------
 
 The VO registry is a distributed system.  There still is some sort of
-root, the `Registry of Registryies`_ or RofR.  Once your system provides
+root, the `Registry of Registries`_ or RofR.  Once your system provides
 sufficient metadata, go to
 http://rofr.ivoa.net/regvalidate/regvalidate.html and enter your
 registry endpoint (i.e., your installation's root URL with /oai.xml
@@ -304,14 +311,18 @@ Adapting DaCHS for Your Site
 As delivered, the web interface of DaCHS will make it seem you're
 running a copy of the GAVO data center, with some metadata defused such
 that you are not actually disturbing our operation if you accidentally
-activate your registry interface.  You should thus first
-customize the items given in ``etc/defaultmeta.txt`` (as discussed 
-in `Registry Matters`_).
+activate your registry interface.  You should thus first customize the
+items given in ``etc/defaultmeta.txt`` (as discussed in `Registry
+Matters`_).
 
-As to the web interface, you must at least adapt the setting for
-[web]/sitename in your gavorc (see `Configuration Settings`_).  This
-should be a terse identifier for the site (like "GAVO Data Center").  It
-will be shown in titles and top headlines in many places.
+The next adaptations are done through the configuration as discussed in
+`Configuration Settings`_).  The most relevant item here is
+``[web]/sitename``, which should contain a terse identifier for the site
+(like "GAVO Data Center").  It is be shown in titles and top headlines
+in many places.
+
+If you want, you can set ``[web]/favicon`` to either a webDir-relative
+path or a full URL to a `favicon`_.
 
 Most customization relies on overriding built-in resources.  There are three
 major entities that you can override:
@@ -319,6 +330,9 @@ major entities that you can override:
 * `Simple Web Resources`_
 * `Templates`_
 * `Overridden System RDs`_
+
+.. _favicon: https://en.wikipedia.org/wiki/Favicon
+
 
 Simple Web Resources
 --------------------
@@ -776,6 +790,7 @@ Settings related to serving content to the web.
 * voplotUserman: URL fragment relative to the server's root; 
   defaults to 'static/voplot/docs/VOPlot_UserGuide_1_4.html' --
   URL to the documentation of VOPlot
+
 .. END CONFIG REFERENCE
 
 
