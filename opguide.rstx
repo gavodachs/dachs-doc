@@ -324,12 +324,16 @@ in many places.
 If you want, you can set ``[web]/favicon`` to either a webDir-relative
 path or a full URL to a `favicon`_.
 
-Most customization relies on overriding built-in resources.  There are three
-major entities that you can override:
+For the rest, you can customize almost everything by overriding built-in
+resources.  There are three major entities that you can override:
 
 * `Simple Web Resources`_
 * `Templates`_
 * `Overridden System RDs`_
+
+If you find you need to override anything but the logo, please talk to
+us first – we'd in general prefer to provide customization hooks.
+Overridden distributionfiles are always a liability on upgrades.
 
 .. _favicon: https://en.wikipedia.org/wiki/Favicon
 
