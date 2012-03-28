@@ -428,6 +428,61 @@ respective pages in the GAVO DC (``http://dc.g-ov.org/static/doc/...``)
 for ideas as to what to include.
 
 
+The Vanity Map
+--------------
+
+DaCHS' URL scheme leads to somewhat clunky URLs that, in particular,
+reflect the file system underneath.  While this doesn't matter to the VO
+registry, it is possibly unwelcome when publishing URLs outside of the
+VO.  To overcome it, you can define "vanity names", single path elements
+that are mapped to paths.
+
+These mappings are read from the file ``GAVO_ROOT/etc/vanitymap.txt``.
+The file contains lines of the format::
+
+    <target> <key> [<option>]
+
+Target is a path that must *not* include nevowRoot and must *not* start
+with a slash (unless you're going for very special effects).
+
+Key normally is a single path element (i.e., a string without a slash).
+If this path element is found in the first segment, it is replaced with
+the segments in target.
+
+<option> can only be ``!redirect`` or empty right now.  
+
+If it is ``!redirect``, ``<key>`` may be a path fragment (as opposed to
+a single path element); leading and trailing slashes are ignored.  If
+the *enire* query path matches this key, a redirect to this key is
+generated.  This is intended to let you shut down services and introduce
+replacements.  If the incoming URL contains a query, it will be appended
+to the replacement URL.  Thus, even stored queries or forms can
+potentially work across such a redirect.
+
+You can also (ab)use the redirect option to give vanity names, but since
+the target will show up in the browser address line, normal maps are
+highly preferred.  The only time normal maps don't work for this is when
+the resource directory is identical to the vanity name (you'll get an
+endless loop then), so you should avoid that situation.
+
+Empty lines and #-on-a-line-comments are allowed in the input.
+
+As an example, here's the vanity map that DaCHS had builtin as of 
+version 0.6::
+
+  __system__/products/p/get getproduct
+  __system__/services/registry/pubreg.xml oai.xml
+  __system__/services/overview/external odoc
+  __system__/dc_tables/show/tablenote tablenote
+  __system__/dc_tables/show/tableinfo tableinfo
+  __system__/services/overview/admin seffe
+  __system__/tap/run/tap tap
+  __system__/adql/query/form adql !redirect
+
+
+Note again that ``<key>`` must be a *single* path element only. 
+
+
 Configuration Settings
 ======================
 

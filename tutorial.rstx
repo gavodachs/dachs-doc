@@ -708,87 +708,6 @@ you could have said::
   gavo imp lmcextinct/q
 
 from anywhere in the file system.
-  
-
-Images
-------
-
-Images have relatively rich metadata.  Partly these are covered in a
-mixin called "products", but astronomical images have even more
-metadata, like position on the sky or bandpass.  To cope with them, use
-the `pgsSIAP <ref.html#the-pgssiap-mixin>`_ (and ignore the old
-bbox-based SIAP mixin). 
-
-To define a table that carries images, simply mix in the appropriate
-mixin::
-
-  <table id="images" onDisk="True">
-    <mixin name="pgsSIAP"/>
-  </table>
-
-(of course, you can add more columns if you need them).
-
-Filling this table requires the use of a rowfilter and two procedure
-applications.  Let's look at a data element for this table::
-
-  <data id="imagecontent">
-    <sources recurse="True" pattern="data/images/*.cut.fits"/>
-    <fitsProdGrammar qnd="True">
-      <sourceFields procDef="insertFieldKey"/>
-        <map src="PI-COI">PI_COI</map>
-      </mapKeys>
-      <rowfilter procDef="//products#define">
-        <bind key="table">"cars.images"</bind>
-      </rowfilter>
-    </fitsProdGrammar>
-
-    <rowmaker id="make_image" idmaps="*">
-      <apply procDef="computePGSSIAP"/>
-      <apply procDef="setSIAPMeta">
-        <bind key="title">vars["imageTitle"]</bind>
-        <bind key="instrument">"%s, %s"%(vars["OBSERVAT"],
-          vars["TELESCOP"])</bind>
-        <bind key="dateObs">vars["dateObs"]+vars["startTime"]+(
-          vars["endTime"]-vars["startTime"])/2</bind>
-        <bind key="bandpassId">vars["FILTER"]</bind>
-      </apply>
-    </rowmaker>
-
-    <make table="images" rowmaker="make_images"/>
-  </data>
-
-
-So, step-by-step:
-
-* When ingesting images, you will almost always read from FITS images,
-  i.e., FITS primary headers.  A ``fitsProdGrammar`` delivers the
-  key-value-pairs from a header as a rawdict.
-* The ``qnd`` attribute of the grammar is recommended.  It makes
-  some (weak) assumptions to yield significant speedups with large
-  images.
-* The ``fitsProdGrammar`` will map keys with hyphens to names with
-  underscores, which is required to make them accessible in rowmakers.
-  The ``map``` example above therefore is superfluous since it orders
-  default behaviour.  You may need other (non-automatic) name mappings,
-  though, which would work analoguously.
-* The grammar further needs a rowfilter.  These are procedure
-  applications working on rawdicts.  The //products#define rowfilter
-  lets  you add keys on owners and embargo in case you want password
-  protection for images, but most importantly it defines what table the
-  data is destined for.  This is crucial information, and if you ever
-  get it wrong, you need to manually connect to the database and issue
-  a command like ``DELETE FROM products WHERE sourcetable='<your wrong
-  table>'``.  So, always bind table.  Make sure to include the quotes,
-  this is supposed to be a valid python expression yielding a string.
-* You then need to define a rowmaker that must apply two procs.  For
-  one, you need `computePGSSIAP <ref.html#computepgssiap>`_
-  (if you mixed in ``pgsSIAP``).  No bindings are required here.
-* The second proc application required is 
-  `setSIAPMeta <ref.html#setsiapmeta>`_ .  Try to give all its keys
-  somewhat sensible values, you will make your users' lives much easier.
-
-Warning: Do *not* use idmaps="*" with SIAP, since the auto-generated
-mappings will clobber the work of the xSIAP procs.
 
 
 Debugging
@@ -1043,6 +962,93 @@ instead write::
   </code>
 
 
+Embargoing Products
+-------------------
+
+One of the sadder facts of life is that many researchers still think
+they profit from keeping their data proprietary (and that they are
+entitled to do so even though everything is paid for by the public).  To
+cope with this, DaCHS' products subsystem has the notion of owners and
+embargo periods.
+
+To make a "product" (e.g., spectrum or image) proprietary, in the
+`products#define`_ application building the rowdict, set the
+``owner`` and ``embargo`` keys.  Owner is just any string convenient,
+embargo must eventually become a timestamp, so you'll in general come up
+with an ISO datetime string or a python ``datetime.datetime`` instance.
+Here's an example that says images become public a year after the
+observation::
+
+    <fitsProdGrammar qnd="True">
+      <rowfilter procDef="//products#define">
+        <bind key="embargo">parseTimestamp(row["DATE_OBS"])+datetime.timedelta(
+          days=365)</bind>
+        <bind key="owner">"danish"</bind>
+        <bind key="table">"danish.data"</bind>
+      </rowfilter>
+    </fitsProdGrammar>
+
+
+This is, in our view, an acceptable policy, but many observers want 
+weird policies (try to talk them out of it, since such behaviour is
+not nice, and it leads to a bad user experience in the VO as a whole).
+You can get as fancy (or antisocial) as you like using custom
+rowfilters, as in the following example that sets a default embargo for
+the end of 2008, except for calibration frames and the observations of
+two objects made in 2003::
+
+    <fitsProdGrammar qnd="True">
+      <rowfilter procDef="//products#define">
+        <setup><code>
+          <![CDATA[
+          def getEmbargo(row):
+            res = '2008-12-31'
+            if (row.get("ARI_TYPE")!="SCIENCE" or 
+                row["ARI_OBJC"]=='Q2237+0305' 
+                or row["ARI_OBJC"]=='SBSS 1520+530'):
+              if '2003-01-01'<=row['DATE_OBS']<='2003-12-31':
+                res = '2005-12-31'
+            return res
+          ]]>
+        </code></setup>
+        <bind key="owner">"maidanak"</bind>
+        <bind key="embargo">getEmbargo(row)</bind>
+        <bind key="table">"maidanak.rawframes"</bind>
+      </rowfilter>
+
+An embargoed product can only be retrieved by the "owner" until the
+embargo period is over.  "Owner" is a concept implemented through the
+DaCHS user administration, which is fashioned a bit after the Unix
+user/group model.  What you give as ``owner`` in the products mixin is a
+group name; if someone can authenticate as the member of a group, she
+can access the data.
+
+To create a user (and thus a group), use ``gavo admin adduser``, like
+this::
+
+  gavo admin adduser kroisos notsecret "Remove when xy is public"
+
+This command adds the user kroisos with the password notsecret and an
+optional comment reminding future operators what to do with the
+identity.  Note that the password is stored in clear text in the
+database – which allows you to handle "I forgot my password" requests
+gracefully; as long as we only do HTTP Basic authentication, this
+doesn't matter much since with it, the passwords traverse the net in
+basically cleartext anyway. Again, this implements a mild deterrence
+rather than hard security.
+
+To add existing users to groups, use ``gavo admin addtogroup``, like
+this::
+
+  gavo admin addtogroup kroisos happy
+
+– this adds kroisos to the happy group, and whoever can authenticate as
+kroisos will be allowed access to any products with the ``owner`` happy.
+
+To discover further commands manipulating the user table, try::
+
+  gavo admin --help
+
 
 More on Services
 ================
@@ -1093,6 +1099,7 @@ the standard style sheet and the standard javascript, say::
   <head n:render="commonhead">
 
 instead of the plain head.
+
 
 
 More on Cores
@@ -1501,11 +1508,11 @@ on it.  As the core is built, you can have a web-based form interface
 for free::
 
   <service id="cone" core="xlcore" allowed="scs.xml,form">
-		<meta name="title">Nice Catalog Cone Search</meta>
-		<meta name="shortName">NC Cone</meta>
-		<meta name="testQuery.ra">10</meta>
-		<meta name="testQuery.dec">10</meta>
-		<meta name="testQuery.sr">0.01</meta>
+    <meta name="title">Nice Catalog Cone Search</meta>
+    <meta name="shortName">NC Cone</meta>
+    <meta name="testQuery.ra">10</meta>
+    <meta name="testQuery.dec">10</meta>
+    <meta name="testQuery.sr">0.01</meta>
   </service>
 
 The meta information given is used when generating registration
@@ -1527,10 +1534,78 @@ SIAP-capable tables should mix in ``//siap#pgs`` (the older
 ``//siap#bbox`` is deprecated; you could still use it if for some reason
 you have no pgSphere).
 
-When building them, use the ``//siap#computePGS`` and ``//siap#setMeta``
-applys.  Since SIAP tables contain products, you also need the
-``//products#define`` row filter in the input grammar (which, of
-course, needs to be a fitsProdGrammar.
+
+So, in the simplest case, a table that's going to be published through
+SIAP would look like this::
+
+  <table id="images" onDisk="True">
+    <mixin name="pgsSIAP"/>
+  </table>
+
+(of course, you can add more columns if you need them).
+
+Filling this table requires the use of a rowfilter and two procedure
+applications.  Let's look at a data element for this table::
+
+  <data id="imagecontent">
+    <sources recurse="True" pattern="data/images/*.cut.fits"/>
+    <fitsProdGrammar qnd="True">
+      <sourceFields procDef="insertFieldKey"/>
+        <map src="PI-COI">PI_COI</map>
+      </mapKeys>
+      <rowfilter procDef="//products#define">
+        <bind key="table">"cars.images"</bind>
+      </rowfilter>
+    </fitsProdGrammar>
+
+    <rowmaker id="make_image" idmaps="*">
+      <apply procDef="computePGSSIAP"/>
+      <apply procDef="setSIAPMeta">
+        <bind key="title">vars["imageTitle"]</bind>
+        <bind key="instrument">"%s, %s"%(vars["OBSERVAT"],
+          vars["TELESCOP"])</bind>
+        <bind key="dateObs">vars["dateObs"]+vars["startTime"]+(
+          vars["endTime"]-vars["startTime"])/2</bind>
+        <bind key="bandpassId">vars["FILTER"]</bind>
+      </apply>
+    </rowmaker>
+
+    <make table="images" rowmaker="make_images"/>
+  </data>
+
+
+This does, step by step:
+
+* When ingesting images, you will almost always read from FITS images,
+  i.e., FITS primary headers.  A ``fitsProdGrammar`` delivers the
+  key-value-pairs from a header as a rawdict.
+* The ``qnd`` attribute of the grammar is recommended.  It makes
+  some (weak) assumptions to yield significant speedups with large
+  images.
+* The ``fitsProdGrammar`` will map keys with hyphens to names with
+  underscores, which is required to make them accessible in rowmakers.
+  The ``map``` example above therefore is superfluous since it orders
+  default behaviour.  You may need other (non-automatic) name mappings,
+  though, which would work analoguously.
+* The grammar further needs a rowfilter.  These are procedure
+  applications working on rawdicts.  The //products#define rowfilter
+  lets  you add keys on owners and embargo in case you want password
+  protection for images, but most importantly it defines what table the
+  data is destined for.  This is crucial information, and if you ever
+  get it wrong, you need to manually connect to the database and issue
+  a command like ``DELETE FROM products WHERE sourcetable='<your wrong
+  table>'``.  So, always bind table.  Make sure to include the quotes,
+  this is supposed to be a valid python expression yielding a string.
+* You then need to define a rowmaker that must apply two procs.  For
+  one, you need `computePGSSIAP <ref.html#computepgssiap>`_
+  (if you mixed in ``pgsSIAP``).  No bindings are required here.
+* The second proc application required is 
+  `setSIAPMeta <ref.html#setsiapmeta>`_ .  Try to give all its keys
+  somewhat sensible values, you will make your users' lives much easier.
+
+Warning: Do *not* use idmaps="*" with SIAP, since the auto-generated
+mappings will clobber the work of the xSIAP procs.
+
 
 
 Cores
@@ -1694,20 +1769,20 @@ keys required for registration of these are documented in the reference
 manual.  A complete declaration of a published SSAP service would then
 look like this::
 
-	<service id="ssa" allowed="form,ssap.xml">
-		<meta name="shortName">mydata SSAP</meta>
-		<meta name="ssap.dataSource">theory</meta>
-		<meta name="ssap.creationType">archival</meta>
-		<meta name="ssap.testQuery">MAXREC=1</meta>
+  <service id="ssa" allowed="form,ssap.xml">
+    <meta name="shortName">mydata SSAP</meta>
+    <meta name="ssap.dataSource">theory</meta>
+    <meta name="ssap.creationType">archival</meta>
+    <meta name="ssap.testQuery">MAXREC=1</meta>
 
-		<publish render="ssap.xml" sets="ivo_managed"/>
+    <publish render="ssap.xml" sets="ivo_managed"/>
 
-		<ssapCore queriedTable="data">
-			<FEED source="//ssap#hcd_condDescs"/>
-			<condDesc buildFrom="t_eff"/>
-			<condDesc buildFrom="log_g"/>
-		</ssapCore>
-	</service>
+    <ssapCore queriedTable="data">
+      <FEED source="//ssap#hcd_condDescs"/>
+      <condDesc buildFrom="t_eff"/>
+      <condDesc buildFrom="log_g"/>
+    </ssapCore>
+  </service>
 
 This service will expose all standard SSAP query parameters, and
 additionally condDescs built from the ``t_eff`` and ``log_g`` columns in
@@ -1718,20 +1793,20 @@ specview-based "quick-view" links based on the ``run`` system rd that
 exposes the specview template.  Here's an example of an ``outputTable``
 (that would reside in the service element)::
 
-	<outputTable>
-		<outputField original="accref">
-		  <formatter><![CDATA[
-				res[T.a(href=makeProductLink(data))[
-					"[Spectrum as VOTable]"]]
-				res[" ", T.a(href=base.makeAbsoluteURL(
-					"__system__/run/specview/fixed?source=%s%%3fdm=sed"%
-					urllib.quote(makeProductLink(data))))["[in VOSpec]"]]
-				return res
-			]]></formatter>
-		</outputField>
-		<outputField original="ssa_specstart" displayHint="displayUnit=Å"/>
-		<outputField original="ssa_specend" displayHint="displayUnit=Å"/>
-	</outputTable>
+  <outputTable>
+    <outputField original="accref">
+      <formatter><![CDATA[
+        res[T.a(href=makeProductLink(data))[
+          "[Spectrum as VOTable]"]]
+        res[" ", T.a(href=base.makeAbsoluteURL(
+          "__system__/run/specview/fixed?source=%s%%3fdm=sed"%
+          urllib.quote(makeProductLink(data))))["[in VOSpec]"]]
+        return res
+      ]]></formatter>
+    </outputField>
+    <outputField original="ssa_specstart" displayHint="displayUnit=Å"/>
+    <outputField original="ssa_specend" displayHint="displayUnit=Å"/>
+  </outputTable>
 
 Some less cody approach would be welcome, but we'd need to collect some
 experience what people expect there.  Also note that specview is (or
@@ -1886,11 +1961,11 @@ related to the TAP services.
 When ``register`` is the child of a data item, you need to manually
 declare that child tables are TAP-accessible, like this::
 
-	<data id="collection" auto="false">
-		<register services="__system__/tap#run"/>
-		<make table="part1"/>
-		<make table="part3"/>
-	</data>
+  <data id="collection" auto="false">
+    <register services="__system__/tap#run"/>
+    <make table="part1"/>
+    <make table="part3"/>
+  </data>
 
 Another thing you might want to do when publishing tables to TAP is add
 sample queries for them.  As an extension to the usual tap_schema, DaCHS
@@ -1913,7 +1988,7 @@ like::
   select * 
   from katkat.katkat 
   where gavo_hasword('variable', source) 
-	  and minEpoch<1900
+    and minEpoch<1900
   description::To search for title (or other) words in the source
   field of :taptable:`katkat.katkat` (or in some other similar
   query), use the gavo_hasword locally defined function.  
@@ -1996,11 +2071,11 @@ what you want in this situation.
 
 Here's an example for the case of a multi-table publication::
 
-	<data id="collection" auto="false">
-		<register services="__system__/tap#run"/>
-		<make table="part1"/>
-		<make table="part3"/>
-	</data>
+  <data id="collection" auto="false">
+    <register services="__system__/tap#run"/>
+    <make table="part1"/>
+    <make table="part3"/>
+  </data>
 
 Don't forget that you need to execute::
 
@@ -2069,80 +2144,5 @@ in the operator's guide`_ has information on what to do.
 .. _RofR: http://rofr.ivoa.net/
 .. _OAI-PMH: http://www.openarchives.org/OAI/openarchivesprotocol.html
 .. _registry section in the operator's guide: opguide.html#registry-matters
-
-
-
-Running the DC Server
-=====================
-
-Updates to metadata are not usually picked up by the running software.
-If you change an RD, you may have to say ``gavo imp -m <rd id>`` if
-the column metadata or permissions changed, or ``gavo publish <rd id>``
-if you changed the publication status.
-
-Even then, the home page will not show new local publications since
-those lists are currently cached.  To update them, you could run ``gavo
-reload``, but it's better to just reload the services data.  To do this,
-log in as gavoadmin and go to the service overview at 
-``/__system__/services/overview/form`` (the standard template root has
-that in a small [s] link at the very bottom of the page).  Choose "Admin
-me" from the sidebar and then the reload RD button.
-
-
-The Vanity Map
---------------
-
-DaCHS' URL scheme leads to somewhat clunky URLs that, in particular,
-reflect the file system underneath.  While this doesn't matter to the VO
-registry, it is possibly unwelcome when publishing URLs outside of the
-VO.  To overcome it, you can define "vanity names", single path elements
-that are mapped to paths.
-
-These mappings are read from the file ``GAVO_ROOT/etc/vanitymap.txt``.
-The file contains lines of the format::
-
-    <target> <key> [<option>]
-
-Target is a path that must *not* include nevowRoot and must *not* start
-with a slash (unless you're going for very special effects).
-
-Key normally is a single path element (i.e., a string without a slash).
-If this path element is found in the first segment, it is replaced with
-the segments in target.
-
-<option> can only be ``!redirect`` or empty right now.  
-
-If it is ``!redirect``, ``<key>`` may be a path fragment (as opposed to
-a single path element); leading and trailing slashes are ignored.  If
-the *enire* query path matches this key, a redirect to this key is
-generated.  This is intended to let you shut down services and introduce
-replacements.  If the incoming URL contains a query, it will be appended
-to the replacement URL.  Thus, even stored queries or forms can
-potentially work across such a redirect.
-
-You can also (ab)use the redirect option to give vanity names, but since
-the target will show up in the browser address line, normal maps are
-highly preferred.  The only time normal maps don't work for this is when
-the resource directory is identical to the vanity name (you'll get an
-endless loop then), so you should avoid that situation.
-
-Empty lines and #-on-a-line-comments are allowed in the input.
-
-As an example, here's the vanity map that DaCHS had builtin as of 
-version 0.6::
-
-  __system__/products/p/get getproduct
-  __system__/services/registry/pubreg.xml oai.xml
-  __system__/services/overview/external odoc
-  __system__/dc_tables/show/tablenote tablenote
-  __system__/dc_tables/show/tableinfo tableinfo
-  __system__/services/overview/admin seffe
-  __system__/tap/run/tap tap
-  __system__/adql/query/form adql !redirect
-
-
-Note again that ``<key>`` must be a *single* path element only. 
-
-
-
-.. _`Resource Metadata for the Virtual Observatory`: http://www.ivoa.net/Documents/latest/RM.html
+.. _Resource Metadata for the Virtual Observatory: http://www.ivoa.net/Documents/latest/RM.html
+.. _products#define: ref.html#products-define
