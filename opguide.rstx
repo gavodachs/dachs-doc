@@ -315,11 +315,15 @@ activate your registry interface.  You should thus first customize the
 items given in ``etc/defaultmeta.txt`` (as discussed in `Registry
 Matters`_).
 
-The next adaptations are done through the configuration as discussed in
-`Configuration Settings`_).  The most relevant item here is
-``[web]/sitename``, which should contain a terse identifier for the site
-(like "GAVO Data Center").  It is be shown in titles and top headlines
-in many places.
+The next adaptations are done through the configuration (as discussed in
+`Configuration Settings`_, i.e., usually in /etc/gavo.rc).  The most
+relevant item here is ``[web]sitename``, which should contain a terse
+identifier for the site (like "GAVO Data Center").  It is be shown in
+titles and top headlines in many places.  If you plan to use DaCHS'
+embargo feature together with user authorization, you must also set
+``[web]realm`` to some characteristic string.  You could use the site
+name here; some user agents use it to display a prompt like "Credentials
+for <realm>" or similar.
 
 If you want, you can set ``[web]/favicon`` to either a webDir-relative
 path or a full URL to a `favicon`_.

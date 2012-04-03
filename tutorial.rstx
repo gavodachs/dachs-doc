@@ -1049,6 +1049,11 @@ To discover further commands manipulating the user table, try::
 
   gavo admin --help
 
+*Important*: When you use authentication, please set the ``[web]realm``
+configuration item to some string reasonably characteristic for your
+site.  Many systems will store credentials by realm, and if different
+sites use the same realm, their credentials will clobber each other.
+For details see the `customization info in the operators' guide`_
 
 More on Services
 ================
@@ -2146,3 +2151,4 @@ in the operator's guide`_ has information on what to do.
 .. _registry section in the operator's guide: opguide.html#registry-matters
 .. _Resource Metadata for the Virtual Observatory: http://www.ivoa.net/Documents/latest/RM.html
 .. _products#define: ref.html#products-define
+.. _customization info in the operators' guide: opguide.html#adapting-dachs-for-your-site
