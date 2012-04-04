@@ -1593,7 +1593,7 @@ This does, step by step:
   default behaviour.  You may need other (non-automatic) name mappings,
   though, which would work analoguously.
 * The grammar further needs a rowfilter.  These are procedure
-  applications working on rawdicts.  The //products#define rowfilter
+  applications working on rawdicts.  The `products#define`_ rowfilter
   lets  you add keys on owners and embargo in case you want password
   protection for images, but most importantly it defines what table the
   data is destined for.  This is crucial information, and if you ever
@@ -1649,8 +1649,8 @@ For example, you could say::
     >//ssap#hcd</mixin>
   </table>
 
-To fill such a table, it is recommended to use the ``//products#define``
-rowfilter and the ``//ssap#setMeta`` rowmaker apply.  This could look
+To fill such a table, it is recommended to use the `products#define`_
+rowfilter and the `ssap#setMeta`_ rowmaker apply.  This could look
 like this::
 
   <data id="content">
@@ -1702,6 +1702,12 @@ rowmaker in the grammar importing the spectra, like this::
 SSAP's FORMAT parameter lets clients select what they want.  The way
 the default FORMAT argument works, only application/x-votable+xml
 records are considered compliant.
+
+FITS files with spectra are a nasty chapter.  Most of the FITS spectra
+out there currently are basically 1D images.  Use an image/fits MIME
+type for those; application/fits is reserved for FITS binary tables
+conforming to the spectral data model; chances are you'll have to build
+those yourself.
 
 
 Cores
@@ -2151,4 +2157,5 @@ in the operator's guide`_ has information on what to do.
 .. _registry section in the operator's guide: opguide.html#registry-matters
 .. _Resource Metadata for the Virtual Observatory: http://www.ivoa.net/Documents/latest/RM.html
 .. _products#define: ref.html#products-define
+.. _ssap#setMeta: ref.html#ssap-setmeta
 .. _customization info in the operators' guide: opguide.html#adapting-dachs-for-your-site
