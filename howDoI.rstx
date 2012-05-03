@@ -36,20 +36,20 @@ more declarative.
 Still, the following is the recommended way to selectively ignore broken
 records defined via certain identifiers::
 
-	<apply name="ignoreBrokenRecords">
-		<doc>This proc filters out records too broken to ingest.
-		for the set of ids in the toIgnorePar
-		</doc>
-		<setup>
-			<par name="toIgnore">set([
-				202, 405])
-			</par>
-		</setup>
-		<code>
-			if @catid in toIgnore:
-				raise IgnoreThisRow("Manually ignored from RD")
-		</code>
-	</apply>
+  <apply name="ignoreBrokenRecords">
+    <doc>This proc filters out records too broken to ingest.
+    for the set of ids in the toIgnorePar
+    </doc>
+    <setup>
+      <par name="toIgnore">set([
+        202, 405])
+      </par>
+    </setup>
+    <code>
+      if @catid in toIgnore:
+        raise IgnoreThisRow("Manually ignored from RD")
+    </code>
+  </apply>
 
 
 
@@ -405,13 +405,13 @@ widget without CSS is questionable (whereas it would be fine if the
 group were non-compact and no CSS tricks were played); first a condDesc
 template::
 
-	<STREAM id="massfrac_template">
-		<doc>A condDesc for a mass fraction.  These consist of an element label,
-		a center value and a weird way of specifying the error.
-		
-		There can be a few of them for a given service, and thus you need to
-		define the macro item. It is used to disambiguate the names.
-		</doc>
+  <STREAM id="massfrac_template">
+    <doc>A condDesc for a mass fraction.  These consist of an element label,
+    a center value and a weird way of specifying the error.
+    
+    There can be a few of them for a given service, and thus you need to
+    define the macro item. It is used to disambiguate the names.
+    </doc>
 
     <condDesc original="massfrac_cond">
       <inputKey name="el\item" type="text" tablehead="Element \item"
@@ -439,24 +439,24 @@ template::
         <property name="style">compact</property>
       </group>
     </condDesc>
-	</STREAM>
+  </STREAM>
 
 And here's a service with that ``condDesc``, including the custom css::
 
-	<service id="web">
-		<meta name="title">Theoretical spectra of hot compact stars</meta>
-		
-		<dbCore queriedTable="newdata">
-			<LOOP listItems="1 2" source="massfrac_template"/>
-		</dbCore>
-		<property name="customCSS">
-			input.a_val {width:3em}
-			input.a_fuzz {width: 3em}
-			span.a_val:before { content:" in "; }
-			span.a_fuzz:before { content:" &#x00b1; "; }
-			span.a_fuzz:after { content:" dex"; }
-		</property>
-	</service>
+  <service id="web">
+    <meta name="title">Theoretical spectra of hot compact stars</meta>
+    
+    <dbCore queriedTable="newdata">
+      <LOOP listItems="1 2" source="massfrac_template"/>
+    </dbCore>
+    <property name="customCSS">
+      input.a_val {width:3em}
+      input.a_fuzz {width: 3em}
+      span.a_val:before { content:" in "; }
+      span.a_fuzz:before { content:" &#x00b1; "; }
+      span.a_fuzz:after { content:" dex"; }
+    </property>
+  </service>
 
 
 Note that we are styling both ``input`` and ``span`` elements with the
@@ -491,11 +491,11 @@ groupdesc has to work after "Range of", "Lower bound of", and
 
 Here's an example::
 
-		<dbCore queriedTable="data">
-			<FEED source="//procs#rangeCond"
-				name="t_eff"
-				groupdesc="the atmosphere's effective temperatures to include"
-				grouplabel="Effective Temperature [K]"/>
+    <dbCore queriedTable="data">
+      <FEED source="//procs#rangeCond"
+        name="t_eff"
+        groupdesc="the atmosphere's effective temperatures to include"
+        grouplabel="Effective Temperature [K]"/>
 
 
 ...use a custom input widget for a field?
@@ -508,18 +508,18 @@ Meanwhile, to have little tags like the explanations of the
 vizier-like-expressions, you can use a custom widget with fields.  This
 could look like this::
 
-		<condDesc>
-			<inputKey original="object" type="vexpr-string">
-				<description>Designated object on the plate (i.e.,
-				the object the observers entered into their journal).
-				You can use wildcards if your prefix your expression with "~".
-				</description>
-				<widgetFactory
-					>widgetFactory(StringFieldWithBlurb, additionalMaterial=
-					T.a(href="/objectlist")[
-					"[List of known objects]"])</widgetFactory>
-			</inputKey>
-		</condDesc>
+    <condDesc>
+      <inputKey original="object" type="vexpr-string">
+        <description>Designated object on the plate (i.e.,
+        the object the observers entered into their journal).
+        You can use wildcards if your prefix your expression with "~".
+        </description>
+        <widgetFactory
+          >widgetFactory(StringFieldWithBlurb, additionalMaterial=
+          T.a(href="/objectlist")[
+          "[List of known objects]"])</widgetFactory>
+      </inputKey>
+    </condDesc>
 
 Here, instead of the String in ``StringFieldWithBlurb``, you could have
 used Numeric or Date, and then used vexpr-float or vexpr-date,
@@ -537,9 +537,9 @@ Pyfits returns some null values from FITS headers as instances of
 you want to parse from values that *sometimes* are Undefined, use code
 like::
 
-	<bind name="alpha">parseWithNull(@RA,
-		lambda l: hmsToDeg(l, ":"), 
-		checker=lambda l: isinstance(l, utils.pyfits.Undefined))</bind>
+  <bind name="alpha">parseWithNull(@RA,
+    lambda l: hmsToDeg(l, ":"), 
+    checker=lambda l: isinstance(l, utils.pyfits.Undefined))</bind>
 
 
 ...force the software to accept weird file names?
@@ -562,10 +562,10 @@ Thus, we discourage the use of such names, and if at all possible, you
 should try and use simpler names.  If, however, you insist on such 
 names, you can simply write something::
 
- 	<rowfilter procDef="//products#define">
- 		<bind key="table">"\schema.newdata"</bind>
-		<bind key="accref">\inputRelativePath{True}</bind>
- 	</rowfilter>
+   <rowfilter procDef="//products#define">
+     <bind key="table">"\schema.newdata"</bind>
+    <bind key="accref">\inputRelativePath{True}</bind>
+   </rowfilter>
 
 (plus whatever else you want to define for that rowfilter, of course) in
 the respective data element.
@@ -590,22 +590,22 @@ key-value pairs are added to each record the grammar returns.
 
 For this example, you could use the following grammar::
 
-		<reGrammar names="obsNo, dra, dde" topIgnoredLines="1">
-			<sourceFields name="getBasePos">
-				<code>
-					with open(sourceToken) as f:
-						_, cra, cde, _ = f.readline().split()
-						return {
-							"cra": float(cra),
-							"cde": float(cde)}
-				</code>
-			</sourceFields>
-		</reGrammar>
+    <reGrammar names="obsNo, dra, dde" topIgnoredLines="1">
+      <sourceFields name="getBasePos">
+        <code>
+          with open(sourceToken) as f:
+            _, cra, cde, _ = f.readline().split()
+            return {
+              "cra": float(cra),
+              "cde": float(cde)}
+        </code>
+      </sourceFields>
+    </reGrammar>
 
 In the rowmaker, you could then do something like this::
 
-				<map dest="raj2000">@cra+float(@dra)*DEG_ARCSEC</map>
-				<map dest="dej2000">@cde+float(@dde)*DEG_ARCSEC</map>
+        <map dest="raj2000">@cra+float(@dra)*DEG_ARCSEC</map>
+        <map dest="dej2000">@cde+float(@dde)*DEG_ARCSEC</map>
 
 
 ...use binaries when the gavo directory is mounted from multiple hosts?
@@ -643,4 +643,21 @@ helpful::
 You'll have to fill in the @@@.*@@@ parts and probably write rules for
 building the files in $OBJECT, but otherwise it's a simple hack to make
 sure a make on the respective machine builds a suitable binary.
+
+
+...change the description, unit, whatever on a single field in a mixin?
+-----------------------------------------------------------------------
+
+Sometimes some property of a field you get via a mixin – say, product or
+ssap – isn't quite right or could improved; this could be a description.
+
+In this case, just "overwrite" the field; there can only be one column
+with a given name in each table, and newer columns overwrite older ones.
+When overwriting, you should inherit from the orignal.  Where that is
+depends on the mixin; for SSAP, this could look like this::
+
+  <column original="//ssap#instance.ssa_snr"
+    description="Signal-to-noise ratio at 500 nm (V500 spectra)
+      or 400 nm (V1200 spectra)"/>
+
 
