@@ -232,6 +232,7 @@ and should never escape to the VO registry):
 .. _authority query against the registry: http://dc.zah.uni-heidelberg.de/__system__/adql/query/form?query=select%20ivoid%2C%20contact_email%20from%20rr.resource%20where%20resource_type%3D%27vg%3AAuthority%27%20and%20ivoid%3D%27ivo%3A%2F%2Forg.gavo.dc%27
 .. _meta stream format: ref.html#meta-stream-format
 
+
 Registering DaCHS-external Services
 -----------------------------------
 
