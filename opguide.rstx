@@ -133,8 +133,8 @@ comma-separated list of renderers the publication is for.  The various
 renderers are translated into capability element in the VO resource
 records.  For example, a typical pattern could be::
 
-		<publish render="scs.xml" sets="ivo_managed"/>
-		<publish render="form" sets="local,ivo_managed"/>
+    <publish render="scs.xml" sets="ivo_managed"/>
+    <publish render="form" sets="local,ivo_managed"/>
 
 This generates a capability each for the simple cone search and a
 browser-based interface; the browser-based interface is, in addition,
@@ -268,6 +268,47 @@ is::
 
 Of course, you will normally need to add further metadata as discussed
 above.
+
+
+Registering Web Interfaces (And More)
+-------------------------------------
+
+A typical situation is that you have a standard service (SSA, SCS, SIAP,
+etc) and a form-based custom service on the same data.  Since the
+form-based service caters to humans, it can require quite different
+input parameters (and thus usually cores) and output tables, and so
+you'll usually have a different service on it.
+
+If you want to publish both services to the VO, you could add
+``publish`` elements with ``sets="ivo_managed"`` to both ``service``
+elements – but that would yield two resource records (which you then
+should link via relatedTo metas).  At least when the form interface
+doesn't add significant functionality, this would usually seem overkill
+– e.g., your service would show up twice in resource listings.
+
+Therefore, it is typically preferable to add the web interface as a
+capability to the the resource record of the standard service.  To let
+you do that, the ``publish`` element takes an optional ``service``
+attribute containing the id of a service that should be used to fill the
+capability's metadata.
+
+Here's an example::
+
+  <service id="web" defaultRenderer="form">
+    <meta name="title">Form-based service</meta>
+    <!-- add this service to the local roster -->
+    <publish render="form" sets="local"/>
+    ...
+  </service>
+
+  <service id="ssa" allowed="form,ssap.xml">
+    <publish render="ssap.xml" sets="ivo_managed"/>
+    <!-- now make a WebBrowser capability on this service in the IVOA
+    published resource record, based on the service with the id web -->
+    <publish render="form" sets="ivo_managed" service="web"/>
+    ...
+  </service>
+
 
 
 Simple OAI operation
