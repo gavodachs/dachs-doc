@@ -574,6 +574,7 @@ So, in this sequence, run::
   gavo imp --system //dc_tables
   gavo imp --system //services
   gavo imp --system //users
+  gavo imp --system //adql
   gavo imp --system //tap
   gavo imp --system //products
   gavo imp --system //obscore
