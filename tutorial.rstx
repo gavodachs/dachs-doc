@@ -1483,16 +1483,27 @@ like this::
 
 There is an alternative condDesc more suitable for humans.  They can be
 used in parallel.  The form renderer will then use the human-oriented
-one, the DAL renderer the protocol one.  Thus, you will ususally write::
+one, the DAL renderer the protocol one.  You'll get this by writing::
 
   <dbCore id="xlcore" queriedTable="main">
     <condDesc original="//scs#humanInput"/>
     <condDesc original="//scs#protoInput"/>
-    <condDesc buildFrom="ipix"/>
   </dbCore>
 
-The example also shows how to add custom query field.  If you want to
-add a larger number of them, you would use an active tag::
+Although not required by SCS, we recommend to also include a MAXREC
+argument that lets people change the match limit in the SCS service (for
+the web service, the database widget already provides this
+functionality).  A usable definition for it is given in the SCS RD in a
+STREAM with the id coreDescs, together with the two condDescs above.
+So, here's the recommended way to build a bare-bone SCS service::
+
+  <dbCore id="xlcore" queriedTable="main">
+    <FEED source="//scs#coreDescs/>
+  </dbCore>
+
+SCS allows more query parameters; you can usually use condDesc's
+buildFrom attribute to directly make one from an input column.  If you
+want to add a larger number of them, you would use an active tag::
 
   <dbCore id="xlcore" queriedTable="main">
     <condDesc original="//scs#humanInput"/>
