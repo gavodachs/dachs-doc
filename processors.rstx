@@ -322,16 +322,16 @@ infrastructure is what you want to use here.
 You probably want to inherit from AnetHeaderProcessor, more or less like
 this::
 
-  from gavo.helpers import anet
+  from gavo.helpers import processing
 
-  class MyProcessor(anet.AnetHeaderProcessor):
+  class MyProcessor(processing.AnetHeaderProcessor):
     sp_indices = ["index-208.fits"],
     sp_lower_pix = 0.1
     sp_upper_pix = 0.2
     sp_endob = 50
 
     def _getHeader(self, srcName):
-      hdr = anet.AnetHeaderProcessor._getHeader(self, srcName)
+      hdr = processing.AnetHeaderProcessor._getHeader(self, srcName)
       if hdr is not None:
         hdr.update("LOCATION", "Unknown")
       return hdr
@@ -390,9 +390,8 @@ Just make sure to rename the result you come up with to whatever is
 passed in in ``inName``.
 
 Note, incidentally, that we take pyfits from gavo.utils.  You should
-never import pyfits directly, since this may pull in the numpy version
-of pyfits, which is incompatible with what the rest of the DC software
-expects.
+never import pyfits directly, since this may pull in pyfits in a way
+incompatible with what the rest of the DC software expects.
 
 If you need more control over the parameters of astrometry.net, override
 the _runAnet method.  Its default implementation is::
@@ -410,7 +409,7 @@ So, if you had an attribute ``sexControl_in`` containing
     for minArea in [300, 50, 150, 800, 2000, 8000]:
       try:
         self.sexControl = self.sexControl_in%minArea
-        res = AnetHeaderProcessor._runAnet(self, srcName)
+        res = processing.AnetHeaderProcessor._runAnet(self, srcName)
         if res is not None:
           return res
       except ShellCommandFailed:  # Ignore failures
@@ -427,7 +426,7 @@ you want filters of your own.  This could look like this::
       return True
     if "left" in value:
       return False
-    return AnetHeaderProcessor.historyFilter(self, value)
+    return processing.AnetHeaderProcessor.historyFilter(self, value)
 
 
 The ``AnetHeaderProcessor`` calls ``_mungeHeader`` with the "old", WCS-less
