@@ -223,6 +223,19 @@ to define validators etc, use super()-based superclass calling, through
 ``_completeElementNext(cls, ctx)``, ``_validateNext(cls)``, and 
 ``_onElementCompleteNext(cls)``.
 
+The ``user.docgen`` module makes documentation out of these structures.
+There are several catches.  One of the more striking is that element
+names in the *entire* DaCHS code must be unique, since docgen generates
+section heading from those names and actually checks that these headings
+are unique; hence, only one (essentially randmonly selected) of two
+identically-named elements would be documented, and parent links would
+both point there.  
+
+Since there are cases when that limitation is a real pain (e.g., the
+publish element of services and data), there's a workaround: you can set
+a ``docName_`` class attribute on a structure that contains the name
+used for the documentation.  See ``rscdef.common.Registration`` for an
+example.
 
 
 Metadata
