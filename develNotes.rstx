@@ -189,6 +189,29 @@ With ``TEST_VERBOSITY=2``, you'll see the test names as they are
 executed.
 
 
+Regression testing of data
+++++++++++++++++++++++++++
+
+For certain kinds of data, unit testing is useful, too.  Since it's
+always possible that server code changes may break such tests, it makes
+sense to run those unit tests at each commit.  Therefore,
+``tests/runAllTests.py`` has a facility to pick up such tests from
+directories named in $GAVO_INPUTS (the "real" one, not the fake test
+one) in the ``__tests/__unitpaths``.  It will pick up tests from there
+just as it picks them up from tests.
+
+Such data-based tests (typically) must run "out of tree", i.e., in the
+actual server environment where the resources expected by the service
+tested are.  To keep testhelper from fudging the environment, set the
+environment variable ``GAVO_OOTTEST`` to anythign before importing
+testhelpers.  This is conveniently done in python, like this::
+
+  import os
+  os.environ["GAVO_OOTTEST"] = "dontcare"
+
+  from gavo.helpers import testhelpers
+
+
 Structures
 ==========
 
