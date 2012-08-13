@@ -379,7 +379,7 @@ resources.  There are three major entities that you can override:
 
 If you find you need to override anything but the logo, please talk to
 us first – we'd in general prefer to provide customization hooks.
-Overridden distributionfiles are always a liability on upgrades.
+Overridden distribution files are always a liability on upgrades.
 
 .. _favicon: https://en.wikipedia.org/wiki/Favicon
 
@@ -396,10 +396,10 @@ Thus, you should put a PNG of your logo into
 Other files you may want to override in this way include
 
 * ``css/gavo_dc.css`` – the central CSS; you could use this for 
-   skinning.  However, we recommend you just add an 
-   ``@import url("<your css url>");`` to the file the server 
-   delivers by default, since some of the css is almost necessary, 
-   and you want easy upgrade paths when we change the master CSS.
+  skinning.  However, we recommend you just add an 
+  ``@import url("<your css url>");`` to the file the server 
+  delivers by default, since some of the css is almost necessary, 
+  and you want easy upgrade paths when we change the master CSS.
 * ``help.shtml`` – the help file.  Unfortunately, we blurb quite 
   a lot about GAVO in there right now.  We'll think of something 
   more parametrizable, but meanwhile you may want to have your own version
@@ -979,6 +979,3 @@ user robots.txt.  For more information on what you can put into
 robots.txt, see `Robot exclusion standard`_
 
 .. _Robot exclusion standard: http://www.robotstxt.org/orig.html
-
-
-

@@ -233,7 +233,7 @@ On Debian systems dedicated for GAVO DaCHS, you can try the following:
     parallel.  It's probably a good idea to use the most recent one.
     Set your desired version for subsequent use::
 
-      export PGVERSION=8.3
+      export PGVERSION=9.1
 
 (#) Drop the Debian default cluster (this will delete everything in
     there -- for a fresh install, that doesn't matter, but don't do this
@@ -257,7 +257,7 @@ On Debian systems dedicated for GAVO DaCHS, you can try the following:
 
 (#) Start the server::
     
-       sudo /etc/init.d/postgresql-$PGVERSION start
+       sudo /etc/init.d/postgresql start
 
 (#) Create the database itself::
 
