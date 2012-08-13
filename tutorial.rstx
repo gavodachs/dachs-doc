@@ -126,24 +126,29 @@ Such a table definition might look like this::
       required="True"
       ucd="pos.eq.ra;meta.main" unit="deg" 
       tablehead="RA"
-      description="Area center RA ICRS"/>
+      description="Area center RA ICRS"
+      verbLevel="1"/>
     <column name="centerDelta" 
       required="True"
       ucd="pos.eq.dec;meta.main" unit="deg" 
       tablehead="Dec"
-      description="Area center Declination ICRS"/>
+      description="Area center Declination ICRS"
+      verbLevel="1"/>
     <column name="ev_i" 
       ucd="arith.diff;phys.absorption;em.opt.V;em.opt.I" unit="mag" 
       tablehead="E(V-I)"
-      description="Difference in extinction between V and I bands"/>
+      description="Difference in extinction between V and I bands"
+      verbLevel="1"/>
     <column name="a_v" 
       ucd="phys.absorption;em.opt.V" unit="mag" 
       tablehead="A_V"
-      description="Extinction in V"/>
+      description="Extinction in V"
+      verbLevel="15"/>
     <column name="a_i" 
       ucd="phys.absorption;em.opt.I" unit="mag" 
       tablehead="A_I"
-      description="Extinction in I"/>
+      description="Extinction in I"
+      verbLevel="15"/>
   </table>
 
 In a table definition, you must give id, which will double as the table
@@ -169,7 +174,8 @@ central in that it will be the column name in the database, the key for
 the column's value in record dictionaries that the software uses
 internally, and it is usually used to reference the column from the
 outside.  Column names must be legal identifiers for both python and SQL in 
-DaCHS.  SQL quoted identifiers thus are not allowed.
+DaCHS.  SQL delmited identifiers thus are not allowed (this is not the
+whole truth, but it's true enough).
 
 The type attribute defaults to real, and can otherwise take values in
 valid SQL datatypes.  The DC software knows how to handle, in addition
@@ -222,10 +228,18 @@ Futher metadata on columns includes:
 * ucd -- a Unified Content Descriptor as defined by IVOA.  To figure out
   "good" UCDs, the UCD resolver at
   http://dc.zah.uni-heidelberg.de/ucds/ui/ui/form can help.
-* requried -- True if value must be set in order for the record to be
+* required -- True if value must be set in order for the record to be
   valid.  By default, NULL (which in python is None) is a valid value
   for any column.  For required columns, that is no longer the case.
   This is particularly important in connection with foreign keys.
+* verbLevel – A measure for the "importance" of the column.  Various
+  protocols have the notion of "verbosity", where higher verbosity means
+  you get to see more columns with more esoteric content.  Within DaCHS,
+  verbLevel is a number between (usefully) 1 and 30, with columns with
+  verbLevel 1 always given and those with verbLevel 30 only given if
+  someone really wants to see all columns.  Technically, in SCS, a
+  column is part of the output table if its verbLevel is smaller or
+  equal to ten times the query's VERB parameter.
 
 Column elements may have a child element 
 `values <./ref.html#element-values>`_.  This lets you specify
@@ -1459,9 +1473,10 @@ later DAL protocols).
 Tables
 ''''''
 
-In principle, SCS can expose any table that has a exactly one column each
-with the UCDs pos.eq.ra;meta.main and pos.eq.dec;meta.main.  The query
-is then ran against the position specified in this way.
+In principle, SCS can expose any table that has a exactly one column
+each with the UCDs ``pos.eq.ra;meta.main``, ``pos.eq.dec;meta.main``,
+and ``meta.id;meta.main``.  The query is then ran against the position
+specified in this way.
 
 However, you almost always want to have a spatial index on these
 columns.  To do that, use the ``//scs#q3cindex`` mixin on the tables, like
@@ -1469,6 +1484,11 @@ this::
   
   <table id="forSCS" onDisk="true" mixin="//scs#q3cindex">
     ...
+
+Finally, note that to have a valid SCS service, you must make sure the
+output table always contains the three required columns (as defined by
+the UCDs given above.  To ensure that, these columns' ``verbLevel``
+attribute must be 10 or less (we advise to have it at 1).
 
 
 Cores

@@ -275,3 +275,19 @@ happened still, but you may need to run ``gavo serve reload`` on the
 server to make it visible.
 
 .. _Managing Runtime Resources: opguide.html#managing-runtime-resources
+
+
+I'm getting "No output columns with these settings." instead of result rows
+===========================================================================
+
+This is particularly likely to happen with the scs.xml renderer.  There,
+it can happen the the server doesn't even bother to run database queries
+but instead keeps coming back with an error message ``No output columns
+with these settings.``.
+
+This happens when the "verbosity" (in SCS, this is computed as 10*VERB)
+of the query is lower than the verbLevel of all the columns.  By
+default, this verbLevel is 20.  In order to ensure that a column is
+returned even with VERB=1, say::
+
+  <column name=...  verbLevel="1"/>
