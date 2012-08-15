@@ -668,7 +668,6 @@ You can get an up-to-date version of this by running ``gavo config``.
 
 .. BEGIN CONFIG REFERENCE
    refresh by going one line below this comment in vi and saying
-   :.,/^.. END CONFIG REFERENCE/-1!gavo config
 
 Section [general]
 '''''''''''''''''
@@ -682,8 +681,8 @@ Paths and other general settings.
   defaults to 'etc' --
   Path to the DC's non-ini configuration (e.g., DB profiles)
 * defaultProfileName: string; 
-  defaults to 'admin' --
-  Default profile name (used to construct system entities)
+  defaults to '' --
+  Deprecated and ignored.
 * gavoGroup: string; 
   defaults to 'gavo' --
   Name of the unix group that administers the DC
@@ -698,10 +697,10 @@ Paths and other general settings.
   Path to the DC's logs (should be local)
 * logLevel: value from the list info, debug, warning, error; 
   defaults to 'info' --
-  Verboseness of importer
+  How much should be logged?
 * operator: string; 
   defaults to '' --
-  Mail address of the DC's operator(s).
+  Deprecated and ignored.  Use contact.email in defaultmeta.txt instead.
 * platform: string; 
   defaults to '' --
   Platform string (can be empty if inputsDir is only accessed by
@@ -761,15 +760,18 @@ Settings concerning TAP, UWS, and friends
 * hardMAXREC: integer; 
   defaults to '20000000' --
   Default match limit for ADQL queries via the UWS/TAP
+* maxTAPRunning: integer; 
+  defaults to '2' --
+  Maximum number of TAP jobs running at a time
 
 Section [db]
 ''''''''''''
 
 Settings concerning database access.
 
-* adqlRoles: set of strings; 
-  defaults to 'untrusted' --
-  Name(s) of DB roles that get access to tables opened for ADQL
+* adqlProfiles: set of strings; 
+  defaults to 'untrustedquery' --
+  Name(s) of profiles that get access to tables opened for ADQL
 * defaultLimit: integer; 
   defaults to '100' --
   Default match limit for DB queries
@@ -777,8 +779,8 @@ Settings concerning database access.
   defaults to 'psycopg2' --
   Don't change
 * maintainers: set of strings; 
-  defaults to 'gavoadmin' --
-  Name(s) of DB roles that should have full access to gavoimp-created
+  defaults to 'admin' --
+  Name(s) of profiles that should have full access to gavoimp-created
   tables by default
 * msgEncoding: string; 
   defaults to 'utf-8' --
@@ -786,9 +788,9 @@ Settings concerning database access.
 * profilePath: shell-type path; 
   defaults to ' ~/.gavo:$configDir' --
   Path for locating DB profiles
-* queryRoles: set of strings; 
-  defaults to 'gavo' --
-  Name(s) of DB roles that should be able to read gavoimp-created tables
+* queryProfiles: set of strings; 
+  defaults to 'trustedquery' --
+  Name(s) of profiles that should be able to read gavoimp-created tables
   by default
 
 Section [ivoa]
@@ -801,25 +803,29 @@ The interface to the Greater VO.
   The authority id for this DC
 * dalDefaultLimit: integer; 
   defaults to '10000' --
-  Default match limit on DAL queries
+  Default match limit on SCS/SSAP/SIAP queries
 * dalHardLimit: integer; 
-  defaults to '10000000' --
-  Hard match limit on DAL queries
+  defaults to '1000000' --
+  Hard match limit on SCS/SSAP/SIAP queries (be careful: due to the way
+  these protocols work, the results cannot be streamed, and the results
+  have to be kept in memory; 1e7 rows requiring 1k of memory each add up
+  to 10 Gigs...)
+* oaipmhPageSize: integer; 
+  defaults to '500' --
+  Default number of records per page in the OAI-PMH interface
+* votDefaultEncoding: value from the list binary, td; 
+  defaults to 'binary' --
+  Default 'encoding' for VOTables in many places (like the DAL
+  responses; this can be user-overridden using the _TDENC local HTTP
+  parameter.
 
 Magic Section [profiles]
 ''''''''''''''''''''''''
 
-Mapping of DC profiles to profile definitions.  The items in this
-section are all of type profile name.  You can add keys as required.
+Ignored and deprecated, only here for backward compatibility.  The items
+in this section are all of type profile name.  You can add keys as
+required.
 
-* admin: profile name; 
-  A name of a file in [db]profilePath
-* deploydb: profile name; 
-  A name of a file in [db]profilePath
-* trustedquery: profile name; 
-  A name of a file in [db]profilePath
-* untrustedquery: profile name; 
-  A name of a file in [db]profilePath
 
 Section [ui]
 ''''''''''''
@@ -840,7 +846,7 @@ Settings related to serving content to the web.
   defaults to '' --
   Password for online administration, leave empty to disable
 * adsMirror: string; 
-  defaults to 'http://ads.ari.uni-heidelberg.de' --
+  defaults to 'http://ads.g-vo.org/' --
   Root URL of ADS mirror to be used
 * bindAddress: string; 
   defaults to '127.0.0.1' --
@@ -868,7 +874,7 @@ Settings related to serving content to the web.
   defaults to 'previewcache' --
   Webdir-relative directory to store cached previews in
 * realm: string; 
-  defaults to 'Gavo' --
+  defaults to 'X-Unconfigured' --
   Authentication realm to be used (currently, only one, server-wide, is
   supported)
 * serverPort: integer; 
@@ -891,11 +897,10 @@ Settings related to serving content to the web.
   Run server as this user.
 * voplotCodeBase: URL fragment relative to the server's root; 
   defaults to 'None' --
-  URL of the code base for VOPlot
+  Deprecated and ignored.
 * voplotUserman: URL fragment relative to the server's root; 
-  defaults to 'static/voplot/docs/VOPlot_UserGuide_1_4.html' --
+  defaults to 'Deprecated and ignored' --
   URL to the documentation of VOPlot
-
 .. END CONFIG REFERENCE
 
 

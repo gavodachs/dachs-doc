@@ -49,7 +49,7 @@ center is about.  Let's start slowly by giving some metadata::
       Extinction values in the area of the LMC...
     </meta>
     <meta name="copyright">Free to use.</meta>
-    <meta name="creator.name">S. Author</meta>
+    <meta name="creator.name">Author, S.; Other, A.</meta>
 
     <meta name="subject">Large Magellanic Cloud</meta>
     <meta name="subject">Interstellar medium, nebulae</meta>
@@ -544,7 +544,7 @@ Let us assemble the pieces we have so far::
       Extinction values in the area of the LMC...
     </meta>
     <meta name="copyright">Free to use.</meta>
-    <meta name="creator.name">S. Author</meta>
+    <meta name="creator.name">Author, S.</meta>
 
     <meta name="subject">Large Magellanic Cloud</meta>
     <meta name="subject">Interstellar medium, nebulae</meta>
@@ -1283,6 +1283,18 @@ More on Metadata
 In general, most metadata for services and resources rather closely
 follows what's defined in `Resource Metadata for the Virtual
 Observatory`_; see also the `Reference Manual on RMI-style metadata`_.
+
+Authors
+-------
+
+DaCHS tries to interpret the creator.name metadata as the authors, and
+it will split strings passed in at semicolons.  So, the recommended way
+to write author lists in DaCHS is "Author1, S.; Author-Two, J.C.; et al"
+– the et al is ignored when trying to come up with individual names from
+such a string.
+
+For alternatives, see `RMI-Style Metadata in the reference`_.
+
 
 Coverage
 --------
@@ -2190,3 +2202,4 @@ in the operator's guide`_ has information on what to do.
 .. _products#define: ref.html#products-define
 .. _ssap#setMeta: ref.html#ssap-setmeta
 .. _customization info in the operators' guide: opguide.html#adapting-dachs-for-your-site
+.. _RMI-Style Metadata in the reference: ref.html#rmi-style-metadata
