@@ -1905,7 +1905,7 @@ always be an embedded grammar, since its sourceToken is an SSA row in
 a dictionary.  Here's an example::
 
   <sdmCore queriedTable="hcdtest" id="mksdm">
-    <data>
+    <data id="datamaker">
       <embeddedGrammar>
         <iterator>
           <code>
@@ -1946,6 +1946,28 @@ rowmaker (with ``idmaps="*"``) will do in the ``make`` of the spectrum
 table.
 
 
+Supporting getData
+''''''''''''''''''
+
+DaCHS supports the preliminary getData specification by `Demleitner and
+Skoda (2012)`_.  This means that you can emit spectra in lots of
+different formats, do cutouts and simple normalization.
+
+Of course, to do all this, DaCHS must again be taught to understand the
+spectra.  This works as explained in `Making SDM Tables`_.  In the
+example there, the embedded data element already has the id
+``datamaker``, ready to be referenced.
+
+To enable getData on an SSA service, just add a property called
+``tablesource`` to it, pointing to this data element, like so::
+
+	<service id="ssa">
+  	...
+		<property name="tablesource">datamaker</property>
+		...
+	</service>
+
+.. _Demleitner and Skoda (2012): http://docs.g-vo.org/ssaevolution.html
 ObsTAP
 ------
 
