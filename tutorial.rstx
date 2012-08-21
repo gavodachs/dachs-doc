@@ -1968,6 +1968,7 @@ To enable getData on an SSA service, just add a property called
 	</service>
 
 .. _Demleitner and Skoda (2012): http://docs.g-vo.org/ssaevolution.html
+
 ObsTAP
 ------
 
