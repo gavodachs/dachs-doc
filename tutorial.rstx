@@ -1967,6 +1967,12 @@ To enable getData on an SSA service, just add a property called
 		...
 	</service>
 
+
+Note, however, that to make that work, the spectral coordinate must be a
+wavelength (but this is already true for the rest of the current spectra
+handling system), and the wavelength must be in what was given as fluxSI
+in the SSA mixin.
+
 .. _Demleitner and Skoda (2012): http://docs.g-vo.org/ssaevolution.html
 
 ObsTAP
