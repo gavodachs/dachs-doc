@@ -1905,7 +1905,7 @@ always be an embedded grammar, since its sourceToken is an SSA row in
 a dictionary.  Here's an example::
 
   <sdmCore queriedTable="hcdtest" id="mksdm">
-    <data id="datamaker">
+    <data id="getdata">
       <embeddedGrammar>
         <iterator>
           <code>
@@ -1956,22 +1956,22 @@ different formats, do cutouts and simple normalization.
 Of course, to do all this, DaCHS must again be taught to understand the
 spectra.  This works as explained in `Making SDM Tables`_.  In the
 example there, the embedded data element already has the id
-``datamaker``, ready to be referenced.
+``getdata``, ready to be referenced.
 
 To enable getData on an SSA service, just add a property called
 ``tablesource`` to it, pointing to this data element, like so::
 
 	<service id="ssa">
   	...
-		<property name="tablesource">datamaker</property>
+		<property name="tablesource">getdata</property>
 		...
 	</service>
 
 
 Note, however, that to make that work, the spectral coordinate must be a
 wavelength (but this is already true for the rest of the current spectra
-handling system), and the wavelength must be in what was given as fluxSI
-in the SSA mixin.
+handling system), and the wavelength must be in what was given as
+spectralSI in the SSA mixin.
 
 .. _Demleitner and Skoda (2012): http://docs.g-vo.org/ssaevolution.html
 
@@ -1983,9 +1983,8 @@ view generated from input tables.  To include the products within a
 table, you must use one of the mixins from the //obscore RD and fill out
 some of the mixin's parameters.  There is some documentation on what to
 put where in the mixin documentation, but frankly, as a publisher, you
-should have at least passing knowledge of the obscore data model.  See
-the corresponding IVOA document [XXX TODO: add link when there's a WD
-out].
+should have at least passing knowledge of the obscore data model as laid
+down in `Tody et al (2011)`_.
 
 In the simplest case, a SIAP table, you could get by simply adding::
 
@@ -1999,7 +1998,6 @@ Even for SIAP, you will usually want to add metadata not contained
 in DaCHS' SIAP meta.  To do this, add a mixin element to the table
 definition's body::
 
-  
     <mixin
       sResolution="0.5"
       calibLevel="2"
@@ -2014,6 +2012,8 @@ obscore table::
 
   gavo imp -m path/to/my/rd
   gavo imp //obscore create
+
+.. _Tody et al (2011): http://www.ivoa.net/Documents/ObsCore/index.html
 
 
 Publishing DaCHS-managed tables via TAP
