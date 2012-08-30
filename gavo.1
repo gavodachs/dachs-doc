@@ -1,0 +1,452 @@
+.\"
+.TH GAVO "1" "2012-08-22" "GNU" "User Commands"
+.SH NAME
+gavo \- data publishing infrastructure for the Virtual Observatory (VO)
+.SH SYNOPSIS
+.B gavo
+[\fIglobal-option\fR] \fIfunction\fR [\fIfunction-option\fR] [\fIfunction-argument\fR]
+.SH DESCRIPTION
+.B gavo
+provides support for data ingestion and publishing, for metadata handling,
+and for a variety of VO protocols and standards, e.g. the Table Access
+Protocol (TAP) or the Simple Cone Search (SCS).
+.SH GLOBAL OPTIONS
+.TP
+\fB\-\-debug\fR
+produce debug info as appropriate
+.TP
+\fB\-\-enable\-pdb\fR
+run pdb on all errors
+.TP
+\fB\-h\fR, \fB\-\-help\fR
+show this help message and exit
+.TP
+\fB\-\-hints\fR
+if there are hints on an error, display them
+.TP
+\fB\-\-profile\-to\fR=PROFILEPATH\fR
+enable profiling and write a profile to PROFILEPATH
+.TP
+\fB\-\-suppress\-log\fR
+suppress logging of exceptions to the gavo-specific log files
+.SH FUNCTIONS
+.SS Helper Command
+.PP
+Function-specific help is provided by the command
+.RS
+.PP
+gavo \fIfunction\fR \-h
+.RE
+.PP
+.SS Function List and Options
+.HP
+\fBadmin\fR [-h] {addtogroup | adduser | allcols | cacheprev | changeuser | 
+cleantap | declaredel | delfromgroup | deluser | indexStatements | listusers}
+.RS 7
+positional arguments:
+.RS 7
+\fBaddtogroup\fR
+.RS 7
+add a user to a group
+.RE
+.RE
+.sp
+.RS 7
+\fBadduser\fR
+.RS 7
+add a user/password pair and a matching group to the Data Center (DC) server
+.RE
+.RE
+.sp
+.RS 7
+\fBallcols\fR
+.RS 7
+re-import column information from all resource descriptors (RD)
+(incl. TAP_SCHEMA; like \fBgavo imp -m all-rds\fR)
+.RE
+.RE
+.sp
+.RS 7
+\fBcacheprev\fR
+.RS 7
+precompute previews for the product interface columns in a table
+.RE
+.RE
+.sp
+.RS 7
+\fBchangeuser\fR
+.RS 7
+change remarks and/or password for a DC user
+.RE
+.RE
+.sp
+.RS 7
+\fBcleantap\fR
+.RS 7
+remove expired Universal Worker Service (UWS) jobs
+.RE
+.RE
+.sp
+.RS 7
+\fBdeclaredel\fR
+.RS 7
+declare an identifier as deleted (for when you've removed the RD but the
+identifier still floats on some registries
+.RE
+.RE
+.sp
+.RS 7
+\fBdelfromgroup\fR
+.RS 7
+remove a user from a group
+.RE
+.RE
+.sp
+.RS 7
+\fBdeluser\fR
+.RS 7
+remove a user from the DC server
+.RE
+.RE
+.sp
+.RS 7
+\fBindexStatements\fR
+.RS 7
+show the statements to create the indices on a table
+.RE
+.RE
+.sp
+.RS 7
+\fBlistusers\fR
+.RS 7
+list users known to the DC
+.RE
+.RE
+.RE
+
+.HP
+\fBdrop\fR [-h] [-s] [--all] rd-id [dd-id [dd-id...]]
+.RS 7
+drop all tables made in a data element of the resource descriptor (RD)
+.sp
+positional arguments:
+.RS 7
+\fBrd\-id\fR
+.RS 7
+RD path or ID to drop
+.RE
+.RE
+.sp
+.RS 7
+\fBdd\-id\fR
+.RS
+optional data descriptor (DD) ID(s) if you do not want to drop the entire RD;
+note that no service publications will be undone if you give DD IDs
+.RE
+.RE
+.sp
+optional arguments:
+.RS 7
+\fB\-\-all\fR
+.RS 7
+drop all DDs in the RD, not only the auto ones (overrides manual selection)
+.RE
+.RE
+.sp
+.RS 7
+\fB\-s, \-\-system\fR
+.RS 7
+drop tables even if they are system tables
+.RE
+.RE
+.RE
+
+.HP
+\fBimport\fR [option] \fIrd-name\fR [data-id]
+instead of \fBgavo import\fR the shortcut \fBgavo imp\fR can be used
+.RS 7
+options:
+.RS 7
+\fB\-b <N>, \-\-batch\-size=<N>\fR
+.RS 7
+deliver <N> rows at a time to the database
+.RE
+.RE
+.sp
+.RS 7
+\fB\-c, \-\-continue\-bad\fR
+.RS 7
+go on if processing a source
+.RE
+.RE
+.sp
+.RS 7
+\fB\-d, \-\-dumpRows\fR
+.RS 7
+dump raw rows as they are emitted by the grammar
+.RE
+.RE
+.sp
+.RS 7
+\fB\-I, \-\-meta\-and\-index\fR
+.RS 7
+do not import, but update table meta (privileges, column descriptions,...)
+and recreate the indices
+.RE
+.RE
+.sp
+.RS 7
+\fB\-L, \-\-commit\-after\-meta\fR
+.RS 7
+commit the importing transaction after updating the meta tables;
+use this when loading large (hence \fB-L\fR) data sets to avoid keeping a lock
+on the meta tables for the duration of the input, i.e., potentially days;
+the price is that users will see empty tables during the import
+.RE
+.RE
+.sp
+.RS 7
+\fB\-m, \-\-meta\-only\fR
+.RS 7
+just update table meta (privileges, column descriptions, ...)
+.RE
+.RE
+.sp
+.RS 7
+\fB\-M <MAX>, \-\-stop-\after=<MAX>\fR
+.RS 7
+stop after having parsed <MAX> rows
+.RE
+.RE
+.sp
+.RS 7
+\fB\-n, \-\-updateRows\fR
+.RS 7
+use UPDATE on primary key rather than INSERT with rows inserted to DBTables
+.RE
+.RE
+.sp
+.RS 7
+\fB\-r, \-\-reckless\fR
+.RS 7
+do not validate rows before ingestion
+.RE
+.RE
+.sp
+.RS 7
+\fB\-R, \-\-redoIndex\fR
+.RS 7
+drop indices before updating a table and recreate them when done
+.RE
+.RE
+.sp
+.RS 7
+\fB\-s, \-\-system\fR
+.RS 7
+(re-)create system tables
+.RE
+.RE
+.sp
+.RS 7
+\fB\-u, \-\-update\fR
+.RS 7
+update mode; don't drop tables before writing
+.RE
+.RE
+.sp
+.RS 7
+\fB\-U <UI>, \-\-ui=<UI>\fR
+.RS 7
+use <UI> to show what is going on; known user interface (UI) names include:
+plain, null, stingy, deluge
+.RE
+.RE
+.sp
+.RS 7
+\fB\-v, \-\-verbose\fR
+.RS 7
+talk a lot while working
+.RE
+.RE
+.RE
+
+.HP
+\fBinfo\fR [-h] \fItable-id\fR
+.RS 7
+positional argument:
+.RS 7
+\fBtable\-id\fR
+.RS 7
+table ID (of the form rdId#tableId)
+.RE
+.RE
+.RE
+
+.HP
+\fBinit\fR [-h] [-d DSN] [--nodb]
+.RS 7
+create or update DaCHS' file system and database environment
+.sp
+optional arguments:
+.RS 7
+\fB\-d <DSN>, \-\-dsn <DSN>\fR
+.RS 7
+data source name (DSN) to use to connect to the future DaCHS database;
+the DSN must let DaCHS connect to the database as an administrator;
+dbname, host, and port get copied to the profile, if given; if you followed
+the installation instructions, you do not need this option
+.RE
+.RE
+.sp
+.RS 7
+\fB\-\-nodb\fR
+.RS
+inhibit initialization of the database (you may want to use this when
+refreshing the file system hierarchie)
+.RE
+.RE
+.RE
+
+.HP
+\fBmkboost\fR [option] \fIrd-name\fR \fItable-id\fR
+
+.HP
+\fBmkrd\fR [option] \fIsample\fR
+
+.HP
+\fBpublish\fR [option] \fIrd-name\fR
+.RS 7
+instead of \fBgavo publish\fR the shortcut \fBgavo pub\fR can be used
+options:
+.RS 7
+\fB\-a, \-\-all\fR
+.RS 7
+search everything below inputsDir for publications
+.RE
+.RE
+.sp
+.RS 7
+\fB\-k, \-\-keep-timestamps\fR
+.RS 7
+preserve the time stamp of the last record modification;
+this may sometimes be desirable when updating a schema to avoid a reharvesting
+of all resource records
+.RE
+.RE
+.RE
+
+.HP
+\fBpurge\fR [-h] tablename [tablename...]
+
+.HP
+\fBserve\fR [-h] {debug | reload | restart | start | stop}
+.RS 7
+positional arguments:
+.RS 7
+\fBdebug\fR
+.RS 7
+run a server and remain in the foreground, dumping all kinds of stuff to
+the terminal
+.RE
+.RE
+.sp
+.RS 7
+\fBreload\fR
+.RS 7
+reload server configuration (incomplete)
+.RE
+.RE
+.sp
+.RS 7
+\fBrestart\fR
+.RS 7
+restart the server
+.RE
+.RE
+.sp
+.RS 7
+\fBstart\fR
+.RS 7
+start the server and put it in the background
+.RE
+.RE
+.sp
+.RS 7
+\fBstop\fR
+.RS 7
+stop a running server
+.RE
+.RE
+.RE
+
+.HP
+\fBshow\fR [-h] \fIdds\fR
+
+.HP
+\fBstc\fR [option] \fIcommand\fR \fIcommand-args\fR
+
+.HP
+\fBtaprun\fR \fIjob-id\fR
+
+.HP
+\fBvalidate\fR [-h] [-x] [-v] \fIrd\fR [rd...]
+.RS 7
+check RDs for well-formedness and some aspects of VO-friendlyness
+(instead of \fBgavo validate\fR the shortcut \fBgavo val\fR can be used)
+.sp
+positional arguments:
+.RS 7
+\fBrd\fR
+.RS 7
+RD path or ID to drop
+.RE
+.RE
+.sp
+.RS 7
+\fBdd\-id\fR
+.RS 7
+RD identifier or file system path; use magic value ALL to check all reachable RDs
+.RE
+.RE
+.sp
+optional arguments:
+.RS 7
+\fB\-v, \-\-verbose\fR
+.RS 7
+talk while working
+.RE
+.RE
+.sp
+.RS 7
+\fB\-x, \-\-check\-xsd\fR
+.RS 7
+do schema validation of registry record (requires extra software, see docs)
+.RE
+.RE
+.RE
+
+.SH AUTHOR
+.SS Software Author
+.PP
+Markus Demleitner <gavo@ari.uni-heidelberg.de>
+.SS Manpage Author
+.PP
+Florian Rothmaier <frothmai@ari.uni-heidelberg.de>
+for the Debian GNU/Linux system (but may be used by others).
+.SH COPYRIGHT
+This library is free software; you can redistribute it and/or modify
+it under the terms of the GNU Lesser General Public License as
+published by the Free Software Foundation; either version 2.1 of the
+License, or (at your option) any later version.
+.P
+This library is distributed in the hope that it will be useful, but
+WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+Lesser General Public License for more details.
+.P
+You should have received a copy of the GNU Lesser General Public
+License along with this library; if not, write to the Free Software
+Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+.\"
+.\" EOF
+.\"
