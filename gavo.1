@@ -4,7 +4,7 @@
 gavo \- data publishing infrastructure for the Virtual Observatory (VO)
 .SH SYNOPSIS
 .B gavo
-[\fIglobal-option\fR] \fIfunction\fR [\fIfunction-option\fR] [\fIfunction-argument\fR]
+[\fIglobal\-option\fR] \fIfunction\fR [\fIfunction\-option\fR] [\fIfunction\-argument\fR]
 .SH DESCRIPTION
 .B gavo
 provides support for data ingestion and publishing, for metadata handling,
@@ -40,7 +40,7 @@ gavo \fIfunction\fR \-h
 .PP
 .SS Function List and Options
 .HP
-\fBadmin\fR [-h] {addtogroup | adduser | allcols | cacheprev | changeuser | 
+\fBadmin\fR [\-h] {addtogroup | adduser | allcols | cacheprev | changeuser | 
 cleantap | declaredel | delfromgroup | deluser | indexStatements | listusers}
 .RS 7
 positional arguments:
@@ -62,7 +62,7 @@ add a user/password pair and a matching group to the Data Center (DC) server
 \fBallcols\fR
 .RS 7
 re-import column information from all resource descriptors (RD)
-(incl. TAP_SCHEMA; like \fBgavo imp -m all-rds\fR)
+(incl. TAP_SCHEMA; like \fBgavo imp \-m all\-rds\fR)
 .RE
 .RE
 .sp
@@ -125,7 +125,7 @@ list users known to the DC
 .RE
 
 .HP
-\fBdrop\fR [-h] [-s] [--all] rd-id [dd-id [dd-id...]]
+\fBdrop\fR [\-h] [\-s] [\-\-all] rd\-id [dd\-id [dd\-id...]]
 .RS 7
 drop all tables made in a data element of the resource descriptor (RD)
 .sp
@@ -162,7 +162,7 @@ drop tables even if they are system tables
 .RE
 
 .HP
-\fBimport\fR [option] \fIrd-name\fR [data-id]
+\fBimport\fR [option] \fIrd\-name\fR [data\-id]
 instead of \fBgavo import\fR the shortcut \fBgavo imp\fR can be used
 .RS 7
 options:
@@ -199,7 +199,7 @@ and recreate the indices
 \fB\-L, \-\-commit\-after\-meta\fR
 .RS 7
 commit the importing transaction after updating the meta tables;
-use this when loading large (hence \fB-L\fR) data sets to avoid keeping a lock
+use this when loading large (hence \fB\-L\fR) data sets to avoid keeping a lock
 on the meta tables for the duration of the input, i.e., potentially days;
 the price is that users will see empty tables during the import
 .RE
@@ -271,7 +271,7 @@ talk a lot while working
 .RE
 
 .HP
-\fBinfo\fR [-h] \fItable-id\fR
+\fBinfo\fR [\-h] \fItable\-id\fR
 .RS 7
 positional argument:
 .RS 7
@@ -283,7 +283,7 @@ table ID (of the form rdId#tableId)
 .RE
 
 .HP
-\fBinit\fR [-h] [-d DSN] [--nodb]
+\fBinit\fR [\-h] [\-d DSN] [\-\-nodb]
 .RS 7
 create or update DaCHS' file system and database environment
 .sp
@@ -308,15 +308,48 @@ refreshing the file system hierarchie)
 .RE
 
 .HP
-\fBmkboost\fR [option] \fIrd-name\fR \fItable-id\fR
+\fBmkboost\fR [option] \fIrd\-name\fR \fItable\-id\fR
+.RS 7
+options:
+.RS 7
+\fB\-b, \-\-binary\fR
+.RS 7
+generate a skeleton for a binary parser
+.RE
+.RE
+.sp
+.RS 7
+\fB\-s <SPLITTER>, \-\-splitter=<SPLITTER>\fR
+.RS 7
+generate a split skeleton with split string <SPLITTER>
+.RE
+.RE
+.RE
 
 .HP
 \fBmkrd\fR [option] \fIsample\fR
+.RS 7
+options:
+.RS 7
+\fB\-f <SRCFORM>, \-\-format=<SRCFORM>\fR
+.RS 7
+source format: FITS or VOT; default: detected from file name
+.RE
+.RE
+.sp
+.RS 7
+\fB\-t <TABLENAME>, \-\-table\-name=<TABLENAME>\fR
+.RS 7
+name of the generated table
+.RE
+.RE
+.RE
 
 .HP
-\fBpublish\fR [option] \fIrd-name\fR
+\fBpublish\fR [option] \fIrd\-name\fR
 .RS 7
 instead of \fBgavo publish\fR the shortcut \fBgavo pub\fR can be used
+.sp
 options:
 .RS 7
 \fB\-a, \-\-all\fR
@@ -326,7 +359,7 @@ search everything below inputsDir for publications
 .RE
 .sp
 .RS 7
-\fB\-k, \-\-keep-timestamps\fR
+\fB\-k, \-\-keep\-timestamps\fR
 .RS 7
 preserve the time stamp of the last record modification;
 this may sometimes be desirable when updating a schema to avoid a reharvesting
@@ -336,10 +369,19 @@ of all resource records
 .RE
 
 .HP
-\fBpurge\fR [-h] tablename [tablename...]
+\fBpurge\fR [\-h] tablename [tablename...]
+.RS 7
+positional argument:
+.RS 7
+\fBtablename\fR
+.RS 7
+name of the table to drop, including the schema name
+.RE
+.RE
+.RE
 
 .HP
-\fBserve\fR [-h] {debug | reload | restart | start | stop}
+\fBserve\fR [\-h] {debug | reload | restart | start | stop}
 .RS 7
 positional arguments:
 .RS 7
@@ -380,18 +422,39 @@ stop a running server
 .RE
 
 .HP
-\fBshow\fR [-h] \fIdds\fR
-
-.HP
-\fBstc\fR [option] \fIcommand\fR \fIcommand-args\fR
-
-.HP
-\fBtaprun\fR \fIjob-id\fR
-
-.HP
-\fBvalidate\fR [-h] [-x] [-v] \fIrd\fR [rd...]
+\fBshow\fR [\-h] \fIdds\fR
 .RS 7
-check RDs for well-formedness and some aspects of VO-friendlyness
+positional argument:
+.RS 7
+\fBdds\fR
+.RS 7
+show what data items are avalailable
+.RE
+.RE
+.RE
+
+.HP
+\fBstc\fR [option] \fIcommand\fR \fIcommand\-args\fR
+.RS 7
+option:
+.RS 7
+\fB\-e, \-\-dump\-exception\fR
+.RS 7
+dump exceptions
+.RE
+.RE
+.RE
+
+.HP
+\fBtaprun\fR \fIjob\-id\fR
+.RS 7
+runs the TAP job with <job\-id> from the UWS table
+.RE
+
+.HP
+\fBvalidate\fR [\-h] [\-x] [\-v] \fIrd\fR [rd...]
+.RS 7
+check RDs for well-formedness and some aspects of VO-friendliness
 (instead of \fBgavo validate\fR the shortcut \fBgavo val\fR can be used)
 .sp
 positional arguments:
