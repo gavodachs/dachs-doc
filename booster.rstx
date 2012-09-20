@@ -158,13 +158,16 @@ in particular when parsing column-structured text files:
 * ``void parseDouble(char *src, Field *field, int start, int len)`` --
   parses a double from src[start:start+len] into field, writing NULL if it's empty
 * void ``parseInt(char *src, Field *field, int start, int len)`` -- parses a
-  32-bit in into field.
+  32-bit int into field.
+* void ``parseShort(char *src, Field *field, int start, int len)`` -- parses a
+  16-bit int into field.
 * ``void parseBlankBoolean(char *src, Field *field, int srcInd)`` -- parses
   a boolean such that field becomes true when src[srcInd] is nonempty.
 * ``void parseString(char *src, Field *field, int start, int len, char
   *space)`` -- copies len bytes starting at start from src into space (you
-  are responsible for allocating that!) and stuffs the whole thing into
-  field.
+  are responsible for allocating that; usually, a static buffer should
+  do, since the postgres input is generated before the next input line
+  is parsed) and stuffs the whole thing into field.
 * ``void parseChar(char *src, Field *field, int srcInd)`` -- guess.
 
 Of course, you can also manually copy or delimit data and use fieldscanf
