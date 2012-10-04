@@ -187,6 +187,10 @@ following macros:
 * MAKE_SHORT(fi, value) -- 
 * MAKE_CHAR(fi, value) --
 * MAKE_JDATE(fi, value) --
+* MAKE_TEXT(fi, value) -- note that you must manage the memory of value
+  yourself.  In particular, it must not be automatic memory of getTuple,
+  since that will not be valid when the tuple actually is built.  Most
+  commonly, you'll be using a static buffer here.
 * MAKE_CHAR_NULL(fi, value, nullvalue) -- makes fi a char with value
   unless value==nullvalue; in that case, fi becomes a NULL
 
