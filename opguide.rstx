@@ -140,6 +140,24 @@ This generates a capability each for the simple cone search and a
 browser-based interface; the browser-based interface is, in addition,
 listed in the local service roster.
 
+You can also publish tables; for those, the notion of renderers make no
+sense, so the publish element doesn't have that.  Instead, you could
+define services that serve that data.  For many cases, you don't even
+need to do this, since for tables that have ``adql="True"``, the local
+TAP service is automatically considered to be a service for that data.
+
+So, to publish an ADQL-queriable table to the VO for querying via TAP, 
+just write
+
+::
+
+  <publish/>
+
+within the table element.  A table containing, e.g., data that's queried
+in a SIAP service in a different RD, would require something like::
+
+  <publish service="other/rd#siapsvc/>
+
 Once you have done this, run ``gavo pub <rdid>``.  This causes all
 publishable items in the RD to be published.  It also unpublishes
 everything that was published through the RD before and is no longer
@@ -901,6 +919,7 @@ Settings related to serving content to the web.
 * voplotUserman: URL fragment relative to the server's root; 
   defaults to 'Deprecated and ignored' --
   URL to the documentation of VOPlot
+
 .. END CONFIG REFERENCE
 
 
