@@ -195,6 +195,11 @@ following macros:
   unless value==nullvalue; in that case, fi becomes a NULL
 
 
+For these in particular, use the the portable type specifiers for
+integral types, viz., ``int8_t``, ``int16_t``, ``int32_t``, and
+``int64_t`` and these names with a ``u`` in front.
+
+
 Boosters reading from separated data
 ------------------------------------
 

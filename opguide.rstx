@@ -378,7 +378,7 @@ Matters`_).
 The next adaptations are done through the configuration (as discussed in
 `Configuration Settings`_, i.e., usually in /etc/gavo.rc).  The most
 relevant item here is ``[web]sitename``, which should contain a terse
-identifier for the site (like "GAVO Data Center").  It is be shown in
+identifier for the site (like "GAVO Data Center").  It is shown in
 titles and top headlines in many places.  If you plan to use DaCHS'
 embargo feature together with user authorization, you must also set
 ``[web]realm`` to some characteristic string.  You could use the site
@@ -387,6 +387,15 @@ for <realm>" or similar.
 
 If you want, you can set ``[web]/favicon`` to either a webDir-relative
 path or a full URL to a `favicon`_.
+
+It is also advisable to configure ``[general]maintainerAddress`` to a
+mail address of a person who will read problem reports.  DaCHS doesn't
+send many of those yet, but it's still valuable if the software can
+cry for help if necessary.  Sending mail only works if the local machine
+can actually send mail.  If there is no MTA on your machine yet, we
+recommend ``nullmailer`` as a lightweight and easy-to-configure sendmail
+stand-in.  If you use something else, you may need to adapt
+``[general]sendmail``.
 
 For the rest, you can customize almost everything by overriding built-in
 resources.  There are three major entities that you can override:
