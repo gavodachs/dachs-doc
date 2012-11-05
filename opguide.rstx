@@ -265,7 +265,6 @@ internal services into their respective RDs.  You will then usually just
 use the resRec's id attribute to determine the IVORN of resource record.
 It will then be ``ivo://<your authority>/<rd id>/<id of resRec>``.
 
-
 In all likelihood, however, you will want to register services.  To
 do that, use a normal service definition with with a nullCore.  You
 probably need to manually give an accessURL.  The most common case is
@@ -287,6 +286,29 @@ is::
 
 Of course, you will normally need to add further metadata as discussed
 above.
+
+
+The "services" can be fairly funky, actually; here's how GAVO registers
+their ADQL reference card::
+
+  <service id="adqlref" allowed="external">
+    <nullCore/>
+    <meta>
+      shortName: GAVO ADQL ref
+      creationDate: 2012-11-05T14:24:00Z
+      title: The GAVO ADQL reference card
+      subject:Virtual Observatory
+      subject:Standards
+      subject:ADQL
+      description: GAVO's ADQL reference card briefly gives an overview \
+      of the SQL dialect used in the VO.  It is available as a PDF\
+      file and as Scribus source under the CC-BY license.
+      referenceURL:http://www.g-vo.org/pmwiki/About/ADQLReference
+    </meta>
+    <publish render="external" sets="ivo_managed,local">
+      <meta name="accessURL">http://docs.g-vo.org/adqlref/adqlref.pdf</meta>
+    </publish>
+  </service>
 
 .. _resRec: ref.html#element-resrec
 
