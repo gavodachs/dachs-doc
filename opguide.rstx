@@ -258,12 +258,13 @@ The registry interface of DaCHS can be used to register entities
 external to DaCHS; actually, you're already doing this when you're
 claiming an authority.
 
-To register a non-service "resource", you can fill out a resRec RD
+To register a non-service "resource", you can fill out a resRec_ RD
 element.  You could reserve an RD (say, ``GAVOROOT/inputs/ext.rd`` to
 collect such external registrations, or you could put them alongside
 internal services into their respective RDs.  You will then usually just
 use the resRec's id attribute to determine the IVORN of resource record.
 It will then be ``ivo://<your authority>/<rd id>/<id of resRec>``.
+
 
 In all likelihood, however, you will want to register services.  To
 do that, use a normal service definition with with a nullCore.  You
@@ -287,6 +288,7 @@ is::
 Of course, you will normally need to add further metadata as discussed
 above.
 
+.. _resRec: ref.html#element-resrec
 
 Registering Web Interfaces (And More)
 -------------------------------------
