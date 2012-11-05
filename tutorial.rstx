@@ -1530,7 +1530,7 @@ STREAM with the id coreDescs, together with the two condDescs above.
 So, here's the recommended way to build a bare-bone SCS service::
 
   <dbCore id="xlcore" queriedTable="main">
-    <FEED source="//scs#coreDescs/>
+    <FEED source="//scs#coreDescs"/>
   </dbCore>
 
 SCS allows more query parameters; you can usually use condDesc's
