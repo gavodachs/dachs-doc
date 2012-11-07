@@ -719,6 +719,7 @@ You can get an up-to-date version of this by running ``gavo config``.
 
 .. BEGIN CONFIG REFERENCE
    refresh by going one line below this comment in vi and saying
+   :.,/END CONFIG REFERENCE/!gavo config
 
 Section [general]
 '''''''''''''''''
@@ -749,6 +750,9 @@ Paths and other general settings.
 * logLevel: value from the list info, debug, warning, error; 
   defaults to 'info' --
   How much should be logged?
+* maintainerAddress: string; 
+  defaults to '' --
+  An e-mail address to send reports and warnings to.
 * operator: string; 
   defaults to '' --
   Deprecated and ignored.  Use contact.email in defaultmeta.txt instead.
@@ -760,6 +764,12 @@ Paths and other general settings.
   defaults to '/var/gavo' --
   Path to the root of the DC file (all other paths may be relative to
   this
+* sendmail: string; 
+  defaults to 'sendmail -t' --
+  Command that reads a mail from stdin, taking therecipient address from
+  the mail header, and transfers the mail (this is for sending mails to
+  the administrator). This command is processed by a shell (generally
+  running as the server user), so you can do tricks if necessary.
 * stateDir: path relative to rootDir; 
   defaults to 'state' --
   Path to the DC's state information (last imported,...)
@@ -921,6 +931,10 @@ Settings related to serving content to the web.
 * nevowRoot: path fragment; 
   defaults to '/' --
   Path fragment to the server's root for operation off the server's root
+* preloadRDs: list of strings; 
+  defaults to '' --
+  RD ids to preload at the server start (this is mainly for RDs that
+  have execute children that should run regularly).
 * previewCache: path relative to webDir; 
   defaults to 'previewcache' --
   Webdir-relative directory to store cached previews in
@@ -952,8 +966,6 @@ Settings related to serving content to the web.
 * voplotUserman: URL fragment relative to the server's root; 
   defaults to 'Deprecated and ignored' --
   URL to the documentation of VOPlot
-
-.. END CONFIG REFERENCE
 
 
 Managing Runtime Resources
