@@ -719,7 +719,7 @@ You can get an up-to-date version of this by running ``gavo config``.
 
 .. BEGIN CONFIG REFERENCE
    refresh by going one line below this comment in vi and saying
-   :.,/END CONFIG REFERENCE/!gavo config
+   :.,/END CONFIG REFERENCE/-1!gavo config
 
 Section [general]
 '''''''''''''''''
@@ -752,7 +752,9 @@ Paths and other general settings.
   How much should be logged?
 * maintainerAddress: string; 
   defaults to '' --
-  An e-mail address to send reports and warnings to.
+  An e-mail address to send reports and warnings to; this could be the
+  same as contact.email; in practice, it is shown in more technical
+  circumstances, so it's adviable to have a narrower distribution here.
 * operator: string; 
   defaults to '' --
   Deprecated and ignored.  Use contact.email in defaultmeta.txt instead.
@@ -966,7 +968,7 @@ Settings related to serving content to the web.
 * voplotUserman: URL fragment relative to the server's root; 
   defaults to 'Deprecated and ignored' --
   URL to the documentation of VOPlot
-
+.. END CONFIG REFERENCE
 
 Managing Runtime Resources
 ==========================
