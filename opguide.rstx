@@ -190,7 +190,8 @@ already taken by someone else; you have probably fulfilled your due
 diligence if you've run an `authority query against the registry`_ and
 did not find a match.  Using your DNS name is not a bad idea.  Please
 don't repeat our (the GAVO DC's) mistake and invert the sequence of
-particles in your DNS name.
+particles in your DNS name.  Also, this is just the name, there is no
+ivo:// or other decoration.
 
 Then, add metadata about yourself in ``GAVO_ROOT/etc/defaultmeta.txt``.
 It is a file in the `meta stream format`_; basically it's lines
