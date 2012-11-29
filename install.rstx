@@ -534,7 +534,7 @@ above you do not need the ``sudo -u postgres`` in these commands)::
 
 Enter the passwords you assign here into the ``feed``, ``trustedquery``,
 and ``untrustedquery`` profiles, respectively.  These profiles are found
-in ``$GAVO_ROOT/etc``.
+in ``rootDir/etc``.
 
 Finally, you need to let the various roles you just created access the 
 database; you do this using the command line interface to postgres::

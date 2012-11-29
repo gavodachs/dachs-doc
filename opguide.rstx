@@ -147,9 +147,7 @@ need to do this, since for tables that have ``adql="True"``, the local
 TAP service is automatically considered to be a service for that data.
 
 So, to publish an ADQL-queriable table to the VO for querying via TAP, 
-just write
-
-::
+just write:: 
 
   <publish/>
 
@@ -201,47 +199,50 @@ In defaultmeta.txt, you must give basic information on your authority
 and some fallback for services (the defaults all make no sense at all
 and should never escape to the VO registry):
 
-* authority.creationDate -- A UTC datetime (with trailing Z);
+* authority.creationDate – A UTC datetime (with trailing Z);
   technically, it should be the date the resource record is created, but
-  realistically, just use "now".  Example: ``2007-12-19T12:00:00Z``.
-* authority.title -- A human-readable descriptor of what the authority
+  realistically, just use "now" at the time your're writing the
+  defaultmeta.txt.  Example: ``2007-12-19T12:00:00Z``.
+* authority.title – A human-readable descriptor of what the authority
   corresponds to.  Example: ``The GAVO data center``
-* authority.description -- A sentence or two on what the authority
+* authority.description – A sentence or two on what the authority
   you are using means.  This could be the same as site.description if
   all you're claiming authority for is that; if you're claiming
   authority for your institute or organization, this obviously should
   be different.  Example: ``The Observatory of Utopia is Lilliput's
   largest astronomical institution with ten large telescopes.``
   (use backslashes an the end of the lines to break long lines).
-* authority.referenceURL -- A URL at which people can learn more about
+* authority.shortName – a short (about 16 chars) identifier for your
+  authority.  Example: GAVO DC.
+* authority.referenceURL – A URL at which people can learn more about
   your data center.  Example: ``http://www.g-vo.org``.
 * authority.managingOrg – an ivo id of the organization you're running
   the dc for.  The default is ivo://<your authority>/org, the content
   of which can be configured using the organization meta items.  If
   your institution has a registry entry independent of your DC, you
   can enter that IVORN here as well.
-* organization.title -- the name of the organization on behalf of which
+* organization.title – the name of the organization on behalf of which
   you are running the data center.
 * organization.description and organization.referenceURL – as the
   analoguous items for authority, just for the organization for which
   you are running the data center (e.g., your "home institute")
-* publisher -- A short, human-readable name for you
-* publisher.ivoId -- An IVOA id for yourself;  set this to
+* publisher – A short, human-readable name for you
+* publisher.ivoId – An IVOA id for yourself;  set this to
   ivo://<authority>/org unless you know what you are doing
-* contact.name -- A human-readable name for some entity people should
+* contact.name – A human-readable name for some entity people should
   write to.  This is not necessarily different from publisher, but
   ideally people can write "Dear <contact.name>" in their mails.
-* contact.address -- A contact address for surface mail
-* contact.email -- An email address.  It should be spam-proof.
-* contact.telephone -- A telephone number people can call if things
+* contact.address – A contact address for surface mail
+* contact.email – An email address.  It should be spam-proof.
+* contact.telephone – A telephone number people can call if things
   really look bad.
-* creator.name -- A name to use when you give no creator in your
+* creator.name – A name to use when you give no creator in your
   resource descriptors.  Could be some error sentinel ("we foget to
   give credit, please complain") or just contact.name if you produce
   resources yourself.
-* creator.logo -- A URL for a logo to use when none is given in the
+* creator.logo – A URL for a logo to use when none is given in the
   resource metadata. Use a small PNG here.
-* site.description -- A description of your site (i.e., "data center")
+* site.description – A description of your site (i.e., "data center")
   Example: ``The GAVO data center provides VO publication services to
   all interested parties on behalf of the German Astrophysical Virtual
   Observatory.`` (use backslashes an the end of the lines to break long
@@ -286,8 +287,8 @@ is::
   </service>
 
 Of course, you will normally need to add further metadata as discussed
-above.
-
+above.  ``gavo pub`` should complain if there's metadata missing,
+though.
 
 The "services" can be fairly funky, actually; here's how GAVO registers
 their ADQL reference card::
@@ -352,6 +353,7 @@ Here's an example::
     ...
   </service>
 
+To publish 
 
 
 Simple OAI operation
@@ -360,7 +362,7 @@ Simple OAI operation
 If you want to check what you have published, see the ``/oai.xml`` on
 your server, e.g., http://localhost:8080/oai.xml.  This is a plain
 OAI-PMH interface with some style sheets (if you want to customize them,
-copy them to ``$GAVO_ROOT/web/xsl/``).  The default style sheets add a
+copy them to ``rootDir/web/xsl/``).  The default style sheets add a
 link to "All identifiers defined here".  Follow it to a list of all
 records you currently publish.
 
