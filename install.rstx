@@ -195,8 +195,13 @@ particular, you should add yourself::
 
 You may want to create another account for "maintenance", or just use
 your normal account; if more than one person will feed the data center,
-you'll need more elaborate schemes;  do not use the gavo group as the
-"data center maintenance group".
+you'll need more elaborate schemes.
+
+To update the system's idea of your group membership, say ``newgrp
+gavo`` or log in and out now.
+
+All users that are to ingest data into the database using DaCHS must be
+part of this gavo group.
 
 
 Database setup
@@ -217,10 +222,11 @@ Cluster Creation
 
 You first need a database to play with, preferably in a suitable
 cluster (you could skip this, but the all bets are off as to whether
-you'll be able to store non-ASCII characters in strings).  It is
-recommended to create a dedicated cluster first even if you want to
-connect DaCHS to a pre-existing database later to get a feel for how it
-works.  See `Connecting to a remote database`_ for information on
+you'll be able to store non-ASCII characters in strings).  
+
+It is recommended to create a dedicated cluster first even if you want
+to connect DaCHS to a pre-existing database later to get a feel for how
+it works.  See `Connecting to a remote database`_ for information on
 what setup is necessary in this case.
 
 Database cluster generator is very system-dependent, and ideally a
@@ -310,11 +316,19 @@ Adapting pg_hba.conf
 The default DaCHS configuration speaks to the server via TCP/IP.  Unless
 you give an option during gavo init below, it will try to connect to the
 server on 127.0.0.1.  This will work fairly well, but depending on usage
-details, you may gain some performance if you let DaCHS talk to postgres
-via unix domain sockets (that, of course, only works if DaCHS and
-postgres are on the same server).  To do that, you must fix your
-pg_hba.conf.  This is tricky, and we recommend you make your system run
-first and then try what's described here if you think you must.
+details, you may gain some (or even quite a lot) performance if you let
+DaCHS talk to postgres via unix domain sockets (that, of course, only
+works if DaCHS and postgres are on the same server).  To do that, you
+must fix your ``pg_hba.conf``.  This is tricky, and we recommend you
+make your system run first and then try what's described here if you
+think you must.
+
+On Debian systems, the ``pg_hba.conf`` is in
+``/etc/postgresql/<version>/<cluster>/``, e.g.
+``/etc/postgresql/9.2/pgdata/`` if you created a new cluster by the
+abover recipe with postgres 9.2, or ``/etc/postgresql/8.4/main/`` in a
+default Debian cluster with postgres 8.4.  Other systems may have it in
+whacky places.
 
 Note that running a database server always is a security liability.  You
 should make sure you understand what the pg_hba.conf (in postgres'
@@ -330,6 +344,9 @@ complete access (the order of lines in pg_hba.conf is significant); it
 allows password authentication for the three users above from the local
 machine.  To make the server use the new local connection, comment out
 the line for ``host`` in your ``rootDir/etc/dsn`` file (with a hash).
+
+You must restart the postgres server after you changed pg_hba.conf to
+make the server notice your changes.
 
 
 Configuration File
