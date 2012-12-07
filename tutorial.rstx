@@ -522,7 +522,92 @@ If magicOffset is None, magic will be None via the TypeError, whereas
 empty magicLits will result in Nones via a ValueError.
 
 
-Data elements
+Some Words on Times
+-------------------
+
+Among the messier data types in astronomical databases are dates and
+times – they come in lots of crazy input formats, they can be
+represented in lots of different ways in the database, they are expected
+in lots of crazy output formats, plus there's a host of exciting
+metadata on them, including time scales and reference positions.
+
+With DaCHS, we recommend one of the following ways of storing dates and
+times (written as attributes of column):
+
+* ``type="double precision" xtype="mjd" unit="d"`` – a modified julian date
+* ``type="double precision" unit="d"`` – a julian date
+* ``type="double precision" unit="s"`` – a unix timestamp
+* ``type="double precision" unit="yr"`` – a Julian year with fractions
+* ``type="timestamp"`` – a postgresql timestamp
+
+All other things being equal, we recommend using mjds; most VO data
+models and protocols employ them, and they are fairly easy to query
+against.  In HTML forms, they are easily displayed as human-readable
+datetimes by using an ``displayHint="type=humanDate"`` (which you can do
+for the others, too, of course).
+
+The Julian years are a good choice, too, and they are immediately
+human-readable to some extent.  They are certainly the representation of
+choice for epochs and equinoxes.  Note that the storage of Bessel years
+is strongly discouraged.  Use the ``bYearToDateTime`` function to
+transform them to datetime instances which you can then map to any
+recommended representation.
+
+While timestamps might sound like a good idea in that they are the proper
+native type to manipulate dates and times with, they usually are a bad
+choice.  The main reason is that in ADQL there is basically no support of
+timestamps at all, which makes any manipulation of them in ADQL queries
+virtually impossible.  If you're sure your table will never turn up on a
+TAP service, that doesn't hurt much, but can you be sure?
+
+All this didn't mention any UCDs or utypes that may apply.  UCDs should not,
+in general, depend on the time format chosen; all of the above could be
+used for quantities like ``time.creation``, ``time.end``,
+``time.epoch``, ``time.equinox``, ``time.processing``, ``time.release``,
+``time.start``, and more.  The SIAP version 1 protocol made a funky
+exception there, defining an ``VOX:Image_MJDateObs`` UCD; please forget that
+ever happened.
+
+Finally, there is advanced metadata, in particular time zones, time
+scales (i.e., how does the the time pass) and reference positions (i.e.,
+where is the clock positioned).  
+
+Time zones are not supported at all in the VO.  All times are for the
+Greenwhich meridian (i.e., they should be close to UTC).  
+
+The time scales are important on the level of seconds; they include  TAI
+(the time scale defined by a bunch of atomic clocks, UTC (TAI with leap
+seconds, basically our everyday time), UT, UT0, UT1, UT2 (several sorts
+of true times in Greenwich), and TT (Terrestial Time, a time scale
+linked to the TAI and used quite a bit in Astronomy).  More of that on
+the fairly readable http://stjarnhimlen.se/comp/time.html.
+
+The reference positions are currently relevant on a level of
+milliseconds or below; they need to be declared for high precision work
+since a clock in the barycenter of the solar system will (evaporate but
+before that) run slower than
+one on Pluto due to relativistic effects of various sorts.  Common reference
+positions would be TOPOCENTER (the observatory), GEOCENTER (the center
+of the Earth), BARYCENTER (the barycenter of the solar system) and
+UNKNOWN (the default, which you should keep unless you are sure; it
+doesn't matter anyhow for most applications).
+
+To declare those, you must include a time phrase in your STC_ declaration in your table.
+Typically, this could look like this::
+
+  <table id="foo">
+    <stc>TimeInterval TT "timeStart" "timeEnd" Time "dateObs"</stc>
+
+    <column name="timeStart" ucd="time.start" unit="d"/>
+    <column name="timeEnd" ucd="time.end" unit="d"/>
+    <column name="dateObs" ucd="time.epoch;obs" unit="yr"/>
+    ...
+
+(descriptions and everything else left out for clarity; in particular,
+for times using double precision almost always is a good idea).
+
+
+Data Elements
 -------------
 
 We now have a table definition, a grammar, and a rowmaker.  For purposes
