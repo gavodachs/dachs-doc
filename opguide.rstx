@@ -199,6 +199,23 @@ In defaultmeta.txt, you must give basic information on your authority
 and some fallback for services (the defaults all make no sense at all
 and should never escape to the VO registry):
 
+* publisher – A short, human-readable name for you
+* publisher.ivoId – An IVOA id for yourself;  set this to
+  ivo://<authority>/org unless you know what you are doing
+* contact.name – A human-readable name for some entity people should
+  write to.  This is not necessarily different from publisher, but
+  ideally people can write "Dear <contact.name>" in their mails.
+* contact.address – A contact address for surface mail
+* contact.email – An email address.  It will be published on web pages,
+  so there probably should be some kind of spam filter in front of it.
+* contact.telephone – A telephone number people can call if things
+  really look bad.
+* creator.name – A name to use when you give no creator in your
+  resource descriptors.  Could be some error sentinel ("we foget to
+  give credit, please complain") or just contact.name if you produce
+  resources yourself.
+* creator.logo – A URL for a logo to use when none is given in the
+  resource metadata. Use a small PNG here.
 * authority.creationDate – A UTC datetime (with trailing Z);
   technically, it should be the date the resource record is created, but
   realistically, just use "now" at the time your're writing the
@@ -226,22 +243,6 @@ and should never escape to the VO registry):
 * organization.description and organization.referenceURL – as the
   analoguous items for authority, just for the organization for which
   you are running the data center (e.g., your "home institute")
-* publisher – A short, human-readable name for you
-* publisher.ivoId – An IVOA id for yourself;  set this to
-  ivo://<authority>/org unless you know what you are doing
-* contact.name – A human-readable name for some entity people should
-  write to.  This is not necessarily different from publisher, but
-  ideally people can write "Dear <contact.name>" in their mails.
-* contact.address – A contact address for surface mail
-* contact.email – An email address.  It should be spam-proof.
-* contact.telephone – A telephone number people can call if things
-  really look bad.
-* creator.name – A name to use when you give no creator in your
-  resource descriptors.  Could be some error sentinel ("we foget to
-  give credit, please complain") or just contact.name if you produce
-  resources yourself.
-* creator.logo – A URL for a logo to use when none is given in the
-  resource metadata. Use a small PNG here.
 * site.description – A description of your site (i.e., "data center")
   Example: ``The GAVO data center provides VO publication services to
   all interested parties on behalf of the German Astrophysical Virtual
@@ -249,7 +250,7 @@ and should never escape to the VO registry):
   lines).
 
 .. _tutorial chapter on the registry: tutorial.html#the-registry-interface
-.. _authority query against the registry: http://dc.zah.uni-heidelberg.de/__system__/adql/query/form?query=select%20ivoid%2C%20contact_email%20from%20rr.resource%20where%20resource_type%3D%27vg%3AAuthority%27%20and%20ivoid%3D%27ivo%3A%2F%2Forg.gavo.dc%27
+.. _authority query against the registry: http://dc.zah.uni-heidelberg.de/__system__/adql/query/form?query=select%20ivoid%20from%20rr.resource%20where%20res_type%3D%27vg%3AAuthority%27%20and%20ivoid%3D%27ivo%3A%2F%2Forg.gavo.dc%27
 .. _meta stream format: ref.html#meta-stream-format
 
 
