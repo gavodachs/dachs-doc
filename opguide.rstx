@@ -221,14 +221,15 @@ and should never escape to the VO registry):
   realistically, just use "now" at the time your're writing the
   defaultmeta.txt.  Example: ``2007-12-19T12:00:00Z``.
 * authority.title – A human-readable descriptor of what the authority
-  corresponds to.  Example: ``The GAVO data center``
+  corresponds to.  Example: ``The Utopia Observatory Data Center``
 * authority.description – A sentence or two on what the authority
   you are using means.  This could be the same as site.description if
   all you're claiming authority for is that; if you're claiming
   authority for your institute or organization, this obviously should
-  be different.  Example: ``The Observatory of Utopia is Lilliput's
-  largest astronomical institution with ten large telescopes.``
-  (use backslashes an the end of the lines to break long lines).
+  be different.  Example: ``The Data Center at the Observatory of Utopia 
+  manages lots of substantial data sets created by the bright scientists
+  all over the world`` (use backslashes an the end of the lines to break 
+  long lines).
 * authority.shortName – a short (about 16 chars) identifier for your
   authority.  Example: GAVO DC.
 * authority.referenceURL – A URL at which people can learn more about
@@ -239,10 +240,16 @@ and should never escape to the VO registry):
   your institution has a registry entry independent of your DC, you
   can enter that IVORN here as well.
 * organization.title – the name of the organization on behalf of which
-  you are running the data center.
+  you are running the data center.  Example: ``Observatory of
+  Utopia``
 * organization.description and organization.referenceURL – as the
-  analoguous items for authority, just for the organization for which
-  you are running the data center (e.g., your "home institute")
+  analoguous item for authority, just for the organization for which
+  you are running the data center (e.g., your "home institute").
+  Example: ``The Observatory of Utopia is Lilliput's
+  largest astronomical institution with ten large telescopes spread
+  around the Plain Mountains.  Beautiful vistas and lush valleys
+  make them an attractive holiday spot as well.  Book now at the
+  Observatories soft money department at 1-800-GOOD-GREED.``
 * site.description – A description of your site (i.e., "data center")
   Example: ``The GAVO data center provides VO publication services to
   all interested parties on behalf of the German Astrophysical Virtual
@@ -252,6 +259,14 @@ and should never escape to the VO registry):
 .. _tutorial chapter on the registry: tutorial.html#the-registry-interface
 .. _authority query against the registry: http://dc.zah.uni-heidelberg.de/__system__/adql/query/form?query=select%20ivoid%20from%20rr.resource%20where%20res_type%3D%27vg%3AAuthority%27%20and%20ivoid%3D%27ivo%3A%2F%2Forg.gavo.dc%27
 .. _meta stream format: ref.html#meta-stream-format
+
+
+After you've specificed all that, you're ready to define your first
+resources, viz, your registry itself, the authority, and the
+organization that's managing it.  These are predefined using the data
+you just filled in in the //services RD.  To publish them, you say::
+
+  gavo pub //services
 
 
 Registering DaCHS-external Services
