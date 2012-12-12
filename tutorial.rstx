@@ -84,7 +84,11 @@ Otherwise, there is only meta information so far.  This metadata is
 cruicial for later registration of the service.  In HTML forms, it is
 displayed in a sidebar.  
 
-See also `More on Metadata`_.
+See also `More on Metadata`_.  Another hint: There's a fairly large body
+of RDs at http://svn.ari.uni-heidelberg.de/svn/gavo/hdinputs, and most
+of them are free for inspection and blatant stealing (if you need a
+license on any of this, let us know).  Most of those can be seen live on
+http://dc.g-vo.org.
 
 Once you are here, you should "validate" your RD.  This is, in general,
 a good idea before doing anything with the RD, since it will allow you
@@ -2097,6 +2101,12 @@ obscore table::
 
   gavo imp -m path/to/my/rd
   gavo imp //obscore create
+
+For SSAP tables, there is an ``//obscore#publishSSAP`` mixin that works
+like its SIAP cousin (see the reference documentation of details).
+
+If you have "custom" tables, have a look at what GAVO does for its
+califa/q resource.
 
 .. _Tody et al (2011): http://www.ivoa.net/Documents/ObsCore/index.html
 
