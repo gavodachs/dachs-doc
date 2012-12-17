@@ -18,34 +18,42 @@ distribution pages`_ for details on those.
 .. _GAVO DC's software distribution pages: http://vo.ari.uni-heidelberg.de/soft
 
 
-Basic Installation
-==================
+Debian systems
+==============
+
+The preferred way to run DaCHS is on Debian stable or compatible
+systems.   To install, `add our APT repository`_ to your
+`/etc/apt/sources.list` and install the `python-gavodachs` package.
+With that, you're ready to proceed to the tutorial_ and the `Operator's
+Guide`_
+
+.. _add our apt repository: http://soft.g-vo.org/repo
+.. _tutorial: tutorial.html
+.. _Operator's Guide: opguide.html
+
+
+
+Installation without Package Management
+=======================================
 
 Dependencies
 ------------
 
 Unfortunately, DaCHS has quite a few dependencies.  Thus, you're doing
-yourself a favour if you run Debian or some Debian-derived distribution.
 
-On such a system,
+Here's the list of dependencies of our Debian package as of version
+0.8.4; this should give you some clue as to what might be necessary on
+other systems::
 
-::
+  adduser, members, postgresql-8.4-pgsphere |
+  postgresql-9.0-pgsphere | postgresql-9.1-pgsphere, postgresql-8.4-q3c |
+  postgresql-9.0-q3c | postgresql-9.1-q3c, python, python-imaging,
+  python-nevow, python-numpy, python-pkg-resources, python-psycopg2,
+  python-pyfits, python-pyparsing, python-soappy, python-twisted,
+  python-zsi, python-setuptools, python-all
 
-  sudo aptitude install python-dev build-essential \
-    python-nevow python-psycopg2 python-pyparsing python-pyfits\
-    python-numpy python-imaging python-soappy python-zsi\
-    python-setuptools libxml2 subversion \
-    libedit-dev libxslt-dev libpam-dev libreadline-dev \
-    python-docutils
-
-should pull in everything that's required apart from the postgres engine
-itself.  For that, install ``postgresql-<version>``; versions supported
-right now include 8.3 and 8.4, but it's worth trying more recent ones.
-You will also need to install the server development package.  On
-2011 Debian stable, this would look like this::
-
-  PGVERSION=8.4
-  sudo aptitude install postgresql-$PGVERSION postgresql-server-dev-$PGVERSION
+Of course, you'll need postgres itself on top of that.  We're planning
+to support anything newer than 8.0 for the time being.
 
 
 PgSphere
@@ -78,35 +86,21 @@ from http://code.google.com/p/q3c/, and in the source directory run::
 
 
 
-Debian systems
---------------
 
-The preferred way to run DaCHS is on Debian stable or compatible
-systems.  However, for the complete data center suite, the apt-based
-approach is not recommended yet, in particular since it is quite
-possible that you will run into bugs, and it will be much easier for us
-if you can update directly from our subversion repository.
+Installing without a package manager
+------------------------------------
 
-Still, you should `add our apt repository`_ to your system's
-sources.list.  When you have done this, you *could* do::
-
-  sudo aptitude install gavodachs
-
-But really, if you want to operate a server, you should, for now, work
-from svn.
-
-.. _add our apt repository: http://vo.ari.uni-heidelberg.de/soft/repo
-
-
-Working with the subversion source
-----------------------------------
 
 Getting the source
 ''''''''''''''''''
 
-Though we may provide releases_ now and then, you probably should just
-check out whatever is in the subversion repository right now.  Say, at
-some place you can write to::
+If you cannot use the Debian package (or do not want to), you can grab
+a gavodachs package from `our distribution page`_.  Choose whatever
+`gavodachs-latest.tar.gz` points to.
+
+If you want to follow the bleeding edge closely – DaCHS is being
+actively developed – check out whatever is in the subversion repository
+right now.  For a read-only copy, say::
 
   svn co http://svn.ari.uni-heidelberg.de/svn/gavo/python/trunk/ dachs
 
@@ -119,7 +113,7 @@ get on our nerves.  Try gavo@ari.uni-heidelberg.de using mail, or ++49
 6221 541837 on the plain old telephone.  You can also use XMPP
 ("jabber"), we'll give you an id on request.
 
-.. _releases: http://vo.ari.uni-heidelberg.de/soft/
+.. _our distribution page: http://vo.ari.uni-heidelberg.de/soft/dist
 
 
 Installing from source
@@ -148,6 +142,10 @@ you update the source.
 
 Setup
 =====
+
+All this is taken care of by the Debian package, so don't do any of this
+if you installed from .deb.
+
 
 Introduction
 ------------
