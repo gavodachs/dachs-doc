@@ -103,7 +103,7 @@ base.ObserverBase.  This lets you stuff like::
     @listensTo("NewSource")
     def announceNewSource(self, srcString):
       print "Starting %s"%srcString
-	
+  
 However, you can also just handle single events by saying things like::
 
   from gavo import base
@@ -115,7 +115,7 @@ However, you can also just handle single events by saying things like::
 
 Most logging is done in user.logui; if you want logging, say::
 
-	from gavo.user import logui
+  from gavo.user import logui
   logui.LoggingUI(base.ui)
   
 
@@ -362,7 +362,7 @@ Therefore, it says::
 
   base.caches.makeCache("getRD", getRD)
 
-Clients the say::
+Clients then say::
 
   base.caches.getRD(id).
 
@@ -504,7 +504,7 @@ setup code; this happens only once per creation of the embedding RD::
       </code>
     </setup>
     <doc>...</doc>
-   	<code>
+     <code>
       ra, dec = None, None
       try:
         ra, dec = resolver.getPositionFor(identifier)
@@ -572,9 +572,9 @@ doing anything.
 
 Then, you could have::
 
- 	_iterator = base.StructAttribute("iterator", default=base.Undefined,
-		childFactory=EmbeddedIterator,
-		description="Code yielding row dictionaries", copyable=True)
+   _iterator = base.StructAttribute("iterator", default=base.Undefined,
+    childFactory=EmbeddedIterator,
+    description="Code yielding row dictionaries", copyable=True)
 
 in some structure.  To produce something you can execute, then say::
 
@@ -600,18 +600,105 @@ We also include some of jquery-ui.
 The result is shipped in minimized form within DaCHS, which means that
 we have a little GPL issue here.  I guess we should keep a copy of the
 non-minimized source for the current DaCHS js somewhere.  On the other
-hand, jquery and jquery-ui currently has fine DVCSes, so I think we're
+hand, jquery and jquery-ui currently have fine DVCSes, so I think we're
 fine with the spirit of the GPL...
 
 
+gavo.js
++++++++
+
+The commonhead renderer that's applied to almost all pages pulls in the
+javascript from resources/web/js/gavo.js.  This includes some utility
+functions in the global namespace (and some that should be moved
+elsewhere).  In particular, it contains quite a bit of ugly mess for
+managing the output formats.
+
+Here's a discussion of some features that may be interesting to template
+authors.
+
+Built-in templating
+'''''''''''''''''''
+
+There's a very plain templating engine in javascript included, using an
+idea due to John Resig, http://ejohn.org/.  According to this, you
+define a template in your HTML as a script of type text/html::
+
+  <script type="text/html" id="tmpl_authorHeader">
+    <li>
+      <a class="arrow-e" 
+        onclick="toggleAuthorResources(this)" name="$author"/>
+      <span class="data">$author</span>
+      ($nummatch)
+    </li>
+  </script>
+
+The $varName parts can then be filled – properly HTML-escaped – by
+calling::
+
+  renderTemplate("tmpl_authorHeader", {
+    author: 'Thor, A. U',
+    nummatch: 8})
+
+Currently, filling variables is the only thing the engine knows how to
+do.
+
+Fairly Simple Tabs
+''''''''''''''''''
+
+There's built-in javascript and CSS for switching tabs.  The tabs
+require Javascript, so you'll usually want to hide them from
+non-JS-browsers.  Thus, to define the tabs, do something along the lines
+of::
+
+  <script type="text/html" id="tabbar_store">
+  <ul id="tabset_tabs">
+    <li class="selected"><a name="by-title"><span>By Title</span></a></li>
+    <li><a name="by-subject"><span>By Subject</span></a></li>
+    <li><a name="by-author"><span>By Author</span></a></li>
+  </ul>
+  </script>
+
+  <p id="tab_placeholder" style="border:2pt dashed #bb9999;padding: 0.5ex">
+    Enable Javascript for more choices.</p>
+
+Note how the tab headings are within a elements that have a name – it's
+this name that lends identity to them  The spans around the headings
+are for easier styling.  Just keep them.
+
+Then, in your javascript, say::
+
+  $(document).ready(function() {
+    $("#tab_placeholder").replaceWith(
+      $(document.getElementById("tabbar_store").innerHTML));
+    $("#tabset_tabs li").bind("click", makeTabCallback({
+      'by-subject': func1,
+      'by-author': func2,
+      'by-title': func3,
+    }));
+  }
+
+(or do something equivalent, if you don't like the innerHTML here).
+The functions in the dictionary passed to ``makeTabCallback`` must then
+work on the container below the tabs.  Here's CSS you could base the
+container css on::
+
+  position: relative;
+  background-color: #EAEBEE;
+  margin-top: 0px;
+  min-height:70ex;
+
+The CSS that styles the tabs is in ``resources/web/css/gavo_dc.css``,
+the images necessary in ``resources/web/img``.
+
+
 Building jquery-gavo.js
-–----------------------
++++++++++++++++++++++++
 
 * Go to a temporary directory
 * Go to http://jqueryui.com/download and make yourself a jquery-ui
   archive.  Currently, we want all the core, plus draggable and
   resizable.  Do not select any theme.
-* Unzip the file, cd js, cat jquery-*.min.js jquery-ui-*.js > ../jquery-gavo.js
+* Unzip the file, ``cd js && cat jquery-*.min.js jquery-ui-*.js > ../jquery-gavo.js``
 * copy jquery-gavo.js to gavo/resources/web/js
 
 Whatever CSS is necessary for jquery should go into gavo_dc.css.
