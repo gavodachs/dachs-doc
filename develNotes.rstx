@@ -627,8 +627,7 @@ define a template in your HTML as a script of type text/html::
     <li>
       <a class="arrow-e" 
         onclick="toggleAuthorResources(this)" name="$author"/>
-      <span class="data">$author</span>
-      ($nummatch)
+        $author ($nummatch)
     </li>
   </script>
 
@@ -652,9 +651,9 @@ of::
 
   <script type="text/html" id="tabbar_store">
   <ul id="tabset_tabs">
-    <li class="selected"><a name="by-title"><span>By Title</span></a></li>
-    <li><a name="by-subject"><span>By Subject</span></a></li>
-    <li><a name="by-author"><span>By Author</span></a></li>
+    <li class="selected"><a name="by-title">By Title</a></li>
+    <li><a name="by-subject">By Subject</a></li>
+    <li><a name="by-author">By Author</a></li>
   </ul>
   </script>
 
@@ -662,8 +661,9 @@ of::
     Enable Javascript for more choices.</p>
 
 Note how the tab headings are within a elements that have a name – it's
-this name that lends identity to them  The spans around the headings
-are for easier styling.  Just keep them.
+this name that lends identity to them.  You could have hrefs for better
+non-javascript fallback if you have the tabs without javascript; remove
+the href attributes when you have javascript active, though.
 
 Then, in your javascript, say::
 

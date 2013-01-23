@@ -290,6 +290,8 @@ of the query is lower than the verbLevel of all the columns.  By
 default, this verbLevel is 20.  In order to ensure that a column is
 returned even with VERB=1, say::
 
+  <column name=...  verbLevel="1"/>
+
 gavo imp dies with Permission denied: u'/home/gavo/logs/dcErrors'
 =================================================================
 
@@ -303,4 +305,10 @@ say, fred, you'd say::
 Note that fred will either have to log in and out (or similar) or say
 ``newgrp gavo`` after that.
 
-  <column name=...  verbLevel="1"/>
+
+Warnings about popen, md5, etc being deprecated
+===============================================
+
+The python-nevow package that comes with Debian sequeeze is outdated.
+Install
+http://docs.g-vo.org/python-nevow_0.11.0-1_all.deb
