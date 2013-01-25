@@ -514,6 +514,16 @@ distributed template, too).  The latter is intended for use on sites that
 have more then a few tens of services, when ``root.html`` would expand
 to several 100s of kilobytes.
 
+Note that such static documents are fairly aggressively cached by DaCHS.
+This means that changes to the docment will not usually become
+immediately visible in your browser.  However, documents are not cached
+when you are logged in.  As you write on your root page, it is therefore
+advisable to log in as administrator (see the [web]adminpasswd
+config item; e.g., click on the little [s] on the root page and select
+"Log in" from the sidebar); if you're happy with your design, simply reload the
+//services RD, which is where the root page cache lies on, and your new
+root page will be what's delivered to your "normal" users, too.
+
 Another candidate is serviceinfo.html – it contains an explanation of
 the various sets you may create.  Grep for GAVO in that file to see how
 we use it.
