@@ -1036,8 +1036,11 @@ through the webserver; see `Admin Web Interfaces`_
 
 
 
+Admin Interfaces
+================
+
 Admin Web Interfaces
-====================
+--------------------
 
 Some operation on the data center can be done from its web interface.
 To use these features, you have to set the ``[web] adminpasswd``
@@ -1086,3 +1089,20 @@ user robots.txt.  For more information on what you can put into
 robots.txt, see `Robot exclusion standard`_
 
 .. _Robot exclusion standard: http://www.robotstxt.org/orig.html
+
+
+Admin CLI Interfaces
+--------------------
+
+You can also perform various housekeeping operations using ``gavo
+admin``.  Try ``gavo admin --help``.  This includes user management
+(there's a bit on it in the tutorial), precomputing previews for images,
+and create registry records for deleted services that got lost.
+
+An admin tool that comes in handy is ``gavo admin tapabort``.  Call it
+with a TAP job id and a helpful (!) text to abort a TAP job and set it
+to an error state giving a short explanation what happened and the
+helpful text.  The idea is that when users run queries against large
+tables without using indices (or do other stupid things), you can send
+them messages in this way (and clear away their resource hogs at the
+same time).
