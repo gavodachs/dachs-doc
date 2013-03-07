@@ -27,6 +27,12 @@ systems.   To install, `add our APT repository`_ to your
 With that, you're ready to proceed to the tutorial_ and the `Operator's
 Guide`_
 
+If you plan to publish SIAP services ("images"), you will need to
+manually install pywcs as of Debian squeeze
+(grab http://stsdas.stsci.edu/astrolib/pywcs-1.11-4.8.2.tar.gz).  Debian
+wheezy has this packaged, and you can just follow the Recommend-ation of
+the gavodachs package.
+
 .. _add our apt repository: http://soft.g-vo.org/repo
 .. _tutorial: tutorial.html
 .. _Operator's Guide: opguide.html
@@ -51,6 +57,10 @@ other systems::
   python-nevow, python-numpy, python-pkg-resources, python-psycopg2,
   python-pyfits, python-pyparsing, python-soappy, python-twisted,
   python-zsi, python-setuptools, python-all
+
+Again, for publishing images you'll need pywcs from
+http://stsdas.stsci.edu/astrolib/pywcs-1.11-4.8.2.tar.gz; there's a
+package python-pywcs.
 
 Of course, you'll need postgres itself on top of that.  We're planning
 to support anything newer than 8.0 for the time being.
