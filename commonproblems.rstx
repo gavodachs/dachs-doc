@@ -312,3 +312,18 @@ Warnings about popen, md5, etc being deprecated
 The python-nevow package that comes with Debian sequeeze is outdated.
 Install
 http://docs.g-vo.org/python-nevow_0.11.0-1_all.deb
+
+
+I'm using reGrammar to parse a file, but no splitting takes place
+=================================================================
+
+This mostly happens for input lines like ``a|b|c``; the underlying
+problem is that you're trying to split along regular expression
+metacharacters.  The solution is to escape the the metacharacter.  In
+the example, you wouldn't write::
+
+  <reGrammar fieldSep="|"> <!-- doesn't work -->
+
+but rather::
+
+  <reGrammar fieldSep="\|"> <!-- doesn't work -->
