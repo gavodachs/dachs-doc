@@ -1720,7 +1720,7 @@ This does, step by step:
   some (weak) assumptions to yield significant speedups with large
   images.
 * The ``fitsProdGrammar`` will map keys with hyphens to names with
-  underscores, which is required to make them accessible in rowmakers.
+  underscores, which allows for smoother action with them in rowmakers.
   The ``map``` example above therefore is superfluous since it orders
   default behaviour.  You may need other (non-automatic) name mappings,
   though, which would work analoguously.
@@ -1734,7 +1734,7 @@ This does, step by step:
   table>'``.  So, always bind table.  Make sure to include the quotes,
   this is supposed to be a valid python expression yielding a string.
 * You then need to define a rowmaker that must apply two procs.  For
-  one, you need `computePGS<ref.html#computepgs>`_
+  one, you need `computePGS <ref.html#computepgs>`_
   (if you mixed in ``pgsSIAP``).  No bindings are required here.
 * The second proc application required is 
   `setSIAPMeta <ref.html#setsiapmeta>`_ .  Try to give all its keys
@@ -1748,17 +1748,75 @@ mappings will clobber the work of the xSIAP procs.
 Cores
 '''''
 
-TBD.
+There are two predefined SIAP cores:
 
-For the SIAP cutout core, the SIAP human condDesc must have ``required``
-True, since the core will retrieve the default cutout size from the field
-size.  The SIAP protocol condDesc is required anyway.
+* `siapCore <ref.html#element-siapcore>`_, which is basically just
+  a normal dcCore, except you get all the SIAP-required columns preset
+  automatically.
+* `siapCutoutCore <ref.html#element-siapcutoutcore>`_, which speaks SIAP
+  but returns cutouts rather than full images; the size of these cutouts
+  is determined by the SIZE argument (i.e., the region of interest).
+
+For siapCutoutCore to work, you must install ``getfits`` from wcstools_
+into $GAVO_DIR/__system/bin/getfits.  No automated procedure is planned
+for this yet; given enough demand (or, even better, patches) we'd
+probably provide a pure python implementation of it.
+
+To furnish these cores with the parameters required by the standard, use
+the //siap#protoInput condDesc.  If you want to re-use the core for a
+form-based service, use the //siap#humanInput condDesc as well.  Both
+are written in a way that they'll sense if they run under a SIAP
+renderer or not.
+
+So, a basic core with a couple of additional fields would look like
+this::
+
+    <dbCore id="query_images" queriedTable="main">
+      <condDesc original="//siap#protoInput"/>
+      <condDesc original="//siap#humanInput"/>
+      <condDesc buildFrom="dateObs"/>
+      <condDesc buildFrom="bandpassId" />
+      <condDesc>
+        <inputKey name="object" type="text" 
+            tablehead="Target Object" 
+            description="Object being observed, Simbad-resolvable form"
+            ucd="meta.name" verbLevel="5" required="True">
+            <values fromdb="object FROM lensunion.main"/>
+        </inputKey>
+      </condDesc>
+    </dbCore>
+
+.. _wcstools: http://tdc-www.harvard.edu/software/wcstools/
+
+
 
 Service
 '''''''
 
-TBD.
+If you wrote the core to work for both SIAP and form as described above,
+there's little more to say except you'll want to use the ``siap.xml``
+renderer, and you need some additional metadata for VO registration.
+The latter is described in the 
+`siap.xml reference <ref.html#the-siap-xml-renderer>`_.
 
+With this, the service definition would look like this::
+
+  <service id="im" allowed="form,siap.xml" core="query_image">
+    <meta name="shortName">sample images</meta>
+    <meta name="title">Sample Image Archive</meta>
+    <meta name="sia.type">Pointed</meta>
+    
+    <meta name="testQuery.pos.ra">230.444</meta>
+    <meta name="testQuery.pos.dec">52.929</meta>
+    <meta name="testQuery.size.ra">0.1</meta>
+    <meta name="testQuery.size.dec">0.1</meta>
+
+    <publish render="siap.xml" sets="ivo_managed"/>
+    <publish render="form" sets="local,ivo_managed"/>
+  </service>
+
+(where again you can just write the above core inline rather than
+referencing it; that's the style we usually recommend).
 
 SSAP
 ----
