@@ -55,6 +55,7 @@ center is about.  Let's start slowly by giving some metadata::
     <meta name="subject">Interstellar medium, nebulae</meta>
     <meta name="subject">Extinction</meta>
 
+  	<meta name="coverage.waveband">Optical</meta>
   </resource>
 
 You need to adapt the encoding attribute in the prefix to match what you
@@ -84,10 +85,14 @@ Otherwise, there is only meta information so far.  This metadata is
 cruicial for later registration of the service.  In HTML forms, it is
 displayed in a sidebar.  
 
-See also `More on Metadata`_.  Another hint: There's a fairly large body
-of RDs at http://svn.ari.uni-heidelberg.de/svn/gavo/hdinputs, and most
-of them are free for inspection and blatant stealing (if you need a
-license on any of this, let us know).  Most of those can be seen live on
+See also `More on Metadata`_, and note that ``coverage.waveband`` comes
+from a controlled vocabulary consisting of Radio, Millimeter, Infrared,
+Optical, UV, EUV, X-ray, Gamma-ray, but that DaCHS doesn't enforce this.
+
+Another hint: There's a fairly large body of RDs at
+http://svn.ari.uni-heidelberg.de/svn/gavo/hdinputs, and most of them are
+free for inspection and blatant stealing (if you need a license on any
+of this, let us know).  Most of those can be seen live on
 http://dc.g-vo.org.
 
 Once you are here, you should "validate" your RD.  This is, in general,
