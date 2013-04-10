@@ -55,7 +55,11 @@ center is about.  Let's start slowly by giving some metadata::
     <meta name="subject">Interstellar medium, nebulae</meta>
     <meta name="subject">Extinction</meta>
 
-  	<meta name="coverage.waveband">Optical</meta>
+    <meta name="coverage">
+      <meta name="waveband">Optical</meta>
+    </meta>
+
+    <meta name="content.type">Catalog</meta>
   </resource>
 
 You need to adapt the encoding attribute in the prefix to match what you
@@ -85,9 +89,9 @@ Otherwise, there is only meta information so far.  This metadata is
 cruicial for later registration of the service.  In HTML forms, it is
 displayed in a sidebar.  
 
-See also `More on Metadata`_, and note that ``coverage.waveband`` comes
-from a controlled vocabulary consisting of Radio, Millimeter, Infrared,
-Optical, UV, EUV, X-ray, Gamma-ray, but that DaCHS doesn't enforce this.
+See `More on Metadata`_ for more information on what to write here.
+Note, in particular, that ``coverage.waveband`` and ``content.type``
+come from controlled vocabularies that are not enforced by DaCHS.
 
 Another hint: There's a fairly large body of RDs at
 http://svn.ari.uni-heidelberg.de/svn/gavo/hdinputs, and most of them are
@@ -1426,6 +1430,23 @@ However, the registries probably evaluate not very much of this
 information as yet, and you most certainly should try to give positions
 in ICRS.
 
+
+Content Type
+------------
+
+Values for, ``content.type`` come from a controlled vocabulary that
+includes Other, Archive,
+Bibliography, Catalog, Journal, Library, Simulation, Survey,
+Transformation, Education, Outreach, EPOResource, Animation, Artwork,
+Background, BasicData, Historical, Photographic, Press, Organisation,
+Project, Registry.
+
+Specifying the content type is optional, and you can repeat the meta
+element as often as you need to.
+
+If you are unsure what these mean, see `Resource Metadata for the
+Virtual Observatory`_, section 3.3.
+
 Copyright
 ---------
 
@@ -1681,7 +1702,7 @@ So, in the simplest case, a table that's going to be published through
 SIAP would look like this::
 
   <table id="images" onDisk="True">
-    <mixin name="pgsSIAP"/>
+    <mixin name="//siap#pgs"/>
   </table>
 
 (of course, you can add more columns if you need them).
@@ -1701,8 +1722,8 @@ applications.  Let's look at a data element for this table::
     </fitsProdGrammar>
 
     <rowmaker id="make_image" idmaps="*">
-      <apply procDef="computePGS"/>
-      <apply procDef="setSIAPMeta">
+      <apply procDef="//siap#computePGS"/>
+      <apply procDef="//siap#setMeta">
         <bind key="title">vars["imageTitle"]</bind>
         <bind key="instrument">"%s, %s"%(vars["OBSERVAT"],
           vars["TELESCOP"])</bind>
@@ -1739,10 +1760,10 @@ This does, step by step:
   table>'``.  So, always bind table.  Make sure to include the quotes,
   this is supposed to be a valid python expression yielding a string.
 * You then need to define a rowmaker that must apply two procs.  For
-  one, you need `computePGS <ref.html#computepgs>`_
-  (if you mixed in ``pgsSIAP``).  No bindings are required here.
+  one, you need `//siap#computePGS <ref.html#siap-computepgs>`_
+  (if you mixed in ``//siap#pgsSIAP``).  No bindings are required here.
 * The second proc application required is 
-  `setSIAPMeta <ref.html#setsiapmeta>`_ .  Try to give all its keys
+  `//siap#setMeta <ref.html#siap-setmeta>`_ .  Try to give all its keys
   somewhat sensible values, you will make your users' lives much easier.
 
 Warning: Do *not* use idmaps="*" with SIAP, since the auto-generated
@@ -1753,11 +1774,10 @@ mappings will clobber the work of the xSIAP procs.
 Cores
 '''''
 
-There are two predefined SIAP cores:
+There are two cores you may want for SIAP services:
 
-* `siapCore <ref.html#element-siapcore>`_, which is basically just
-  a normal dcCore, except you get all the SIAP-required columns preset
-  automatically.
+* `dbCore <ref.html#element-dbcore>`_, to which you add the necessary
+  condDescs manually as below, for "normal" SIAP services.
 * `siapCutoutCore <ref.html#element-siapcutoutcore>`_, which speaks SIAP
   but returns cutouts rather than full images; the size of these cutouts
   is determined by the SIZE argument (i.e., the region of interest).

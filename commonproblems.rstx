@@ -187,9 +187,9 @@ with a grammar that does not use the //products#define row filter.
 So, within the grammar, say (at least, see the reference documentation
 for other parameters for rowgen)::
 
-	<rowfilter procDef="//products#define">
-		<bind name="table">\schema.table</bind>
-	</rowfilter>
+  <rowfilter procDef="//products#define">
+    <bind name="table">\schema.table</bind>
+  </rowfilter>
 
 -- substituting dest.table with the actual name of the table fed.  The
 reason why you need to manually give the table is that the grammar
@@ -207,7 +207,7 @@ give you a chance to map things set by it, but it means that you must
 idmap at least all ssa symbols (or map them manually, but that's
 probably too tedious).  So, in the rowmaker definition, you write::
 
-	<rowmaker idmaps="ssa_*">
+  <rowmaker idmaps="ssa_*">
 
 
 "unpack requires a string argument of length"
@@ -327,3 +327,57 @@ the example, you wouldn't write::
 but rather::
 
   <reGrammar fieldSep="\|"> <!-- doesn't work -->
+
+
+IntegrityError: duplicate key value violates unique constraint "products_pkey"
+==============================================================================
+
+This happens when you try to import the same "product" twice.  There are
+many possible reasons why this might happen, but the most common (of the
+non-obvious ones) probably is the use of updating data items with row
+triggers.
+
+If you say something like::
+
+    <!-- doesn't work reliably -->
+    <table id="data" mixin="//products#table"
+      ...
+    <data id="import" updating="True">
+      <sources>
+        ...
+        <ignoreSources fromdb="select accref from my.data"/>
+      </sources>
+      <fitsProdGrammar...
+      <make table="data">
+        <rowmaker>
+           <ignoreOn name="Skip plates not yet in plate cat">
+             <keyMissing key="DATE_OBS"/></ignoreOn>
+      ...
+
+you're doing it wrong.  The reason this yields IntegrityErrors is that
+if the ignoreOn trigger fires, the row will not be inserted into the
+table ``data``.  However, the make feeding the ``dc.products`` table
+implicitely inserted by the ``//products#table`` mixin will not skip an
+ignored image.  So, it will end up in ``dc.product``, but on the next
+import, that source will be tried again – it didn't end up in my.data,
+which is where ignoreSources takes its file names from –, and boom.
+
+If you feed multiple tables in one data and you need to skip an input
+row entirely, the only way to do that reliably is to trigger in the
+grammar, like this::
+
+
+    <table id="data" mixin="//products#table"
+      ...
+    <data id="import" updating="True">
+      <sources>
+        ...
+        <ignoreSources fromdb="select accref from my.data"/>
+      </sources>
+      <fitsProdGrammar...
+        <ignoreOn name="Skip plates not yet in plate cat">
+           <keyMissing key="DATE_OBS"/></ignoreOn>
+      </fitsProdGrammar>
+      <make table="data">
+      ...
+

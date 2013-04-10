@@ -221,6 +221,15 @@ containing the literal in the first argument, the field index in the
 second, and finally the type specifier.  If the data comes in the
 sequence of the table columns, the generated source *might* just work.
 
+*Warning*: C's standard strtok function merges adjacent separators,
+i.e., ``foo|bar||baz`` would just yield three tokens, foo, bar, and baz.
+With astronomical data, this is typically not what you want.  Therefore,
+the generated booster function will have a line like::
+
+  #define strtok strtok_u
+
+Delete it in the unlikely case that you need the POSIX strtok behaviour.
+
 
 Filling in data manually
 ------------------------
