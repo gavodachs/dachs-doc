@@ -661,3 +661,82 @@ depends on the mixin; for SSAP, this could look like this::
       or 400 nm (V1200 spectra)"/>
 
 
+
+...transform coordinates from one coordinate system to another?
+---------------------------------------------------------------
+
+In general, that's fairly complicated, involving proper motions, radial
+velocities, and other complications.  There's an interface in the stc
+module based on conformTo, but you'd not want to do that when filling
+tables since it's not fast and usually not what you need either.
+
+For simple things (i.e., change plain positions between Galatic and ICRS
+or Equinox B1965 and J2010) and bulk transforms, you can use the
+following pattern in a rowmaker apply (transforming from Galactic to
+ICRS)::
+
+  <apply name="convertPosition">
+    <setup>
+      <code>
+	      gal2ICRS = stc.getSimple2Converter(
+		      stc.parseSTCS("Position GALACTIC"), 
+		      stc.parseSTCS("Position ICRS"))
+		  </code>
+		</setup>
+		<code>
+    	@raj2000, @dej2000 = gal2ICRS(@galLon, @galLat)
+    </code>
+  </apply>
+
+
+...protect my TAP service against usage?
+----------------------------------------
+
+Sometime there's a proprietarity time on some data, and you may want to
+password protect your data.  DaCHS doesn't support protection of
+individual tables yet (we'll accept patches, but since this kind of
+thing is considered fairly antisocial by most of us, it looks bleak for
+an implementation of this from our side).  You can, however, protect the
+entire TAP service (with HTTP basic auth, so this isn't for the gold of
+Fort Knox).
+
+
+First, create a group of authorized users and add a user to it:
+
+  gavo admin adduser tapusers master_password
+  gavo admin adduser smart_pi his_password
+  gavo admin addgroup smart_pi tapusers
+
+Then, limit access to the TAP service itself.  To make it easy to redo
+your changes and return to mainline development, we recommend to use a
+custom TAP RD.  To do that, create a ``__system__`` directory in your
+inputs directory; with the default config::
+
+  cd /var/gavo/inputs
+  mkdir __system__
+  cd __system__
+  curl -O http://svn.ari.uni-heidelberg.de/svn/gavo/python/trunk/gavo/resources/inputs/__system__/tap.rd
+
+(or find your local tap.rd and use that, which may be a bit safer).
+
+In tap.rd, look for the actual service element::
+
+	<service id="run" core="null" allowed="tap">
+
+In that copy, write ``limitTo="tapusers"``.  You need to restart the
+server to pick up the new RD, after that, it should pick up changes by
+itself.  To get back standard behaviour, just remove that copy.
+
+That's not enough, though; you'll need to do the same with the
+service in adql.rd (or remove that service altogether).
+
+This is not sufficient for top secret things -- people can still
+inspect your column metadata, descriptions and so on.  But they
+shouldn't get to the data.
+
+o make this work with the TOPCAT TAP client, you'll need to set the
+star.basicauth.user and star.basicauth.password java system properties.
+See http://www.star.bristol.ac.uk/~mbt/topcat/sun253/jvmProperties.html
+on how to do this; by the time your read this, TOPCAT may already
+provide less scary ways to enter credentials, as may other TAP clients.
+

@@ -852,7 +852,7 @@ You will usually use pre-specified renderers, so these are not defined
 in resource descriptors.  What you have to define are cores and
 services.
 
-For core, you will usually use the `dbCore <./ref.html#element-dbcore>`_
+For core, you will usually use the dbCore_
 in custom services, though `many other cores
 <./ref.html#cores-available>`_ are predefined -- e.g., to run ADQL
 queries, to upload files, or to do feedback queries --, and you can `define your
@@ -1776,7 +1776,7 @@ Cores
 
 There are two cores you may want for SIAP services:
 
-* `dbCore <ref.html#element-dbcore>`_, to which you add the necessary
+* dbCore_, to which you add the necessary
   condDescs manually as below, for "normal" SIAP services.
 * `siapCutoutCore <ref.html#element-siapcutoutcore>`_, which speaks SIAP
   but returns cutouts rather than full images; the size of these cutouts
@@ -2308,3 +2308,4 @@ in the operator's guide`_ has information on what to do.
 .. _ssap#setMeta: ref.html#ssap-setmeta
 .. _customization info in the operators' guide: opguide.html#adapting-dachs-for-your-site
 .. _RMI-Style Metadata in the reference: ref.html#rmi-style-metadata
+.. _dbCore: ref.html#element-dbcore
