@@ -705,7 +705,7 @@ First, create a group of authorized users and add a user to it:
 
   gavo admin adduser tapusers master_password
   gavo admin adduser smart_pi his_password
-  gavo admin addgroup smart_pi tapusers
+  gavo admin addtogroup smart_pi tapusers
 
 Then, limit access to the TAP service itself.  To make it easy to redo
 your changes and return to mainline development, we recommend to use a
