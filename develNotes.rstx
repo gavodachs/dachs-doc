@@ -413,6 +413,33 @@ in cleanly exists in order to have meaningful stats.  Do this by
 accessing /test/exit on a debug server.
 
 
+Debugging
+=========
+
+For anything outside of the server, lines like::
+
+  import code; code.interact(local=locals())
+
+(for getting a python prompt to look around and introspect, e.g., using
+``dir()``; exit to let the program continue) and::
+
+  import pdb;pdb.set_trace()
+
+(which dumps you into the debugger and lets you single-step, etc) are
+your friends.
+
+When you want to inspect what's going on within the server, in
+particular when something only manifests itself after a long time, you
+may want to have a look at twisted's manhole; quite a bit easier,
+however, is to use the debug/q rd that you can get from
+http://svn.ari.uni-heidelberg.de/svn/gavo/hdinputs/debug.
+
+The idea here is that within q.rd#1 you create customDFs or customRFs
+exposing what you're interested in.  You can then use those in
+res/page1.html.  You can edit both files "live", they will both be
+reloaded as necessary.
+
+
 Delimited SQL identifiers
 =========================
 
