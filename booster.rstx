@@ -272,6 +272,14 @@ You can use the ``int<len>_t`` and ``uint<len>_t`` types defined by your
 compiler's (or library's) headers.
 
 
+Skipping a record
+'''''''''''''''''
+
+If you need to skip a record, do the following::
+
+  longjmp(ignoreRecord)
+
+
 Utility Functions
 '''''''''''''''''
 
