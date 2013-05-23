@@ -5,6 +5,10 @@ Development notes for GAVO DaCHS
 :Author: Markus Demleitner
 :Email: gavo@ari.uni-heidelberg.de
 
+.. contents:: 
+  :depth: 2
+  :backlinks: entry
+  :class: toc
 
 Some of this is severely out of date.
 
@@ -432,7 +436,8 @@ When you want to inspect what's going on within the server, in
 particular when something only manifests itself after a long time, you
 may want to have a look at twisted's manhole; quite a bit easier,
 however, is to use the debug/q rd that you can get from
-http://svn.ari.uni-heidelberg.de/svn/gavo/hdinputs/debug.
+http://svn.ari.uni-heidelberg.de/svn/gavo/hdinputs/debug and adapt it to
+your needs.
 
 The idea here is that within q.rd#1 you create customDFs or customRFs
 exposing what you're interested in.  You can then use those in
@@ -744,12 +749,32 @@ and/or rowfilters, amend PUBLIC_APPLYS or PUBLIC_ROWFILTERS.
 Random Stuff
 ============
 
+Tracing imports
+---------------
+
 Sometimes it's nice to see what gets imported when.  Futzing with PEP
 302-style import hooks is a pain, and indeed a simple shell line
 produces more useful output than naive hooks::
 
   strace gavo imp -h 2>&1 | grep 'open' | grep -v ENOENT | grep -v "pyc" | sed -e 's/.*"\(.*\)".*/\1/'
 
+Move to some "well known properties" section soon
+-------------------------------------------------
+
 To declare support for standard data models (TAPRegExt), add supportsModel
 and supportsModelURI properties to a table definition belonging to this
 model.  (This needs to be documented somewhere else).
+
+matplotlib
+----------
+
+To use matplotlib and pyplot within renderers or some other server
+context, use the following import pattern::
+
+  import matplotlib
+  matplotlib.use("Agg")
+  from matplotlib import pyplot
+
+It is crucial that the use("Agg") happens before the import of pyplot.
+If you fail to do this properly, your code will fail complaining about
+missing DISPLAYs.
