@@ -629,11 +629,18 @@ After some hesitation, we decided to use the jquery javascript library
 plotting; so, if you still see MochiKit somewhere, please disregard).
 We also include some of jquery-ui.  
 
-The result is shipped in minimized form within DaCHS, which means that
-we have a little GPL issue here.  I guess we should keep a copy of the
-non-minimized source for the current DaCHS js somewhere.  On the other
-hand, jquery and jquery-ui currently have fine DVCSes, so I think we're
-fine with the spirit of the GPL...
+The result is ususally shipped in minimized form within DaCHS, which
+means that we have a little GPL issue here.  I guess we should keep a
+copy of the non-minimized source for the current DaCHS js somewhere.  On
+the other hand, jquery and jquery-ui currently have fine DVCSes, so I
+think we're fine with the spirit of the GPL...
+
+Locally developed code has extension .src.js.  What's actually shipped
+out is minified, where currently we're using *cough* google's online
+"closure compiler for that.  There's a makefile in the js directory that
+does this.  This means that whenever you change javascript, you have to
+run Make in web/js for changes to become active; it uses a python wrapper
+around the web service to properly deal with errors and warnings.
 
 
 gavo.js
@@ -723,6 +730,18 @@ The CSS that styles the tabs is in ``resources/web/css/gavo_dc.css``,
 the images necessary in ``resources/web/img``.
 
 
+samp.js
++++++++
+
+This is the minified version for Mark Taylor's samp.js, checked out from 
+https://github.com/astrojs/sampjs.git and then minified as described
+there.
+
+
+jquery.flog.js
+++++++++++++++
+
+That's the plotting code.  We got it from http://www.flotcharts.org/
 Building jquery-gavo.js
 +++++++++++++++++++++++
 
