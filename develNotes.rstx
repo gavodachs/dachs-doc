@@ -769,7 +769,7 @@ Random Stuff
 ============
 
 Tracing imports
----------------
++++++++++++++++
 
 Sometimes it's nice to see what gets imported when.  Futzing with PEP
 302-style import hooks is a pain, and indeed a simple shell line
@@ -778,14 +778,14 @@ produces more useful output than naive hooks::
   strace gavo imp -h 2>&1 | grep 'open' | grep -v ENOENT | grep -v "pyc" | sed -e 's/.*"\(.*\)".*/\1/'
 
 Move to some "well known properties" section soon
--------------------------------------------------
++++++++++++++++++++++++++++++++++++++++++++++++++
 
 To declare support for standard data models (TAPRegExt), add supportsModel
 and supportsModelURI properties to a table definition belonging to this
 model.  (This needs to be documented somewhere else).
 
 matplotlib
-----------
+++++++++++
 
 To use matplotlib and pyplot within renderers or some other server
 context, use the following import pattern::
@@ -797,3 +797,7 @@ context, use the following import pattern::
 It is crucial that the use("Agg") happens before the import of pyplot.
 If you fail to do this properly, your code will fail complaining about
 missing DISPLAYs.
+
+I *guess* we'll soon properly depend on matplotlib and to that
+initialization in a good place in utils, but don't hold your breath.
+
