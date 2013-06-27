@@ -738,18 +738,24 @@ https://github.com/astrojs/sampjs.git and then minified as described
 there.
 
 
-jquery.flog.js
+jquery.flot.js
 ++++++++++++++
 
 That's the plotting code.  We got it from http://www.flotcharts.org/
+
+
 Building jquery-gavo.js
 +++++++++++++++++++++++
 
 * Go to a temporary directory
 * Go to http://jqueryui.com/download and make yourself a jquery-ui
   archive.  Currently, we want all the core, plus draggable and
-  resizable.  Do not select any theme.
-* Unzip the file, ``cd js && cat jquery-*.min.js jquery-ui-*.js > ../jquery-gavo.js``
+  resizable (plus probably Dialog, though that's not used yet).  Do 
+  not select any theme.
+* Unzip the file, go to the js subdirectory of the distribution
+* if necessary, minify jquery-<version>.js, e.g., using
+  ``gavo/resources/web/js/minify.py``
+* concatenate the two minified JS files to jquery-gavo.js
 * copy jquery-gavo.js to gavo/resources/web/js
 
 Whatever CSS is necessary for jquery should go into gavo_dc.css.
