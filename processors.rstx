@@ -325,7 +325,7 @@ this::
   from gavo.helpers import processing
 
   class MyProcessor(processing.AnetHeaderProcessor):
-    sp_indices = ["index-208.fits"],
+    sp_indices = ["index-4215"],
     sp_lower_pix = 0.1
     sp_upper_pix = 0.2
     sp_endob = 50
