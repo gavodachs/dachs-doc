@@ -489,8 +489,7 @@ sextractor is in use.
 
 Instead, do something like::
 
-  gm convert -flip -scale 6.25% img.fits pnm:- | $ANET_PATH/plotxy -I -
-  -i img.axy -C red -P -w 2  -N50 -s circle -S 0.0625 -X X_IMAGE -Y Y_IMAGE > ws.png
+  gm convert -flip -scale 6.25% img.fits pnm:- | $ANET_PATH/plotxy -I - -i img.axy -C red -P -w 2  -N50 -s circle -S 0.0625 -X X_IMAGE -Y Y_IMAGE > ws.png
 
 We use gm (from GraphicsMagick) here since netpbm's fitstopnm has issues with
 large files.  You will want to use different scales for larger or
