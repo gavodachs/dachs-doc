@@ -381,3 +381,19 @@ grammar, like this::
       <make table="data">
       ...
 
+gavo init/installation dies with UnicodeDecodeError: 'ascii' codec...
+=====================================================================
+
+The full signature is something like::
+
+  File "/usr/lib/python2.7/dist-packages/pyfits/core.py", line 103, in formatwarning
+    return unicode(message) + '\n'
+  UnicodeDecodeError: 'ascii' codec can't decode byte 0xc2 in position 65: ordinal not in range(128)
+
+This is a bug in pyfits, together with carelessness in passing through
+error messages on our side.  We'll see which side will fix this first;
+meanwhile, the easy workaround is to set ``lc_messages = 'C'`` in
+``postgresql.conf`` (e.g., ``/etc/postgresql/9.1/main/postgresql.conf``
+on Debian wheezy).  That's probably a good idea anyway since TAP may
+expose postgres error messages to the user, and these aren't nearly as
+useful to remote users as to you if they're in your local language.
