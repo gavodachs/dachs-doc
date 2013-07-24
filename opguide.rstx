@@ -490,10 +490,15 @@ Templates
 ---------
 
 Note: If you just need some special behaviour in one or two services,
-use the ```template`` children of `service elements`_
+use the ``template`` children of `service elements`_
 
 You will find the built-in templates in the unpacked DaCHS distribution,
-at ``gavo/resources/templates``.  Copy the one you want to override to
+at ``gavo/resources/templates``; if you installed from a Debian package,
+that would be
+``/usr/lib/python*/dist-packages/gavo/resources/templates/``.
+Alternatively, you can pull the `templates from the repository`_
+
+Copy the one you want to override to
 ``$GAVO_ROOT/web/templates`` and edit it there.  You will need to
 restart the server to make it pick up a new file; changes in the
 templates should propagate without any intervention.
@@ -534,7 +539,7 @@ but the section on the render functions and data generators available
 is still missing.  Complain to make us write it sooner.
 
 .. _service elements: ref.html#element-service
-
+.. _templates from the repository: http://svn.ari.uni-heidelberg.de/svn/gavo/python/trunk/gavo/resources/templates/
 
 Overridden System RDs
 ---------------------
@@ -1004,6 +1009,7 @@ Settings related to serving content to the web.
 * voplotUserman: URL fragment relative to the server's root; 
   defaults to 'Deprecated and ignored' --
   URL to the documentation of VOPlot
+
 .. END CONFIG REFERENCE
 
 Managing Runtime Resources

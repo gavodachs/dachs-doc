@@ -1074,98 +1074,6 @@ instead write::
   </code>
 
 
-Embargoing Products
--------------------
-
-One of the sadder facts of life is that many researchers still think
-they profit from keeping their data proprietary (and that they are
-entitled to do so even though everything is paid for by the public).  To
-cope with this, DaCHS' products subsystem has the notion of owners and
-embargo periods.
-
-To make a "product" (e.g., spectrum or image) proprietary, in the
-`products#define`_ application building the rowdict, set the
-``owner`` and ``embargo`` keys.  Owner is just any string convenient,
-embargo must eventually become a timestamp, so you'll in general come up
-with an ISO datetime string or a python ``datetime.datetime`` instance.
-Here's an example that says images become public a year after the
-observation::
-
-    <fitsProdGrammar qnd="True">
-      <rowfilter procDef="//products#define">
-        <bind key="embargo">parseTimestamp(row["DATE_OBS"])+datetime.timedelta(
-          days=365)</bind>
-        <bind key="owner">"danish"</bind>
-        <bind key="table">"danish.data"</bind>
-      </rowfilter>
-    </fitsProdGrammar>
-
-
-This is, in our view, an acceptable policy, but many observers want 
-weird policies (try to talk them out of it, since such behaviour is
-not nice, and it leads to a bad user experience in the VO as a whole).
-You can get as fancy (or antisocial) as you like using custom
-rowfilters, as in the following example that sets a default embargo for
-the end of 2008, except for calibration frames and the observations of
-two objects made in 2003::
-
-    <fitsProdGrammar qnd="True">
-      <rowfilter procDef="//products#define">
-        <setup><code>
-          <![CDATA[
-          def getEmbargo(row):
-            res = '2008-12-31'
-            if (row.get("ARI_TYPE")!="SCIENCE" or 
-                row["ARI_OBJC"]=='Q2237+0305' 
-                or row["ARI_OBJC"]=='SBSS 1520+530'):
-              if '2003-01-01'<=row['DATE_OBS']<='2003-12-31':
-                res = '2005-12-31'
-            return res
-          ]]>
-        </code></setup>
-        <bind key="owner">"maidanak"</bind>
-        <bind key="embargo">getEmbargo(row)</bind>
-        <bind key="table">"maidanak.rawframes"</bind>
-      </rowfilter>
-
-An embargoed product can only be retrieved by the "owner" until the
-embargo period is over.  "Owner" is a concept implemented through the
-DaCHS user administration, which is fashioned a bit after the Unix
-user/group model.  What you give as ``owner`` in the products mixin is a
-group name; if someone can authenticate as the member of a group, she
-can access the data.
-
-To create a user (and thus a group), use ``gavo admin adduser``, like
-this::
-
-  gavo admin adduser kroisos notsecret "Remove when xy is public"
-
-This command adds the user kroisos with the password notsecret and an
-optional comment reminding future operators what to do with the
-identity.  Note that the password is stored in clear text in the
-database – which allows you to handle "I forgot my password" requests
-gracefully; as long as we only do HTTP Basic authentication, this
-doesn't matter much since with it, the passwords traverse the net in
-basically cleartext anyway. Again, this implements a mild deterrence
-rather than hard security.
-
-To add existing users to groups, use ``gavo admin addtogroup``, like
-this::
-
-  gavo admin addtogroup kroisos happy
-
-– this adds kroisos to the happy group, and whoever can authenticate as
-kroisos will be allowed access to any products with the ``owner`` happy.
-
-To discover further commands manipulating the user table, try::
-
-  gavo admin --help
-
-*Important*: When you use authentication, please set the ``[web]realm``
-configuration item to some string reasonably characteristic for your
-site.  Many systems will store credentials by realm, and if different
-sites use the same realm, their credentials will clobber each other.
-For details see the `customization info in the operators' guide`_
 
 More on Services
 ================
@@ -2309,3 +2217,144 @@ in the operator's guide`_ has information on what to do.
 .. _customization info in the operators' guide: opguide.html#adapting-dachs-for-your-site
 .. _RMI-Style Metadata in the reference: ref.html#rmi-style-metadata
 .. _dbCore: ref.html#element-dbcore
+
+
+Restricting Access
+==================
+
+Unfortunately, many data providers believe they want to have their data
+proprietary for a while.   Although they are almost certainly misguided
+in this, it is hard to enlighten them, and so it's preferable to have
+the data in a data center with encumbered access rather than just on the
+providers' machines.
+
+Therefore, DaCHS has features to restrict access.  Right now, this is
+very basic and only provides what is known as "mild security", since it
+is based on HTTP basic authentication over (usually) unencrypted  lines.
+Given that we are not dealing with sensitive information and snooping
+attacks on our connections would be too much honor, we consider  this
+enough.  However, if you were interested in contributing support for
+OAuth (say), we'd gladly help.
+
+Note, however, that even HTTP basic authentication needs client support.
+Recent versions of TOPCAT and Splat have that, others do not, and they
+simply will not work with password-encumbered services.  The situation
+with OAuth is much worse.
+
+
+User/Group management
+---------------------
+
+The DaCHS user administration is fashioned a bit after the Unix
+user/group model, except that there always is a group corresponding to a
+user.  To create a user and its group, use ``gavo admin adduser``, like
+this::
+
+  gavo admin adduser kroisos notsecret "Remove when xy is public"
+
+This command adds the user kroisos with the password notsecret and an
+optional comment reminding future operators what to do with the
+identity.  Note that the password is stored in clear text in the
+database – which allows you to handle "I forgot my password" requests
+gracefully; as long as we only do HTTP Basic authentication, this
+doesn't matter much since with it, the passwords traverse the net in
+basically cleartext anyway. Again: all this is mild deterrence rather
+than hard security.
+
+To add existing users to groups, use ``gavo admin addtogroup``, like
+this::
+
+  gavo admin addtogroup kroisos happy
+
+– this adds kroisos to the happy group, and whoever can authenticate as
+kroisos will be allowed access to any products or services retstricted
+to happy.
+
+To discover further commands manipulating the user table, try::
+
+  gavo admin --help
+
+*Important*: When you use authentication, please set the ``[web]realm``
+configuration item to some string reasonably characteristic for your
+site.  Many systems will store credentials by realm, and if different
+sites use the same realm, their credentials will clobber each other.
+For details see the `customization info in the operators' guide`_
+
+
+Protecting Services
+-------------------
+
+To password-protect entire services, use the ``limitTo`` child of the
+``service`` element, for instance::
+
+ 	<service id="scs" core="scsCore" allowed="form,scs.xml"
+   	limitTo="happy">
+ 	  ...
+ 	</service>
+
+Any access to the service will then require a client to authenticate as
+a user belonging to the group given in ``limitTo``.  Only one such group
+can be given.  If you forsee the need for complex authorization schemes
+(rather than "there's one user on my system, and whoever's authorized
+get its credentials"), it is probably a good idea to create one user per
+service and add "real" users to the corresponding group as necessary.
+
+
+Embargoing Products
+-------------------
+
+DaCHS' products subsystem has the notion of owners and embargo periods,
+which allows public services to deliver metadata on products during
+their proprietarity period, while handing out the data itself only to
+authorized clients.  The embargo will automatically be lifted once the
+proprietarity period is over.
+
+To make a "product" (e.g., spectrum or image) proprietary, in the
+`products#define`_ application building the rowdict, set the ``owner``
+and ``embargo`` keys.  Owner is the name of a user created as described
+above, embargo must eventually become a timestamp, so you'll in general
+come up with an ISO datetime string or a python ``datetime.datetime``
+instance.  Here's an example that says images become public a year after
+the observation::
+
+    <fitsProdGrammar qnd="True">
+      <rowfilter procDef="//products#define">
+        <bind key="embargo">parseTimestamp(row["DATE_OBS"])+datetime.timedelta(
+          days=365)</bind>
+        <bind key="owner">"danish"</bind>
+        <bind key="table">"danish.data"</bind>
+      </rowfilter>
+    </fitsProdGrammar>
+
+
+This is, in our view, an acceptable policy, but many observers want 
+weird policies (try to talk them out of it, since such behaviour is
+not nice, and it leads to a bad user experience in the VO as a whole).
+You can get as fancy (or antisocial) as you like using custom
+rowfilters, as in the following example that sets a default embargo for
+the end of 2008, except for calibration frames and the observations of
+two objects made in 2003::
+
+    <fitsProdGrammar qnd="True">
+      <rowfilter procDef="//products#define">
+        <setup><code>
+          <![CDATA[
+          def getEmbargo(row):
+            res = '2008-12-31'
+            if (row.get("ARI_TYPE")!="SCIENCE" or 
+                row["ARI_OBJC"]=='Q2237+0305' 
+                or row["ARI_OBJC"]=='SBSS 1520+530'):
+              if '2003-01-01'<=row['DATE_OBS']<='2003-12-31':
+                res = '2005-12-31'
+            return res
+          ]]>
+        </code></setup>
+        <bind key="owner">"maidanak"</bind>
+        <bind key="embargo">getEmbargo(row)</bind>
+        <bind key="table">"maidanak.rawframes"</bind>
+      </rowfilter>
+
+An embargoed product can only be retrieved by the owner until the
+embargo period is over.  What you give as ``owner`` is a group name; if
+someone can authenticate as the member of a group, she can access the
+data – see above for details on how to create users and groups.
