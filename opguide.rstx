@@ -650,7 +650,9 @@ could put::
   [general]
   rootDir: /home/user/gavo
 
-into your ``~/.gavorc``.
+into the personal configuration file (which DaCHS searches in
+``~/.gavorc``) by default; this would then override the analogous
+specification in ``/etc/gavorc``.
 
 The other paths in this section are interpreted relative to rootDir
 unless they start with a slash.

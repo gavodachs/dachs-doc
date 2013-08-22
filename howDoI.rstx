@@ -253,9 +253,9 @@ proximity search on bboxes)::
         <code><![CDATA[
           def genQuery(inPars, outPars):
             return "POINT(%%(%s)s, %%(%s)s) <-> bbox < %%(%s)s"%(
-              vizierexprs.getSQLKey("RA", inPars["RA"], outPars),
-              vizierexprs.getSQLKey("DEC", inPars["DEC"], outPars),
-              vizierexprs.getSQLKey("SR", inPars["SR"], outPars))
+              base.getSQLKey("RA", inPars["RA"], outPars),
+              base.getSQLKey("DEC", inPars["DEC"], outPars),
+              base.getSQLKey("SR", inPars["SR"], outPars))
         ]]></code>
       </setup>
     </phraseMaker>
