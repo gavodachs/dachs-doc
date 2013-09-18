@@ -740,3 +740,14 @@ See http://www.star.bristol.ac.uk/~mbt/topcat/sun253/jvmProperties.html
 on how to do this; by the time your read this, TOPCAT may already
 provide less scary ways to enter credentials, as may other TAP clients.
 
+
+...access the creation date of the file from which I'm parsing?
+---------------------------------------------------------------
+
+The row iterator that feeds the current table is in rawdicts under the
+key ``parser_``.  For grammars actually reading from files, the
+``sourceToken`` attribute of these gives the absolute path of the input
+file.  Hence, you'd say::
+
+	<map dest="modstamp">os.path.getmtime(@parser_.sourceToken)</map>
+  

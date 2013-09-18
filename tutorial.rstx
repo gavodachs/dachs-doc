@@ -6,9 +6,17 @@ GAVO DaCHS Tutorial
 :Email: gavo@ari.uni-heidelberg.de
 
 .. contents:: 
-  :depth: 2
+  :depth: 3
   :backlinks: entry
   :class: toc
+
+.. NOTE:: 
+   This currently is a bit more work in progress than usual.
+   Please forgive typos, broken sentences, and the like until Oct 2013
+   (don't even bother to report them).  We'll proofread the stuff real
+   soon now. We felt even in its current state it's a big
+   improvement over what was here before – pardon the wires sticking
+   out.
 
 This tutorial intends to guide you through ingestion of data and setting
 up of services.  Even if you plan to only publish images or spectra, you
@@ -65,7 +73,7 @@ full of binary files, and either versioned by upstream or not at all)::
 
   mkdir data
   cd data
-  curl -O http://www/datenbanken/arihip/catalog.html TODO: right URL
+  curl -O http://dc.g-vo.org/arihip/q/cone/static/data.txt.gz
 
 At this point, we're ready for ingestion.  All commands to DaCHS go
 through the ``gavo`` program that has several sub-commands; in this
@@ -111,16 +119,17 @@ already running; stop it first for this tutorial::
 gavo group, say ``newgrp gavo`` and try again).
 
 The RD sets up a form-based service you can operate from a web browser;
-open the URL http://localhost:8080/arihip/q/cone/form and play around a
+open the URL http://localhost:8080/arihip/q/cone/form [#binding]_
+and play around a
 bit.  Note the small links behind the query fields – DaCHS supports
 VizieR-like expressions in those fields.
 
-Briefly have a look at the URL; apart from the host name and port (which
-you can change in /etc/gavo.rc), there is the path to the RD (without
-the file extension), then the id of the service element (see below) and
-a "renderer name".  That essentially defines the physical interface of
-the service, i.e., which protocol it is accessed through.  In this case,
-it's ``form`` for an HTML form.
+Briefly have a look at the URL; apart from the host name and port (see
+the `operator's guide`_ on how to change those), there is the path to the
+RD (without the file extension), then the id of the service element (see
+below) and a "renderer name".  That essentially defines the physical
+interface of the service, i.e., which protocol it is accessed through.
+In this case, it's ``form`` for an HTML form.
 
 Another renderer supported by this service is ``scs.xml``, which
 implements the IVOA Simple Cone Search protocol.  A client that supports
@@ -250,7 +259,8 @@ Defining Tables
 A major part of the metadata DaCHS deals with is the table structure.
 It is defined in table elements, which usually are direct children of
 the resoource element.  A resource element may contain multiple table
-definitions.
+definitions.  See http://dc.g-vo.org/arihip/q/cone/static for what
+upstream documentation we had when we made the service.
 
 Skip over the ``macDef`` elements for now to where the ``table`` element
 begins.  What you see is something like::
@@ -2510,13 +2520,27 @@ data – see above for details on how to create users and groups.
 .. _IVOA identifiers: http://www.ivoa.net/Documents/REC/Identifiers/Identifiers-20070302.html
 .. _RofR: http://rofr.ivoa.net/
 .. _OAI-PMH: http://www.openarchives.org/OAI/openarchivesprotocol.html
+.. _operator's guide: http://docs.g-vo.org/DaCHS/opguide.html
 .. _registry section in the operator's guide: opguide.html#registry-matters
 .. _Resource Metadata for the Virtual Observatory: http://www.ivoa.net/Documents/latest/RM.html
 .. _products#define: ref.html#products-define
 .. _ssap#setMeta: ref.html#ssap-setmeta
 .. _customization info in the operators' guide: opguide.html#adapting-dachs-for-your-site
-.. _RMI-Style Metadata in the reference: ref.html#rmi-style-metadata
+.. _RMI-Style Metadata in the reference: http://docs.g-vo.org/DaCHS/ref.html#rmi-style-metadata
 .. _topcat: XXXFIME
-.. _reStructuredText: XXXFIME
+.. _reStructuredText: http://docutils.sourceforge.net/rst.html
 .. _vounits: XXXFIME
-.. _gavo's adql short course: http://docs.g-vo.org/adql
+.. _gavo's adql short course: http://www.g-vo.org/adql
+
+.. [#binding] This assumes you're doing this on your local machine (which
+   were recommend to get started.  If you do this on a remote machine,
+   you will obviously have to replace the localhost in the url with the
+   machine's host name.  However, that still will not work as, by
+   default, DaCHS only binds to the loopback address.  To change this,
+   edit or create the file ``/etc/gavo.rc`` to include at least::
+
+     [web]
+     bindAddress:
+
+   (yes, there's nothing behind "bindAddress:").  Restart the server and
+   you should see the output.
