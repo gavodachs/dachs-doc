@@ -24,15 +24,16 @@ Quick start
 -----------
 
 To do anything useful with DaCHS, you will have to write a resource
-descriptor (RD).  We recommend to keep everything handled by a specific
-RD together in on directory that is a direct child of your inputs
-directory (unless you have set up something different, this is
-/var/gavo/inputs; we assume that in the following).  You can choose
-different layouts later if it makes sense for you.
+descriptor (RD), and you'll probably have to have some data.  Both must
+reside within some subdirectory DaCHS' input directory (unless you
+configured otherwise, that's /var/gavo/inputs; we assume that in the
+following).
 
-This example will use the ARIHIP catalog as an example – this is a
-re-reduction of Hipparcos with partiularly careful solutions for proper
-motion.
+This tutorial will use the ARIHIP catalog as an example – this is a
+re-reduction of Hipparcos with particularly careful solutions for proper
+motion.  It has a column-based input and probably a few more columns
+than your average catalog these days.  It hence is simple in principle
+but let us demonstrate a few advanced concepts, too.
 
 You can, in principle, run the following under any user id, as long as
 you wisely manage the permissions.  For testing, however, we recommend
@@ -40,32 +41,33 @@ doing it as the data center administrative account (for the Debian
 package, that's gavoadmin, if you did the setup manually, it's whatever
 user did the ``gavo init``).
 
-Let's cheat by getting the pre-made RD in use by GAVO's data center:
+To get a quick start, just pull in the RD in use by GAVO's data center:
 
-  cd /var/gavo
+  cd /var/gavo/inputs
   mkdir arihip
   cd arihip
   curl -O http://svn.ari.uni-heidelberg.de/svn/gavo/hdinputs/arihip/q.rd
 
-The directory name will (normally) appear in URLs, so it's a good idea
-to choose something descriptive and short.  This directory is called the
-resource directory.
+The directory name ("arihip" in this case) will (normally) appear in
+URLs, so it's a good idea to choose something descriptive and short.
+The directory created here is ususally called the resource directory in
+DaCHS lingo.
 
 The resource descriptor name also appears in URLs.  At GAVO's data
-center, we usually call it q as that looks nicely query-ish (to our
-tastes).
+center, we usually call it ``q.rd`` as that looks nicely query-ish (to
+our tastes).
 
-Next, get the raw data.  We recommend keeping all data in a
-subdirectory of resource directory, typically data.  At the GAVO DC we
-usually keep everything in the resource directory under version control
-except for that data directory (which tends to be large, full of binary
-files, and not versioned by upstream or not at all)::
+Next, get the raw data.  We recommend keeping data in a subdirectory of
+resource directory (and suggest to call that subdirectory ``data``).  At
+the GAVO DC we usually keep everything in the resource directory under
+version control except for that data directory (which tends to be large,
+full of binary files, and either versioned by upstream or not at all)::
 
   mkdir data
   cd data
   curl -O http://www/datenbanken/arihip/catalog.html TODO: right URL
 
-At this point, we're ready for ingestions.  All commands to DaCHS go
+At this point, we're ready for ingestion.  All commands to DaCHS go
 through the ``gavo`` program that has several sub-commands; in this
 case, we need the ``import`` sub-command.  The sub-commands can be
 abbreviated as long as the abbreviation is unambiguous::
@@ -74,14 +76,14 @@ abbreviated as long as the abbreviation is unambiguous::
   gavo imp q
 
 This should run for a while, reporting the number of ingested rows now
-an then, and finally say something like "Rows affected: XY".  With this,
+and then, and finally say something like "Rows affected: XY".  With this,
 the data is in the database and is ready for querying.  
 
 Let us mention in passing that ``gavo imp`` tries to interpret its first
 argument first as a file system path.  If that fails, it tries to
-interpret it as an RD id, i.e., the inputs-relative path of the RD with the
-extension stripped.  Our example RD thus has the RD id lmcextinct/q, and
-you could have said::
+interpret it as an RD identifier, i.e., the inputsDir-relative path of
+the RD with the extension stripped.  Our example RD thus has the RD id
+arihip/q, and you could have said::
 
   gavo imp arihip/q
 
@@ -92,9 +94,9 @@ with the DaCHS identifier of the freshly imported table, e.g.,::
 
   gavo info arihip/q#main
 
-The DaCHS identifier is the inputsDir-relative path to the RD without
-the extension, the hash (inspired by the URL fragment identifier) and
-the id of the table.
+The DaCHS identifier of the table consists of the RD id as introduced
+above, the hash (inspired by the URL fragment identifier) and the id of
+the table.
 
 This will output several properties (min, max, avg) of numeric columns
 that may help spot import errors
