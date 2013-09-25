@@ -107,7 +107,10 @@ above, the hash (inspired by the URL fragment identifier) and the id of
 the table.
 
 This will output several properties (min, max, avg) of numeric columns
-that may help spot import errors
+that may help spot import errors.  Also note that for each column, the
+presence of NULLs is given.  When you import data, it is a good idea to
+check whether these correspond to your expectations, and to consider
+declaring columns as required when they do not indeed contain NULLs.
 
 Now start the server; if you installed from the Debian package, it is
 already running; stop it first for this tutorial::
@@ -121,7 +124,7 @@ gavo group, say ``newgrp gavo`` and try again).
 The RD sets up a form-based service you can operate from a web browser;
 open the URL http://localhost:8080/arihip/q/cone/form [#binding]_
 and play around a
-bit.  Note the small links behind the query fields – DaCHS supports
+bit.  Note the small links behind some query fields – DaCHS supports
 VizieR-like expressions in those fields.
 
 Briefly have a look at the URL; apart from the host name and port (see
@@ -132,23 +135,29 @@ interface of the service, i.e., which protocol it is accessed through.
 In this case, it's ``form`` for an HTML form.
 
 Another renderer supported by this service is ``scs.xml``, which
-implements the IVOA Simple Cone Search protocol.  A client that supports
+implements the IVOA Simple Cone Search (SCS) protocol.  A client that supports
 this is TOPCAT_; to try it out, in TOPCAT select VO/Cone Search and fill
 out the Cone URL field in the lower part of the window to be
 ``http://localhost:8080/arihip/q/cone/scs.xml``.  Enter some object name
 and a sufficiently large search radius (e.g., Aldebaran and 0.5
 degrees), and you'll see the results coming in.
 
-Incidentally, cone search isn't great (yet) with additional parameters;
-you can append them to the Cone URL in a pinch.  TODO: Example.
+Incidentally, cone search does not (yet) have a usable interface to
+discover additional parameters, and hence TOPCAT restricts you to those
+mandatory for every SCS service.  For instance, as delivered, arihip
+admits an ``mv`` parameter.  DaCHS supports a special syntax for
+"free" parameters of cone searches as defined by the spectral access
+protocol SSAP; to say "everything brighter than 6th magnitude", the
+parameter setting would be ``/6``; to use this constraint within TOPCAT,
+the access URL needs to be amended like this:
+``http://localhost:8080/arihip/q/cone/scs.xml?mv=/6``.
 
-Finally, we'll shortly see that the RD opens the arihip table for the
-IVOA Table Access Protocol TAP, which allows queries in a dialect of
-SQL.  Again, TOPCAT has a nice client for TAP built in.  To try it,
-select VO/TAP Query, enter ``http://localhost:8080/tap`` in the TAP URL
-field near the bottom of the window, and hit "Enter Query".  In the
-resulting dialog, you can browse the table's metadata and then enter
-queries like::
+Finally, the RD opens the arihip table for the IVOA Table Access
+Protocol TAP, which allows queries in a dialect of SQL.  Again, TOPCAT
+has a nice client for TAP built in.  To try it, select VO/TAP Query,
+enter ``http://localhost:8080/tap`` in the TAP URL field near the bottom
+of the window, and hit "Enter Query".  In the resulting dialog, you can
+browse the table's metadata and then enter queries like::
 
   SELECT * from arihip.main where sqrt(pmde*pmde+pmra*pmra)>2/3600.
 
@@ -167,7 +176,19 @@ It starts out with::
 RDs are normal XML files (meaning that you could, e.g., add an XML
 declaration if you want an encoding other than utf-8), and thus they
 need a root element.  Hopefully unsurprisingly, this is called resource
-for RDs.  
+for RDs.  DaCHS typically does not distinguish attributes and elements
+with atomic content, which means that you could also have written the
+fragment above as::
+
+  <resource>
+    <schema>arihip</schema>
+
+This notational freedom sometimes allows clearer notation, and it helps
+with defining `active tags`_.  Multiple specifications of the same
+property make up multiple values where the property is sequence-like (in
+the `reference documentation`_ this is indicated by phrases like "zero
+or more" or "list of" in the properties descriptions).  For atomic
+properties, later specifications overwrite earlier ones.
 
 The ``schema`` attribute on resource gives the (database) schema that
 tables for this resource will turn up in.  You should, in general, use
@@ -190,54 +211,55 @@ get the idea).
 Another hint: There's a fairly large body of RDs at
 http://svn.ari.uni-heidelberg.de/svn/gavo/hdinputs, and most of them are
 free for inspection and blatant stealing (if you need a license on any
-of this, let us know).  Most of those can be seen live on
+of this, let us know).  These RDs can be seen live on
 http://dc.g-vo.org.
 
-We go on by giving metadata applying to everything within the RD::
+The RD goes on to give metadata applying to everything within the RD::
 
-	<meta name="title">ARIHIP astrometric catalogue</meta>
-	<meta name="creationDate">2010-11-03T10:13:00</meta>
-	<meta name="description">
-		The catalogue ARIHIP has been constructed by
-		selecting the 'best data' for a given star from combinations of HIPPARCOS
-		data with Boss' GC and/or the Tycho-2 catalogue as well as the FK6.  It 
-		provides 'best data' for 90 842 stars with a typical mean error of 
-		0.89 mas/year (about a factor of 1.3 better than Hipparcos for this 
-		sample of stars).
-	</meta>
-	<meta name="creator.name">Wielen, R.; Schwan, H.; Dettbarn, C.; et al</meta>
+  <meta name="title">ARIHIP astrometric catalogue</meta>
+  <meta name="creationDate">2010-11-03T10:13:00</meta>
+  <meta name="description">
+    The catalogue ARIHIP has been constructed by
+    selecting the 'best data' for a given star from combinations of HIPPARCOS
+    data with Boss' GC and/or the Tycho-2 catalogue as well as the FK6.  It 
+    provides 'best data' for 90 842 stars with a typical mean error of 
+    0.89 mas/year (about a factor of 1.3 better than Hipparcos for this 
+    sample of stars).
+  </meta>
+  <meta name="creator.name">Wielen, R.; Schwan, H.; Dettbarn, C.; et al</meta>
 
-	<meta name="subject">Catalogs</meta>
-	<meta name="subject">Astrometry</meta>
-	<meta name="subject">Stars: Proper Motions</meta>
+  <meta name="subject">Catalogs</meta>
+  <meta name="subject">Astrometry</meta>
+  <meta name="subject">Stars: Proper Motions</meta>
 
-	<meta name="coverage">
-		<meta name="profile">AllSky ICRS</meta>
-		<meta name="waveband">Optical</meta>
-	</meta>
+  <meta name="coverage">
+    <meta name="profile">AllSky ICRS</meta>
+    <meta name="waveband">Optical</meta>
+  </meta>
 
-	<meta name="_longdoc" format="rst">
-		The ARIHIP Catalogue is a suitable combination of the results of the
-		HIPPARCOS astrometry satellite with ground-based data. 
-		
+  <meta name="_longdoc" format="rst">
+    The ARIHIP Catalogue is a suitable combination of the results of the
+    HIPPARCOS astrometry satellite with ground-based data. 
+  
     (abridged)
-	</meta>
+  </meta>
 
-	<meta name="source">
-		Veröff. Astron. Rechen-Inst. No. 40 (2001); http://www/datenbanken/arihip/catalog.html
-	</meta>
+  <meta name="source">
+    Veröff. Astron. Rechen-Inst. No. 40 (2001); http://www/datenbanken/arihip/catalog.html
+  </meta>
 
-	<meta name="_intro" format="rst"> <![CDATA[
-		For advanced queries on this catalogue use ADQL_
-		possibly via TAP_
+  <meta name="_intro" format="rst"> <![CDATA[
+    For advanced queries on this catalogue use ADQL_
+    possibly via TAP_
 
-		.. _ADQL: /adql
-		.. _TAP: /tap
-	]]> </meta>
+    .. _ADQL: /adql
+    .. _TAP: /tap
+  ]]> </meta>
 
 This metadata is cruicial for later registration of the service, and
-some of it turns up in VOTables.  If you have a look at the HTML form
-you opened above, you will find quite a bit of it in the sidebar.
+some of it turns up in service responses.  If you have a look at the
+HTML form you opened above, you will find quite a bit of it in the
+sidebar.
 
 Metadata elements have a ``name`` attribute that gives the "kind" of
 metadata contained, and sometimes also determine a specific type.
@@ -265,8 +287,8 @@ upstream documentation we had when we made the service.
 Skip over the ``macDef`` elements for now to where the ``table`` element
 begins.  What you see is something like::
 
-	<table id="main" onDisk="True" adql="True" mixin="//scs#q3cindex"
-	  primary="hipno">
+  <table id="main" onDisk="True" adql="True" mixin="//scs#q3cindex"
+    primary="hipno">
 
 The ``id`` attribute of the table doubles as the name of the database
 table; make sure you use something that works as a valid simple SQL
@@ -275,8 +297,8 @@ for delimited identifiers as table names.
 
 Be sure to always specify ``onDisk="True"`` unless you're going for
 special effects – without it, the table will end up only in memory.
-the ``adql`` attribute says that TAP queries should be allowed on the
-table; leave it out for tables on suitable for "raw" consumption by your
+The ``adql`` attribute says that TAP queries should be allowed on the
+table; leave it out for tables not suitable for "raw" consumption by your
 clients.
 
 For the ``mixin`` attribute, see `Indices and Mixins`_.
@@ -286,27 +308,28 @@ primary key of the table (if it is made up of several columns,
 concatenate their names with commas).  This is made into a primary key
 for postgres straightforwardly, which means that the database makes sure
 there are no two rows with the same value for the primary key.  Also,
-the column is automatically indexed.
+the database creates an index for efficient queries using the primary
+key.
 
 What follows is a definition of the structure of the space-time
 coordinates::
 
-		<stc>
-			Position ICRS Epoch J2000.0 "raj2000" "dej2000" Error "err_ra" "err_de" 
-				Velocity "pmra" "pmde" Error "err_pmra" "err_pmde"
-		</stc>
-		<stc>
-			Position ICRS Epoch J2000.0 "raHIP" "deHIP" Error "err_raHIP" "err_deHIP" 
-				Velocity "pmraHIP" "pmdeHIP" Error "err_pmraHIP" "err_pmdeHIP"
-		</stc>
-		<stc>
-			Position ICRS Epoch J2000.0 "raSTP" "deSTP" Error "err_raSTP" "err_deSTP" 
-				Velocity "pmraSTP" "pmdeSTP" Error "err_pmraSTP" "err_pmdeSTP"
-		</stc>
-		<stc>
-			Position ICRS Epoch J2000.0 "raLTP" "deLTP" Error "err_raLTP" "err_deLTP" 
-				Velocity "pmraLTP" "pmdeLTP" Error "err_pmraLTP" "err_pmdeLTP"
-		</stc>
+    <stc>
+      Position ICRS Epoch J2000.0 "raj2000" "dej2000" Error "err_ra" "err_de" 
+        Velocity "pmra" "pmde" Error "err_pmra" "err_pmde"
+    </stc>
+    <stc>
+      Position ICRS Epoch J2000.0 "raHIP" "deHIP" Error "err_raHIP" "err_deHIP" 
+        Velocity "pmraHIP" "pmdeHIP" Error "err_pmraHIP" "err_pmdeHIP"
+    </stc>
+    <stc>
+      Position ICRS Epoch J2000.0 "raSTP" "deSTP" Error "err_raSTP" "err_deSTP" 
+        Velocity "pmraSTP" "pmdeSTP" Error "err_pmraSTP" "err_pmdeSTP"
+    </stc>
+    <stc>
+      Position ICRS Epoch J2000.0 "raLTP" "deLTP" Error "err_raLTP" "err_deLTP" 
+        Velocity "pmraLTP" "pmdeLTP" Error "err_pmraLTP" "err_pmdeLTP"
+    </stc>
 
 What this says is that there's a number of coordinate structures in the
 table, grouping together positions, errors, and proper motions in a
@@ -315,24 +338,25 @@ in `STC`_
 
 Finally, we're at the column definitions::
 
-		<column name="hipno" type="integer" ucd="meta.id;meta.main"
-			tablehead="HIP id" verbLevel="1"
-			description="Number of the star in the HIPPARCOS Catalogue (ESA 1997)."
-			required="True"/>
-		<column name="srcSel" type="text" ucd="meta.flag"
-			tablehead="Source" verbLevel="25"
-			description="Source of the astrometric solution"
-			note="src"/>
+    <column name="hipno" type="integer" ucd="meta.id;meta.main"
+      tablehead="HIP id" verbLevel="1"
+      description="Number of the star in the HIPPARCOS Catalogue (ESA 1997)."
+      required="True"/>
+    <column name="srcSel" type="text" ucd="meta.flag"
+      tablehead="Source" verbLevel="25"
+      description="Source of the astrometric solution"
+      note="src"/>
 
 For every column ending up in the table, there is one column element
 with a host of attributes.  The ``name`` attribute is
 central in that it will be the column name in the database
-(incidentally, it's not ``id`` as with tables as it's quite common for
-different tables in one RD having columns with the same name), the key for
+(incidentally, it's not ``id`` as with tables as it is quite common for
+different tables in one RD to have columns with the same name, and that
+would violate the id attribute's uniqueness constraint), the key for
 the column's value in record dictionaries that the software uses
 internally, and it is usually used to reference the column from the
 outside.  Column names must be legal identifiers for both python and SQL in 
-DaCHS.  SQL delmited identifiers thus are not allowed (this is not the
+DaCHS.  SQL delimited identifiers thus are not allowed (this is not the
 whole truth, but it's true enough, and you're saving yourself a lot of
 headache if you simply believe it).
 
@@ -370,12 +394,12 @@ Futher metadata on columns includes:
   VOUnits_. Unit is left out for unitless values.
 * tablehead – a very short string designating the content.  This string
   is typically used for display purposes, e.g., as table headings or
-  labels on input fields and defaults to the uppercased column name.
+  labels on input fields and defaults to the capitalized column name.
 * description – a longer string characterizing the content.  This may
-  be in bubble help or VOTable descriptions.  Since these could by
+  be in bubble help or VOTable descriptions.  Since these could be
   longer, you may want to put them in a child element rather than an
   attribute; in both cases, whitespace is normalized, so you can enter
-  line breaks and similar for readability in the source; they will
+  line breaks and similar for readability in the source, and they will
   always be rendered as a single blank.  For even longer, note-like
   material, see Notes_.  An example for a long descripton::
 
@@ -384,13 +408,14 @@ Futher metadata on columns includes:
         response function of our sage 3000 hyper-detector.</description>
     </column>
 * ucd – a Unified Content Descriptor as defined by IVOA.  To figure out
-  "good" UCDs, the UCD resolver at
-  http://dc.zah.uni-heidelberg.de/ucds/ui/ui/form can help.
+  "good" UCDs, the `GAVO UCD resolver`_ can help.
 * required – True if value must be set in order for the record to be
   valid.  By default, NULL (which in python is None) is a valid value
   for any column and will silently be inserted if you don't assign a
   value in the rowmaker (see below).  For required columns, an error
-  will be raised when a value is missing.
+  will be raised when a value is missing.  In HTTP service interfaces,
+  missing required parameters will lead to a 400 invalid parameters HTTP
+  response.
 * verbLevel – A measure for the "importance" of the column.  Various
   protocols have the notion of "verbosity", where higher verbosity means
   you get to see more columns with more esoteric content.  Within DaCHS,
@@ -435,8 +460,7 @@ resource.  For multi-table resources, you should usually give ``title``
 and ``description`` metas.
 
 Scrolling a bit further down in the arihip RD, you'll notice some LOOP
-constructs.  Accept those for now, they're part of DaCHS' RD macro
-facility.
+constructs.  These are discussed below under `active tags`_.
 
 At the end of the table element, there are meta elements called "note";
 for those, see Notes_.
@@ -446,16 +470,17 @@ Parsing Input Data
 ''''''''''''''''''
 
 Going further down in the RD, you will find a data element.  Their main
-purpose is to describe how certain input files fill the table you've
+purpose is to describe how certain input files fill the table(s)
 defined above.  It starts like this::
 
-	<data id="import">
-		<sources>data/data.txt.gz</sources>
+  <data id="import">
+    <sources>data/data.txt.gz</sources>
 
 Data elements can have ids which can be used to indiviually reference
 them from a ``gavo imp`` command line; this is useful if you just want
-to import one part of a multi-table data collection (the default is to
-build all ``data`` elements except those defined non-auto).
+to import one part of a multi-table data collection.  The default of
+``gavo imp`` default is to build all ``data`` elements except those
+having an ``auto="False"`` attribute.
 
 It is recommended that the id is a short verb phrase, as ``data``
 basically contains instructions for an action.  You might rightly argue
@@ -483,10 +508,10 @@ Now have a look at the input file::
   zless data/data.txt.gz
 
 You'll see that we have a plain ASCII file with aligned columns, header
-lines, and even a separator.  That's still a fairly common format for
-raw data, but by no means the only one.  To give DaCHS the flexibility
-to deal with anything upstream cares to throw at you, DaCHS has the
-concept of a grammar.
+lines, and even a cell separator ("|").  That's still a fairly common
+format for raw data, but by no means the only one.  To give DaCHS the
+flexibility to deal with anything upstream cares to throw at you, DaCHS
+has the concept of a grammar.
 
 There are many grammars defined, e.g., for getting values from FITS
 files, VOTables, or using column-based formats; you can also write
@@ -506,41 +531,41 @@ would look like this::
 (if you interrrupt the above command, your table should be unscathed –
 check with ``gavo info`` –; otherwise just re-run the full import).
 
-Since there are both delimiters (the vertical bars) and we have aligned
-columns, there are several valid choice for which grammar to use on
-this particular file.  In the RD, it next says::
+With a source that has both a separator character and aligned columns,
+there are several valid choice for which grammar to use on this
+particular file.  In the RD, it next says::
 
-		<columnGrammar topIgnoredLines="9" gunzip="True">
-			<colDefs>
-				hipno:     3-8
-				srcSel:    47-49
-				alphaHMS:  59-73
-				deltaDMS:  77-91
-				pmra_mas:  95-103
-				pmde_mas:  107-115
-				t_ra_mod:  119-123
-				err_ra_mas:127-131
-				err_pmra_mas:135-139
-				t_de_mod:  143-147
-				err_de_mas:151-155
-				err_pmde_mas:159-163
-				parallax_mas:167-172
-				e_parallax_mas:176-180
-				kp:        184
-				vrad:      188-195
-				mv:        199-203
-				km:        207
-				kbin:      211-212
-				kdmu:      216
-				kae:       220
-				flags:     882-901
-			</colDefs>
+    <columnGrammar topIgnoredLines="9" preFilter="zcat">
+      <colDefs>
+        hipno:     3-8
+        srcSel:    47-49
+        alphaHMS:  59-73
+        deltaDMS:  77-91
+        pmra_mas:  95-103
+        pmde_mas:  107-115
+        t_ra_mod:  119-123
+        err_ra_mas:127-131
+        err_pmra_mas:135-139
+        t_de_mod:  143-147
+        err_de_mas:151-155
+        err_pmde_mas:159-163
+        parallax_mas:167-172
+        e_parallax_mas:176-180
+        kp:        184
+        vrad:      188-195
+        mv:        199-203
+        km:        207
+        kbin:      211-212
+        kdmu:      216
+        kae:       220
+        flags:     882-901
+      </colDefs>
 
-– so we've decided for a columnGrammar_.  Those cut up every input
-line along character indices that are here, following the display in
-most editors, are counted from 1 upwards.  Note that in ranges, the last
-column is included in the string – these are no python slices but
-basically a representation of the character ranges in VizieR-style
+– so we went for a columnGrammar_.  Those cut up every input line along
+character indices that are here, following the display in most editors,
+are counted from 1 upwards.  Note that in ranges, the last column is
+included in the string – these are no python slices but basically a
+representation of the character ranges in VizieR-style
 "byte-by-byte"-descriptions.
 
 The assignment of names to column ranges can happen both in a
@@ -552,12 +577,15 @@ attribute that gives a name.  This could be the ``name`` of a target
 column in the simplest case, or it can be an auxillary identifier that
 is later processed in a rowmaker.  These individual specifications are
 interesting when combined with RD macros, and that's where they come in
-in the arihip RD (again, the magic LOOPs).
+in the arihip RD (again, using LOOPs).
 
 Grammars also have various attributes; the ones parsing from text files
 support, for example, ``topIgnoredLines``, which allows you to skip
-header lines, and ``gunzip`` that runs the input through a decompressing
-gzip before parsing it if True.
+header lines, and ``preFilter`` that allows running the input through
+a shell command before it is processed using DaCHS (if you find yourself
+doing more than just decompression in such a preFilter,  you should
+probably look for a different solution).
+
 
 
 Mapping data
@@ -565,18 +593,18 @@ Mapping data
 
 The arihip RD then goes on with::
 
-	<make table="main">
-		<rowmaker idmaps="*">
-			<var name="raj2000">hmsToDeg(@alphaHMS, None)</var>
-			<var name="dej2000">dmsToDeg(@deltaDMS, None)</var>
+  <make table="main">
+    <rowmaker idmaps="*">
+      <var name="raj2000">hmsToDeg(@alphaHMS, None)</var>
+      <var name="dej2000">dmsToDeg(@deltaDMS, None)</var>
       ...
- 			<map dest="kbin">parseWithNull(@kbin, str, "9")</map>
-  		<map dest="vrad">parseWithNull(
-				@vrad, lambda a:float(killBlanks(a)), "")</map>
+      <map dest="kbin">parseWithNull(@kbin, str, "9")</map>
+      <map dest="vrad">parseWithNull(
+        @vrad, lambda a:float(killBlanks(a)), "")</map>
 
 The make_ element brings together a table (in the ``table``
 attribute) with a recipe how to fill it from the output of the grammar
-(the rowmaker). 
+(the row maker). 
 
 Incidentally, there can be multiple ``make`` elements in a single
 ``data`` element if multiple tables (using different row makers) are
@@ -595,50 +623,53 @@ stamps, etc.  Also, data in input tables is frequently given in
 inconvenient formats (e.g., sexagesimal angles), deprecated or
 inconsistent units, or values may be distributed over multiple columns
 (e.g., date and time of an observation when we want a single timestamp).
-To cover these and more tasks, DaCHS has rowmakers, the result of which
-is then called rowdict.
+To cover these and more tasks, DaCHS has row makers, the results of which
+are then called rowdicts (note the subtle difference from the rawdicts
+coming in from the grammars: "row makers turn rawdicts into rowdicts").
 
 Basically a row maker consists of
 
 * var_ elements -- assignments of expression values names in the rawdict.
-* map_ elements -- simple mappings of (python) expressions to rowdicts
+* map_ elements -- simple mappings of (python) expressions to values in
+  the destination rowdict
 * procedure applications (see apply_) -- manipulations of both rawdicts 
   and rowdicts in python code
 
 The fragment above shows one of several ways to use both ``var`` and
-``map`` (which are closely related): generating values from python
+``map`` (which work exactly the same way, except that vars end up in the
+rawdict, and map in the rowdict): generating values from python
 expressions, where there is the special syntax ``@identifier`` which
 expands to whatever value the rawdict has for that key (or raises a
 KeyError if the key is not present in the rawdict).
 
-With ``var``, you can manipulate the rawdict; that's interesting if you
-want to re-use a morphed value.  The ``map`` element, on the other hand,
+The rawdict manipulations that ``var`` does are useful if you want to
+re-use whatever you compute.  The ``map`` element, on the other hand,
 writes directly into the results dictionary, the keys of which directly
 correspond to the column names.
 
-When building a rowdict for ingestion into the database, a rowmaker first
+When building a rowdict for ingestion into the database, a row maker first
 binds var names, then applies procedures and finally performs the mappings.
 In the bodies of the mappings, you can use all built-in python
 functions plus a set of useful `rowmaker functions`_ documented in the
 reference documentation, as well as everything from the python standard
 library modules ``datetime``, ``math``, ``os``, ``re``, ``sys``,
-`time``, and ``urllib`` (you need to include the module name, i.e., it's
-``re.sub``).  Furthermore, the gavo modules ``base``, ``stc``, and
-``utils`` are in the namespace of the mapping code, as well as the
-submodule ``utils.pgsphere``.  TODO: link to useful documentation for
-them here.
+``time``, and ``urllib`` (you need to give the module name when
+referring to names from these modules as in, e.g., ``re.sub``).
+Furthermore, the gavo modules ``base``, ``stc``, and ``utils`` are in
+the namespace of the mapping code, as well as the submodule
+``utils.pgsphere``.  TODO: link to useful documentation for them here.
 
 For simple cases, maps will suffice; frequently, you can do without
-having to write python expressions (which you should do if possible)
-by giving a ``src`` attribute specifying a rawdict key instead of
-element content. The rawdict string will in this case be converted to a
-typed value using "sane" defaults (e.g., integers will be converted by
-python's int constructor, where empty strings are mapped to None,
-datetimes are parsed as ISO string, etc)
+python expressions by giving a ``src`` attribute specifying a rawdict
+key instead of element content (which is preferable if possible – as
+elsewhere, less code is better in RDs, too). The rawdict string will in
+this case be converted to a typed value using "sane" defaults (e.g.,
+integers will be converted by python's int constructor, where empty
+strings are mapped to None, datetimes are parsed as ISO strings, etc)
 
 If you match the keys in the rawdicts with the names of the database
 columns their content is supposed to end up with and the content needs
-no further manipulations, a rowmaker like::
+no further manipulations, a row maker like::
 
   <rowmaker>
     <map dest="evi" src="evi"/>
@@ -646,12 +677,10 @@ no further manipulations, a rowmaker like::
     <map dest="ai" src="ai"/>
   </rowmaker>
 
-would to the trick.  names.  Since this is a bit unwieldy, DaCHS
-provides a shortcut::
+would to the trick. Since this is a bit unwieldy, DaCHS provides a
+shortcut::
   
-  <rowmaker>
-    <simplemaps>evi:evi,av:av,ai:ai</simplemaps>
-  </rowmaker>
+  <rowmaker> <simplemaps>evi:evi,av:av,ai:ai</simplemaps> </rowmaker>
 
 which expands to exactly what is written above.  The keys in each pair do not 
 need to be identical; the first item of each pair is the table column
@@ -675,7 +704,7 @@ You can abbreviate this further to::
 – so, idmaps values can contain shell patterns.  They will be matched to
 the column names in the target table.  For every column for which there
 is no explicit mapping, an identity mapping (with type conversion) will
-be set up.
+be set up with this specification.
 
 Of course, you can have values that do not even depend on grammar
 output::
@@ -683,9 +712,10 @@ output::
   <map dest="dateIngested">datetime.datetime.now()</map>
 
 Null values are always troublesome.  Within DaCHS, the null value
-(almost) always is python's None.  There is the rowmaker function
-``parseWithNull`` to help you come up with those; if your upstream
-actually used 99.99 as a null value for a magnitude, you could say::
+(almost) always is python's None.  There is the row maker function
+``parseWithNull`` to help you come up with those; if your upstream was
+devious enough to use 99.99 as a null value for a magnitude, you could
+say::
   
   <map dest="Vmag">parseWithNull(@VmagSrc, float, "99.99")</map>
 
@@ -698,7 +728,7 @@ shouldn't do that if you can avoid it.
 If you need to scale this (or if null values are chosen that they are
 invalid literals to begin with), a feature that lets you null out a
 value when an specific type of exception is raised comes in handy.
-This is map's ``nulExcs`` attribute, which is just a comma separated list of
+This is map's ``nullExcs`` attribute, which is just a comma separated list of
 exceptions that should be caught and interpreted as "this is null".  If,
 in the example above, the source would give the magnitude in millimags
 to save a comma, you could use::
@@ -706,19 +736,19 @@ to save a comma, you could use::
   <map dest="Vmag" nullExcs="TypeError"
     >parseWithNull(@VmagSrc, float, "99999")/1000.</map>
 
-If parseWithNull here returns None, a TypeError will be raised and caught,
-and Vmag will be None.
+If ``parseWithNull22 here returns None, a ``TypeError`` will be raised
+and caught, and ``Vmag`` will be None.
 
 You can turn more than one exception into None.  For example example, if
-both magicOffset has been parsed before and could be None, while
-magicLit is to be parsed and has the empty string as a Null literal, you
+``magicOffset`` has been parsed before and could be None, while
+``magicLit`` is to be parsed and has the empty string as a NULL literal, you
 could write::
 
   <map dest="magic" nullExcs="ValueError,TypeError"
     >@magicOffset+float(@magicLit)</map>
 
-If magicOffset is None, magic will be None via the TypeError, whereas
-empty magicLits will result in Nones via a ValueError.
+If ``magicOffset`` is None, magic will be None via the ``TypeError``,
+whereas empty ``magicLits`` will result in Nones via a ``ValueError``.
 
 We defer the discussion of ``apply`` elements to the discussion of how
 to build SIAP services.
@@ -726,9 +756,9 @@ to build SIAP services.
 ``rowmaker`` elements may also be direct children of ``resource``; this
 is for when they are used in more than one ``data``. You would then give
 the rowmaker an ``id`` attribute and say something like ``<make
-rowmaker="id-of-rowmaker" table=...``  However, for the standard case
+rowmaker="id-of-rowmaker" table=.../>``  However, for the standard case
 it's best to keep everything related to a given import together in the
-data element.
+make element.
 
 
 Indices and Mixins
@@ -737,25 +767,27 @@ Indices and Mixins
 We have so far deferred the discussion of the ``mixin`` attribute in
 arihip's opening table element::
 
-	<table id="main" onDisk="True" adql="True" mixin="//scs#q3cindex"
-	  primary="hipno">
+  <table id="main" onDisk="True" adql="True" mixin="//scs#q3cindex"
+    primary="hipno">
 
 Mixins are DaCHS' primary tool to endow tables with "everything needed
 to serve a standard" (e.g., a minimal set of columns, certain indices,
 or metadata).  For instance, an image table must have a certain
-structure determined by the SIA protocol.  The mixins ``//siap#pgs`` and
-``//siap#bbox`` make sure that tables have this structure, and they make
-sure that the table containing information on all the file-like datasets
-in the data center is updated when the table is filled.
+structure determined by the SIA protocol.  Either of the ``//siap#pgs``
+and ``//siap#bbox`` mixins make sure that tables have this structure,
+and they make sure that the table containing information on all the
+file-like datasets in the data center (which is called ``dc.products``)
+is updated when the table is filled.
 
-The content of the mixin element (when used as an attribute as above, the
-attribute value) is a reference to a mixin definition.  These references
-typically go into some system descriptor (though you could define your
-own mixins), and the double slash in a DaCHS reference means "system
-descriptor" (in actual truth, it's just an abbreviation for
-``__system__/``).  The reference documentation contains a chapter
-on `DaCHS' public mixins`_.  For the curious: you can have a look at the
-actual definitions by admin's ``dumpDF`` subcommand, e.g., like this::
+The content of the mixin element (or the attribute value when you give
+the mixin property as an attribute) is a reference to a mixin
+definition.  These references typically go into some system descriptor
+(though you could define your own mixins), and the double slash in a
+DaCHS reference means "system descriptor" (in actual truth, it's just an
+abbreviation for ``__system__/``).  The reference documentation contains
+a chapter on `DaCHS' public mixins`_.  For the curious: you can have a
+look at the actual definitions by admin's ``dumpDF`` subcommand, e.g.,
+like this::
 
   gavo admin dumpDF //scs
 
@@ -763,21 +795,21 @@ The ``//scs#q3cindex`` mixin referenced here arranges for spatial
 indexing of tables having some sort of spherical coordinates. 
 To identify which columns to index, DaCHS inspects the UCDs of the
 columns; what it looks for here are columns with UCDs of
-``pos.eq.(ra|dec);meta.main``` as index columns.  Contrary to mixins for
-other standard protocols, it does not automatically insert these
-columns (and neither the only other required column in SCS, the main row
-identifier with the UCD ``meta.id;meta.main``.
+``pos.eq.(ra|dec);meta.main``` as index columns [#othercone]_.  Contrary
+to mixins for other standard protocols, it does not automatically insert
+these columns (and neither the only other required column in SCS, the
+main row identifier with the UCD ``meta.id;meta.main``).
 
-In addition to spatial queries, we also expect a lot of queries
-constraining the ``mv`` column.  Therefore, we ask for an index on it
-using DaCHS' index_ element, which is a child of ``table``::
+Since in addition to spatial queries, we also expect a lot of queries
+constraining the ``mv`` column, we ask for an index on it using DaCHS'
+index_ element, which is a child of ``table``::
 
     <index columns="mv"/>
 
-This is the simplest, but mostly suffient, form of defining an index;
-for advanced usage, please refer to the `reference documentation`_.
-If you decide to add an index to a table later on, or if data changed
-sufficiently to warrant re-indexing, see the ``-I`` option of ``gavo
+This is the simplest, but mostly sufficient, form of defining an index;
+for advanced usage, please refer to the `reference documentation`_.  If
+you decide to add an index to a table later on, or to initiate
+re-indexing after a lot of data changed, see the ``-I`` option of ``gavo
 imp``.
 
 Cores and Services
@@ -813,29 +845,33 @@ fairly simple for arihip::
 To understand what's written here, some basic understanding of DaCHS'
 service architecture is required; it consists of:
 
-* The core; it actually does the computation or query
-* The renderer; it digests the data coming in from the service and (in
-  general) formats the result in some way requested by the user.
+* cores; they actually do the computation or database query
+* renderers; these digest the data coming in from the service and (in
+  general) format the result in some way requested by the user.
   There are renderers for web forms, VO protocols,
   imges, etc.  Frequently – as in the example –, you can use the same
-  core for both a VO protocol and a form-based service.
+  core for both a VO protocol and a form-based service by just
+  allowing different renderers.
 * The service; it holds together the core and the renderer, can
   reformat core results, controls the metadata, etc.
 
 The renderers are referenced by name in the service's ``allowed``
 attribute.  What can be given there (concatenated by commas) is listed
-in the reference documentation's `renderer chapter`_.  Renderers not in
-``allowed`` cannot be applied to a service (excepting certain
-"unchecked" renderers like ``info``).  Not all cores can be combined
-with all renderers even if you list them in ``allowed``.  For example,
-the ``ssap.xml`` renderer will not (usefully) work on anything but an
+in the reference documentation's `renderer chapter`_.  As you have seen
+above, the renderer is selected via the URL.  If a client tries to
+retriev a URL with a renderer that is not in the service's ``allowed``
+list, DaCHS will respond with a 403 forbidden HTTP code (excepting
+certain "unchecked" renderers like ``info`` that typically expose
+service metadata).  In addition, not all cores can be combined with all
+renderers even if you list them in ``allowed``.  For example, the
+``ssap.xml`` renderer will not (usefully) work on anything but an
 ``ssapCore``.
 
 The most common core for catalog services (and the one you'll typically
 use for SCS services) is the dbCore_, as used here.  See `cores
 available`_ in the reference documentation for more predefined cores --
-e.g., to run ADQL queries, to upload files, or to do feedback queries.
-For special fucnctionality, you can even `write your own core`_.
+e.g., to run ADQL queries or to upload files.  For special
+functionality, you can even `write your own core`_.
 
 The dbCore generates a (single-table) query from condition descriptors
 and returns a table that you describe through an output table.  Cores
@@ -847,40 +883,39 @@ by several services).
 dbCores need a ``queriedTable`` attribute, the value of which must be a
 table reference.  This is the table the query will run against.
 
-CondDescs define input fields (for the form renderer, these are actually
-form items people can fill in).  Most commonly, you will either define
-them using the ``original`` attribute or using ``buildFrom``.  The
-first case is typically used in connection with protocols and on tables
-having mixins; such condDescs result in zero or more input fields, and
-they typically inspect the queried table.  For example, the
-``//scs#humanScs`` condDesc in the example locates the "main" positions
-as identified by UCDs and generates queries against them using two input
-fields, one it tries to guess a position from, and another for the
-search radius.
+The condition descriptors (or condDescs for short) define input fields
+(for the form renderer, these will be rendered as form items people can
+fill in).  Most commonly, you will either define them using the
+``original`` attribute (when inheriting from predefined condDescs) or
+using ``buildFrom``.  The first case is typically used in connection
+with protocols and on tables having mixins; such condDescs result in
+zero or more input fields, and they typically inspect the queried table.
+For example, the ``//scs#humanScs`` condDesc locates the "main"
+positions as identified by UCDs and generates queries against them using
+two input fields, one it tries to guess a position from, and another for
+the search radius.
 
 When you define a ``condDesc`` using ``buildFrom``, the result is
-usually a single input field that allows restricting the column referred
-to in the ``buildFrom`` attribute, which in turn usually is the name of
-a column in the table queried (though you could use any field using
-id-based referencing).  The software tries to make some useful input
-definition from that column, depending on the renderer.  Renderers with
-a parameter style (this is given in the reference documentation) of
-"form", for example, let users query string-like columns using
-Vizier-like string expressions, real and double precision columns using
-Vizier-like float expressions, and so on.   The ``pql`` style allows a
-specification like for SSAP (like "range_min/range_max") with a couple
-of twists.
+usually one or more input field(s) constraining values in the column
+named in the ``buildFrom`` attribute.  The software tries to make some
+useful input definition from that column, depending on the renderer.
+Renderers with a parameter style (this is given in each renderer's
+description the reference documentation) of "form", for example, let
+users query string-like columns using Vizier-like string expressions,
+real and double precision columns using Vizier-like float expressions,
+and so on.   The ``pql`` style allows a specification like for SSAP
+(e.g., "range_min/range_max").
 
 The ``service`` element must have an ``id`` attribute that is used to
 select the service run in the access URL.  Furthermore, there should be
-certain metadata.  First, there's ``shortName``, which is typically used
-by clients in space-restricted displays.  It must not be longer than 16
-characters, so something like an acronym and a very terse role
-identifier is the best you can do (hence the "arihip cone" here).
-Frequently, a ``title`` meta is also useful, in particular when an RD
-contains multiple services, in which case one could be "Cone search for
-ARI's HIPPARCOS re-reduction" and the other, say, "Autocorrelation on
-ARI's HIPPARCOS re-reduction".
+certain pieces of metadata useful in later registration.  First, there's
+``shortName``, which is typically used by clients in space-restricted
+displays.  It must not be longer than 16 characters, so something like
+an acronym and a very terse role identifier is the best you can do
+(hence the "arihip cone" here).  Frequently, a ``title`` meta is also
+useful, in particular when an RD contains multiple services, in which
+case one could be "Cone search for ARI's HIPPARCOS re-reduction" and the
+other, say, "Autocorrelation on ARI's HIPPARCOS re-reduction".
 
 See the `data checklist`_ for more information on useful generic
 metadata and remember that services inherit whatever is defined within
@@ -888,201 +923,471 @@ metadata and remember that services inherit whatever is defined within
 
 Many standard VO protocols require additional, protocol-specific
 metadata.  In the case of arihip, we have a Simple Cone Search service,
-which, as laid down in the section on the`scs.xml`_ renderer in the
-reference documentation, here are the parameters of a test query
+which, as laid down in the section on the `scs.xml`_ renderer in the
+reference documentation, requires the parameters of a test query
 returning a nonempty result.
 
 Debugging
 ---------
 
-If nothing else helps you can watch what the software actually sends to
-the database.  To do that, set the GAVO_SQL_DEBUG environment variable
-to any value.  This could look like this::
+Writing RDs is like programming, and sometimes it involves programming.
+Hence, you'll get things wrong, and DaCHS probably will annoy you.
+Giving good error messages – neither drowning you in a deluge of
+mostly-useless information nor swallowing important pieces of data,
+neither claiming too much nor to little, not misleading you about what
+is actually going on – is a high art, and we are aware we should be
+doing better.  Your feedback will help us improve.
 
-  env GAVO_SQL_DEBUG=1 gavo imp q create
+Still, with a few hints and techniques figuring out what's wrong isn't
+much harder in DaCHS than with your average programming system.  In the
+following, we collect some hints on what to do if things don't work.
 
-The first couple of requests are for internal use (like checking that some
-meta tables are present).
+General Hints
+-------------
 
-RD Validation
-'''''''''''''
+* If you get error messages, be sure to check our `hints on common
+  problems`_ – may commonly encountered problems are explained there with
+  suggestions for how to fix them.
+* The gavo command takes a ``--hints`` switch.  With it, error messages
+  are frequently accompanied with – you guessed it – hints on what might
+  cause the problem and possible solutions.  Note that ``--hints``, like
+  the other debugging switches, goes between ``gavo`` and the subcommand
+  name, as in ``gavo --hints serve``.
+* Validate your RD.  This is, in general, a good idea before doing 
+  anything with the RD, since it will allow you to more easily catch errors 
+  than the in all likelihood even more byzantine error messages that 
+  may arise when something goes wrong later.  The ``gavo val``
+  subcommand takes one or more RDs.    If you don't understand its
+  output, complain to gavo@ari.uni-heidelberg.de -- the command is really
+  intended to help you catch errors, and if it doesn't do so, it's
+  a bug.
+* Check the logs.  They are in /var/gavo/logs by default, and there's
+  dcErrors and dcInfos (you'll want to look at both).
+* When hunting bugs, it's usually a good idea to enable the logging of
+  (many) tracebacks by passing the ``--debug`` flag to ``gavo``.
+* If you're trying to figure out server behaviour, don't run the
+  server daemonized but use ``gavo serve debug`` instead; this won't
+  detach and log to stdout.
+* To see what SQL is actually sent to the database, set the
+  GAVO_SQL_DEBUG environment variable to any value.  This could look like
+  this::
 
-Once you are here, you should "validate" your RD.  This is, in general,
-a good idea before doing anything with the RD, since it will allow you
-to more easily catch errors than the in all likelihood even more
-byzantine error messages that may arise when something goes wrong later.
-So, say::
+    env GAVO_SQL_DEBUG=1 gavo imp q create
 
-  gavo val q.rd
-
-and read the output.  If you don't understand what ``gavo val`` tells
-you, complain to gavo@ari.uni-heidelberg.de -- the command is really
-intended to help you catch errors, and if it doesn't do so, it's
-either a bug in ``gavo val`` or the documentation, and in either case
-we'd like to fix it.
-
-You can also pass an RD id to ``gavo val``, and you can specify more
-than one RD.
-
-
-More Grammars
-=============
-
-In addition to the ``columnGrammar`` mentioned above, there are several
-other grammars you should know about; the full list of them is found in
-the reference documentation.
-
-reGrammars
-----------
-
-In this case the easiest grammar to use probably is the `reGrammar
-<./ref.html#element-regrammar>`_.  The idea here is that you give two
-regular expressions to separate the file into records and the records
-into fields, and that you simply enumerate the names used in the
-mapping.
-
-For the file given above, the RE grammar definition could look like
-this::
-
-  <reGrammar topIgnoredLines="1">
-    <names>raMin, raMax, decMin, decMax, EVI, AV, AI</names>
-  </reGrammar>
-
-The names given are values of the name attribute in the table
-definition.
-
-If you checked the documentation on reGrammar, you will have noticed
-that "names" is an "atomic child" of reGrammar. Atomic children are
-usually written as attributes, since their values can always be
-represented as strings.  However, if strings become larger, it's more
-convenient to write them in elements.  The DC software allows you to
-do just that in general: All attributes can be written as elements with
-tags named like the attribute.  So,
-
-::
-
-  <reGrammar topIgnoredLines="1"
-    names="raMin, raMax, decMin, decMax, EVI, AV, AI"/>
-
-would have worked just fine, as would::
-
-  <reGrammar><topIgnoredLines>1</topIgnoredLines>
-    <names>raMin, raMax, decMin, decMax, EVI, AV, AI</names></reGrammar>
-
-Structured children, in contrast, cannot be written as plain strings and
-thus can only be written in element notation.
-
-Though grammars can be direct children of resource, they are usually
-written as children of data elements (see below).
+  The first couple of requests are for internal use (like checking that
+  some meta tables are present).
+* If ``gavo serve start`` doesn't actually cause the server to run,
+  something went wrong after detaching from the controlling terminal.
+  The messages are in the logs directory, in the file ``serverStderr``.
 
 
-fitsProdGrammar
----------------
+Case Studies
+------------
+
+In this section we will damage the arihip RD in various ways, show
+you how the errors manifest themselves, and how you could try and figure
+them out.  It's highly recommended to play the scenarios; it's very well
+possible that the actual messages will look differently for you if we've
+changed and hopefully improved the software.  We're thankful if you
+point us to outdated samples.
+
+
+XML syntax errors
+'''''''''''''''''
+
+These are mostly easy to diagnose (and fix), except that sometimes the
+errors show up too late.  For an example of a dramatic failure, delete
+the closing tag of the ``source`` meta.  The result then is::
+
+  arihip > gavo imp q
+  *** Error: In /home/msdemlei/gavo/inputs/arihip/q.rd: mismatched tag:
+  line 674, column 2
+
+In this particular case, a dedicated XML validator gives more helpful
+diagnostics::
+
+  /arihip > xmlstarlet val -e q.rd
+  q.rd:674.12: Opening and ending tag mismatch: meta line 72 and resource
+  </resource>
+             ^
+  q.rd - invalid
+
+The reason DaCHS does so bad here is that ``meta`` elements are allowed
+to have all kinds of children (for typed meta, which we've not covered
+so far).  DaCHS does better when you add some random XML fragment, e.g.,
+the wonder element in the next example::
+
+   <table id="main" onDisk="True" adql="True" mixin="//scs#q3cindex"
+        primary="hipno">
+      <wonder>foo</wonder>
+
+This time, DaCHS gets it pretty much right::
+
+  msdemlei@victor:/home/msdemlei/gavo/inputs/arihip > gavo imp q
+  *** Error: At /home/msdemlei/gavo/inputs/arihip/q.rd, (112, 4): table
+  elements have no wonder attributes or children.
+
+Well-formedness problems frequently turn up with embedded python code or
+reStructuredText markup.  To see what happens then, delete the opening
+CDATA sequence in::
+
+  <meta name="note" tag="tabflags"><![CDATA[
+
+This results in::
+
+  arihip > gavo imp q
+  *** Error: In /home/msdemlei/gavo/inputs/arihip/q.rd: not well-formed
+  (invalid token): line 411, column 24
+
+If you check out the indicated line, you'll see some table markup.  Now
+that you're warned, you'll probably see immediately that there's a
+less-than sign there that's not allowed in XML parsed character data,
+but while writing up such material, it's easy to forget that < and & are
+magic to XML.  CDATA is your fried for embedded formal languages.
+
+Now for a particularly nasty syntax error that's not XML-related at all.
+To trigger it, go to the note meta with the "src" tag and remove
+whitespace from the second column line like this::
+
+    <meta name="note" tag="src">
+      The srcSel field indicates which catalogue the astrometric solution
+    was taken from using the following codes:
+
+That results in::
+
+  arihip > gavo --debug imp q
+  *** Error: At /home/msdemlei/gavo/inputs/arihip/q.rd, (317, 4): Bad
+  text in meta value (Bad indent in line u'    was taken from using the
+  following codes:')
+
+If you go to the position given, you'll notice it's the end of the meta
+element.  What bugs DaCHS there is somewhat pythonesque.  Both python
+and reStructuredText are indentation-sensitive.  In particular, even
+if you, say, indent all lines in a python program by two blanks, the
+result will be invalid source code.
+
+Hence, DaCHS removes leading indentation from the content of all
+elements containing such material, and the amount of indentation is
+goverened by the second line, where the line with the opening tag
+counts; in the example above, DaCHS tries to subtract from every
+subsequent line the indentation of the line starting with "The srcSel
+field" (the first line is the one containing the tag).
+
+This kind of problem is particularly insidious if you're mixing blanks
+with tabs for indentation.  Don't do this in python, don't do this in
+RDs.
+
+All this means that RDs can break of XML processing tools normalize
+whitespace in certain elements.  This is a bit unfortunate since the way
+RDs are written, they're not even completely wrong in doing this.  So,
+the bottom line is: you need careful instructions to standard XML
+processors if you actually want to *write* RDs.  However, if you feel
+the need to write RDs programmatically, you're probably doing it wrong:
+RDs already generate things, and if another generation layer seems
+necessary, that would indicate a design problem *somewhere* – possibly
+in DaCHS.
+
+
+Rowmaker trouble
+''''''''''''''''
+
+Since rowmakers are a fairly thin layer on top of python, it's easy to
+elicit fairly confusing messages here.  To see how this looks in an easy
+case, change the kbin mapping to::
+
+  <map dest="kbin">parsWithNull(@kbin, str, "9")</map>
+
+(note the missing e).  The result is an error message that looks a bit
+frightening with rawdicts as large as in this case::
+
+  arihip > gavo imp q
+  Making data import
+  Starting /home/msdemlei/gavo/inputs/arihip/data/data.txt.gz
+  Failed /home/msdemlei/gavo/inputs/arihip/data/data.txt.gz
+  *** Error: Row {u'pmdeLTP': None, u'srcSel': 'T2H', u'err_raHIP':
+  [abridged]
+  .. .... ... ...', u'ddeLTP': '-     2.37', u'pmra_mas': '-    4.85',
+  u'raHIP': None} Field kbin: While building kbin in None: name
+  'parsWithNull' is not defined
+
+The dump of the rawdict, however, is often helpful enough to warrant the
+scary appearance, even at the risk of obscuring the actual message at
+the very end.  Note that the "while building kbin" tells you where in
+the rowmaker something went wrong: At the mapping of kbin.  The ``in
+None`` part may be a bit less fortunate – the "None" here is the id of
+the rowmaker, which you didn't give.  If you have multiple rowmakers in
+an RD, it's a good idea to name them.  So, add an ``id`` attribute as
+in::
+
+  <make table="main">
+    <rowmaker idmaps="*" id="make_main_row">
+
+and to the improvement in the error message::
+
+  Field kbin: While building kbin in make_main_row: name
+  'parsWithNull' is not defined
+
+Now undo the changes and try another frequent problem by deleting the
+vrad mapping, i.e., removing the entire element::
+
+  <map dest="vrad">parseWithNull(
+     @vrad, lambda a:float(killBlanks(a)), "")</map>
+
+This gives::
+
+  /arihip > gavo imp -M 12 q
+  [...]
+  Field vrad: While building vrad in None: could not
+  convert string to float: +   8.3
+
+What's going on?  Something is going on with vrad; specifically, the
+string '+   8.3' cannot be turned into a float (which is because it's
+not a valid float literal).  But since we're no longer mapping vrad, why
+is the machinery even trying that?  Well, this is a consequence of the
+``idmaps="*"`` of this rowmaker.  When there is a key vrad in the
+rawdict and a column vrad is required, the default transformation from
+string to float is tried (and this fails in this case).
+
+What happens if no such input key is present?  To find out, additionally
+remove the line::
+
+        vrad:      188-195
+
+from the column grammar's ``colDefs`` element.  The result is::
+
+  arihip > gavo imp -M 12 q
+  Making data import
+  Starting /home/msdemlei/gavo/inputs/arihip/data/data.txt.gz
+    Source hit import limit, import aborted.
+  Done /home/msdemlei/gavo/inputs/arihip/data/data.txt.gz, read 13
+  Shipped 13/13
+  Create index Primary key on arihip.main
+  Create index main_mv
+  Create index main_q3c_main
+  Rows affected: 13
+
+– a clean import.  However, all vrads in the table are now, of course,
+NULL::
+
+  arihip > gavo info arihip/q#main
+   col           min         avg     max       hasnulls
+   [...]
+   vrad          None        None    None      True
+   [...]
+
+– watch out for those.  For DaCHS, it's normally no problem if a key is
+missing in the input (which is in many situations desirable); the
+missing value is just replaced with None.  You can forbid NULLs using
+the ``required`` attribute on the column vrad by editing it like this::
+
+  <column name="vrad" ucd="phys.veloc;pos.heliocentric"
+    required="True"
+    tablehead="v_rad" verbLevel="20" unit="km/s"
+    description="Radial velocity as used in calculating the foreshortening 
+    effect."/>
+
+This now yields an error; note that the message is fairly generic, but
+if you consider that rawdicts are mappings, you will at least see the
+logic in it::
+
+  arihip > gavo imp -M 12 q
+  Making data import
+  Starting /home/msdemlei/gavo/inputs/arihip/data/data.txt.gz
+    Source hit import limit, import aborted.
+  Done /home/msdemlei/gavo/inputs/arihip/data/data.txt.gz, read 1
+  *** Error: Row {u'pmdeLTP': None, u'srcSel': 'T2H', u'err_raHIP':
+  [...]
+  u'ddeLTP': '-     2.37', u'pmra_mas': '-    4.85', u'raHIP': None}
+  Field vrad: While building vrad in None: Key 'vrad' not found in a
+  mapping.
+
+When debugging stuff like this, it is sometimes useful to cut-and-paste
+the rawdict dumped into a file, join all the lines, remove the
+``parser_`` key-value pair (the content of which cannot be represented
+as a string), assign it to a name and then manipulate it in the rest of
+the file using python statements.  You can have a similar effect by
+giving ``--enable-pdb`` as a ``gavo`` main option; this will dump you in
+a debugger at the place of the problem.
+
+Undo all changes to the arihip RD to continue.
+
+If you embed code yourself, the potential for challenging bugs is yet
+larger.  To see how basic problems are reported, add::
+
+  <apply>
+   <code>
+     ddt
+   </code>
+ </apply>
+
+somewhere within the RD.  This yields::
+
+  arihip > gavo imp q
+  [...]
+  u'raHIP': None} Field proc98577cc: While executing proc98577cc in
+  None: global name 'ddt' is not defined
+
+The message coming from the bowels of python is clear enough, but the
+alphabet soup giving the error is not.  This name was invented by DaCHS
+since no ``name`` (sorry, not id this time) attribute was given to
+``apply``.  Try it, the error message will be much more palatable with
+it.
+
+The error message still could be more helpful, however; consider code
+like::
+
+ <apply>
+    <code>
+      a = 1
+      b = 2/a
+      c = 3/(a+b)
+      d = 4/(a+b+c+1)
+      e = 5/d
+    </code>
+  </apply>
+
+The error message here is::
+
+  While executing proc985706c in None: integer division or modulo by zero
+
+So – where does this happen?  To get an idea, you can pass the
+``–debug`` flag to gavo, which in the ``dcInfo`` log file at least
+yields::
+
+  2013-09-23 15:57:37,304 [INFO 24430] Swallowed the exception below, re-raising Field proc985706c: While executing proc985706c in None: integer division or modulo by zero
+  Traceback (most recent call last):
+    File ".../gavo/rscdef/rmkdef.py", line 583, in __call__
+      exec self.code in self.globals, locals
+    File "generated mapper code", line 13, in <module>
+    File "<string>", line 9, in proc985706c
+  ZeroDivisionError: integer division or modulo by zero
+
+The trouble is that the source code line isn't given, and the source
+that refers to isn't yet visible to you in this case.  We promise to
+improve the management of the source code.  Until then, frankly, the
+nicest way to debug stuff like this is to write::
+
+ <apply>
+    <code>
+      import pdb; pdb.set_trace()
+      ...
+
+and then use the python debugger to figure things out.
+
+
+Debugging Services
+''''''''''''''''''
 
 TBW
-
-csvGrammar
-----------
-
-TBW
-
-More on Tables
-==============
-
-Notes
------
-
-Frequently, you need to say more about a column than is appropriate in
-the few-phrase description.  Historically, such situations have been
-handled using notes.  Since notes can be reused for multiple columns, we
-chose to follow that precedent rather than attach longish information
-onto the columns themselves.
-
-The notes themselves are kept in meta elements belonging to tables.
-Since the notes tend to be markup-heavy, their default format is
-restructured text.  When entering notes in RDs, there is an attribute
-``tag`` on these meta items::
-
-  <table id="demo">
-    ...
-    <meta name="note" tag="1">
-      The meaning of the flag is as follows:
-
-      =====  ==========
-      value  meaning
-      =====  ==========
-      1      value is 2
-      2      value is 1
-      =====  ==========
-   </meta>
-
-   <meta name="note" tag="2">
-   ...
-  </table>
-
-To assoicate a column with a note, use the column's note attribute::
-
-  <colum name="crazyflag" type="smallint" ... note="1"/>
-
-As tag, you may use basically any string, but it's a good idea to keep
-it to numbers or at least characters not requiring URL encoding.
-
-The notes will exposed in HTML table heads, table and service
-description, etc.  If you need to link to one, there is the built-in
-tablenote renderer that takes the table and the note from its query path.  
-The most convenient way to is it is through the
-built-in vanity name tablenote, where you would access the note above
-using a URL like ``http://your.server/tablenote/demoschema.demo/1``.
-
-
-STC
----
-
-As soon as you have coordinates, you will want to define coordinate
-systems on them.  In the introductory example, that was not necessary
-because SCS mandates that the coordinates you export are in ICRS, so
-either your coordinates are in ICRS or you are violating the SCS
-protocol -- in either case, nothing to declare.
-
-In the more general case, you will want to say what is what in your
-tables.  DaCHS uses a language called STC-S to declare systems,
-reference points, etc.  The STC-S description [TODO: Link to IVOA note]
-is a bit terse, but the good news is that you will get by with a few
-features most of the time.
-
-STC is defined in children of table elements, with references to table
-columns in quoted strings::
-
-  <table id="withcoo">
-    <stc>
-      Position ICRS "ra" "dec" Error "e_ra" "e_dec"
-    </stc>
-    <stc>
-      Position FK4 J1950.0 "ra_orig" "dec_orig"
-    </stc>
-
-    <column name="ra" unit=...
-    <column name="dec" ...
-    ...
-  </table>
-
-You do not need to change anything in the column definitions themselves,
-since the machinery will resolve your column references.  If you refer
-to non-existing columns, RD parse errors will be thrown.
 
 
 More on Grammars
 ================
 
-Row Generators
---------------
+In addition to the ``columnGrammar`` mentioned above, there are several
+other grammars you should know about; the full list of `grammars
+available`_ is found in the reference documentation.
 
-TBD
+reGrammars
+----------
+
+The reGrammar_ is another grammar suitable for parsing text files.  The
+idea here is that you give two regular expressions to separate the file
+into records and the records into fields, and that you simply enumerate
+the names used in the mapping.
+
+In the simplest case – whitespace separated columns in lines containing no
+whitespace, with one comment line at the top –, such a grammar could be
+specified like this::
+
+  <reGrammar topIgnoredLines="1">
+    <names>raMin, raMax, decMin, decMax, EVI, AV, AI</names>
+  </reGrammar>
+
+reGrammars have a few tricks built-in to make them a bit more versatile.
+The following lets you simulate properly parsing some bzipped database
+dump by making some strong assumptions::
+
+  <reGrammar topIgnoredLines="15" preFilter="bzcat">
+     <fieldSep>"?,(\s*")?</fieldSep>
+     <recordCleaner>\((.*)\)</recordCleaner>
+     <names>primflag, measure_no, paper_id, source_no, source_name</names>
+  </reGrammar>
+
+If things get noticeably more complex than this, an reGrammar may no
+longer be a terribly good solution.  Indeed, we would welcome a
+contributed grammar that would do a somewhat more robust parsing of
+common SQL text dumps.
+
+
+fitsProdGrammar
+---------------
+
+This grammar exposes FITS headers as rawdicts.  Since both data
+structures represent essentially the same data structure – sequences of
+key-value pairs, you can get away with just::
+
+  <fitsProdGrammar/>
+
+– and that would cover a lot of use cases that read FITS files.
+
+DaCHS uses pyfits to parse the headers and thus supports all the major
+conventions (CONTINUE cards are transparent, as are HIERARCH-style long
+keywords).  Neither HISTORY nor COMMENT cards are present in the
+rawdicts.
+
+There are some snags, anyway.  For example, DaCHS by default reads the
+header bytes using specialized code that is somewhat more robust and has
+more desirable behaviour with odd files than the pyfits one (you can
+deselect it by setting ``qnd="False"`` if necessary).  This gives up
+collecting header blocks if it has not found the end card after
+``maxHeaderBlocks`` blocks.  The default ``maxHeaderBlocks`` is chosen
+to be 40, which is reasonable for reasonable FITSes.  However, we have
+seen in the wild massive abuse of comment cards to hold entire tables.
+If you're unlucky enough to have to handle such files, you may have to
+raise this.
+
+It is fairly common for FITS keywords to contain a dash (``-``).  Since
+rawdict keys are supposed to be python identifier (e.g., for
+@-referencing), fitsProdGrammars translate these to underscores.  If
+further cleanup is necessary, there is the mapKeys element that lets you
+write things like::
+
+  <mapKeys>
+    <map key="properName">PROP NAM</map>
+  </mapKeys>
+
+The element should only be used to fix crazy names.  Actual mapping of
+names should be performed in rowmakers.
+
+FITS files are somewhat more complex, and fitsProdGrammars expose some
+of this.  If you need to parse from a header other than the primary one,
+give the 0-base extension number in hdu.  For the full power of pyfits
+(but also all incompatibilities that are introduced by using that power),
+there is the ``hdusField`` attribute.  This gives the key under which
+the pyfits HDU is visible in the rawdict.  Be warned that using this
+might make your grammar *dramatically* slower, in particular when it
+operates on gzipped FITS files (which are, incientally, supported if
+their file names end in ".gz").
+
+
+csvGrammar
+----------
+
+csvGrammar parses from files containing comma separated values.  It
+actually is a thin wrapper around python's csv module, and thus it is
+fairly forgiving about the idiosyncrasies of CSV (e.g., quotes around
+all, some, or no values).  You can configure the delimiter character via
+the same-named attribute (it defaults to, expectably, comma).  It is
+currently *required*, though, that the first row gives the column
+headings.  If you need the capability to name fields as in, say, the
+reGrammar, let us know – it's just a few lines of code.
+
 
 Source Fields
 -------------
 
-Grammars can have a sourceFields element.  It contains a standard
+All grammars can have a ``sourceFields`` element.  It contains a standard
 procedure definition (i.e., you could predefine those and bind
 parameters), but usually you will just fill in the code.
 
@@ -1135,6 +1440,88 @@ instead write::
   <code>
     base.SimpleQuerier(connection=data.connection).query(...)
   </code>
+
+
+
+More on Tables
+==============
+
+Notes
+-----
+
+Frequently, you need to say more about a column than is appropriate in
+the few-phrase description.  In catalog descriptions and VizieR, such
+situations are handled using notes, and DaCHS follows suit.
+
+The notes themselves are kept in meta elements belonging to tables.
+Since the notes tend to be markup-heavy, their default format is
+reStructuredText.  When entering notes in RDs, there is an attribute
+``tag`` on these meta items::
+
+  <table id="demo">
+    ...
+    <meta name="note" tag="1">
+      The meaning of the flag is as follows:
+
+      =====  ==========
+      value  meaning
+      =====  ==========
+      1      value is 2
+      2      value is 1
+      =====  ==========
+   </meta>
+
+   <meta name="note" tag="2">
+   ...
+  </table>
+
+To assoicate a column with a note, use the column's note attribute::
+
+  <colum name="crazyflag" type="smallint" ... note="1"/>
+
+As tag, you may use basically any string, but it's a good idea to keep
+it to numbers or at least characters not requiring URL encoding.
+
+The notes will exposed in HTML table heads, table and service
+descriptions, etc.  If you need to link to one, there is the built-in
+tablenote renderer that takes the table and the note from its query
+path.  The most convenient way to is it is through the built-in vanity
+name tablenote, where you would access the note above using a URL like
+``http://your.server/tablenote/demoschema.demo/1``.
+
+
+STC
+---
+
+As soon as you have coordinates, you will want to declare coordinate
+metadata on them, i.e., reference frames, roles played by tables (x is
+the derivative of y, and x1 is a galactic latitude, etc).  In VO lingo,
+this is known as declaring "space-time coordinates" or STC for short.
+
+DaCHS uses a language called STC-S to do this.  The STC-S definition
+currently only exists as a note and is both a bit terse and not quite as
+rigorous as one would wish, but the good news is that you will get by
+with but a few features most of the time.
+
+STC is defined in children of table elements, with references to table
+columns in quoted strings::
+
+  <table id="withcoo">
+    <stc>
+      Position ICRS "ra" "dec" Error "e_ra" "e_dec"
+    </stc>
+    <stc>
+      Position FK4 J1950.0 "ra_orig" "dec_orig"
+    </stc>
+
+    <column name="ra" unit=...
+    <column name="dec" ...
+    ...
+  </table>
+
+You do not need to change anything in the column definitions themselves,
+since the machinery will resolve your column references.  If you refer
+to non-existing columns, RD parse errors will be thrown.
 
 
 
@@ -2425,10 +2812,10 @@ Protecting Services
 To password-protect entire services, use the ``limitTo`` child of the
 ``service`` element, for instance::
 
- 	<service id="scs" core="scsCore" allowed="form,scs.xml"
-   	limitTo="happy">
- 	  ...
- 	</service>
+   <service id="scs" core="scsCore" allowed="form,scs.xml"
+     limitTo="happy">
+     ...
+   </service>
 
 Any access to the service will then require a client to authenticate as
 a user belonging to the group given in ``limitTo``.  Only one such group
@@ -2498,12 +2885,14 @@ someone can authenticate as the member of a group, she can access the
 data – see above for details on how to create users and groups.
 
 .. _columnGrammar: http://docs.g-vo.org/DaCHS/ref.html#element-columngrammar
+.. _reGrammar: http://docs.g-vo.org/DaCHS/ref.html#element-regrammar
 .. _var: http://docs.g-vo.org/DaCHS/ref.html#element-var
 .. _map: http://docs.g-vo.org/DaCHS/ref.html#element-map
 .. _apply: http://docs.g-vo.org/DaCHS/ref.html#element-apply
 .. _sources: http://docs.g-vo.org/DaCHS/ref.html#element-sources
 .. _make: http://docs.g-vo.org/DaCHS/ref.html#element-make
 .. _dispatching grammars: http://docs.g-vo.org/DaCHS/ref.html#dispatching-grammars
+.. _grammars available: http://docs.g-vo.org/DaCHS/ref.html#grammars-available
 .. _chapter on scripting in the reference: http://docs.g-vo.org/DaCHS/ref.html#scripting
 .. _rowmaker functions: http://docs.g-vo.org/DaCHS/ref.html#functions-available-for-row-makers
 .. _DaCHS' public mixins: http://docs.g-vo.org/DaCHS/ref.html#mixins
@@ -2525,12 +2914,15 @@ data – see above for details on how to create users and groups.
 .. _Resource Metadata for the Virtual Observatory: http://www.ivoa.net/Documents/latest/RM.html
 .. _products#define: ref.html#products-define
 .. _ssap#setMeta: ref.html#ssap-setmeta
-.. _customization info in the operators' guide: opguide.html#adapting-dachs-for-your-site
+.. _customization info in the operators' guide: http://docs.g-vo.org/opguide.html#adapting-dachs-for-your-site
 .. _RMI-Style Metadata in the reference: http://docs.g-vo.org/DaCHS/ref.html#rmi-style-metadata
-.. _topcat: XXXFIME
 .. _reStructuredText: http://docutils.sourceforge.net/rst.html
 .. _vounits: XXXFIME
+.. _topcat: XXXFIME
 .. _gavo's adql short course: http://www.g-vo.org/adql
+.. _gavo ucd resolver: http://dc.g-vo.org/ucds/ui/ui/form
+.. _hints on common problems: http://docs.g-vo.org/commonproblems.html
+.. _stc-s definition: http://www.ivoa.net/Documents/Notes/STC-S/STC-S-20090527.html
 
 .. [#binding] This assumes you're doing this on your local machine (which
    were recommend to get started.  If you do this on a remote machine,
@@ -2544,3 +2936,35 @@ data – see above for details on how to create users and groups.
 
    (yes, there's nothing behind "bindAddress:").  Restart the server and
    you should see the output.
+
+.. [#othercone] The ``pos.eq`` UCDs are hardcoded; this is because the
+   standard simple cone search protocol specifies that the coordinates
+   passed in are ICRS, and hence other systems – galactic, say – make
+   little sense here.  Also, the web form-variants of the protocols let
+   users enter Simbad-resolvable identifiers rather than positions.  In
+   sum, making these things generic for other systems would be an
+   unreasonable implementation effort.
+
+   If you want to allow queryies in other systems, just write the index
+   statement inline, e.g., for galactic coordinates in the columns
+   ``lambda``, ``beta``::
+    
+    <index name="q3c_gal" cluster="True" columns="lambda,beta"
+      >q3c_ang2ipix(lambda,beta)</index>
+
+   A simple condDesc that searches using this index could be::
+
+    <condDesc>
+      <inputKey original="lambda" required="True"/>
+      <inputKey original="beta" required="True"/>
+      <inputKey name="sr" tablehead="Search Radius">
+        <values default="0.001"/>
+      </inputKey>
+      <phraseMaker>
+        yield q3c_radial_query(lambda, beta, %%(%s)s, "
+					"%%(%s)s, %%(%s)s)")%(
+					base.getSQLKey("lambda", inPars["lambda"], outPars),
+					base.getSQLKey("beta", inPars["beta"], outPars),
+					base.getSQLKey("sr", inPars["sr"], outPars))
+      </phraseMaker>
+    </condDesc>
