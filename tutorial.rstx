@@ -859,7 +859,7 @@ The renderers are referenced by name in the service's ``allowed``
 attribute.  What can be given there (concatenated by commas) is listed
 in the reference documentation's `renderer chapter`_.  As you have seen
 above, the renderer is selected via the URL.  If a client tries to
-retriev a URL with a renderer that is not in the service's ``allowed``
+retrieve a URL with a renderer that is not in the service's ``allowed``
 list, DaCHS will respond with a 403 forbidden HTTP code (excepting
 certain "unchecked" renderers like ``info`` that typically expose
 service metadata).  In addition, not all cores can be combined with all
