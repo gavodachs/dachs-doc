@@ -842,7 +842,7 @@ fairly simple for arihip::
   </service>
 
 
-To understand what's written here, some basic understanding of DaCHS'
+To understand what's going on here, some basic understanding of DaCHS'
 service architecture is required; it consists of:
 
 * cores; they actually do the computation or database query
