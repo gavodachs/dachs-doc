@@ -408,7 +408,9 @@ Futher metadata on columns includes:
         response function of our sage 3000 hyper-detector.</description>
     </column>
 * ucd – a Unified Content Descriptor as defined by IVOA.  To figure out
-  "good" UCDs, the `GAVO UCD resolver`_ can help.
+  "good" UCDs, the `GAVO UCD resolver`_ can help.  An easy way to come
+  up with them is also to leave them out initially and then run
+  ``gavo admin suggestucds`` (it's what we do these days).
 * required – True if value must be set in order for the record to be
   valid.  By default, NULL (which in python is None) is a valid value
   for any column and will silently be inserted if you don't assign a
