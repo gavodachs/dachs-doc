@@ -2186,9 +2186,10 @@ applications.  Let's look at a data element for this table::
 
 This does, step by step:
 
-* When ingesting images, you will almost always read from FITS images,
-  i.e., FITS primary headers.  A ``fitsProdGrammar`` delivers the
-  key-value-pairs from a header as a rawdict.
+* When ingesting images, you will (at least for a while, still) almost 
+  always read from FITS images, i.e., FITS primary headers.  
+  A ``fitsProdGrammar`` delivers the key-value-pairs from a 
+  header as a rawdict.
 * The ``qnd`` attribute of the grammar is recommended.  It makes
   some (weak) assumptions to yield significant speedups with large
   images.
@@ -2215,7 +2216,6 @@ This does, step by step:
 
 Warning: Do *not* use idmaps="*" with SIAP, since the auto-generated
 mappings will clobber the work of the xSIAP procs.
-
 
 
 Cores

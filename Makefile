@@ -27,7 +27,7 @@ LATEXOPTS=--documentoptions=11pt,a4paper --stylesheet stylesheet.tex
 
 .PHONY: ref.rstx apidoc-stamp
 ref.rstx:
-	gavo gendoc > ref.rstx
+	gavo --debug --traceback gendoc > ref.rstx
 
 # Since building apidoc takes forever, you need to manually trigger it
 # using make apidoc-stamp
