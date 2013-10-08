@@ -945,7 +945,7 @@ much harder in DaCHS than with your average programming system.  In the
 following, we collect some hints on what to do if things don't work.
 
 General Hints
--------------
+'''''''''''''
 
 * If you get error messages, be sure to check our `hints on common
   problems`_ – may commonly encountered problems are explained there with
@@ -984,7 +984,7 @@ General Hints
 
 
 Case Studies
-------------
+''''''''''''
 
 In this section we will damage the arihip RD in various ways, show
 you how the errors manifest themselves, and how you could try and figure
@@ -995,7 +995,7 @@ point us to outdated samples.
 
 
 XML syntax errors
-'''''''''''''''''
+.................
 
 These are mostly easy to diagnose (and fix), except that sometimes the
 errors show up too late.  For an example of a dramatic failure, delete
@@ -1091,7 +1091,7 @@ in DaCHS.
 
 
 Rowmaker trouble
-''''''''''''''''
+................
 
 Since rowmakers are a fairly thin layer on top of python, it's easy to
 elicit fairly confusing messages here.  To see how this looks in an easy
@@ -1278,7 +1278,7 @@ and then use the python debugger to figure things out.
 
 
 Debugging Services
-''''''''''''''''''
+...................
 
 TBW
 
@@ -2149,8 +2149,7 @@ you have no pgSphere).
 So, in the simplest case, a table that's going to be published through
 SIAP would look like this::
 
-  <table id="images" onDisk="True">
-    <mixin name="//siap#pgs"/>
+  <table id="images" onDisk="True" mixin="//siap#pgs">
   </table>
 
 (of course, you can add more columns if you need them).
