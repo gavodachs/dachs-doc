@@ -178,6 +178,10 @@ can feed this directly to votable.load(f)::
 
   data, metadata = votable.load(job.openResult())
 
+ADQL TAP results are simple web resources.  To get their URLs, there's
+the ``getResultURL`` method.  This is particularly useful with uploads
+(see below).
+
 More complex query patterns could yield more results; in that case,
 you will have to inspect ``job.results``, which is a list of triples of
 an access URL, an opaque string-typed id, and a UWS "result type" that
@@ -194,6 +198,61 @@ come out of the library.  No serious attempt is being made to catch
 such exceptions and translate them.  If something is wrong network-wise,
 we feel it's better to freely admit this.
 
+TAP-level errors (like syntax errors in the query, timeouts, and  the
+like) leave error information server-side.  Rather than inspecting the
+exception objects, you should use the ``getErrorFromServer`` method on
+the ADQLTAPJob.
+
+In this, proper TAP error messages (those coming back as VOTables) are
+parsed out, data that's not parseable as a TAP error message is returned
+as-is; thus the string returned may be long (e.g., some fancy 404 HTML
+page).
+
+
+Uploads
+-------
+
+TAP allows uploads to servers, although not all services actually
+support this (you can use a service's capabilities to figure that out;
+we may add support for parsing those if there's demand).
+
+Services that do support it let you at least upload using URLs to
+VOTables or upload VOTables inline.  Both cases are supported in
+ADQLTAPJob's ``addUpload(name, data)`` method.  ``name`` is the name
+that the table will be visible as later.  Use something that works as a
+regular SQL identifier here.
+
+``data`` can be either a string (which is then interpreted as the URL to
+take the upload from) or a file-like object (that is then turned into an
+inline upload).  In both cases, only VOTable is (reliably) supported as
+the upload format.
+
+Note that URLs of previous results work as upload URLs.  Here's an
+example of how that might look like, where this retrieves all objects in
+PPMXL in the vicinity of a detection of a neutrino::
+
+  from gavo import votable
+
+  accessURL = "http://dc.g-vo.org/tap"
+  job1 = votable.ADQLTAPJob(accessURL, 
+    "SELECT nualpha, nudelta FROM amanda.nucand WHERE nch>100")
+  job1.run()
+
+  job2 = votable.ADQLTAPJob(accessURL, 
+    "SELECT DISTINCT TOP 10000 raj2000, dej2000, pmRA, pmDE"
+    " FROM ppmxl.main"
+    " JOIN TAP_UPLOAD.nupos"
+    "   ON (1= CONTAINS(POINT('ICRS',raj2000,dej2000),"
+    "      CIRCLE('ICRS', nualpha , nudelta, 0.25)))")
+  job2.addUpload("nupos", job1.getResultURL())
+  job2.run()
+
+  dataIterator, metadata = votable.load(job2.openResult())
+  job1.delete()
+  job2.delete()
+  print list(dataIterator)
+
+
 
 Sync Querying
 -------------
@@ -207,9 +266,9 @@ no-op.  Instead, either ``run`` or ``start`` just query the remote
 server and return when the server is done.  For convenience, they return
 the job itself, so that you can say things like::
 
-	print votable.ADQLSyncJob(
-	  "http://dc.zah.uni-heidelberg.de/__system__/tap/run/tap",
-	  "SELECT * FROM TAP_SCHEMA.tables"
+  print votable.ADQLSyncJob(
+    "http://dc.zah.uni-heidelberg.de/__system__/tap/run/tap",
+    "SELECT * FROM TAP_SCHEMA.tables"
     ).run().openResult().read()
 
 All "unpredictable" exceptions on sync jobs are raised from within
@@ -227,9 +286,6 @@ came in.  Tell us if that bugs you.
 The error associated with the exception object will usually not be
 particularly useful.  Instead, obtain an error message from the server
 using the ``getErrorFromServer`` method like for ADQLTAPJobs.
-TAP errors (those coming back as VOTables) are parsed out, data
-that's not parseable as a TAP error message is returned as-is; thus the
-string returned may be long (e.g., some fancy 404 HTML page).
 
 ------
 
