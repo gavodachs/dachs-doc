@@ -981,6 +981,72 @@ General Hints
 * If ``gavo serve start`` doesn't actually cause the server to run,
   something went wrong after detaching from the controlling terminal.
   The messages are in the logs directory, in the file ``serverStderr``.
+Debugging Services
+''''''''''''''''''.
+
+Debugging services is of course an extra challenge since code runs deep
+in the bowels of a complex system, with timeouts, threads, and all kinds
+of nastyness involved.  The first adivce is: Pull whatever is mysterious
+into your development system and run ``gavo serve debug``.  You can even
+do the ``import pdb;pdb.set_trace()`` trick then.  It's a bit tricky to
+communicate with the debugger in between the log messages of ``gavo
+serve debug``, and there's no readline support since pdb doesn't think
+it's running within a terminal there, but it's definitely doable.
+
+Another challenge is that sometimes problems manifest themselves in a
+running server.  In that case it's sometimes useful to open a manhole
+into the server.  One reasonably convenient way to do this is to but a
+special RD somewhere (e.g., ``__tests/manhole.rd``) and use some
+RD-embedded code to introspect the server.  We ususally use a datalink
+service for this since it keeps things nicely self-contained – an
+obvious alternative with less bending could be a custom renderer.
+
+Here's how something that fiddles out a column property would look
+like::
+
+  <resource schema="test">
+    <service id="look" allowed="dlget">
+      <datalinkCore>
+        <metaMaker>
+          <code>
+            yield MS(InputKey, name="i", type="text")
+          </code>
+        </metaMaker>
+        <descriptorGenerator>
+          <code>
+            return ProductDescriptor(None, None, 'text/plain')
+          </code>
+        </descriptorGenerator>
+        <dataFunction>
+          <code>
+            descriptor.data = "debugging"
+          </code>
+        </dataFunction>
+        <dataFormatter>
+          <code>
+            class DebugResult(Page):
+              def renderHTTP(self, ctx):
+                request = IRequest(ctx)
+                request.setHeader("content-type", "text/plain")
+                return "%s"%base.caches.getRD("maidanak/res/rawframes"
+                  ).getById("rawframes").getColumnByName("accref").displayHint
+            return DebugResult()
+          </code>
+        </dataFormatter>
+      </datalinkCore>
+    </service>
+  </resource>
+
+All but the data formatter is just blind code for hiding our true
+intentions from the datalink machinery.  In the data formatter, you can
+return arbitrary text.  You can now access
+``http://localhost:8080/__tests/manhole/look?PUBDID=0&i=0`` and see
+whatever gets returned from ``renderHTTP`` (the values of PUBDID and i
+obviously play no role here).
+
+Note that you can edit manhole.rd, save it, and reload the page; the
+server will notice your changes and display the new result without a
+restart.
 
 
 Case Studies
@@ -1277,10 +1343,6 @@ nicest way to debug stuff like this is to write::
 and then use the python debugger to figure things out.
 
 
-Debugging Services
-...................
-
-TBW
 
 
 More on Grammars
@@ -2963,9 +3025,9 @@ data – see above for details on how to create users and groups.
       </inputKey>
       <phraseMaker>
         yield q3c_radial_query(lambda, beta, %%(%s)s, "
-					"%%(%s)s, %%(%s)s)")%(
-					base.getSQLKey("lambda", inPars["lambda"], outPars),
-					base.getSQLKey("beta", inPars["beta"], outPars),
-					base.getSQLKey("sr", inPars["sr"], outPars))
+          "%%(%s)s, %%(%s)s)")%(
+          base.getSQLKey("lambda", inPars["lambda"], outPars),
+          base.getSQLKey("beta", inPars["beta"], outPars),
+          base.getSQLKey("sr", inPars["sr"], outPars))
       </phraseMaker>
     </condDesc>

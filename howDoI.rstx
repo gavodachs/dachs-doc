@@ -678,13 +678,13 @@ ICRS)::
   <apply name="convertPosition">
     <setup>
       <code>
-	      gal2ICRS = stc.getSimple2Converter(
-		      stc.parseSTCS("Position GALACTIC"), 
-		      stc.parseSTCS("Position ICRS"))
-		  </code>
-		</setup>
-		<code>
-    	@raj2000, @dej2000 = gal2ICRS(@galLon, @galLat)
+        gal2ICRS = stc.getSimple2Converter(
+          stc.parseSTCS("Position GALACTIC"), 
+          stc.parseSTCS("Position ICRS"))
+      </code>
+    </setup>
+    <code>
+      @raj2000, @dej2000 = gal2ICRS(@galLon, @galLat)
     </code>
   </apply>
 
@@ -721,7 +721,7 @@ inputs directory; with the default config::
 
 In tap.rd, look for the actual service element::
 
-	<service id="run" core="null" allowed="tap">
+  <service id="run" core="null" allowed="tap">
 
 In that copy, write ``limitTo="tapusers"``.  You need to restart the
 server to pick up the new RD, after that, it should pick up changes by
@@ -749,5 +749,70 @@ key ``parser_``.  For grammars actually reading from files, the
 ``sourceToken`` attribute of these gives the absolute path of the input
 file.  Hence, you'd say::
 
-	<map dest="modstamp">os.path.getmtime(@parser_.sourceToken)</map>
-  
+  <map dest="modstamp">os.path.getmtime(@parser_.sourceToken)</map>
+ 
+
+...disable automatic previews in "product" columns?
+---------------------------------------------------
+
+By default, whenever a table mixes in ``//products#table``, in HTML
+displays the cell values will contain a link that becomes a preview when
+the user mouses over it.  That behaviour is a nuisance if the files
+cannot be previewed for one reason or another (remote file, unknown file
+type, etc).
+
+The previews code is inserted when columns with
+``displayHint="type=product"`` are rendered into HTML tables.  The code
+that does this recognizes a second display hint, ``nopreview``, which,
+when set to any value, inhibits the generation of previews.
+
+Regrettably, at this point there is no way to change the display hint
+in the table itself (we're thinking of a general way for ad-hoc
+overriding of mixin columns, but unfortunately, that's a bit subtle).
+
+Therefore, you need to fix the display hint when building the output
+table.  The quickest way to do this is by using the output table's
+``verbLevel`` attribute, and then overriding the accref column.  This
+could look like this::
+
+  <service...>
+    ...
+    <outputTable verbLevel="20">
+      <outputField original="accref" displayHint="type=product,nopreview=1"/>
+    </outputTable>
+    ...
+  </service>
+
+``verbLevel="20"`` selects all columns in the queried table with a
+``verbLevel`` less or equal 20 (which is the default when you don't give
+an ``outputTable``); you can adapt that number to whatever fits your
+needs.
+
+A downside of this approach is that the image column ends up a the very
+beginning of each row.  For full control over which columns are
+displayed and which go where, use the following pattern::
+
+   <service...>
+    ...
+    <outputTable>
+      <LOOP listItems="source srcId confirmed lensalpha"
+        <events>
+          <outputField original="\item"/>
+        </events>
+      </LOOP>
+
+      <outputField 
+        original="accref" displayHint="type=product,nopreview=1"/>
+
+      <LOOP listItems="raj2000 dej2000">
+        <events>
+          <outputField original="\item"/>
+        </events>
+      </LOOP>
+    </outputTable>
+    ...
+  </service>
+
+An added benefit of this is that the first approach only works starting
+DaCHS SVN rev. 3351, whereas this has been possible at least since about
+version 0.7.
