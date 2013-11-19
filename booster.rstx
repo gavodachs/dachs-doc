@@ -5,28 +5,52 @@ GAVO DaCHS: DirectGrammars and Boosters
 :Author: Markus Demleitner
 :Email: gavo@ari.uni-heidelberg.de
 
+The import architecture of DaCHS with grammars and rowmakers producing
+material suitable for SQL INSERT statements is designed to be flexible
+and as declarative as possible.  Its one drawback is that once you have
+to ingest more than a couple of million rows (or less rows with hundreds
+of columns) it tends to become slow, leading to ingestion times in
+excess of an hour.
 
-A DirectGrammar is some program that gets called by the ingestor and
-outputs binary COPY material to be dumped into the table to stdout.
-Note that, by these restrictions, direct grammars can only operate on
-single tables; data descriptors containing more than one ``make`` cannot
-have direct grammars.  The record definition of the table to be filled
-in this way must of course have ``onDisk="true"``.
+To remedy this, DaCHS supports "boosters", programs that bypass both
+DaCHS' intenstines and SQL INSERT statements, both of which are
+responsible for quite some overhead.  Boosters, in constrast, use C code
+to fetch data and output binary COPY material to be dumped into the
+table.  The net result are very significant speedups; a factor of 100 is
+easily attainable.
 
-This program can in principle be anything you like, but usually they are
-written in C using the boosterskel infrastructure
-(``resources/src/boosterskel.c``).  This infrastructure yields programs that
-expect to be called with a single argument, the source file to operate
-on.
+Of course, there are several downsides.  One is that you have to write
+(and possibly debug) C code, and schema changes will become fairly
+painful, requiring surgery in the C code (a notable exception are direct
+grammars reading from FITS binary tables; the latter contain sufficient
+metadata to allow fully automatic code generation in simple cases).
+Also, direct grammars can only operate on single tables; data
+descriptors containing more than one ``make`` cannot have direct
+grammars.  The record definition of the table to be filled in this way
+must of course have ``onDisk="true"``.
 
-To use a booster, say
+Rowmakers given in makes sitting behind direct grammars are, of course,
+also ignored.  It is not an error for them to be present, though.  This
+lets you test and debug with normal DaCHS grammars and then use a
+booster for the whole (potentially big) dataset, doing table compares
+(e.g., using ``gavo info`` to verify that the booster does the same
+thing as the conventional grammar/rowmaker combo.
 
-::
+To use a booster, say::
 
-  <directGrammar cBooster="res/boosterfunc.c"/>
+  <directGrammar type="(something)" cBooster="res/boosterfunc.c"/>
 
 in a ``data`` element.  The path in the ``cbooster`` attribute is interpreted 
-relative to the RD's resdir.
+relative to the RD's resdir.  The type argument says rougly what kind of
+source you're parsing from.  Values allowed here include:
+
+* ``col`` (the default) – parse from stuff conventionally handled by a
+  ColumnGrammar
+* ``bin`` – parse from data that has fixed-length binary records
+* ``split`` – parse from files that have fields separated by some
+  constant sequence of character (conventionally, these can be parsed
+  by ReGrammars).
+* ``fits`` parse from FITS binary tables.
 
 
 Input Formats

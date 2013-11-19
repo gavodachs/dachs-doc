@@ -183,7 +183,7 @@ Defining Basic Metadata
 
 The first step is to define your authority (i.e., something like
 org.g-vo.dc) in your config (``/etc/gavo.rc``), in the
-``[ivoa]authoriy`` item.  Please make sure that the authority is not
+``[ivoa]authority`` item.  Please make sure that the authority is not
 already taken by someone else; you have probably fulfilled your due
 diligence if you've run an `authority query against the registry`_ and
 did not find a match.  Using your DNS name is not a bad idea.  Please
@@ -200,7 +200,7 @@ and some fallback for services (the defaults all make no sense at all
 and should never escape to the VO registry):
 
 * publisher – A short, human-readable name for you
-* publisher.ivoId – An IVOA id for yourself;  set this to
+* publisherID – An IVOA id for yourself;  set this to
   ivo://<authority>/org unless you know what you are doing
 * contact.name – A human-readable name for some entity people should
   write to.  This is not necessarily different from publisher, but
@@ -257,7 +257,7 @@ and should never escape to the VO registry):
   lines).
 
 .. _tutorial chapter on the registry: tutorial.html#the-registry-interface
-.. _authority query against the registry: http://dc.zah.uni-heidelberg.de/__system__/adql/query/form?query=select%20ivoid%20from%20rr.resource%20where%20res_type%3D%27vg%3AAuthority%27%20and%20ivoid%3D%27ivo%3A%2F%2Forg.gavo.dc%27
+.. _authority query against the registry: http://dc.zah.uni-heidelberg.de/__system__/adql/query/form?query=select%20ivoid%20from%20rr.resource%20where%20res_type%3D%27vg%3Aauthority%27%20and%20ivoid%3D%27ivo%3A%2F%2Forg.gavo.dc%27
 .. _meta stream format: ref.html#meta-stream-format
 
 
