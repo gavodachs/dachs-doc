@@ -10,6 +10,9 @@ for the Virtual Observatory, including a flexible component for
 ingesting and mapping data, integrated metadata handling with a
 publishing registry, and support for many VO protocols and standards.
 
+This documentation suite was formatted on |date| and should reflect the
+state as of the corresponding SVN revision.
+
 
 Documentation
 =============
@@ -20,7 +23,8 @@ are certainly good indicators of where need is greatest.
 What to read when?
 ------------------
 
-Obviously, you should start with the installation instructions.  You
+Obviously, you should start with the installation instructions (have a
+brief glance at them even if you install from Debian package).  You
 should then probably read and work through the tutorial to get a feel
 for how DaCHS works.  Once you have data and want to go live, you'll
 have to read the operator's guide.  That's about all there is to read
@@ -32,7 +36,10 @@ solution for which is not immediately obvious, try the "How do I"
 document.  If what you want is not covered, ask the authors.
 
 The reference is, well, the reference, and I'm afraid you'll have to
-look up things in there fairly regularly.
+look up things in there fairly regularly.  The good news is that there's
+examples in the index to elements and attributes in the GAVO DC; these
+are essentially live, and as long as you've had a look at the reference,
+there's nothing wrong with lavishly copying from there.
 
 You can ignore the topic guides (booster grammars, preprocessing,
 anything else that might yet come) until you notice you need to read
@@ -60,6 +67,8 @@ For Data Center Operators
 * Guide to preprocessing input files (`processors.html <./processors.html>`_,
   `processors.pdf <./processors.pdf>`_, 
   `processors.rstx <./processors.rstx>`_)
+* Reference to elements and attributes in use in GAVO's data center
+  (`elemref.html <elemref.html>`_)
 
 For VO Data Providers
 ---------------------
@@ -97,4 +106,6 @@ Software
 ========
 
 To obtain the software (or parts of it), see
-http://vo.ari.uni-heidelberg.de/soft.
+http://soft.g-vo.org.
+
+.. |date| date::

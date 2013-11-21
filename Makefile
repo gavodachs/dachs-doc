@@ -2,7 +2,7 @@ HTMLTARGET=vo.ari.uni-heidelberg.de:/var/www/docs/DaCHS
 RST_SOURCES=data_checklist.rstx howDoI.rstx ref.rstx tutorial.rstx\
 	booster.rstx install.rstx stc.rstx processors.rstx adql.rstx\
 	votable.rstx commonproblems.rstx tapquery.rstx develNotes.rstx\
-	opguide.rstx
+	opguide.rstx elemref.rstx
 ALL_HTML=index.html $(subst .rstx,.html,$(RST_SOURCES))
 HTML_FILES=$(ALL_HTML)
 ALL_PDF=$(subst .rstx,.pdf,$(RST_SOURCES))
@@ -25,10 +25,13 @@ LATEXOPTS=--documentoptions=11pt,a4paper --stylesheet stylesheet.tex
 %.tex: %.rstx
 	rst2latex $(LATEXOPTS) $< > $@
 
-.PHONY: ref.rstx apidoc-stamp
+.PHONY: ref.rstx elemref.rstx apidoc-stamp
 ref.rstx:
 	gavo --debug --traceback gendoc > ref.rstx
 
+elemref.rstx:
+	python makeElementIndex.py > $@
+	
 # Since building apidoc takes forever, you need to manually trigger it
 # using make apidoc-stamp
 apidoc-stamp:
