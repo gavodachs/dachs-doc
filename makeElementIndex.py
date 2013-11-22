@@ -30,12 +30,29 @@ active tags).  Thus, you should keep searching after the first match to
 find more examples.
 
 Meta elements are omnipresent, but some names are somewhat magic, so for
-those we use the ad-hoc syntax ``meta[name]``.
+those we use the ad-hoc syntax ``meta[name]``.  Some other elements for
+which attribute values or similar are important for semantics are listed
+in a similar way, e.g., displayHint, property, or mixin.
 
 This document was generated %s using the docs/makeElemenIndex.py script
 in the DaCHS distribution.
 
 """%(datetime.datetime.now().strftime("%Y-%m-%dT%H:%M:%S"))
+
+
+def doSpecials(name, value, element, keys):
+	"""adds some "magic" xpaths to keys.
+
+	This is for stuff like mixin or displayHint, where attribute values
+	matter a lot for semantics.
+	"""
+	if name=="mixin":
+		keys.add("mixin[%s]"%value)
+	elif name=="displayHint":
+		keys.add("displayHint[%s]"%value)
+	elif name=="property":
+		keys.add("property[%s]"%(element.attrib.get("key") 
+			or element.attrib["name"]))
 
 
 def gatherXPaths(inFile):
@@ -56,8 +73,11 @@ def gatherXPaths(inFile):
 			else:
 				if len(curPath)>1:
 					keys.add("/".join(curPath[1:]))
+				doSpecials(element.tag, element.text, element, keys)
+
 				for attName in element.attrib:
 					keys.add("/".join(curPath[1:])+"/%s"%attName)
+					doSpecials(attName, element.attrib[attName], element, keys)
 
 			curPath.pop()
 
@@ -102,7 +122,6 @@ def makeIndexRSTX(pathIndex, baseURL):
 		result.append(".. _%s: %s/%s.rd"%(rdId, baseURL, rdId))
 
 	return INTRO+'\n'.join(result)
-
 
 
 def main():
