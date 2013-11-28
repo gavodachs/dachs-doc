@@ -816,3 +816,49 @@ displayed and which go where, use the following pattern::
 An added benefit of this is that the first approach only works starting
 DaCHS SVN rev. 3351, whereas this has been possible at least since about
 version 0.7.
+
+
+...have output columns with URLs in them
+----------------------------------------
+
+You might be tempted to use ``outputField/formatter`` for this, and
+indeed this lets you generate arbitrarily odd things, including
+javascript, in whatever you make of the value coming in.  But nothing
+but a web browser can do anything with this kind of thing.  Therefore,
+DaCHS does not execute formatters for non-HTML output, which means
+for something like::
+
+  <outputField name="obsid" type="text"
+    description="Link to retrieve data">
+    <formatter>
+      return T.a(href="http://my.data.serv.er/customservice?"+data)[
+        "Download"]
+    </formatter>
+  </outputField>
+
+VOTable and friends will only have the value of whatever obsid is in
+their corresponding column, which in this case is probably *not* what
+you want.
+
+Instead, use the ``select`` attribute of ``outputField`` to generate the
+URL within the database, like this::
+
+  <outputField name="obsURL" type="text"
+    description="Link to retrieve data"
+    select="'http://my.data.serv.er/customservice?'||obsid"
+    displayHint="type=url"/>
+
+The ``type=url`` display hint will generate links in HTML (and possibly
+some other appropriate thing for URLs in particular in other output
+formats).  The anchor text is the last item from the path component of
+the URL, which is not always what you want.  To override it, you can use
+a formatter, or, in simple cases when a constant text will do, the
+anchorText property, like this::
+
+  <outputField name="obsURL" type="text"
+    description="Link to retrieve data"
+    select="'http://my.data.serv.er/customservice?'||obsid"
+    displayHint="type=url">
+    <property key="anchorText">Retrieve Data</property>
+  </outputField>
+

@@ -212,7 +212,8 @@ Another hint: There's a fairly large body of RDs at
 http://svn.ari.uni-heidelberg.de/svn/gavo/hdinputs, and most of them are
 free for inspection and blatant stealing (if you need a license on any
 of this, let us know).  These RDs can be seen live on
-http://dc.g-vo.org.
+http://dc.g-vo.org.  To locate examples for concrete elements, meta
+items, and such, have a look at our `RD element reference`_ for these.
 
 The RD goes on to give metadata applying to everything within the RD::
 
@@ -830,8 +831,7 @@ fairly simple for arihip::
     </meta>
 
     <dbCore queriedTable="main">
-      <condDesc original="//scs#humanInput"/>
-      <condDesc original="//scs#protoInput"/>
+      <FEED source="//scs#coreDescs"/>
       <condDesc buildFrom="mv"/>
       <condDesc>
         <inputKey original="hipno" required="False"/>  
@@ -1595,13 +1595,17 @@ More on Services
 Custom Templates
 ----------------
 
-Within the data center, most pages are generated from templates [XXX
-TODO: write something about them generically].  This is true for the 
-pages the form renderer on services displays as well.  To effect special
-effects, you may want to override them (though in general, it is a much
-better idea to work within the standard template since that will give
-your service all kind of automatic updates and would make, e.g., changes
-much easier if your institution undergoes the yearly reorganization).
+Within the data center, most pages are generated from templates; these
+are written in XHTML (well-formed XML is important, DaCHS itself does
+not care avout valid XHTML, though) with stan/nevow markup.  Please bug
+us to provide more documentation on this.
+
+The pages the form renderer on services displays are generated from such
+templates, too.  To effect special effects, you may want to override
+them (though in general, it is a much better idea to work within the
+standard template since that will give your service all kind of
+automatic updates and would make, e.g., changes much easier if your
+institution undergoes the yearly reorganization).
 
 You can retrieve the default response template as something to start
 from by saying::
@@ -1666,9 +1670,8 @@ Automatic and manual control
 ''''''''''''''''''''''''''''
 
 However, most condDescs correspond to one input key, and the input key
-is mostly derived from a table column.  This is the standard idiom,
-
-::
+is mostly derived from a table column.  This is effected by the standard
+idiom::
 
   <condDesc buildFrom="somecol"/>
 
@@ -1780,12 +1783,16 @@ write the equivalent vizier-like expressions)::
 
     <condDesc>
       <inputKey name="date" tablehead="Date" type="date"
+        multiplicity="single"
         required="True"/>
       <inputKey name="time" tablehead="Time (UTC)" type="time"
+        multiplicity="single"
         required="True"/>
       <inputKey name="within" required="True" type="integer"
+        multiplicity="single"
         tablehead="plus/minus" unit="minutes"
-        description="Give measurements within this many minutes of your chosen date and time.  The sampling rate is 20 minutes">
+        description="Give measurements within this many minutes 
+         of your chosen date and time.  The sampling rate is 20 minutes">
         <values default="11"/>
       </inputKey>
       <phraseMaker>
@@ -2041,8 +2048,9 @@ in general, depend on the time format chosen; all of the above could be
 used for quantities like ``time.creation``, ``time.end``,
 ``time.epoch``, ``time.equinox``, ``time.processing``, ``time.release``,
 ``time.start``, and more.  The SIAP version 1 protocol made a funky
-exception there, defining an ``VOX:Image_MJDateObs`` UCD; please forget that
-ever happened.
+exception there, defining an ``VOX:Image_MJDateObs`` UCD; everything
+about that UCD is horrible, and it is generally accepted in the VO that
+this was an error.
 
 Finally, there is advanced metadata, in particular time zones, time
 scales (i.e., how does the the time pass) and reference positions (i.e.,
@@ -2102,25 +2110,31 @@ This section discusses the individual protocols in turn.
 SCS
 ---
 
-SCS, the simple cone search, is the simplest IVOA DAL protocol -- it
-is just HTTP with RA, DEC, and SR parameters plus a special way to
-encode errors (in a way somewhat different from what has been specified for
-later DAL protocols).
+SCS, the simple cone search, is the simplest IVOA DAL protocol -- it is
+just HTTP with RA, DEC, and SR parameters, a slightly constrained
+VOTable response, plus a special way to encode errors (in a way somewhat
+different from what has been specified for later DAL protocols).
+
+The service discussed in `Building a Catalog Service`_ is a combined
+SCS/form service.  This section just briefly recapitulates what was
+discussed there.  For a quick start, just follow the tutorial above.
+
 
 Tables
 ''''''
 
 In principle, SCS can expose any table that has a exactly one column
 each with the UCDs ``pos.eq.ra;meta.main``, ``pos.eq.dec;meta.main``,
-and ``meta.id;meta.main``.  The query is then ran against the position
+and ``meta.id;meta.main``, where the coordinates must be real or double
+precision, and the id must be either some integral type or text; the
+standard requires the id to be text, but the renderer will automatically
+convert integral types.  The main query is then ran against the position
 specified in this way.
 
-However, you almost always want to have a spatial index on these
-columns.  To do that, use the ``//scs#q3cindex`` mixin on the tables, like
-this::
+You almost always want to have a spatial index on these columns.  To do
+that, use the ``//scs#q3cindex`` mixin on the tables, like this::
   
-  <table id="forSCS" onDisk="true" mixin="//scs#q3cindex">
-    ...
+  <table id="forSCS" onDisk="true" mixin="//scs#q3cindex"> ...
 
 Finally, note that to have a valid SCS service, you must make sure the
 output table always contains the three required columns (as defined by
@@ -2172,6 +2186,10 @@ want to add a larger number of them, you would use an active tag::
     </LOOP>
   </dbCore>
 
+Note that most current SCS clients are not good at discovering them,
+since for SCS this requires going through the registry.  In TOPCAT, for
+example, users would have to manually edit the cone search URL.
+
 
 Service
 '''''''
@@ -2180,24 +2198,76 @@ To expose that core through a service, just allow the scs.xml renderer
 on it.  As the core is built, you can have a web-based form interface
 for free::
 
-  <service id="cone" core="xlcore" allowed="scs.xml,form">
+  <service id="cone" allowed="scs.xml,form">
     <meta name="title">Nice Catalog Cone Search</meta>
     <meta name="shortName">NC Cone</meta>
     <meta name="testQuery.ra">10</meta>
     <meta name="testQuery.dec">10</meta>
     <meta name="testQuery.sr">0.01</meta>
+    <dbCore id="xlcore" queriedTable="main">
+      <condDesc original="//scs#humanInput"/>
+      <condDesc original="//scs#protoInput"/>
+      <LOOP listItems="ipix bmag rmag jmag pmra pmde">
+        <events>
+          <condDesc buildFrom="\item"/>
+        </events>
+      </LOOP>
+    </dbCore>
   </service>
 
 The meta information given is used when generating registration
 records.  In particular, you should make sure that a query with the
 given ra, dec, and sr actually returns some data.
 
+
 SIAP
 ----
 
 DaCHS' SIAP implemention right now assumes you are publishing FITS files
 with WCS headers.  Other arrangements are of course possible, but you'd
-have to write your own computeXXX procDef.
+have to write an equivalent of the ``//siap#computePGS`` procDef
+yourself.
+
+
+Quick Start
+'''''''''''
+
+Check out a sample resource directory::
+
+  svn co http://svn.ari.uni-heidelberg.de/svn/gavo/hdinputs/emi
+  cd emi
+  mkdir data
+
+Now fetch some files to populate the data directory so you have
+something to import::
+
+  cd data
+  SRCURL=http://dc.g-vo.org/emi/q/s/siap.xml
+  curl -s $SRCURL"?POS=163.3,57.8&SIZE=20,20&MAXREC=5&weighting=uniform" \
+    | tr '<TD>' '\n' \
+    | grep "^http://" \
+    | sed -e 's/<[^>]*>//g' \
+    | xargs -n1 curl -sO
+
+(no, this is not in general the way to operate SIAP services; use a
+proper client for real work, and we didn't show you this).
+
+Run the import::
+
+  cd ..
+  gavo imp q
+
+Now start the server as necessary (see above), and start TOPCAT and
+Aladin.  In TOPCAT, open VO/SIA Query, enter your new service's access
+URL (it's ``http://dc.g-vo.org/emi/q/s/siap.xml`` unless you did
+something cunning and should know better yourself) under "SIA URL"
+pretty far down in the dialog.
+
+Then have "Lockman Hole" as Object Name and resolve it, or enter 163 and
+57.5 as RA and Dec, respectively, and have 1 as Angular Size.  Send off
+the request.
+
+TODO: Continue
 
 
 Tables
@@ -2592,7 +2662,7 @@ obscore table::
   gavo imp -m path/to/my/rd
   gavo imp //obscore create
 
-For SSAP tables, there is an ``//obscore#publishSSAP`` mixin that works
+For SSAP tables, there is an ``//obscore#publishSSAPHCD`` mixin that works
 like its SIAP cousin (see the reference documentation of details).
 
 If you have "custom" tables, have a look at what GAVO does for its
@@ -2980,12 +3050,13 @@ data – see above for details on how to create users and groups.
 .. _customization info in the operators' guide: http://docs.g-vo.org/opguide.html#adapting-dachs-for-your-site
 .. _RMI-Style Metadata in the reference: http://docs.g-vo.org/DaCHS/ref.html#rmi-style-metadata
 .. _reStructuredText: http://docutils.sourceforge.net/rst.html
-.. _vounits: XXXFIME
-.. _topcat: XXXFIME
+.. _vounits: http://www.ivoa.net/documents/VOUnits/index.html
+.. _topcat: http://www.star.bris.ac.uk/~mbt/topcat/
 .. _gavo's adql short course: http://www.g-vo.org/adql
 .. _gavo ucd resolver: http://dc.g-vo.org/ucds/ui/ui/form
 .. _hints on common problems: http://docs.g-vo.org/commonproblems.html
 .. _stc-s definition: http://www.ivoa.net/Documents/Notes/STC-S/STC-S-20090527.html
+.. _RD element reference: http://docs.g-vo.org/DaCHS/elemref.html
 
 .. [#binding] This assumes you're doing this on your local machine (which
    were recommend to get started.  If you do this on a remote machine,
