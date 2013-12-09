@@ -981,6 +981,7 @@ General Hints
 * If ``gavo serve start`` doesn't actually cause the server to run,
   something went wrong after detaching from the controlling terminal.
   The messages are in the logs directory, in the file ``serverStderr``.
+
 Debugging Services
 ''''''''''''''''''.
 
@@ -2336,7 +2337,7 @@ lower or equal 20 will be included in standard SIAP replies.
 
 To fill such tables, the normal ``//products#define`` rowfilter is
 necessary, and there are two procDefs from ``//siap`` that come in
-handy:
+handy::
 
 	<data id="import_main">
 		<sources recurse="True">
