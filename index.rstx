@@ -108,4 +108,24 @@ Software
 To obtain the software (or parts of it), see
 http://soft.g-vo.org.
 
+
+Support
+=======
+
+If you run a DaCHS server, please subscribe to the `DaCHS-users`_
+mailing list.  It is low volume (less than one mail a month), and you get
+to know when new releases come out.  We'd also appreciate being able to
+alert our users in case a security hole should be discovered in the
+software (which hasn't happened so far, FWIW).
+
+If you have questions regarding DaCHS, we'd appreciate if you subscribed
+and sent your question to the `DaCHS-support`_ list (if all support
+requests went on the list, we'd expect a volume of about one mail per
+day, but let's see). It has a public archive, and other users can profit
+from our (and your peers') answers, which is why we prefer the list to
+questions sent directly to gavo@ari.uni-heidelberg.de; these will of
+course still be answered.
+
+.. _DaCHS-users: http://lists.g-vo.org/cgi-bin/mailman/listinfo/dachs-users
+.. _DaCHS-support: http://lists.g-vo.org/cgi-bin/mailman/listinfo/dachs-support
 .. |date| date::
