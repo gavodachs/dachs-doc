@@ -39,14 +39,28 @@ especially useful for table compares (e.g., using ``gavo info``) to
 verify that the booster does the same thing as the conventional
 grammar/rowmaker combo.
 
-To use a booster, say::
 
-  <directGrammar id="boost"
-    type="(something)" cBooster="res/boosterfunc.c"/>
+A quick start on using boosters:
 
-in a ``data`` element.  The path in the ``cBooster`` attribute is interpreted 
-relative to the RD's resdir.  The type argument says rougly what kind of
-source you're parsing from.  Values allowed here include:
+1) Replace your data element's grammar with the direct grammar spec,
+   which would look somewhat like this::
+
+		<directGrammar id="fits" type="fits" cBooster="res/boosterfunc.c"/>
+   
+2) Generate the booster::
+
+    gavo mkboost your/rd#fits > res/boosterfunc.c
+
+3) Edit res/boosterfunc.c (may be optional for fits boosters)
+
+4) Import your data::
+
+    gavo imp your/rd
+
+
+In the directGrammar_ element, the path in the ``cBooster`` attribute is
+interpreted relative to the RD's resdir.  The type argument says rougly
+what kind of source you're parsing from.  Values allowed here include:
 
 * ``col`` (the default) – parse from stuff conventionally handled by a
   ``columnGrammar``
@@ -58,14 +72,9 @@ source you're parsing from.  Values allowed here include:
 * ``fits`` – parse from FITS binary tables (that's what a
   ``fitsTableGrammar`` can read).
 
-You will then need to generate the C source using the ``mkboost``
-subcommand, which needs the reference of the ``directGrammar`` element
-as an argument::
-
-  gavo mkboost myresdir/q#boost > res/boosterfunc.c
-
-You will then (typically) need to edit ``boosterfunc.c``; if you're
-done, just say ``gavo imp`` as usual.
+The ``mkboost`` subcommand receives a reference of to the
+``directGrammar`` element – that is, the RD id, a hash, and the XML id
+of the grammar – as an argument.
 
 The source code generated typically is really mean.  The preference
 is to make it coredump rather than give fancy errors, under the
@@ -338,6 +347,7 @@ are welcome, but we'll also fix this if you ask for it).
 If you need to postprocess the items, we recommend you do that again in
 the ``getTuple`` function (note how that gets passed the row index) for
 maintainability, rather than directly after reading the rows.
+
 
 
 Filling in data manually

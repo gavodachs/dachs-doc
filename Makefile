@@ -10,7 +10,8 @@ LATEXOPTS=--documentoptions=11pt,a4paper --stylesheet stylesheet.tex
 
 
 %.html: %.rstx
-	rst2html --stylesheet ref.css --link-stylesheet < $<  >$@
+	rst2html --template rst2html-template.txt --stylesheet ref.css\
+		--link-stylesheet < $<  >$@
 
 %.dvi: %.tex
 	latex $<
