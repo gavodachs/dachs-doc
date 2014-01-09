@@ -68,6 +68,16 @@ You could also instruct the rowmaker to ignore that key; this would
 require you to enumerate all rows you want mapped.
 
 
+Import fails with "Column xy missing" and very few keys
+=======================================================
+
+This error is caused by the row validation of the table ingestor – it
+wants to see values for all table columns, and it's missing one or more.
+This may be flabbergasting when your grammar yields the fields that 
+are missing here.  The reason is simple: You must map them in the
+rowmaker.  If you see this error, you probably wanted to write
+``idmaps="*"`` or something like that in the rowmaker.
+
 
 Server is Only Visible from the Local Host
 ==========================================

@@ -424,3 +424,5 @@ itself.
 
 MJDs are just so much easier to handle within ADQL queries.  Support for
 timestamps, on the other hand, is extremely lousy.
+
+.. _directGrammar: http://docs.g-vo.org/DaCHS/ref.html#element-directgrammar

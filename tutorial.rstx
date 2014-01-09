@@ -10,14 +10,6 @@ GAVO DaCHS Tutorial
   :backlinks: entry
   :class: toc
 
-.. NOTE:: 
-   This currently is a bit more work in progress than usual.
-   Please forgive typos, broken sentences, and the like until Oct 2013
-   (don't even bother to report them).  We'll proofread the stuff real
-   soon now. We felt even in its current state it's a big
-   improvement over what was here before – pardon the wires sticking
-   out.
-
 This tutorial intends to guide you through ingestion of data and setting
 up of services.  Even if you plan to only publish images or spectra, you
 should work through the first part; it explains a lot about DaCHS'
@@ -2206,8 +2198,7 @@ for free::
     <meta name="testQuery.dec">10</meta>
     <meta name="testQuery.sr">0.01</meta>
     <dbCore id="xlcore" queriedTable="main">
-      <condDesc original="//scs#humanInput"/>
-      <condDesc original="//scs#protoInput"/>
+      <condDesc original="//scs#coreDescs"/>
       <LOOP listItems="ipix bmag rmag jmag pmra pmde">
         <events>
           <condDesc buildFrom="\item"/>
