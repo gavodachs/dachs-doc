@@ -156,19 +156,10 @@ sets up a test environment in /var/tmp/gavo_test (set in
 tests/data/test-gavorc).  To make this work reliably, it must manipulate
 the normal way configuration files are read.
 
-helpers.testhelpers needs a gavotest database for which the current user
-is a superuser; so, before running tests, do::
-
-  createdb --encoding=UTF-8 dachstest
-
-You'll also need lines like::
-  
-  local   dachstest        <your user id>  ident
-  local   dachstest        all             md5
-
-(the second line is for the DaCHS admin, trustedquery, and untrusted
-profiles) in your pg_hba.conf.
-
+helpers.testhelpers needs a dachstest database for which the current user
+is a superuser.  It will create it provided you're a DB superuser with
+ident authentication (see install to figure out how to set this up).
+ 
 There are doctests in modules (though fewer than I'd like), and pyunit- and
 trial-based tests in ``<project root>/tests``.  ``tests/runAllTests.py``
 takes care of locating and executing them all.
@@ -214,6 +205,34 @@ testhelpers.  This is conveniently done in python, like this::
   os.environ["GAVO_OOTTEST"] = "dontcare"
 
   from gavo.helpers import testhelpers
+
+
+Test Plan
++++++++++
+
+(This is somewhat specific to Markus' setup; something similar is
+recommended for everyone, though)
+
+*Before every commit*, do:
+
+* start a local server
+* go to ``$checkout/tests``
+* ``python runAllTests.py`` (which arranges for doctests, pyunit tests,
+  trial tests, and data unit tests to be run)
+* run ``gavo val -tv ALL`` (which, apart from validating the RDs, also
+  runs the RD-defined regression tests against the server running
+  locally)
+* go to ``$checkout``
+* run ``svn status`` to make sure no files are left not in version
+  control or explicitely ignored
+
+
+*After a checkout on the production server*, do:
+
+* ``gavo test -t bigserver -u http://dc.g-vo.org/ ALL`` (which runs
+  all tests defined in the local RDs, even for the production server,
+  against the production server; this does what it's supposed to da as 
+  the repo for the RDs is the same on development and production).
 
 
 Structures
