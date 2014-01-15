@@ -23,7 +23,11 @@ Debian systems
 
 The preferred way to run DaCHS is on Debian stable or compatible
 systems.   To install, `add our APT repository`_ to your
-`/etc/apt/sources.list` and install the `python-gavodachs` package.
+`/etc/apt/sources.list` and install the `gavodachs-server` package, e.g. by
+running::
+
+  sudo apt-get install gavodachs-server
+
 With that, you're ready to proceed to the tutorial_ and the `Operator's
 Guide`_
 
