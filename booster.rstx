@@ -350,7 +350,7 @@ from a string as follows::
   if (nulls[18][rowIndex]) {
 	  MAKE_NULL(fi_ppmxl);
 	} else {
-		 parseBigint(((char**)(data[18]))[rowIndex], fi_ppmxl, 0, 18);
+		 parseBigint(((char**)(data[18]))[rowIndex], F(fi_ppmxl), 0, 19);
 	}
 	return vals;
 
