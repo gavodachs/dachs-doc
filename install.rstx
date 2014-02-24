@@ -31,21 +31,11 @@ running::
 With that, you're ready to proceed to the tutorial_ and the `Operator's
 Guide`_
 
-If you plan to publish SIAP services ("images"), you will need to
-manually install pywcs as of Debian squeeze
-(grab http://stsdas.stsci.edu/astrolib/pywcs-1.11-4.8.2.tar.gz).  Debian
-wheezy has this packaged, and you can just follow the Recommend-ation of
-the gavodachs package.
-
-As of early 2013, we require postgres 9.1 as a dependency.  You might
-get away with forcing the dependency, but we really recommend adding the
-backports to your sources.list and just install postgres 9.1.  Since
-Postgres version changes always are a bit involved, you're going to save
-quite a bit of work when migrating to wheezy, too.  So, until wheezy is
-out, you will want the following (or something equivalent) in your 
-``/etc/apt/sources.list``::
-
-  deb http://http.debian.net/debian-backports squeeze-backports main contrib non-free
+If you plan to publish SIAP services ("images"), you will probably want
+to manually compile the preview scaler as described below.  If you find
+yourself doing this, please complain to the authors – there's been code
+that should make all this superfluous in DaCHS for quite a time now and
+we've still not done it.  Sorry.
 
 
 .. _add our apt repository: http://soft.g-vo.org/repo
