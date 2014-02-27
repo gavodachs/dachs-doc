@@ -109,6 +109,47 @@ multiplied with 5.434.
 
 The expression must be valid SQL.
 
+There is a fairly common case for this that's somewhat tricky: Compute
+the distance of the position of a match to the position of a cone search
+(or endless variants of that).  Tasks like that are hard for DaCHS, as
+the select clause (where the distance is computed) needs information on
+something only avaialable to the condition descriptors (the input
+position).
+
+There's a slightly hackish way around this.  It builds on the
+predictability of the names chosen by ``base.getSQLKey`` and the way
+parameters are passed through to PostgreSQL.  Hence, this is a
+portability liability.  We'd like to hear about your applications for
+this, as that may help us figure out a better solution.  Meanwhile, to
+add a spherical distance to a cone search service over a table with
+positions in raj2000, dej2000, say something like::
+
+  <outputTable verbLevel="20">
+    <outputField name="_r" 
+      unit="deg" ucd="pos.andDistance"
+      tablehead="Dist"
+      description="Distance to the queried position"
+      select="DEGREES(spoint(RADIANS(raj2000), RADIANS(dej2000))
+        &lt;->spoint(RADIANS(%(RA0)s), RADIANS(%(DEC0)s)))"/>
+  </outputTable>
+
+As you can see, this unconditionally assumes that the parameter names
+for the cone condition are in RA0, DEC0; it is likely that that is true,
+but this is not API-guaranteed.  You could write your condDesc with
+fixed field names to be safe, but even then this builds on the specific
+API of psycopg, so it's certainly not terribly portable.
+
+Another issue is that not all queries necessarily give RA and Dec; as
+pulled in by the ususual ``//scs#coreDescs`` STREAM, cone conditions in
+forms are not mandatory.  The above construct will yield fairly ugly
+errors when they are left out.  To fix this, make humanInput mandatory,
+saying something like:
+
+  <condDesc original="//scs#protoInput"/>
+  <condDesc original="//scs#humanInput" required="True"/>
+
+instead of the coreDescs (maybe adding the built-in MAXREC, too).
+
 
 ...make an input widget to select which columns appear in the output table?
 ---------------------------------------------------------------------------
