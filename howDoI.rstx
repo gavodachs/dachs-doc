@@ -143,7 +143,7 @@ Another issue is that not all queries necessarily give RA and Dec; as
 pulled in by the ususual ``//scs#coreDescs`` STREAM, cone conditions in
 forms are not mandatory.  The above construct will yield fairly ugly
 errors when they are left out.  To fix this, make humanInput mandatory,
-saying something like:
+saying something like::
 
   <condDesc original="//scs#protoInput"/>
   <condDesc original="//scs#humanInput" required="True"/>
