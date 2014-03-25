@@ -636,6 +636,42 @@ in some structure.  To produce something you can execute, then say::
 or somesuch.
 
 
+Schema updates
+==============
+
+If you need to change the on-disk schema, you must provide an updater in
+gavo.user.upgrade.  See the docstring on Upgrade on what you can and
+should do in there.
+
+The ``version`` attribute of your new upgrader must be the value of 
+``upgrader.CURRENT_SCHEMAVERSION`` (defined near the top) when you start
+working.  After you have defined your upgrader, increase
+CURRENT_SCHEMAVERSION by one.
+
+At Heidelberg, the next step would be to try the upgrader using::
+
+  testgavo upgrade
+
+The effects should be visible in the ``dachstest`` database.
+
+If you follow the rules, upgrade should be atomic, i.e., either the
+upgrade succeeds or the database is untouched, letting operators
+downgrade and continue operations until a problem is figured out.
+
+If, on development, you notice your instructions have not had the
+desired effect, things are more difficult.  You can, in principle,
+re-run the entire procedure by executing something like::
+
+  update dc.metastore set value=5 where key='schemaversion';
+
+to re-set the schema version to the initial value, but that doesn't
+really help when changes are already in the database.  During
+development, it pays to keep a quick backup of current database files so
+it's easy to entirely roll back if the upgrade hasn't quite worked.
+
+
+
+
 Javascript
 ==========
 
