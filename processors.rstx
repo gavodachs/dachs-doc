@@ -17,8 +17,9 @@ new data arrives, there are cases when you deliver data to users,
 most frequently, with FITS files.  There, you may need to add or change
 headers.
 
-However, sometimes you just want to traverse all sources.  Let's cover
-this case first.
+However, sometimes you just want to traverse all sources, maybe to
+validate them, maybe to compute something from them; the prime example
+for the latter is pre-computing previews.
 
 
 Processors
@@ -35,7 +36,7 @@ Here is an example checking whether the sizes of files match what an
   from gavo import api
   from gavo.helpers import processing
 
-  class SizeChecker(FileProcessor):
+  class SizeChecker(processing.FileProcessor):
 
     def process(self, srcName):
       found = os.path.getsize(srcName)
@@ -45,7 +46,7 @@ Here is an example checking whether the sizes of files match what an
 
 
   if __name__=="__main__":
-    procmain(SizeChecker, "potsdam/q", "import")
+    processing.procmain(SizeChecker, "potsdam/q", "import")
 
 
 The call to ``procmain`` arranges for the command line to be
@@ -117,7 +118,7 @@ If you want your processor to gather data, you can use the fact that
 procmain returns the processor it created.  Here is a version of the
 simple size checker above that outputs a sorted list of bad files::
 
-  class SizeChecker(FileProcessor):
+  class SizeChecker(processing.FileProcessor):
 
     def _createAuxillaries(self, dd):
       self.mess = []
@@ -130,7 +131,7 @@ simple size checker above that outputs a sorted list of bad files::
 
 
   if __name__=="__main__":
-    res = procmain(SizeChecker, "potsdam/q", "import")
+    res = processing.procmain(SizeChecker, "potsdam/q", "import")
     res.mess.sort(key=lambda rec: abs(rec[1]-rec[2]))
     for name, expected, found in res.mess:
       print "%10d %10d %8d %s"%(expected, found, expected-found, name)
@@ -169,6 +170,88 @@ files for DaCHS:
   (or an exception if fName is not below inputsDir).  This method lets
   you easily interchange data between your file processor and ignore
   elements or the inputRelativePath macro in RDs.
+
+
+Precomputing previews
+---------------------
+
+While DaCHS can compute previews of 2D FITS images on the fly, in many
+cases there are good reasons to precompute previews.  If you follow some
+conventions when doing this, the process becomes much smoother.
+
+
+processing.PreviewMaker
+'''''''''''''''''''''''
+
+processing contains a ``PreviewMaker`` class with some convenience
+methods.  To use it, give the data descriptor a ``previewDir`` property,
+like this::
+
+  <data id="import">
+    <property key="previewDir">previews</property>
+    ...
+
+– the value is the resdir-relative name of the directory that will
+contain the preview files.
+
+To generate the previews, all you have to do is inherit from
+``PreviewMaker`` and implement ``getPreviewData(srcName) -> imageData``.
+PIL or something similar usually is your friend here.  Here's a full
+example::
+
+  from cStringIO import StringIO
+  
+  import Image
+
+  from gavo.helpers import processing
+
+  class PreviewMaker(processing.PreviewMaker):
+	  def getPreviewData(self, srcName):
+	    im = Image.open(srcName)
+	    prev = im.draft("L", (200, 100)
+
+	    rendered = StringIO()
+	    prev.save(rendered, format="jpeg")
+	    return rendered.getvalue()
+
+
+  if __name__=="__main__":
+	  processing.procmain(PreviewMaker, "example/q", "import")
+
+If this were in ``bin/mkpreview``, you could then say::
+
+  bin/mkpreview
+
+to compute previews for all files that don't have one yet, and you
+can call::
+
+  bin/mkpreview --report
+
+to see if previews are missing.
+
+For large FITS files, you probably want to use specialized streaming
+scalers from fitstools (TODO: document).
+
+
+Making Previews for Spectra
+'''''''''''''''''''''''''''
+
+If you already have a datalink service defined for making SDM-compliant
+spectra, you can easily re-use that to generate spectral previews.  For
+that, there's ``processingSpectralPreviewMaker``.  All it needs is the
+id of data element making the SDM instances in the ``sdmId`` class
+attribute.  The following would do::
+
+  from gavo.helpers import processing
+
+
+  class PreviewMaker(processing.SpectralPreviewMaker):
+	  sdmId = "build_sdm_data"
+
+
+  if __name__=="__main__":
+	  processing.procmain(PreviewMaker, "flashheros/q", "import")
+
 
 
 Basic FITS Manipulation
