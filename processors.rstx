@@ -5,9 +5,15 @@ GAVO DaCHS: File Processing
 :Author: Markus Demleitner
 :Email: gavo@ari.uni-heidelberg.de
 
+.. contents:: 
+  :depth: 2
+  :backlinks: entry
+  :class: toc
 
-This is a short manual on how to use DaCHS' helpers to preprocess data
-before ingesting it.
+
+This is a manual on how to use DaCHS' helpers to preprocess data
+before ingesting it and do other things based on iterating over lots of
+sources.
 
 Sometimes you want to change something on the input files you are
 receiving.  While usually we recommend coping with the input through
