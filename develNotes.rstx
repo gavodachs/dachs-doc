@@ -692,10 +692,16 @@ think we're fine with the spirit of the GPL...
 
 Locally developed code has extension .src.js.  What's actually shipped
 out is minified, where currently we're using *cough* google's online
-"closure compiler for that.  There's a makefile in the js directory that
+"closure" compiler for that.  There's a makefile in the js directory that
 does this.  This means that whenever you change javascript, you have to
 run Make in web/js for changes to become active; it uses a python wrapper
 around the web service to properly deal with errors and warnings.
+
+For development of that, it's much more convenient if the stuff that
+gets served out is in source.  To enable that, set ``[web]jsSource`` to
+true.  This needs actual code support; right now this only works for
+files served out in commonhead.  You need to restart the server for the
+setting to take effect.
 
 
 gavo.js
