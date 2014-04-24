@@ -93,6 +93,24 @@ Simple FileProcessors support the following options:
   this to figure out bugs in your (or our) code.
 --report
   More on this in `Processor Report Generation`_
+-j
+  Number of processes to run in parallel (see next section)
+
+
+Parallel Execution
+''''''''''''''''''
+
+Processors in principle can be executed in parallel *processes* (using
+the ``-j`` flag as with make), provided they are written to support this
+– which means no temporary files that could have name clashes, no other
+shared mutable resources without synchronization, and so on.  
+
+The main problem with when forking out workers are database connections
+– in short, if you want to run your processors in parallel, you'll have
+to open new connections rather than use the connection pool.  The
+details are even more painful, so a good rule of thumb is: If you're
+using the database more or less indirectly, just let your processor run
+overnight rather than try to fix its database interface.
 
 
 Auxillaries
