@@ -60,6 +60,10 @@ parsed and expects, in addition to the processor *class*, an id for
 the resource descriptor for the data it should process, and the id of
 the data descriptor that ingests the files.
 
+As usual, you can raise ``base.SkipThis()`` to pretend process had never
+been called for a certain ``srcName``.
+
+
 Processor Command line
 ''''''''''''''''''''''
 
@@ -203,6 +207,15 @@ While DaCHS can compute previews of 2D FITS images on the fly, in many
 cases there are good reasons to precompute previews.  If you follow some
 conventions when doing this, the process becomes much smoother.
 
+When making previews, it is usually much more convenient to work with
+accrefs rather than actual file paths.  That is particularly true with
+spectra, which in DaCHS frequently are virtual data, such that an accref
+doesn't correspond to an actual file.
+
+Where there are actual files and you didn't do any magic with the
+accrefs, you can retrieve the full path by computing
+``os.path.join(base.getConfig("inputsDir"), accref)``.
+
 
 processing.PreviewMaker
 '''''''''''''''''''''''
@@ -230,7 +243,8 @@ example::
   from gavo.helpers import processing
 
   class PreviewMaker(processing.PreviewMaker):
-	  def getPreviewData(self, srcName):
+	  def getPreviewData(self, accref):
+	    srcName = os.path.join(base.getConfig("inputsDir"), accref)
 	    im = Image.open(srcName)
 	    prev = im.draft("L", (200, 100)
 
