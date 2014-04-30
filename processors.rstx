@@ -178,13 +178,13 @@ a summary of the class frequencies.
 
 Here's what such a classify method could look like::
 
-	def classify(self, srcName):
-		hdr = self.getPrimaryHeader(srcName)
-		try:
-			ignored = "FILTER_A" in hdr
-			return "ok"
-		except ValueError: # botched cards on board
-			return "botched"
+  def classify(self, srcName):
+    hdr = self.getPrimaryHeader(srcName)
+    try:
+      ignored = "FILTER_A" in hdr
+      return "ok"
+    except ValueError: # botched cards on board
+      return "botched"
 
 
 Utility Methods
@@ -233,8 +233,9 @@ contain the preview files.
 
 To generate the previews, all you have to do is inherit from
 ``PreviewMaker`` and implement ``getPreviewData(srcName) -> imageData``.
-PIL or something similar usually is your friend here.  Here's a full
-example::
+PIL, stuff from `utils.imgtools`_ or something similar usually is your
+friend here.  Here's a full example that would compute 200x100
+one-channel jpegs for some image format understood by PIL::
 
   from cStringIO import StringIO
   
@@ -243,32 +244,56 @@ example::
   from gavo.helpers import processing
 
   class PreviewMaker(processing.PreviewMaker):
-	  def getPreviewData(self, accref):
-	    srcName = os.path.join(base.getConfig("inputsDir"), accref)
-	    im = Image.open(srcName)
-	    prev = im.draft("L", (200, 100)
+    def getPreviewData(self, accref):
+      srcName = os.path.join(base.getConfig("inputsDir"), accref)
+      im = Image.open(srcName)
+      prev = im.draft("L", (200, 100))
 
-	    rendered = StringIO()
-	    prev.save(rendered, format="jpeg")
-	    return rendered.getvalue()
+      rendered = StringIO()
+      prev.save(rendered, format="jpeg")
+      return rendered.getvalue()
 
 
   if __name__=="__main__":
-	  processing.procmain(PreviewMaker, "example/q", "import")
+    processing.procmain(PreviewMaker, "example/q", "import")
 
-If this were in ``bin/mkpreview``, you could then say::
+If this were in ``bin/mkpreview.py``, you could then say::
 
-  bin/mkpreview
+  python bin/mkpreview.py
 
 to compute previews for all files that don't have one yet, and you
 can call::
 
-  bin/mkpreview --report
+  python bin/mkpreview.py --report
 
 to see if previews are missing.
 
-For large FITS files, you probably want to use specialized streaming
-scalers from fitstools (TODO: document).
+Here's how you could compute color previews when you have images in
+three filters in the FITS extensions 2, 3, and 4::
+
+  import numpy
+
+  from gavo.helpers import processing
+  from gavo.utils import fitstools
+  from gavo.utils import imgtools
+  from gavo.utils import pyfits
+
+
+  def _getArrayFor(srcName, extInd):
+    return numpy.array(list(
+        fitstools.iterScaledRows(srcName, destSize=200, extInd=extInd)))
+
+
+  class PreviewMaker(processing.PreviewMaker):
+    def getPreviewData(self, srcName):
+      return imgtools.colorJpegFromNumpyArrays(
+        _getArrayFor(srcName, 1),
+        _getArrayFor(srcName, 2),
+        _getArrayFor(srcName, 1))
+
+  if __name__=="__main__":
+    processing.procmain(PreviewMaker, "lmu/q", "import_imgs")
+
 
 
 Making Previews for Spectra
@@ -284,11 +309,11 @@ attribute.  The following would do::
 
 
   class PreviewMaker(processing.SpectralPreviewMaker):
-	  sdmId = "build_sdm_data"
+    sdmId = "build_sdm_data"
 
 
   if __name__=="__main__":
-	  processing.procmain(PreviewMaker, "flashheros/q", "import")
+    processing.procmain(PreviewMaker, "flashheros/q", "import")
 
 
 
@@ -517,10 +542,10 @@ incompatible with what the rest of the DC software expects.
 If you need more control over the parameters of astrometry.net, override
 the _runAnet method.  Its default implementation is::
 
-	def _runAnet(self, srcName):
- 		return anet.getWCSFieldsFor(srcName, self.solverParameters,
-			self.sexControl, self.objectFilter, self.opts.copyTo,
-			self.opts.beVerbose)
+  def _runAnet(self, srcName):
+     return anet.getWCSFieldsFor(srcName, self.solverParameters,
+      self.sexControl, self.objectFilter, self.opts.copyTo,
+      self.opts.beVerbose)
 
 
 So, if you had an attribute ``sexControl_in`` containing
@@ -535,7 +560,7 @@ So, if you had an attribute ``sexControl_in`` containing
           return res
       except ShellCommandFailed:  # Ignore failures
         pass
-		raise anet.ShellCommandFailed("No anet parameter worked", None)
+    raise anet.ShellCommandFailed("No anet parameter worked", None)
 
 Since astrometry.net spews out oodles of headers that may not be of huge
 interest to later users, the AnetHeaderProcessor implements comment and
@@ -555,10 +580,10 @@ header.  It does this before running astrometry.net.  This lets you
 shortcut astrometry.net when you cannot come up with a finished header
 anyway, possibly like this::
 
-	def _mungeHeader(self, srcName, hdr):
-		stem = hdr["PLATE-ID"]
-		if not stem in self.plateCat:
-			raise KeyError("Not in plate cat: %s"%stem)
+  def _mungeHeader(self, srcName, hdr):
+    stem = hdr["PLATE-ID"]
+    if not stem in self.plateCat:
+      raise KeyError("Not in plate cat: %s"%stem)
     ...
 
 The header returned by ``_mungeHeader`` will be joined with the WCS
@@ -644,3 +669,5 @@ threshold value, e.g.::
 
   calibrate.py --minarea=10 --detectthreshold=6
 
+
+.. _utils.imgtools: http://docs.g-vo.org/DaCHS/apidoc/gavo.utils.imgtools-module.html
