@@ -150,6 +150,61 @@ option to gavo.
 Testing
 =======
 
+In an installed checkout of DaCHS, you can go to the ``tests``
+subdirectory and run::
+
+  python runAllTests.py
+
+for a fairly extensive set of unit tests.
+
+This uses some management of test scaffolds; when something is severely
+wrong, generating these scaffolds can fail and the execution of the
+suite will stop.  I'm not decided whether to regard that as a bug or a
+feature, but I'll not fix it any time soon.  So, if this bites you, find
+out why resource generation fails and fix it.
+
+
+XSD validation
+++++++++++++++
+
+XML Schema is a pain all around, and there doesn't seem to be an XSD
+validator capable of handling the thicket that is the schema landscape
+of the VO.
+
+Hence, we're trying to use xerces in a fairly specific way.  If this
+isn't set up, all tests involving validating XSD will be skipped.
+
+To make this work, you first need xerces itself, which on debian is the
+package ``libxerces2-java``, and you'll also need
+``libxerces2-java-doc`` (really).  These packages will dump the
+necessary jars (``xercesImpl.jar`` and ``xmlParserAPIs.jar``) in
+``/usr/share/java``; if you have a different setup, you'll need to edit
+``xsdclasspath`` in ``tests/test_data/test-gavorc`` within your checkout
+and curse java's classpath construct.
+
+After that, just tear down the test environment (``rm -r ~/_gavo_test;
+dropdb dachstest``) and run some test.  If all is well, the validator
+will be built and run.  You can also manually build the validator by
+going to the ``schemata`` subdirectory and saying ``python
+makeValidator.py``.  This will use your normal environment, though, so
+the validator (``xsdval.class``) will end up in the "real" cache
+directory (which is good, as it then is available for regression
+testing).  You'll need to manually copy it to ``~/_gavo_test/caches/``
+then.
+
+
+Setting package installs up for testing
++++++++++++++++++++++++++++++++++++++++
+
+The debian package does not contain unit tests.  If you want to
+nevertheless run them, check out the release corresponding to your
+package from http://svn.ari.uni-heidelberg.de/svn/gavo/python/tags/.
+Again, see the ``tests`` subdirectory in your checkout.
+
+
+Test framework
+++++++++++++++
+
 All unit tests must import gavo.helpers.testhelpers before importing
 anything else from the gavo namespace.  This is because testhelpers
 sets up a test environment in /var/tmp/gavo_test (set in

@@ -1114,3 +1114,83 @@ helpful text.  The idea is that when users run queries against large
 tables without using indices (or do other stupid things), you can send
 them messages in this way (and clear away their resource hogs at the
 same time).
+
+
+Upgrading
+=========
+
+Upgrading DaCHS
+---------------
+
+In general, we try to make upgrades painless, but with a system allowing
+people to play tricks with intenstines like DaCHS guarantees are hard.
+Be sure to subscribe to `DaCHS-users`_.  We'll announce new releases
+there, together with brief release notes pointing to possible spots of
+trouble.  Ideally, you'll have a development system and regression tests
+in place that let you diagnose problems before going to production.
+Poke us for hints on good and easily-maitained setups.
+
+
+Upgrading Installations from Debian Package
+'''''''''''''''''''''''''''''''''''''''''''
+
+That's easy::
+
+  apt-get update
+  apt-get upgrade
+
+
+After the upgrade, be sure to run your regression tests (if you have
+defined any)::
+
+  gavo test ALL
+
+
+Upgrading Installations from SVN
+''''''''''''''''''''''''''''''''
+
+The basic thing to remember: After every update, do, as a user with
+ingestion privileges, the restart sequence::
+
+  $ sudo /etc/init.d/dachs stop # (or whatever you use to stop the server)
+  $ gavo upgrade
+  $ sudo /etc/init.d/dachs start # (or whatever you use to start the server)
+  $ gavo test ALL
+
+(in principle, gavo upgrade can run while the server is active, and with
+most updates, users won't even see errors, but since you need to restart
+anyway, why bother).
+
+The steps to update depend on what you did to install out of the
+subversion checkout.  If you initially said ``setup.py develop`` (which
+we recommend), all it takes to upgrade is::
+
+  $ cd <checkout dir>
+  $ svn update
+  <run the restart sequence given above>
+
+
+If you instead initially said ``setup.py install``, do::
+
+  $ cd <checkout dir>
+  $ svn update
+  $ sudo python setup.py install
+  <run the restart sequence given above>
+
+
+Upgrading Postgres
+------------------
+
+Note that when upgrading Postgres still is not fun even with Debian's
+infrastructure, but you never need and should do that in parallel with
+an upgrade of DaCHS.  Postgres updates are also fairly rare events.
+
+Also note that after an update involving a restart of Postgres, a few
+requests to DaCHS may fail.  Either restart DaCHS or wait, things should
+quickly heal.
+
+Otherwise: TBW.
+
+
+.. _DaCHS-users: http://lists.g-vo.org/cgi-bin/mailman/listinfo/dachs-users
+
