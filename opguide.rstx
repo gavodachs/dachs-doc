@@ -509,15 +509,19 @@ from us, so we'd put some work into making it possible to insert
 custom stuff into the sidebar without having to change the template.
 Please talk to us.
 
-Much less critical is root.html – you'll still pretty definitely want to
-change it.  While you could use any XHTML, we recommend to base your
-page on either the ``root.html`` template in the distribution, which
-mainly gives a list of all services available on the system, or
-``root-tree.html``, which organizes services in trees and only downloads
-metadata as necessary (a simple non-javascript fallback is part of the
-distributed template, too).  The latter is intended for use on sites that
-have more then a few tens of services, when ``root.html`` would expand
-to several 100s of kilobytes.
+Much less critical is the ``root.html`` template – you'll still pretty
+definitely want to change it.  While you could use any XHTML, we
+recommend to base your page on either the ``root.html`` template in the
+distribution, which mainly gives a list of all services available on the
+system, or ``root-tree.html``, which organizes services in trees and
+only downloads metadata as necessary (a simple non-javascript fallback
+is part of the distributed template, too).  The latter is intended for
+use on sites that have more then a few tens of services, when the plain
+``root.html`` would expand to several 100s of kilobytes.
+
+Whatever you use, it has to sit in
+``$GAVO_ROOT/web/templates/root.html``, as that's where DaCHS looks for
+the portal page.
 
 Note that such static documents are fairly aggressively cached by DaCHS.
 This means that changes to the docment will not usually become
