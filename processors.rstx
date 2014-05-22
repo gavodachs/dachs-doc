@@ -348,6 +348,9 @@ attribute.  The following would do::
   if __name__=="__main__":
     processing.procmain(PreviewMaker, "flashheros/q", "import")
 
+By default, this produces spectra that are logscaled on the flux axis.
+You can set the class attribute ``linearFluxes = True`` to have linear
+scaling instead if that works better for your data.
 
 
 Basic FITS Manipulation
