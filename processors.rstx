@@ -388,7 +388,7 @@ A somewhat silly example could look like this::
   from gavo import api
   from gavo import processing
 
-  class SillyProcessor(processing.FileProcessor):
+  class SillyProcessor(processing.HeaderProcessor):
     def _isProcessed(self, srcName):
       return self.getPrimaryHeader(srcName).has_key("NUMPIXELS")
 
