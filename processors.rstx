@@ -214,6 +214,41 @@ The classical case is getting accrefs from a table, like this::
 				  yield r["accref"]
 
 
+A very typical case is when an "artificial" format generated on the fly
+gets added to the SDM table to return something for FORMAT=compliant
+queries.  In the RD, this could look like this::
+
+			<rowfilter procDef="//products#define">
+				<bind name="table">"\schema.data"</bind>
+				<bind name="mime">"image/fits"</bind>
+				<bind name="preview_mime">"image/png"</bind>
+				<bind name="preview">\standardPreviewPath</bind>
+			</rowfilter>
+			<rowfilter name="addSDM">
+				<code>
+					yield row
+					baseAccref = os.path.splitext(row["prodtblPath"])[0]
+					row["prodtblAccref"] = baseAccref+".vot"
+					row["prodtblPath"] = "dcc://\rdIdDotted/mksdm?"+urllib.quote(
+						row["prodtblPath"])
+					row["prodtblMime"] = "application/x-votable+xml"
+					yield row
+				</code>
+			</rowfilter>
+
+Note that the preview path and mime are the same for both versions,
+which means that previews should only be computed for the first kind of
+data.  To effect that, write your PreviewMaker like this::
+
+  class PreviewMaker(processing.SpectralPreviewMaker):
+	  sdmId = "build_sdm_data"
+
+	  def iterIdentifiers(self):
+		  for id in processing.SpectralPreviewMaker.iterIdentifiers(self):
+			  if not id.endswith(".vot"):
+				  yield id
+
+
 Utility Methods
 '''''''''''''''
 
