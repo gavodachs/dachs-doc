@@ -44,6 +44,26 @@ Please check that the user that's trying to execute the command can
 actually read the sources you checked out.
 
 
+'gavodachs' package upgrade fails
+=================================
+
+If you try to upgrade an older version (< 0.9) of the 'gavodachs'
+package, e.g. by typing
+
+  sudo apt-get update && sudo apt-get upgrade
+
+it could happen that you run into troubles when the gavodachs server is
+going to be stopped (and restarted). If the server stop fails, the
+installation of the 'gavodachs-server' package will aborted which leaves
+the package in a half-configured state. In that case try
+
+  sudo dpkg --remove --force-all python-gavodachs
+  sudo apt-get -f install gavodachs-server
+
+With these commands you should end up in the state obtained by a
+successful package upgrade.
+
+
 ignoreOn in a rowmaker doesn't seem to work
 ===========================================
 
