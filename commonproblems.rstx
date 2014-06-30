@@ -48,14 +48,14 @@ actually read the sources you checked out.
 =================================
 
 If you try to upgrade an older version (< 0.9) of the 'gavodachs'
-package, e.g. by typing
+package, e.g. by typing::
 
   sudo apt-get update && sudo apt-get upgrade
 
 it could happen that you run into troubles when the gavodachs server is
 going to be stopped (and restarted). If the server stop fails, the
 installation of the 'gavodachs-server' package will aborted which leaves
-the package in a half-configured state. In that case try
+the package in a half-configured state. In that case try::
 
   sudo dpkg --remove --force-all python-gavodachs
   sudo apt-get -f install gavodachs-server
