@@ -55,7 +55,16 @@ package, e.g. by typing::
 it could happen that you run into troubles when the gavodachs server is
 going to be stopped (and restarted). If the server stop fails, the
 installation of the 'gavodachs-server' package will aborted which leaves
-the package in a half-configured state. In that case try::
+the package in a half-configured state. The corresponding error message
+would be something similar to::
+
+  Stopping VO server: dachsTraceback (most recent call last):
+    [...]
+    File "/usr/lib/python2.7/dist-packages/pkg_resources.py", line 584,
+      in resolve raise DistributionNotFound(req)
+  pkg_resources.DistributionNotFound: gavodachs==0.9
+
+In that case try::
 
   sudo dpkg --remove --force-all python-gavodachs
   sudo apt-get -f install gavodachs-server
