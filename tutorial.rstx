@@ -2287,40 +2287,40 @@ need metadata and all that, but this is all it really takes).
 
 In the case of the Lockman Hole RD, things are a bit more verbose::
 
-	<table id="main" onDisk="True">
-		<mixin>//siap#pgs</mixin>
-		<mixin
-			calibLevel="3"
-			collectionName="'VLBA LH sources'"
-			facilityName="'VLBA'"
-			oUCD="'phot.flux.density;em:radio.750-1500MHz;phys.polarisation.Stokes.I'"
-			polStates="'/I/'"
-			targetName="object"
-			tResolution="5000000"
-			targetClass="'AGN'"
-		>//obscore#publishSIAP</mixin>
+  <table id="main" onDisk="True">
+    <mixin>//siap#pgs</mixin>
+    <mixin
+      calibLevel="3"
+      collectionName="'VLBA LH sources'"
+      facilityName="'VLBA'"
+      oUCD="'phot.flux.density;em:radio.750-1500MHz;phys.polarisation.Stokes.I'"
+      polStates="'/I/'"
+      targetName="object"
+      tResolution="5000000"
+      targetClass="'AGN'"
+    >//obscore#publishSIAP</mixin>
 
-		<column name="object" type="text"
-			ucd="meta.id"
-			tablehead="Object"
-			description="Source name as in 
-				2009MNRAS.397..281I (VizieR J/MNRAS/397/281)"
-			verbLevel="1"/>
-		<column name="obsra"
-			ucd="pos.eq.ra" unit="deg"
-			description="Antenna pointing, RA"
-			verbLevel="18"/>
-		<column name="obsdec"
-			ucd="pos.eq.dec" unit="deg"
-			description="Antenna pointing, Dec"
-			verbLevel="18"/>
-		<column name="weighting" type="text"
-			ucd="meta.code"
-			description="Natural or uniform, according to weighting method."
-			verbLevel="18">
-			<values><option>natural</option><option>uniform</option></values>
-		</column>
-	</table>
+    <column name="object" type="text"
+      ucd="meta.id"
+      tablehead="Object"
+      description="Source name as in 
+        2009MNRAS.397..281I (VizieR J/MNRAS/397/281)"
+      verbLevel="1"/>
+    <column name="obsra"
+      ucd="pos.eq.ra" unit="deg"
+      description="Antenna pointing, RA"
+      verbLevel="18"/>
+    <column name="obsdec"
+      ucd="pos.eq.dec" unit="deg"
+      description="Antenna pointing, Dec"
+      verbLevel="18"/>
+    <column name="weighting" type="text"
+      ucd="meta.code"
+      description="Natural or uniform, according to weighting method."
+      verbLevel="18">
+      <values><option>natural</option><option>uniform</option></values>
+    </column>
+  </table>
 
 More on the obscore mixin below.  otherwise, you see that additional,
 non-siap columns are simply added as usual.  Anything with a verbLevel
@@ -2330,58 +2330,58 @@ To fill such tables, the normal ``//products#define`` rowfilter is
 necessary, and there are two procDefs from ``//siap`` that come in
 handy::
 
-	<data id="import_main">
-		<sources recurse="True">
-			<pattern>data/*.fits</pattern>
-		</sources>
-		<fitsProdGrammar qnd="True">
-			<maxHeaderBlocks>80</maxHeaderBlocks>
-			<mapKeys>
-				<map key="object">OBJECT</map>
-				<map key="obsdec">OBSDEC</map>
-				<map key="obsra">OBSRA</map>
-			</mapKeys>
-			<rowfilter procDef="__system__/products#define">
-				<bind key="table">"emi.main"</bind>
-			</rowfilter>
-		</fitsProdGrammar>
+  <data id="import_main">
+    <sources recurse="True">
+      <pattern>data/*.fits</pattern>
+    </sources>
+    <fitsProdGrammar qnd="True">
+      <maxHeaderBlocks>80</maxHeaderBlocks>
+      <mapKeys>
+        <map key="object">OBJECT</map>
+        <map key="obsdec">OBSDEC</map>
+        <map key="obsra">OBSRA</map>
+      </mapKeys>
+      <rowfilter procDef="__system__/products#define">
+        <bind key="table">"emi.main"</bind>
+      </rowfilter>
+    </fitsProdGrammar>
 
-		<make table="main" >
-			<rowmaker id="gen_rmk" idmaps="object, obsra, obsdec">
-				<apply procDef="//siap#computePGS"/>
-				<apply procDef="//siap#setMeta">
-					<bind name="bandpassLo">0.207</bind>
-					<bind name="bandpassHi">0.228</bind>
-					<bind name="bandpassId">"1.4 GHz"</bind>
-					<bind name="bandpassRefval">0.214</bind>
-					<bind name="bandpassUnit">"m"</bind>
-					<!-- since the images are fairly complex mosaics, there's no way we
-					can have sensible dates; this one here "plays a special role
-					in the calibration" (Middelberg) -->
-					<bind name="dateObs"
-						>dateTimeToMJD(datetime.datetime(2010, 7, 4))</bind>
-					<bind name="instrument">@INSTRUME</bind>
-					<bind name="title">"VLBA 1.4 GHz "+@object</bind>
-				</apply>
+    <make table="main" >
+      <rowmaker id="gen_rmk" idmaps="object, obsra, obsdec">
+        <apply procDef="//siap#computePGS"/>
+        <apply procDef="//siap#setMeta">
+          <bind name="bandpassLo">0.207</bind>
+          <bind name="bandpassHi">0.228</bind>
+          <bind name="bandpassId">"1.4 GHz"</bind>
+          <bind name="bandpassRefval">0.214</bind>
+          <bind name="bandpassUnit">"m"</bind>
+          <!-- since the images are fairly complex mosaics, there's no way we
+          can have sensible dates; this one here "plays a special role
+          in the calibration" (Middelberg) -->
+          <bind name="dateObs"
+            >dateTimeToMJD(datetime.datetime(2010, 7, 4))</bind>
+          <bind name="instrument">@INSTRUME</bind>
+          <bind name="title">"VLBA 1.4 GHz "+@object</bind>
+        </apply>
 
-				<apply name="fixObjectName">
-					<setup>
-						<code>
-							import csv
-							with open(rd.getAbsPath(
-									"res/namemap.csv")) as f:
-								nameMap = dict(csv.reader(f))
-						</code>
-					</setup>
-					<code>
-						@object = nameMap[@object]
-					</code>
-				</apply>
-				
-				<map key="weighting">\inputRelativePath.split("_")[-1][:-5]</map>
-			</rowmaker>
-		</make>
-	</data>
+        <apply name="fixObjectName">
+          <setup>
+            <code>
+              import csv
+              with open(rd.getAbsPath(
+                  "res/namemap.csv")) as f:
+                nameMap = dict(csv.reader(f))
+            </code>
+          </setup>
+          <code>
+            @object = nameMap[@object]
+          </code>
+        </apply>
+        
+        <map key="weighting">\inputRelativePath.split("_")[-1][:-5]</map>
+      </rowmaker>
+    </make>
+  </data>
 
 This does, step by step:
 
@@ -2899,6 +2899,144 @@ Don't forget that you need to execute::
 to make DaCHS actually publish the table.
 
 
+Services Over Views
+===================
+
+Sometimes a service should execute queries spanning several tables.  One
+way to go about this would be to use a fancyQueryCore_.
+
+However, since metadata generation is much more straightforward if a
+service sits on top of something that's actually pretty much a table,
+the better way usually is to define a view executing the query.  There
+are some subtleties with this, though, so here's a few words on how we
+recommend you go about that.
+
+First, you'll obviously define the tables involved::
+
+  <table onDisk="True" id="master" mixin="//scs#q3cindex"
+      primary="catno" adql="True">
+    <column name="catno" type="integer" required="True"
+      ucd="meta.id;meta.main"
+      tablehead="id#"
+      description="Identification number in the ARIGFH master catalog"
+      verbLevel="1"/>
+    <column name="raj2000" type="double precision"
+    ...
+
+  <table onDisk="True" id="identified" adql="True">
+    <column name="dist" type="double precision"
+      ucd="pos.angDistance" unit="deg"
+      tablehead="Offset"
+      description="Offset between master catalog position at catalog
+        epoch and equinox and the catalog position"
+      verbLevel="1" displayHint="displayUnit=mas,sf=1"/>
+    <column name="masterNo" type="integer" required="True"
+      ...
+
+A good approach might be to stuff the columns that will later show up in
+the view into a STREAM and then replay that stream in both the table
+definitions and the view definition, but since the RD we're using as an
+`example <http://svn.ari.uni-heidelberg.de/svn/gavo/hdinputs/arigfh/q.rd>`_ 
+here worked with ``original``, this we use in this introduction; with
+STREAMs, sharing the columns looks differently, the rest remains the
+same.
+
+To save typing and make things a bit clearer, we use LOOPs for copying
+the source columns.  The view definition then looks somewhat like this::
+
+  <table onDisk="true" id="id" adql="True">
+    <meta name="description">
+      The stars from the gfh table having counterparts in the master
+      catalog, together with those counterparts.
+    </meta>
+    <column original="master.catno" name="masterNo"/>
+    <column original="master.component" name="compMaster"/>
+    <column original="master.raj2000"/>
+    <column original="master.dej2000"/>
+    <column original="master.pmra" name="pmraMaster"/>
+    <column original="master.pmde" name="pmdeMaster"/>
+    <column original="master.mv" name="mvMaster"/>
+    <column original="master.mb" name="mbMaster"/>
+
+    <LOOP listItems="catid catan dist iq">
+      <events>
+        <column original="identified.\item"/>
+      </events>
+    </LOOP>
+    
+    <LOOP>
+      <codeItems>
+        for col in context.getById("gfh"):
+          yield {'item': col.name}
+      </codeItems>
+      <events>
+        <column original="gfh.\item"/>
+      </events>
+    </LOOP>
+
+    <viewStatement>
+      CREATE VIEW \curtable AS (
+        SELECT \colNames FROM 
+          (SELECT catno, raj2000, dej2000, 
+            pmra AS pmraMaster,
+            pmde AS pmdeMaster,
+            mv AS mvMaster,
+            mb AS mbMaster,
+            component AS compMaster FROM \schema.master) AS m
+        JOIN 
+          \schema.identified AS idf
+        ON (masterNo=catno)
+        JOIN \schema.gfh
+        USING (catid, catan))
+    </viewStatement>
+  </table>
+
+As you can see, you can rename columns, and the second loop actually
+gets column names from some table obtained via its id programmatically
+(only do that if you're sure you actually want to follow changes in
+source table structure; the reason this is no one of the joined tables
+in the view has to do with the specific dataset).
+
+The viewStatement essentially is more or less arbitrary SQL.  For
+robustness against changes of table structure or schema or table name
+changes, however, you should probably always start with::      
+
+      CREATE VIEW \curtable AS (
+        SELECT \colNames FROM 
+
+– ``\\curtable`` will automatically adjust to whatever schema and table
+name is given in the RD, and ``\\colNames`` gives all the names of the
+columns; using it, you'll get errors instead of silent failures if you
+add or remove columns in the table definition but fail to adjust the
+view statement.
+
+When making these tables, it pays to be a bit careful with the ``data``
+elements, as of course the view depends on the source tables.  In
+particular, when you re-import one of the source tables, the view will
+get dropped, and it is a good idea to tell DaCHS to automatically
+re-make it.  The recommended setup for this looks like this::
+
+  <data id="import_master" recreateAfter="gfhtables">
+    ...
+    <make table="master"...
+ 
+  <data id="import_identified" recreateAfter="gfhtables">
+    ...
+    <make table="identified"...
+
+
+  <data id="gfhtables" auto="False">
+    <make table="id"/>
+  </data>
+
+– essentially, you make the view in a non-auto data which gets imported
+every time the source tables are re-made.  Note that making the ``data``
+for one source table when the other doesn't exist and will not be made
+in the same import will lead to an error in the view creation.  This is
+harmless for the import of the table you imported, as ``data`` creation
+on ``recreateAfter`` happens in a separate transaction.
+
+
 The Registry Interface
 ======================
 
@@ -3125,6 +3263,7 @@ data – see above for details on how to create users and groups.
 .. _products#define: ref.html#products-define
 .. _procs#mapValue: ref.html#procs-mapvalue
 .. _ssap#setMeta: ref.html#ssap-setmeta
+.. _fancyQueryCore: ref.html#element-fancyquerycore
 .. _customization info in the operators' guide: http://docs.g-vo.org/opguide.html#adapting-dachs-for-your-site
 .. _RMI-Style Metadata in the reference: http://docs.g-vo.org/DaCHS/ref.html#rmi-style-metadata
 .. _reStructuredText: http://docutils.sourceforge.net/rst.html
