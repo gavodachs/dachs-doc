@@ -262,6 +262,34 @@ testhelpers.  This is conveniently done in python, like this::
   from gavo.helpers import testhelpers
 
 
+pyflakes
+++++++++
+
+Not really testing, but static code checking using pyflakes should
+regularly be done, and result in no warnings eventually (right now, more
+annotations are required).
+
+We have added a simple ignoring facility in our pyflakes driver,
+``tests/flake_all.py``:
+
+* To ignore (not check) an entire file, add, preferably near the top, a
+  line like::
+
+    # Not checked by pyflakes: (reason)
+
+  Please always give a reason so people can tell whether it has gone
+  away and the file should now be included in the checks.
+
+* To ignore a single error, add a comment like::
+
+    #noflake: (rationale)
+
+  to the line reported by pyflakes.
+
+Also note that flake_all hardcodes that modules from imp are not
+checked.
+
+
 Test Plan
 +++++++++
 
