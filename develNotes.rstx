@@ -300,6 +300,7 @@ recommended for everyone, though)
 
 * start a local server
 * go to ``$checkout/tests``
+* ``python flake_all.py`` (which does some static code checking)
 * ``python runAllTests.py`` (which arranges for doctests, pyunit tests,
   trial tests, and data unit tests to be run)
 * run ``gavo val -tv ALL`` (which, apart from validating the RDs, also
