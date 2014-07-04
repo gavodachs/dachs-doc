@@ -281,12 +281,10 @@ You may want to do that because for some reason there is no q3c index on
 the queried table, or the semantics aren't quite a point vs. point cone
 search but close enough.
 
-Sadly, this is quite complicated right now since our inheritance
-mechanism ("original") is so simple-minded.  This will hopefully improve
-with a generic record/replay mechanism we're thinking about.
-
-That said, the current way looks like this (for a query that does a
-proximity search on bboxes)::
+Since we've not yet migrated cone search querying to STREAMs, this is a
+bit clumsy, using the ``original`` attribute.  That said, the current
+way looks like this (for a query that does a proximity search on
+bboxes)::
 
   <condDesc original="//scs#humanInput">
     <phraseMaker original="//scs#humanSCSPhrase">
@@ -315,36 +313,6 @@ for an SCS query, you can reuse part of what you did above::
     </phraseMaker>
   </condDesc>
 
-
-...create database views in data elements?
-------------------------------------------
-
-There's a catch going beyond using simpleView or tables with
-viewStatements: views evidently depend on the existence of tables.
-It would seem this does not hurt when you have a data definition like::
-
-  <data id="build">
-    <make table="a"/>
-    <make table="v"/>
-  </data>
-
-where ``v`` is the view depending on the table ``a``.  The trouble with
-this is that as soon as you change ``a``, the data build cannot be
-re-created; you cannot even drop it if you deleted the view v (in that
-case, just manually drop table a, and things work again.
-
-The reason for this odd behaviour is somewhat subtle, and I'll explain
-it here when someone asks.  The upshot, however, is: Never ``make`` a
-view in the same ``data`` as a table it depends on.  This right way to
-do what's intended above is::
-
-  <data id="build" dependents="makeView">
-    <make table="a"/>
-  </data>
-
-  <data id="makeView" auto="False">
-    <make table="b"/>
-  </data>
 
 
 ...fix duplicate values?
