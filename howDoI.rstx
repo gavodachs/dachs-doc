@@ -3,16 +3,19 @@ How Do I?
 =========
 
 Recipies and tricks for solving problems using GAVO DaCHS
-=========================================================================
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 :Author: Markus Demleitner
 :Email: gavo@ari.uni-heidelberg.de
 
 .. contents:: 
-  :depth: 1
+  :depth: 2
   :backlinks: entry
   :class: toc
 
+
+Ingestion
+=========
 
 ...skip a row from a rowmaker?
 ------------------------------
@@ -71,250 +74,6 @@ like this::
   </sourceFields>
 
 
-...set a constant input to a core?
-----------------------------------
-
-Use a service input key with a Hidden widget factory and a default::
-
-  <service id="cutout" ...>
-    ...
-    <inputKey name="cutoutSize" widgetFactory="Hidden">
-      <values default="0.1"/>
-    </inputKey>
-  </service>
-
-
-...get a multi-line text input for an input key?
-------------------------------------------------
-
-Use a widgetFactory, like this::
-
-    <inputKey original="adqlInput.query"
-        widgetFactory="widgetFactory(ScalingTextArea, rows=15)"/>
-
-
-
-...add computed columns to a dbCore output?
--------------------------------------------
-
-Easy: define an output field with a select attribute, e.g.::
-
-      <outputField name="a_U" tablehead="A_U" ucd="phys.absorption;em.opt.U"
-        description="Extinction in U, assuming R_V=3.1"
-        select="ev_i*5.434"/>
-
-This will add an output field that looks to the service like it comes
-from the DB proper but contains the value of the ``ev_i`` column
-multiplied with 5.434.
-
-The expression must be valid SQL.
-
-There is a fairly common case for this that's somewhat tricky: Compute
-the distance of the position of a match to the position of a cone search
-(or endless variants of that).  Tasks like that are hard for DaCHS, as
-the select clause (where the distance is computed) needs information on
-something only avaialable to the condition descriptors (the input
-position).
-
-There's a slightly hackish way around this.  It builds on the
-predictability of the names chosen by ``base.getSQLKey`` and the way
-parameters are passed through to PostgreSQL.  Hence, this is a
-portability liability.  We'd like to hear about your applications for
-this, as that may help us figure out a better solution.  Meanwhile, to
-add a spherical distance to a cone search service over a table with
-positions in raj2000, dej2000, say something like::
-
-  <outputTable verbLevel="20">
-    <outputField name="_r" 
-      unit="deg" ucd="pos.andDistance"
-      tablehead="Dist"
-      description="Distance to the queried position"
-      select="DEGREES(spoint(RADIANS(raj2000), RADIANS(dej2000))
-        &lt;->spoint(RADIANS(%(RA0)s), RADIANS(%(DEC0)s)))"/>
-  </outputTable>
-
-As you can see, this unconditionally assumes that the parameter names
-for the cone condition are in RA0, DEC0; it is likely that that is true,
-but this is not API-guaranteed.  You could write your condDesc with
-fixed field names to be safe, but even then this builds on the specific
-API of psycopg, so it's certainly not terribly portable.
-
-Another issue is that not all queries necessarily give RA and Dec; as
-pulled in by the ususual ``//scs#coreDescs`` STREAM, cone conditions in
-forms are not mandatory.  The above construct will yield fairly ugly
-errors when they are left out.  To fix this, make humanInput mandatory,
-saying something like::
-
-  <condDesc original="//scs#protoInput"/>
-  <condDesc original="//scs#humanInput" required="True"/>
-
-instead of the coreDescs (maybe adding the built-in MAXREC, too).
-
-
-...make an input widget to select which columns appear in the output table?
----------------------------------------------------------------------------
-
-In general, selecting fancy output options currently requires custom
-cores or custom renderers.  Ideas on how to change this are welcome.
-
-For this specific purpose, however, you can simply define an service key
-named _ADDITEM.  This would look like this::
-
-  <service ....>
-    ....
-     <inputKey name="_ADDITEM" tablehead="Extinctions for band"
-      description="Output extinctions for the respective band (if you want multiple bands, you can use 'additional output fields' below)"
-      type="text" required="True" mul>
-      <values multiOk="True" showItems="-1">
-        <option title="Landolt U">a_U</option>
-        <option title="Landolt V">a_V</option>
-        <option title="Landolt I">a_I</option>
-      </values>
-    </inputKey>
-    ...
-  </service>
-
-Setting showItems to -1 gives you checkboxes rather than a select list,
-which is mostly what you want.  Try with and without and see what you
-like better.
-
-If you do that, you *probably* do not want the standard "additional
-fields" widget at the bottom of the form.  To suppress it, add a line
-
-::
-
-  <property name="noAdditionals">True</property>
-  
-to the service definition.  The "True" in there actually is a bit of a
-red herring, the widget is suppressed for any value.
-
-
-...add and image to query forms?
---------------------------------
-
-There are various variations to that theme -- you could go for a
-custom template if you want to get fancy, but usually putting an image
-into an _intro or _bottominfo meta section should do.
-
-In both cases, you need a place to get your image from.  While you could
-put it somewhere into rootDir/web/nv_static, it's probably nicer to have
-it within a resource's input directory.  So, add a static renderer to
-your service, like this::
-
-  <service allowed="form,static">
-    <property name="staticData">static</property>
-
-This lets you put service-local static data into resdir/static/ and
-access it as <serviceURL>/static/<filename>
-
-Usually, your _intro or _bottominfo will be in reStructured text.  Plain
-images work in there using substitution references or simply the naked
-image directive::
-
-    <meta name="_bottominfo" format="rst">
-      The current data set comprises these fields:
-
-      .. image:: \servicelink{cars/q/cat/static/fields-inline.png}
-    </meta>
-
-The servicelink macro would ensure that the image would still be found
-if the server ran off-root.
-
-This is the recommended way of doing things.  If, however, you insist on
-fancy layouts or need complete control over the appearance of your
-image (or whatever), you can use the evil "raw" meta format::
-  
-  <meta name="_bottominfo" format="raw"><![CDATA[
-    <a href="\servicelink{cars/q/cat/static/fields.png}">
-    <img src="\servicelink{cars/q/cat/static/fields-inline.png}"/>
-    </a>]]>
-  </meta>
-
-Make sure you enter valid HTML here, no checks are done by the DC
-software.
-
-
-...import data coming in to a service?
---------------------------------------
-
-In a custom renderer or core, you can use code like::
-
-  from gavo import api
-
-  ...
-
-  def import(self, srcName, srcFile):
-    dd = self.service.rd.getById("myDataId")
-    with api.getWritableAdminConn() as conn:
-      self.nAffected = api.makeData(dd, forceSource=srcFile,
-        connection=conn).nAffected
-
-You want to use a separate connection since the default connections
-obtained by cores and friends are unprivileged and typically cannot
-write to table.
-
-The nAffected should contain the total number of records imported and
-could be used in a custom render function.
-
-srcName and srcFile come from a formal File form item.  In
-submitActions, you obtain them like::
-
-  srcName, srcFile = data["inFile"]
-
-
-Note that you can get really fancy and manipulate ``data`` in some way up
-front.  That could look like this::
-
-  from gavo import rsc
-  ...
-  data = rsc.Data.create(dd, parseOptions=api.parseValidating,
-    connection=conn)
-  data.addMeta("_stationId", self.stationRecord["stationId"])
-  self.nAffected = api.makeData(dd, forceSource=srcFile, data=data,
-    connection=conn).nAffected
-
-
-...change the query issued on SCS queries?
-------------------------------------------
-
-You may want to do that because for some reason there is no q3c index on
-the queried table, or the semantics aren't quite a point vs. point cone
-search but close enough.
-
-Since we've not yet migrated cone search querying to STREAMs, this is a
-bit clumsy, using the ``original`` attribute.  That said, the current
-way looks like this (for a query that does a proximity search on
-bboxes)::
-
-  <condDesc original="//scs#humanInput">
-    <phraseMaker original="//scs#humanSCSPhrase">
-      <setup original="//scs#scsSetup" id="proxQuery">
-        <code><![CDATA[
-          def genQuery(inPars, outPars):
-            return "POINT(%%(%s)s, %%(%s)s) <-> bbox < %%(%s)s"%(
-              base.getSQLKey("RA", inPars["RA"], outPars),
-              base.getSQLKey("DEC", inPars["DEC"], outPars),
-              base.getSQLKey("SR", inPars["SR"], outPars))
-        ]]></code>
-      </setup>
-    </phraseMaker>
-  </condDesc>
-
--- so, you are inheriting from the SCS condition on three levels and then 
-override the genQuery function defined in the common setup code.  The
-way the condDescs are written, you must return rather than yield
-the actual query string.  See the tutorial on how condDesc code
-works in general.  The semi-good news is that if you want the same thing
-for an SCS query, you can reuse part of what you did above::
-
-   <condDesc original="//scs#procInput">
-    <phraseMaker original="//scs#scsPhrase">
-      <setup original="proxQuery"/>
-    </phraseMaker>
-  </condDesc>
-
-
-
 ...fix duplicate values?
 ------------------------
 
@@ -340,202 +99,6 @@ Then, exececute a query like::
     from <your-table>
     group by <primary-col>) as q 
   where ct>1;
-
-
-...define an input field doing google-type full text searches?
---------------------------------------------------------------
-
-Since version 8.3 (or so), postgres supports query modes inspired by
-information retrieval on text columns -- basically, you enter a couple
-of terms, and postgres matches all strings containing them.
-
-Within DaCHS, this is currently only supported using custom phrase
-makers.  This would look like this::
-
-  <condDesc>
-    <inputKey name="columnwords" 
-      description="Terms in column description (case does not 
-        matter, patterns not allowed)"
-      type="text" tablehead="Column words"/>
-    <phraseMaker>
-      <code>
-        yield ("to_tsvector('english', description)"
-          " @@ plainto_tsquery('english', %%(%s)s)"%(
-          base.getSQLKey("columnwords", inPars["columnwords"], outPars))
-      </code>
-    </phraseMaker>
-  </condDesc>
-
--- here, ``description`` is the column containing the strings, and the
-``'english'`` in the function arguments gives the language according
-to which the strings should be interpreted.
-
-You may want to create an index supporting this type of query on the
-respective columns, too.  To do that, say::
-
-  <index columns="bibref" method="gin">
-    to_tsvector('english', bibref)</index>
-
-
-...put more than one widget into a line in web forms?
------------------------------------------------------
-
-Use input table groups with a <property name="style">compact</property>.
-In DB cores, however, you probably do not want to give inputTables
-explicitely since it's much less hassle to have them computed from
-the condDescs.  In this case, the widgets you want to group probably
-come from a single condDesc.  To have them in a group, define a
-group within the condDesc without any paramRefs (or colRefs) -- they
-cannot be resolved anyway.  Give the group style and label properties,
-and it will be added to the input table for all fields of the condDesc::
-
-  <condDesc name="example">
-    <inputKey original="col1"/>
-    <inputKey original="col2"/>
-    <group description="An example group that will end up in one line">
-      <property name="style">compact</property>
-      <property name="label">Example vals</property>
-    </group>
-  </condDesc>
-
-If you are doing this, you probably want to use the ``cssClass``
-property of input keys and the ``customCSS`` property of services.  The
-latter can contain css specifications.  They are added into form pages
-by the defaultresponse template (in your custom templates, you should
-have ``<style type="text/css" n:render="servicestyle"/>`` in the head if
-you want this ufnctionality).  These can be used to style form elements
-by their css class, which in turn is given by specifying ``cssClass``
-properties on inputKeys.
-
-Here's an example that uses CSS to insert material, which currently is
-the only way to input something between the fields (short of redefining
-the widgets).  This may be overdoing it since the usability of this
-widget without CSS is questionable (whereas it would be fine if the
-group were non-compact and no CSS tricks were played); first a condDesc
-template::
-
-  <STREAM id="massfrac_template">
-    <doc>A condDesc for a mass fraction.  These consist of an element label,
-    a center value and a weird way of specifying the error.
-    
-    There can be a few of them for a given service, and thus you need to
-    define the macro item. It is used to disambiguate the names.
-    </doc>
-
-    <condDesc original="massfrac_cond">
-      <inputKey name="el\item" type="text" tablehead="Element \item"
-          description="Element for mass fraction \item">
-        <values>
-          <LOOP csvItems="\elements">
-            <events>
-              <option>\item</option>
-            </events>
-          </LOOP>
-        </values>
-      </inputKey>
-      <inputKey name="mfval\item" tablehead="Mass fraction \item"
-          description="Mass fraction c\item">
-        <property name="cssClass">a_val</property>
-      </inputKey>
-      <inputKey name="mffuzz\item" tablehead="Fuzz \item"
-        description="Range width r for mass fraction \item.  A mass fraction
-        matches if it is between c/10^r and c*10^r">0.3<property
-          name="cssClass">a_fuzz</property></inputKey>
-      <group name="mf\item">
-        <description>Mass fraction of an element.  The condition expands
-        to c/10^r &#8804; mass fraction(Element) &#8804; c*10^r</description>
-        <property name="label">Mass Fraction \item</property>
-        <property name="style">compact</property>
-      </group>
-    </condDesc>
-  </STREAM>
-
-And here's a service with that ``condDesc``, including the custom css::
-
-  <service id="web">
-    <meta name="title">Theoretical spectra of hot compact stars</meta>
-    
-    <dbCore queriedTable="newdata">
-      <LOOP listItems="1 2" source="massfrac_template"/>
-    </dbCore>
-    <property name="customCSS">
-      input.a_val {width:3em}
-      input.a_fuzz {width: 3em}
-      span.a_val:before { content:" in "; }
-      span.a_fuzz:before { content:" &#x00b1; "; }
-      span.a_fuzz:after { content:" dex"; }
-    </property>
-  </service>
-
-
-Note that we are styling both ``input`` and ``span`` elements with the
-css class we set.  Before and after can only be used on the span since
-input elements do not support before and after.  For that reason, DaCHS
-wraps each element within a compact group with a span of the same css
-class.
-
-Also see the next question.
-
-...get a range input widget?
-----------------------------------------------------
-
-Well, VizieR expressions let your users specify intervals and more, but
-ok, they would need to read docs to know that, so there's a case to be
-made for widgets  like::
-
-  Phlogistics      between __________  and ___________
-
-These basically work as discussed in grouping widgets above, but since
-stuff like this is fairly common, there's built-in support for this in
-//procs#rangeCond.  This is a stream requiring three definitions:
-
-* name -- the column name in the core's queried table
-* groupdesc -- a terse phrase describing the range.  This will be
-  used in the description of both the input keys and the group
-* grouplabel -- a label (include the unit, it is not taken from InputKey)
-  written in front of the form group
-
-groupdesc has to work after "Range of", "Lower bound of", and
-"Upper bound of".  Do not include a concluding period in groupdesc.
-
-Here's an example::
-
-    <dbCore queriedTable="data">
-      <FEED source="//procs#rangeCond"
-        name="t_eff"
-        groupdesc="the atmosphere's effective temperatures to include"
-        grouplabel="Effective Temperature [K]"/>
-
-
-...use a custom input widget for a field?
-----------------------------------------------------
-
-Right now, you cannot really; we're still waiting for an enlightenment
-on how to sensibly do that from RDs.  Pester us if you really want this.
-
-Meanwhile, to have little tags like the explanations of the
-vizier-like-expressions, you can use a custom widget with fields.  This
-could look like this::
-
-    <condDesc>
-      <inputKey original="object" type="vexpr-string">
-        <description>Designated object on the plate (i.e.,
-        the object the observers entered into their journal).
-        You can use wildcards if your prefix your expression with "~".
-        </description>
-        <widgetFactory
-          >widgetFactory(StringFieldWithBlurb, additionalMaterial=
-          T.a(href="/objectlist")[
-          "[List of known objects]"])</widgetFactory>
-      </inputKey>
-    </condDesc>
-
-Here, instead of the String in ``StringFieldWithBlurb``, you could have
-used Numeric or Date, and then used vexpr-float or vexpr-date,
-respectively, for the inputKey's date.
-
-The value of the ``additionalMaterial`` argument is some nevow stan.
-Info on what you can write there can be found elsewhere.
 
 
 ...cope with "Undefined"s in FITS headers?
@@ -698,6 +261,167 @@ ICRS)::
   </apply>
 
 
+...access the creation date of the file from which I'm parsing?
+---------------------------------------------------------------
+
+The row iterator that feeds the current table is in rawdicts under the
+key ``parser_``.  For grammars actually reading from files, the
+``sourceToken`` attribute of these gives the absolute path of the input
+file.  Hence, you'd say::
+
+  <map dest="modstamp">os.path.getmtime(@parser_.sourceToken)</map>
+
+
+
+
+
+Services in General
+===================
+
+...set a constant input to a core?
+----------------------------------
+
+Use a service input key with a Hidden widget factory and a default::
+
+  <service id="cutout" ...>
+    ...
+    <inputKey name="cutoutSize" widgetFactory="Hidden">
+      <values default="0.1"/>
+    </inputKey>
+  </service>
+
+
+...add computed columns to a dbCore output?
+-------------------------------------------
+
+Easy: define an output field with a select attribute, e.g.::
+
+      <outputField name="a_U" tablehead="A_U" ucd="phys.absorption;em.opt.U"
+        description="Extinction in U, assuming R_V=3.1"
+        select="ev_i*5.434"/>
+
+This will add an output field that looks to the service like it comes
+from the DB proper but contains the value of the ``ev_i`` column
+multiplied with 5.434.
+
+The expression must be valid SQL.
+
+There is a fairly common case for this that's somewhat tricky: Compute
+the distance of the position of a match to the position of a cone search
+(or endless variants of that).  Tasks like that are hard for DaCHS, as
+the select clause (where the distance is computed) needs information on
+something only avaialable to the condition descriptors (the input
+position).
+
+There's a slightly hackish way around this.  It builds on the
+predictability of the names chosen by ``base.getSQLKey`` and the way
+parameters are passed through to PostgreSQL.  Hence, this is a
+portability liability.  We'd like to hear about your applications for
+this, as that may help us figure out a better solution.  Meanwhile, to
+add a spherical distance to a cone search service over a table with
+positions in raj2000, dej2000, say something like::
+
+  <outputTable verbLevel="20">
+    <outputField name="_r" 
+      unit="deg" ucd="pos.andDistance"
+      tablehead="Dist"
+      description="Distance to the queried position"
+      select="DEGREES(spoint(RADIANS(raj2000), RADIANS(dej2000))
+        &lt;->spoint(RADIANS(%(RA0)s), RADIANS(%(DEC0)s)))"/>
+  </outputTable>
+
+As you can see, this unconditionally assumes that the parameter names
+for the cone condition are in RA0, DEC0; it is likely that that is true,
+but this is not API-guaranteed.  You could write your condDesc with
+fixed field names to be safe, but even then this builds on the specific
+API of psycopg, so it's certainly not terribly portable.
+
+Another issue is that not all queries necessarily give RA and Dec; as
+pulled in by the ususual ``//scs#coreDescs`` STREAM, cone conditions in
+forms are not mandatory.  The above construct will yield fairly ugly
+errors when they are left out.  To fix this, make humanInput mandatory,
+saying something like::
+
+  <condDesc original="//scs#protoInput"/>
+  <condDesc original="//scs#humanInput" required="True"/>
+
+instead of the coreDescs (maybe adding the built-in MAXREC, too).
+
+
+...import data coming in to a service?
+--------------------------------------
+
+In a custom renderer or core, you can use code like::
+
+  from gavo import api
+
+  ...
+
+  def import(self, srcName, srcFile):
+    dd = self.service.rd.getById("myDataId")
+    with api.getWritableAdminConn() as conn:
+      self.nAffected = api.makeData(dd, forceSource=srcFile,
+        connection=conn).nAffected
+
+You want to use a separate connection since the default connections
+obtained by cores and friends are unprivileged and typically cannot
+write to table.
+
+The nAffected should contain the total number of records imported and
+could be used in a custom render function.
+
+srcName and srcFile come from a formal File form item.  In
+submitActions, you obtain them like::
+
+  srcName, srcFile = data["inFile"]
+
+
+Note that you can get really fancy and manipulate ``data`` in some way up
+front.  That could look like this::
+
+  from gavo import rsc
+  ...
+  data = rsc.Data.create(dd, parseOptions=api.parseValidating,
+    connection=conn)
+  data.addMeta("_stationId", self.stationRecord["stationId"])
+  self.nAffected = api.makeData(dd, forceSource=srcFile, data=data,
+    connection=conn).nAffected
+
+
+...define an input field doing google-type full text searches?
+--------------------------------------------------------------
+
+Since version 8.3 (or so), postgres supports query modes inspired by
+information retrieval on text columns -- basically, you enter a couple
+of terms, and postgres matches all strings containing them.
+
+Within DaCHS, this is currently only supported using custom phrase
+makers.  This would look like this::
+
+  <condDesc>
+    <inputKey name="columnwords" 
+      description="Terms in column description (case does not 
+        matter, patterns not allowed)"
+      type="text" tablehead="Column words"/>
+    <phraseMaker>
+      <code>
+        yield ("to_tsvector('english', description)"
+          " @@ plainto_tsquery('english', %%(%s)s)"%(
+          base.getSQLKey("columnwords", inPars["columnwords"], outPars))
+      </code>
+    </phraseMaker>
+  </condDesc>
+
+-- here, ``description`` is the column containing the strings, and the
+``'english'`` in the function arguments gives the language according
+to which the strings should be interpreted.
+
+You may want to create an index supporting this type of query on the
+respective columns, too.  To do that, say::
+
+  <index columns="bibref" method="gin">
+    to_tsvector('english', bibref)</index>
+
 ...protect my TAP service against usage?
 ----------------------------------------
 
@@ -750,16 +474,307 @@ on how to do this; by the time your read this, TOPCAT may already
 provide less scary ways to enter credentials, as may other TAP clients.
 
 
-...access the creation date of the file from which I'm parsing?
----------------------------------------------------------------
+...have output columns with URLs in them
+----------------------------------------
 
-The row iterator that feeds the current table is in rawdicts under the
-key ``parser_``.  For grammars actually reading from files, the
-``sourceToken`` attribute of these gives the absolute path of the input
-file.  Hence, you'd say::
+You might be tempted to use ``outputField/formatter`` for this, and
+indeed this lets you generate arbitrarily odd things, including
+javascript, in whatever you make of the value coming in.  But nothing
+but a web browser can do anything with this kind of thing.  Therefore,
+DaCHS does not execute formatters for non-HTML output, which means
+for something like::
 
-  <map dest="modstamp">os.path.getmtime(@parser_.sourceToken)</map>
- 
+  <outputField name="obsid" type="text"
+    description="Link to retrieve data">
+    <formatter>
+      return T.a(href="http://my.data.serv.er/customservice?"+data)[
+        "Download"]
+    </formatter>
+  </outputField>
+
+VOTable and friends will only have the value of whatever obsid is in
+their corresponding column, which in this case is probably *not* what
+you want.
+
+Instead, use the ``select`` attribute of ``outputField`` to generate the
+URL within the database, like this::
+
+  <outputField name="obsURL" type="text"
+    description="Link to retrieve data"
+    select="'http://my.data.serv.er/customservice?'||obsid"
+    displayHint="type=url"/>
+
+The ``type=url`` display hint will generate links in HTML (and possibly
+some other appropriate thing for URLs in particular in other output
+formats).  The anchor text is the last item from the path component of
+the URL, which is not always what you want.  To override it, you can use
+a formatter, or, in simple cases when a constant text will do, the
+anchorText property, like this::
+
+  <outputField name="obsURL" type="text"
+    description="Link to retrieve data"
+    select="'http://my.data.serv.er/customservice?'||obsid"
+    displayHint="type=url">
+    <property key="anchorText">Retrieve Data</property>
+  </outputField>
+
+
+
+Form-based interfaces
+=====================
+
+...get a multi-line text input for an input key?
+------------------------------------------------
+
+Use a widgetFactory, like this::
+
+    <inputKey original="adqlInput.query"
+        widgetFactory="widgetFactory(ScalingTextArea, rows=15)"/>
+
+
+...make an input widget to select which columns appear in the output table?
+---------------------------------------------------------------------------
+
+In general, selecting fancy output options currently requires custom
+cores or custom renderers.  Ideas on how to change this are welcome.
+
+For this specific purpose, however, you can simply define an service key
+named _ADDITEM.  This would look like this::
+
+  <service ....>
+    ....
+     <inputKey name="_ADDITEM" tablehead="Extinctions for band"
+      description="Output extinctions for the respective band (if you want multiple bands, you can use 'additional output fields' below)"
+      type="text" required="True" mul>
+      <values multiOk="True" showItems="-1">
+        <option title="Landolt U">a_U</option>
+        <option title="Landolt V">a_V</option>
+        <option title="Landolt I">a_I</option>
+      </values>
+    </inputKey>
+    ...
+  </service>
+
+Setting showItems to -1 gives you checkboxes rather than a select list,
+which is mostly what you want.  Try with and without and see what you
+like better.
+
+If you do that, you *probably* do not want the standard "additional
+fields" widget at the bottom of the form.  To suppress it, add a line
+
+::
+
+  <property name="noAdditionals">True</property>
+  
+to the service definition.  The "True" in there actually is a bit of a
+red herring, the widget is suppressed for any value.
+
+
+...add and image to query forms?
+--------------------------------
+
+There are various variations to that theme -- you could go for a
+custom template if you want to get fancy, but usually putting an image
+into an _intro or _bottominfo meta section should do.
+
+In both cases, you need a place to get your image from.  While you could
+put it somewhere into rootDir/web/nv_static, it's probably nicer to have
+it within a resource's input directory.  So, add a static renderer to
+your service, like this::
+
+  <service allowed="form,static">
+    <property name="staticData">static</property>
+
+This lets you put service-local static data into resdir/static/ and
+access it as <serviceURL>/static/<filename>
+
+Usually, your _intro or _bottominfo will be in reStructured text.  Plain
+images work in there using substitution references or simply the naked
+image directive::
+
+    <meta name="_bottominfo" format="rst">
+      The current data set comprises these fields:
+
+      .. image:: \servicelink{cars/q/cat/static/fields-inline.png}
+    </meta>
+
+The servicelink macro would ensure that the image would still be found
+if the server ran off-root.
+
+This is the recommended way of doing things.  If, however, you insist on
+fancy layouts or need complete control over the appearance of your
+image (or whatever), you can use the evil "raw" meta format::
+  
+  <meta name="_bottominfo" format="raw"><![CDATA[
+    <a href="\servicelink{cars/q/cat/static/fields.png}">
+    <img src="\servicelink{cars/q/cat/static/fields-inline.png}"/>
+    </a>]]>
+  </meta>
+
+Make sure you enter valid HTML here, no checks are done by the DC
+software.
+
+...put more than one widget into a line in web forms?
+-----------------------------------------------------
+
+Use input table groups with a <property name="style">compact</property>.
+In DB cores, however, you probably do not want to give inputTables
+explicitely since it's much less hassle to have them computed from
+the condDescs.  In this case, the widgets you want to group probably
+come from a single condDesc.  To have them in a group, define a
+group within the condDesc without any paramRefs (or colRefs) -- they
+cannot be resolved anyway.  Give the group style and label properties,
+and it will be added to the input table for all fields of the condDesc::
+
+  <condDesc name="example">
+    <inputKey original="col1"/>
+    <inputKey original="col2"/>
+    <group description="An example group that will end up in one line">
+      <property name="style">compact</property>
+      <property name="label">Example vals</property>
+    </group>
+  </condDesc>
+
+If you are doing this, you probably want to use the ``cssClass``
+property of input keys and the ``customCSS`` property of services.  The
+latter can contain css specifications.  They are added into form pages
+by the defaultresponse template (in your custom templates, you should
+have ``<style type="text/css" n:render="servicestyle"/>`` in the head if
+you want this ufnctionality).  These can be used to style form elements
+by their css class, which in turn is given by specifying ``cssClass``
+properties on inputKeys.
+
+Here's an example that uses CSS to insert material, which currently is
+the only way to input something between the fields (short of redefining
+the widgets).  This may be overdoing it since the usability of this
+widget without CSS is questionable (whereas it would be fine if the
+group were non-compact and no CSS tricks were played); first a condDesc
+template::
+
+  <STREAM id="massfrac_template">
+    <doc>A condDesc for a mass fraction.  These consist of an element label,
+    a center value and a weird way of specifying the error.
+    
+    There can be a few of them for a given service, and thus you need to
+    define the macro item. It is used to disambiguate the names.
+    </doc>
+
+    <condDesc original="massfrac_cond">
+      <inputKey name="el\item" type="text" tablehead="Element \item"
+          description="Element for mass fraction \item">
+        <values>
+          <LOOP csvItems="\elements">
+            <events>
+              <option>\item</option>
+            </events>
+          </LOOP>
+        </values>
+      </inputKey>
+      <inputKey name="mfval\item" tablehead="Mass fraction \item"
+          description="Mass fraction c\item">
+        <property name="cssClass">a_val</property>
+      </inputKey>
+      <inputKey name="mffuzz\item" tablehead="Fuzz \item"
+        description="Range width r for mass fraction \item.  A mass fraction
+        matches if it is between c/10^r and c*10^r">0.3<property
+          name="cssClass">a_fuzz</property></inputKey>
+      <group name="mf\item">
+        <description>Mass fraction of an element.  The condition expands
+        to c/10^r &#8804; mass fraction(Element) &#8804; c*10^r</description>
+        <property name="label">Mass Fraction \item</property>
+        <property name="style">compact</property>
+      </group>
+    </condDesc>
+  </STREAM>
+
+And here's a service with that ``condDesc``, including the custom css::
+
+  <service id="web">
+    <meta name="title">Theoretical spectra of hot compact stars</meta>
+    
+    <dbCore queriedTable="newdata">
+      <LOOP listItems="1 2" source="massfrac_template"/>
+    </dbCore>
+    <property name="customCSS">
+      input.a_val {width:3em}
+      input.a_fuzz {width: 3em}
+      span.a_val:before { content:" in "; }
+      span.a_fuzz:before { content:" &#x00b1; "; }
+      span.a_fuzz:after { content:" dex"; }
+    </property>
+  </service>
+
+
+Note that we are styling both ``input`` and ``span`` elements with the
+css class we set.  Before and after can only be used on the span since
+input elements do not support before and after.  For that reason, DaCHS
+wraps each element within a compact group with a span of the same css
+class.
+
+Also see the next question.
+
+
+...get a range input widget?
+----------------------------------------------------
+
+Well, VizieR expressions let your users specify intervals and more, but
+ok, they would need to read docs to know that, so there's a case to be
+made for widgets  like::
+
+  Phlogistics      between __________  and ___________
+
+These basically work as discussed in grouping widgets above, but since
+stuff like this is fairly common, there's built-in support for this in
+//procs#rangeCond.  This is a stream requiring three definitions:
+
+* name -- the column name in the core's queried table
+* groupdesc -- a terse phrase describing the range.  This will be
+  used in the description of both the input keys and the group
+* grouplabel -- a label (include the unit, it is not taken from InputKey)
+  written in front of the form group
+
+groupdesc has to work after "Range of", "Lower bound of", and
+"Upper bound of".  Do not include a concluding period in groupdesc.
+
+Here's an example::
+
+    <dbCore queriedTable="data">
+      <FEED source="//procs#rangeCond"
+        name="t_eff"
+        groupdesc="the atmosphere's effective temperatures to include"
+        grouplabel="Effective Temperature [K]"/>
+
+
+...use a custom input widget for a field?
+----------------------------------------------------
+
+Right now, you cannot really; we're still waiting for an enlightenment
+on how to sensibly do that from RDs.  Pester us if you really want this.
+
+Meanwhile, to have little tags like the explanations of the
+vizier-like-expressions, you can use a custom widget with fields.  This
+could look like this::
+
+    <condDesc>
+      <inputKey original="object" type="vexpr-string">
+        <description>Designated object on the plate (i.e.,
+        the object the observers entered into their journal).
+        You can use wildcards if your prefix your expression with "~".
+        </description>
+        <widgetFactory
+          >widgetFactory(StringFieldWithBlurb, additionalMaterial=
+          T.a(href="/objectlist")[
+          "[List of known objects]"])</widgetFactory>
+      </inputKey>
+    </condDesc>
+
+Here, instead of the String in ``StringFieldWithBlurb``, you could have
+used Numeric or Date, and then used vexpr-float or vexpr-date,
+respectively, for the inputKey's date.
+
+The value of the ``additionalMaterial`` argument is some nevow stan.
+Info on what you can write there can be found elsewhere.
+
 
 ...disable automatic previews in "product" columns?
 ---------------------------------------------------
@@ -826,51 +841,53 @@ An added benefit of this is that the first approach only works starting
 DaCHS SVN rev. 3351, whereas this has been possible at least since about
 version 0.7.
 
+But then, the main point is: Don't do this – just provide previews.
+They're making a world of a difference, and they are in general not hard
+to make even if DaCHS doesn't support your formats out of the box. See
+http://docs.g-vo.org/DaCHS/ref.html#product-previews for details.
 
-...have output columns with URLs in them
-----------------------------------------
 
-You might be tempted to use ``outputField/formatter`` for this, and
-indeed this lets you generate arbitrarily odd things, including
-javascript, in whatever you make of the value coming in.  But nothing
-but a web browser can do anything with this kind of thing.  Therefore,
-DaCHS does not execute formatters for non-HTML output, which means
-for something like::
+VO Protocols
+============
 
-  <outputField name="obsid" type="text"
-    description="Link to retrieve data">
-    <formatter>
-      return T.a(href="http://my.data.serv.er/customservice?"+data)[
-        "Download"]
-    </formatter>
-  </outputField>
+...change the query issued on SCS queries?
+------------------------------------------
 
-VOTable and friends will only have the value of whatever obsid is in
-their corresponding column, which in this case is probably *not* what
-you want.
+You may want to do that because for some reason there is no q3c index on
+the queried table, or the semantics aren't quite a point vs. point cone
+search but close enough.
 
-Instead, use the ``select`` attribute of ``outputField`` to generate the
-URL within the database, like this::
+Since we've not yet migrated cone search querying to STREAMs, this is a
+bit clumsy, using the ``original`` attribute.  That said, the current
+way looks like this (for a query that does a proximity search on
+bboxes)::
 
-  <outputField name="obsURL" type="text"
-    description="Link to retrieve data"
-    select="'http://my.data.serv.er/customservice?'||obsid"
-    displayHint="type=url"/>
+  <condDesc original="//scs#humanInput">
+    <phraseMaker original="//scs#humanSCSPhrase">
+      <setup original="//scs#scsSetup" id="proxQuery">
+        <code><![CDATA[
+          def genQuery(inPars, outPars):
+            return "POINT(%%(%s)s, %%(%s)s) <-> bbox < %%(%s)s"%(
+              base.getSQLKey("RA", inPars["RA"], outPars),
+              base.getSQLKey("DEC", inPars["DEC"], outPars),
+              base.getSQLKey("SR", inPars["SR"], outPars))
+        ]]></code>
+      </setup>
+    </phraseMaker>
+  </condDesc>
 
-The ``type=url`` display hint will generate links in HTML (and possibly
-some other appropriate thing for URLs in particular in other output
-formats).  The anchor text is the last item from the path component of
-the URL, which is not always what you want.  To override it, you can use
-a formatter, or, in simple cases when a constant text will do, the
-anchorText property, like this::
+-- so, you are inheriting from the SCS condition on three levels and then 
+override the genQuery function defined in the common setup code.  The
+way the condDescs are written, you must return rather than yield
+the actual query string.  See the tutorial on how condDesc code
+works in general.  The semi-good news is that if you want the same thing
+for an SCS query, you can reuse part of what you did above::
 
-  <outputField name="obsURL" type="text"
-    description="Link to retrieve data"
-    select="'http://my.data.serv.er/customservice?'||obsid"
-    displayHint="type=url">
-    <property key="anchorText">Retrieve Data</property>
-  </outputField>
-
+   <condDesc original="//scs#procInput">
+    <phraseMaker original="//scs#scsPhrase">
+      <setup original="proxQuery"/>
+    </phraseMaker>
+  </condDesc>
 
 ...change a single param of ssap#hcd to being a column?
 -------------------------------------------------------
