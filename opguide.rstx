@@ -216,13 +216,35 @@ and should never escape to the VO registry):
   resources yourself.
 * creator.logo – A URL for a logo to use when none is given in the
   resource metadata. Use a small PNG here.
-* authority.creationDate – A UTC datetime (with trailing Z);
+* site.description – A description of your site (i.e., "data center")
+  Example: ``The GAVO data center provides VO publication services to
+  all interested parties on behalf of the German Astrophysical Virtual
+  Observatory.`` (use backslashes an the end of the lines to break long
+  lines).
+
+
+.. _tutorial chapter on the registry: tutorial.html#the-registry-interface
+.. _authority query against the registry: http://dc.zah.uni-heidelberg.de/__system__/adql/query/form?query=select%20ivoid%20from%20rr.resource%20where%20res_type%3D%27vg%3Aauthority%27%20and%20ivoid%3D%27ivo%3A%2F%2Forg.gavo.dc%27
+.. _meta stream format: ref.html#meta-stream-format
+
+
+Then, fill out the metadata for the system registry resources
+in your userconfig RD.  This is the stuff in the
+``registry-interfacerecords`` stream (which you can copy from
+//userconfig if it's not yet in your ``etc/userconfig.rd``.  Fill things
+out; in particular everything where there's a ``\\metaString`` expansion.
+This still is filled from defaultmeta.txt, but as we want to get rid of
+that file on the long run, just enter the text as you see fit.
+
+In authority, change in particular
+
+* creationDate – A UTC datetime (with trailing Z);
   technically, it should be the date the resource record is created, but
   realistically, just use "now" at the time your're writing the
   defaultmeta.txt.  Example: ``2007-12-19T12:00:00Z``.
-* authority.title – A human-readable descriptor of what the authority
+* title – A human-readable descriptor of what the authority
   corresponds to.  Example: ``The Utopia Observatory Data Center``
-* authority.description – A sentence or two on what the authority
+* description – A sentence or two on what the authority
   you are using means.  This could be the same as site.description if
   all you're claiming authority for is that; if you're claiming
   authority for your institute or organization, this obviously should
@@ -230,19 +252,24 @@ and should never escape to the VO registry):
   manages lots of substantial data sets created by the bright scientists
   all over the world`` (use backslashes an the end of the lines to break 
   long lines).
-* authority.shortName – a short (about 16 chars) identifier for your
+* shortName – a short (about 16 chars) identifier for your
   authority.  Example: GAVO DC.
-* authority.referenceURL – A URL at which people can learn more about
+* referenceURL – A URL at which people can learn more about
   your data center.  Example: ``http://www.g-vo.org``.
-* authority.managingOrg – an ivo id of the organization you're running
+* managingOrg – an ivo id of the organization you're running
   the dc for.  The default is ivo://<your authority>/org, the content
-  of which can be configured using the organization meta items.  If
+  defined in the ``manager`` resRec.  If
   your institution has a registry entry independent of your DC, you
-  can enter that IVORN here as well.
-* organization.title – the name of the organization on behalf of which
+  can enter that IVORN here as well (and you would remove the
+  ``manager`` resRec).
+
+In the ``manager`` resRec (if you have it), change:
+
+* creationDate – as above for authority.
+* title – the name of the organization on behalf of which
   you are running the data center.  Example: ``Observatory of
   Utopia``
-* organization.description and organization.referenceURL – as the
+* description and referenceURL – as the
   analoguous item for authority, just for the organization for which
   you are running the data center (e.g., your "home institute").
   Example: ``The Observatory of Utopia is Lilliput's
@@ -250,16 +277,6 @@ and should never escape to the VO registry):
   around the Plain Mountains.  Beautiful vistas and lush valleys
   make them an attractive holiday spot as well.  Book now at the
   Observatories soft money department at 1-800-GOOD-GREED.``
-* site.description – A description of your site (i.e., "data center")
-  Example: ``The GAVO data center provides VO publication services to
-  all interested parties on behalf of the German Astrophysical Virtual
-  Observatory.`` (use backslashes an the end of the lines to break long
-  lines).
-
-.. _tutorial chapter on the registry: tutorial.html#the-registry-interface
-.. _authority query against the registry: http://dc.zah.uni-heidelberg.de/__system__/adql/query/form?query=select%20ivoid%20from%20rr.resource%20where%20res_type%3D%27vg%3Aauthority%27%20and%20ivoid%3D%27ivo%3A%2F%2Forg.gavo.dc%27
-.. _meta stream format: ref.html#meta-stream-format
-
 
 After you've specificed all that, you're ready to define your first
 resources, viz, your registry itself, the authority, and the
@@ -327,6 +344,18 @@ their ADQL reference card::
       <meta name="accessURL">http://docs.g-vo.org/adqlref/adqlref.pdf</meta>
     </publish>
   </service>
+
+
+It is likely that if you register external services, you'll want to
+manage authorities other than ``[ivoa]authority`` as used by DaCHS.  If
+you do, just add authority record(s) as before in the
+``registry-interfacerecords`` STREAM in your `userconfig RD`_.  And
+do not forget to add lines like::
+
+	<meta name="managedAuthority">edu.euro-vo.org</meta>
+
+within the ``<service id="registry"`` in the user config.
+
 
 .. _resRec: ref.html#element-resrec
 
@@ -443,6 +472,7 @@ stand-in.  If you use something else, you may need to adapt
 For the rest, you can customize almost everything by overriding built-in
 resources.  There are three major entities that you can override:
 
+* `The userconfig RD`_
 * `Simple Web Resources`_
 * `Templates`_
 * `Overridden System RDs`_
@@ -452,6 +482,32 @@ us first – we'd in general prefer to provide customization hooks.
 Overridden distribution files are always a liability on upgrades.
 
 .. _favicon: https://en.wikipedia.org/wiki/Favicon
+
+
+The userconfig RD
+-----------------
+
+Fairly new in DaCHS is an RD exclusively for configuration.  This is a
+place in which you can put streams that fill certain  hooks; we expect
+to move more configuration into userconfig.
+
+DaCHS has a builtin RD ``//userconfig`` that is updated as you update
+DaCHS.  It always contains fallbacks for everything that can be in
+userconfig used by the core code.  To override something, pull the
+elements in questions in your own userconfig RD and edit it there.
+
+Your own userconfig RD is expected in ``$GAVO_DIR/etc/userconfig.rd``.
+If it's not there yet, there's nothing wrong with starting with the
+distributed one::
+
+  cd `gavo config configDir`
+  gavo admin dumpDF //userconfig > userconfig.rd
+
+Once it's already there, use ``dumpDF //userconfig`` and, say, ``less``
+to pick out the templates for whatever elements you need to copy.
+Currently, userconfig is already used in configuring the registry
+interface and extending the built-in obscore schema.
+
 
 
 Simple Web Resources
