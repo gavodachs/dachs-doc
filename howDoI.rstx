@@ -871,3 +871,51 @@ anchorText property, like this::
     <property key="anchorText">Retrieve Data</property>
   </outputField>
 
+
+...change a single param of ssap#hcd to being a column?
+-------------------------------------------------------
+
+Sometimes spectral pipelines emit inhomogeneous data even for a single
+instrument; for instance, "most" spectra  could be normalised to the
+continuum, but for some whatever heuristics the pipeline used didn't
+work out and the spectra ended up as uncalibrated (as far as the
+spectral axis is concerned).
+
+The officially correct way to deal with this is to use ``//ssap#mixc``.
+However, moving all the params to table columns is a bit of an overkill
+when all that's varying is a single column.  Hence, we recommend the
+following workaround in such a case:
+
+(1) Set the param to null (hoping to help clients ignore it); in this
+    case it could be::
+
+      <table id="data" onDisk="true" adql="True">
+        <mixin
+          ...
+          fluxCalibration="__NULL__"
+        >//ssap#hcd</mixin>
+    
+    (you only need to do this when the parameter overridden is required
+    by the mixin).
+
+(2) Add a column with the right utype to the table::
+
+       <column name="ssa_fluxcalib" type="text" 
+        utype="ssa:Char.FluxAxis.Calibration"
+        tablehead="Calib Flux" verbLevel="20"
+        description="Type of flux calibration"/>
+
+(3) In the rowmaker, map whatever you need manually::
+
+      <make table="data">
+        <rowmaker id="make_data" idmaps="ssa_*, localKey">
+          <apply procDef="//ssap#setMeta" name="setSSAPMeta">
+           ...
+          </apply>
+
+          <map key="ssa_fluxcalib">@FLUXCAL</map>
+
+The disadvantage is that the (uninformative) PARAM with the utype in
+question will still be in the VOTable, so the using ``mixc`` would be
+cleaner.  On the other hand, we could add PRUNE to mixins should this really
+become a bother.
