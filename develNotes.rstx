@@ -319,6 +319,31 @@ recommended for everyone, though)
   the repo for the RDs is the same on development and production).
 
 
+Configuration
+=============
+
+DaCHS has far too many configuration hooks: gavo.rc, defaultmeta.txt,
+the database profiles,  vanitynames.txt, userconfig.rd, as well as
+locally-overridden system RDs and templates.    At least defaultmeta.txt
+was a mistake, as was probably vanitynames.txt.  We should be working on
+getting rid of it.
+
+New configuration should preferably go into userconfig.rd, while there's
+always going to be room for gavo.rc, too.
+
+Configuration items for ``userconfig.rd`` typically are going to be
+STREAMs.  To provide fallbacks for those if the user hasn't defined any,
+there's ``//userconfig``, which also serves as built-in documentation
+for what's there.  As an identifier is resolved in ``//userconfig``, the
+system first looks in a ``etc/userconfig.rd`` and then, even if that
+file exists (but has no element with the id in question), in
+``//userconfig``.
+
+When using the elements, always use the canonical abbreviation for
+userconfig, ``%``, as in 
+``<FEED source="%#registry-interfacerecords"/>``.
+
+
 Structures
 ==========
 
