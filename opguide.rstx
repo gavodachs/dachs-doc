@@ -472,7 +472,7 @@ stand-in.  If you use something else, you may need to adapt
 For the rest, you can customize almost everything by overriding built-in
 resources.  There are three major entities that you can override:
 
-* `The userconfig RD`_
+* `userconfig RD`_
 * `Simple Web Resources`_
 * `Templates`_
 * `Overridden System RDs`_
@@ -484,7 +484,7 @@ Overridden distribution files are always a liability on upgrades.
 .. _favicon: https://en.wikipedia.org/wiki/Favicon
 
 
-The userconfig RD
+Userconfig RD
 -----------------
 
 Fairly new in DaCHS is an RD exclusively for configuration.  This is a

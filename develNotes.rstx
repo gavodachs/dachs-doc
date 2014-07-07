@@ -23,8 +23,10 @@ factoring out libraries).
 * Each functionality block is in a subpackage, the __init__ for which
   contains the main functions, classes, etc., of the the sub-package
   interface most clients will be concerned with.  Clients needing
-  special tricks may still import individual modules.  What's in
-  __init__ should be considered "public interface".
+  special tricks may still import individual modules (but then they're
+  in much larger danger of breaking).  What's in __init__ should be 
+  considered "public interface" and hence changed very carefully if
+  at all.
 * Within each subpackage, *no* module imports the sub-package, i.e.,
   a module in base never says "from gavo import base"
 * A subpackage may have a module common, containing objects that
@@ -33,6 +35,10 @@ factoring out libraries).
   of them.  No rules wrt importing modules from the same subpackage
   exist of other modules.  Just apply common sense here to avoid
   circular imports.
+* Don't use ``import *``.  It interferes with our static checking.
+  For relative imports, we will probably be slowly migrating towards
+  ``from . import`` over the current absolute imports (``from gavo.base
+  import...``).
 * There is a hierarchy of subpackages, where subpackages lower in the
   hierarchy may not import anything from the higher or equal levels, but 
   only from lower levels.  This hierarchy currently looks like this:
