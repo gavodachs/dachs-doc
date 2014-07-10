@@ -436,3 +436,14 @@ meanwhile, the easy workaround is to set ``lc_messages = 'C'`` in
 on Debian wheezy).  That's probably a good idea anyway since TAP may
 expose postgres error messages to the user, and these aren't nearly as
 useful to remote users as to you if they're in your local language.
+
+
+relation "dc.datalinkjobs" does not exist
+=========================================
+
+This happens when you try to run asynchronous datalink (the dlasync
+renderer) when you've not created the datalink jobs table.  This is not
+(yet) done automatically on installation since right now we consider
+async datalink to be a bit of an exotic case.  To fix this, run::
+
+  gavo imp //datalink
