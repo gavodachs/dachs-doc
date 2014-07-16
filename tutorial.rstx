@@ -2341,7 +2341,7 @@ handy::
         <map key="obsdec">OBSDEC</map>
         <map key="obsra">OBSRA</map>
       </mapKeys>
-      <rowfilter procDef="__system__/products#define">
+      <rowfilter procDef="//products#define">
         <bind key="table">"emi.main"</bind>
       </rowfilter>
     </fitsProdGrammar>
