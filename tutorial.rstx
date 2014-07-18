@@ -2250,7 +2250,7 @@ Run the import::
   gavo imp q
 
 Now start the server as necessary (see above), and start TOPCAT and
-Aladin.  In TOPCAT, open VO/SIA Query, enter your new service's access
+Aladin_.  In TOPCAT, open VO/SIA Query, enter your new service's access
 URL (it's ``http://localhost:8080/emi/q/s/siap.xml`` unless you did
 something cunning and should know better yourself) under "SIA URL"
 pretty far down in the dialog.
@@ -3110,7 +3110,7 @@ enough.  However, if you were interested in contributing support for
 OAuth (say), we'd gladly help.
 
 Note, however, that even HTTP basic authentication needs client support.
-Recent versions of TOPCAT and Splat have that, others do not, and they
+Recent versions of TOPCAT and Splat_ have that, others do not, and they
 simply will not work with password-encumbered services.  The situation
 with OAuth is much worse.
 
@@ -3274,6 +3274,8 @@ data – see above for details on how to create users and groups.
 .. _hints on common problems: http://docs.g-vo.org/commonproblems.html
 .. _stc-s definition: http://www.ivoa.net/Documents/Notes/STC-S/STC-S-20090527.html
 .. _RD element reference: http://docs.g-vo.org/DaCHS/elemref.html
+.. _aladin: http://aladin.u-strasbg.fr/aladin.gml
+.. _splat: http://star-www.dur.ac.uk/~pdraper/splat/splat-vo
 
 .. [#binding] This assumes you're doing this on your local machine (which
    were recommend to get started.  If you do this on a remote machine,
