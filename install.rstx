@@ -61,7 +61,7 @@ other systems::
   postgresql-9.0-q3c | postgresql-9.1-q3c, python, python-imaging,
   python-nevow, python-numpy, python-pkg-resources, python-psycopg2,
   python-pyfits, python-pyparsing, python-soappy, python-twisted,
-  python-zsi, python-setuptools, python-all
+  python-zsi, python-setuptools, python-all, python-lxml
 
 Again, for publishing images you'll need pywcs from
 http://stsdas.stsci.edu/astrolib/pywcs-1.11-4.8.2.tar.gz; there's a
@@ -70,8 +70,9 @@ package python-pywcs, and you'll need packages like::
   build-essential libjpeg62-dev libcfitsio3-dev python-dev
 
 Of course, you'll need postgres itself on top of that.  In principle
-anything newer than 8.0 should work, but there are some fringe cases
-(you probably will not encounter) in which 9.0 is required.
+anything newer than 8.0 should work, but by now out of lack of demand
+DaCHS refuses to work with anything below 9.0.  If you actually need
+support for older Postgres releases, let us know – it's easy to restore.
 
 
 PgSphere
