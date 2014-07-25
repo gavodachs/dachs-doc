@@ -645,21 +645,9 @@ you want filters of your own.  This could look like this::
       return False
     return processing.AnetHeaderProcessor.historyFilter(self, value)
 
-
-The ``AnetHeaderProcessor`` calls ``_mungeHeader`` with the "old", WCS-less
-header.  It does this before running astrometry.net.  This lets you
-shortcut astrometry.net when you cannot come up with a finished header
-anyway, possibly like this::
-
-  def _mungeHeader(self, srcName, hdr):
-    stem = hdr["PLATE-ID"]
-    if not stem in self.plateCat:
-      raise KeyError("Not in plate cat: %s"%stem)
-    ...
-
-The header returned by ``_mungeHeader`` will be joined with the WCS
-header in ``_getHeader``; you will in general not want to override the
-latter.
+To skip computation on some "known bad" cases without overriding
+``_getHeader``, you can override ``_shouldRunAnet(srcName, hdr)``.  If
+you return false there, no astrometric calibration is attempted.
 
 .. _anet module docstring: apidoc/gavo.helpers.anet-module.html
 
