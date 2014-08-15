@@ -2899,6 +2899,67 @@ Don't forget that you need to execute::
 to make DaCHS actually publish the table.
 
 
+EPN-TAP
+-------
+
+EPN-TAP will be a standard for publishing planetary data via TAP; it is
+still somewhat in development, but we will try to keep DaCHS' interface
+as stable as reasonable while EPN-TAP evolves.  If you want to publish
+data via EPN-TAP, you will probably want to have a quick look at the
+`EPN-TAP proposed specification`_ (check if there are newer ones).
+
+Data in planetary sciences often comes in "PDS format", which
+superficially resembles FITS but is quite a bit more sophisticated.
+Unfortunately, python support for PDS is underwhelming.  At least there
+is PyPDS_, which needs to be installed for DaCHS' pdsGrammar to work.
+
+
+Quick Start
+'''''''''''
+
+Install PyPDS if you don't have it anyway::
+
+  curl -LO https://github.com/RyanBalfanz/PyPDS/archive/master.zip
+  cd PyPDS
+  python setup.py build
+  sudo python setup.py install
+
+Get the sample data::
+
+  cd `gavo config inputsDir`
+  curl -O http://docs.g-vo.org/epntap-example.tar.gz
+  tar -xvzf epntap-example.tar.gz
+  cd lutetia
+
+Import it and build the previews from the PDS images::
+
+  gavo imp q
+  python bin/makePreview.py
+
+Start the server as necessary.  If you go to your local ADQL endpoint
+(something like http://localhost:8080/__system__/adql/query/form) and
+execute queries like::
+
+  SELECT * FROM lutetia.epn_core
+
+there.  Note how you get previews when hovering over the links in
+"Product Key".  This is, incidentally, a local extension to EPN-TAP,
+which is why futher right there's still the EPN-TAP access_reference
+column that also lets users retrieve the data.
+
+For access through a standard protocol, start TOPCAT_, select "VO/TAP
+Query", and at the bottom of the dialog enter http://localhost:8080/tap
+(or whatever you configured) in "TAP URL".  Hit "Enter Query", wait
+until the table metadata is in and then again query something like::
+
+  SELECT * FROM lutetia.epn_core
+
+Open the table and play with it.  As a little visual treat, in TOPCAT's
+main window hit "Activation Action", and configure the ``preview``
+column under "View URL as Image".  Then click on the table rows.
+
+
+
 Services Over Views
 ===================
 
@@ -3276,6 +3337,7 @@ data – see above for details on how to create users and groups.
 .. _RD element reference: http://docs.g-vo.org/DaCHS/elemref.html
 .. _aladin: http://aladin.u-strasbg.fr/aladin.gml
 .. _splat: http://star-www.dur.ac.uk/~pdraper/splat/splat-vo
+.. _PyPDS: https://github.com/RyanBalfanz/PyPDS
 
 .. [#binding] This assumes you're doing this on your local machine (which
    were recommend to get started.  If you do this on a remote machine,
