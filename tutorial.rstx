@@ -2955,9 +2955,69 @@ until the table metadata is in and then again query something like::
   SELECT * FROM lutetia.epn_core
 
 Open the table and play with it.  As a little visual treat, in TOPCAT's
-main window hit "Activation Action", and configure the ``preview``
+main window hit "Activation Action", and configure the ``preview_url``
 column under "View URL as Image".  Then click on the table rows.
 
+
+Tables
+''''''
+
+In essence, EPN-TAP is just a set of columns.  In DaCHS, these are in
+the `//epntap#table`_ mixin.  See the reference documentation of
+details.  If your data are images calibrated in some sort of spherical
+coordinates, you'll likely not have to change anything here.  The mixin
+will already open the table for ADQL querying, and to make that work, it
+is also declared onDisk.  What's not declared is the table name,
+although it's fixed at epn_core.  Hence, the minimal definition of an
+EPN-TAP table is::
+
+	<table id="epn_core" mixin="//epntap#table"//>
+
+You can of course add further columns as necessary.
+
+The real work is populating the table.  Let's first assume you have the
+data products and use DaCHS to publish them.  You will then use a
+grammar, and as EPN-TAP deals with data products, the grammar must
+use the rowfilter `products#define`_ rowfilter as discussed above in
+`SIAP`_; the example shows how this can be done while also providing for
+DaCHS-generated previews.
+
+Filling the table from what comes from the grammar happens through and
+``idmaps="*"`` (which you want as the ``apply`` doesn't actually map
+anything into the results and there's too many columns to make
+enumerating fun) and an application of `//epntap#populate`_ .  There's
+little to add to the description of the parameters.  You will probably
+need to refer to the `EPN-TAP proposed specification`_ now and then
+while filling things out.  Note again that as always when binding apply
+parameters, what you're entering are python expressions, so don't forget
+the quotes where appropriate.
+
+More complex operations should probably go to ``var`` declarations
+rather than the ``bind`` bodies; again, see the example to see how.
+
+If, on the other hand, you already have a database table containing the
+data as well as a network service pushing out the data products, you can
+still use the mixin and just create a view as described in `Services
+Over Views`_ .  To see what columns you can map, you should still
+consult the documentation of ``epntap#populate`` (the parameter names
+are simply the column names).  In addition there are the columns from
+the product mixin (accref, mime, embargo, and owner, which in this case
+probably should all be NULL). [TODO: example; if you have data like
+this, talk to us so we can get an example here]
+
+
+Service
+'''''''
+
+EPN-TAP tables are queried through the data center's TAP service.  If
+you have registred that, there is nothing else you need to do to access
+your data.
+
+For registration, just add::
+
+  <publish/>
+
+to your table body and run ``gavo pub <rd-id>``.
 
 
 Services Over Views
@@ -3338,6 +3398,9 @@ data – see above for details on how to create users and groups.
 .. _aladin: http://aladin.u-strasbg.fr/aladin.gml
 .. _splat: http://star-www.dur.ac.uk/~pdraper/splat/splat-vo
 .. _PyPDS: https://github.com/RyanBalfanz/PyPDS
+.. _//epntap#table: http://docs.g-vo.org/DaCHS/ref.html#the-epntap-table-mixin
+.. _//epntap#populate: http://docs.g-vo.org/DaCHS/ref.html#epntap-populate
+.. _EPN-TAP proposed specification: http://voparis-europlanet.obspm.fr/docs/EPN_TAP_v_0.37.pdf
 
 .. [#binding] This assumes you're doing this on your local machine (which
    were recommend to get started.  If you do this on a remote machine,

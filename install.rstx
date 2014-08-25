@@ -50,9 +50,8 @@ Installation without Package Management
 Dependencies
 ------------
 
-Unfortunately, DaCHS has quite a few dependencies.  Thus, you're doing
-
-Here's the list of dependencies of our Debian package as of version
+Unfortunately, DaCHS has quite a few dependencies;
+here's the list of dependencies of our Debian package as of version
 0.8.4; this should give you some clue as to what might be necessary on
 other systems::
 
@@ -60,8 +59,9 @@ other systems::
   postgresql-9.0-pgsphere | postgresql-9.1-pgsphere, postgresql-8.4-q3c |
   postgresql-9.0-q3c | postgresql-9.1-q3c, python, python-imaging,
   python-nevow, python-numpy, python-pkg-resources, python-psycopg2,
-  python-pyfits, python-pyparsing, python-soappy, python-twisted,
-  python-zsi, python-setuptools, python-all, python-lxml
+  python-pyfits, python-soappy, python-twisted,
+  python-zsi, python-setuptools, python-all, python-lxml,
+  python-docutils
 
 Again, for publishing images you'll need pywcs from
 http://stsdas.stsci.edu/astrolib/pywcs-1.11-4.8.2.tar.gz; there's a
