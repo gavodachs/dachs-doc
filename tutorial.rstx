@@ -2920,6 +2920,7 @@ Quick Start
 Install PyPDS if you don't have it anyway::
 
   curl -LO https://github.com/RyanBalfanz/PyPDS/archive/master.zip
+  unzip master.zip
   cd PyPDS
   python setup.py build
   sudo python setup.py install
