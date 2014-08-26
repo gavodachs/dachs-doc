@@ -88,9 +88,8 @@ collect those, and all userdata objects that went into a particular
 ``FieldInfo`` can be retrieved under its ``userdata`` attribute.  `stc`
 is a DaCHS STC AST.
 
-A ``tableName`` passed to getFieldInfo is a strings from ADQL, i.e., you
-must be prepared to resolve names like your database is resolving them
-(e.g., concerning default schemata and the like).
+A ``tableName`` passed to getFieldInfo is an object with schema and name
+attributes.  Tables from TAP_UPLOADS appear with an empty schema here.
 
 
 The Type System
