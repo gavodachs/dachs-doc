@@ -4,6 +4,8 @@ GAVO DaCHS Tutorial
 
 :Author: Markus Demleitner
 :Email: gavo@ari.uni-heidelberg.de
+:Date: |date|
+
 
 .. contents:: 
   :depth: 3
@@ -3447,3 +3449,5 @@ data – see above for details on how to create users and groups.
           base.getSQLKey("sr", inPars["sr"], outPars))
       </phraseMaker>
     </condDesc>
+
+.. |date| date::

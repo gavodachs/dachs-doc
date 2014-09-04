@@ -4,6 +4,7 @@ The GAVO ADQL Library
 
 :Author: Markus Demleitner
 :Email: gavo@ari.uni-heidelberg.de
+:Date: |date|
 
 
 A library to deal with ADQL and have it executed by postgres
@@ -154,3 +155,5 @@ DaCHS code for the actual Simbad interface)::
     return adql.getSymbols()["point"].parseString("POINT('ICRS',"
       "%.10f, %.10f)"%(alpha, delta))
   adql.registerRegionMaker(_makeSimbadRegion)
+
+.. |date| date::
