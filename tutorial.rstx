@@ -43,7 +43,7 @@ doing it as the data center administrative account (for the Debian
 package, that's gavoadmin, if you did the setup manually, it's whatever
 user did the ``gavo init``).
 
-To get a quick start, just pull in the RD in use by GAVO's data center:
+To get a quick start, just pull in the RD in use by GAVO's data center::
 
   cd /var/gavo/inputs
   mkdir arihip
