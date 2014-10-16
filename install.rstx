@@ -405,7 +405,7 @@ not write to ``rootDir``'s parent, do something like::
 ``gavo init`` may spit out a warning or two on the first run.  On repeated runs
 no output at all should appear.
 
-If you database server is not on the same machine as your web server
+If your database server is not on the same machine as your web server
 (which is not recommended for a test setup), you have to pass a complete
 DSN that lets DaCHS connect as a superuser to ``gavo init``.  A DSN
 ("Data Source Name") is a sequence of key-values pairs as used  by ODBC

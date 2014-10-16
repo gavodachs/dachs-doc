@@ -718,7 +718,7 @@ The other paths in this section are interpreted relative to rootDir
 unless they start with a slash.
 
 You may want to set tempDir and cacheDir to a directory local to your
-maching if rootDir is mounted via a network.  Also note that we do
+machine if rootDir is mounted via a network.  Also note that we do
 no synchronization for writing to the log (and never will -- we will
 provide syslog based logging if necessary), so you may want to tweak
 logDir too to keep actions from seperate users seperate.
@@ -740,7 +740,7 @@ On machines dedicated to DaCHS, you would set it to 80, the standard
 HTTP port; this will of course fail if there's already another web
 server running.
 
-DaCHS frequently needs to produce full URLs to itself.  to do that, it
+DaCHS frequently needs to produce full URLs to itself.  To do that, it
 uses ``serverURL``.  While we could potentially infer that from
 ``bindAddress`` and ``serverPort``, today's web setups are frequently
 too complicated to make that work.  So, adapt ``serverURL``, too, to the

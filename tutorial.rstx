@@ -27,7 +27,7 @@ Quick start
 
 To do anything useful with DaCHS, you will have to write a resource
 descriptor (RD), and you'll probably have to have some data.  Both must
-reside within some subdirectory DaCHS' input directory (unless you
+reside within some subdirectory of DaCHS' input directory (unless you
 configured otherwise, that's /var/gavo/inputs; we assume that in the
 following).
 
@@ -356,41 +356,41 @@ whole truth, but it's true enough, and you're saving yourself a lot of
 headache if you simply believe it).
 
 The type attribute defaults to real, and can otherwise take values in
-valid SQL datatypes.  The DC software knows how to handle, in addition
-to real,
+valid SQL datatypes.  The DC software knows how to handle
 
-* text – a string.  You can also use types like char(7) and the like,
+* ``text`` – a string.  You can also use types like char(7) and the like,
   but since that does not help postgres (or much anything else within
   the DC), this is not recommended.
-* double precision – a floating point number.  You should use
+* ``real``  – a real number.  
+* ``double precision`` – a floating point number.  You should use
   in doubles if you need to keep more than about 7 digits of mantissa.
-* integer – typically a 32-bit integer
-* bigint – typically a 64-bit integer
-* smallint – typically a 16-bit integer
-* timestamp – a combination of date and time.  While postgres can
+* ``integer`` – typically a 32-bit integer
+* ``bigint`` – typically a 64-bit integer
+* ``smallint`` – typically a 16-bit integer
+* ``timestamp`` – a combination of date and time.  While postgres can
   process a very large range of dates, the DC stores timestamps in
   datetime.datetime objects, which means that for "astronomical" times
   (like 10000 B.C. or 10000 A.D. you may need to use custom
   representations. Also, the DC assumes all times to be without time
   zones.  Further time metadata (like distinguishing TT from UT) is
   given through STC specifications.
-* date – a date.  See timestamp.
-* time – a time.  See timestamp
-* box – a rectangle.
-* spoint, scircle, sbox, spoly – objects of spherical geometry, taken
-  from pgSphere.  Ask for documentation...
+* ``date`` – a date.  See timestamp.
+* ``time`` – a time.  See timestamp
+* ``box`` – a rectangle.
+* ``spoint``, ``scircle``, ``sbox``, ``spoly`` – objects of spherical geometry, taken
+  from pgSphere (http://pgsphere.projects.pgfoundry.org/).  Ask for documentation...
 
-Some more types (like raw and file) are available to tables in service
+Some more types (like ``raw`` and ``file``) are available to tables in service
 definitions, but they should, in general, not appear in database tables.
 
 Futher metadata on columns includes:
 
-* unit – the unit the column values are in.  The syntax is that of
+* ``unit`` – the unit the column values are in.  The syntax is that of
   VOUnits_. Unit is left out for unitless values.
-* tablehead – a very short string designating the content.  This string
+* ``tablehead`` – a very short string designating the content.  This string
   is typically used for display purposes, e.g., as table headings or
   labels on input fields and defaults to the capitalized column name.
-* description – a longer string characterizing the content.  This may
+* ``description`` – a longer string characterizing the content.  This may
   be in bubble help or VOTable descriptions.  Since these could be
   longer, you may want to put them in a child element rather than an
   attribute; in both cases, whitespace is normalized, so you can enter
@@ -402,18 +402,18 @@ Futher metadata on columns includes:
       <description>The aperture is the full-width-half-mean of the
         response function of our sage 3000 hyper-detector.</description>
     </column>
-* ucd – a Unified Content Descriptor as defined by IVOA.  To figure out
+* ``ucd`` – a Unified Content Descriptor as defined by IVOA.  To figure out
   "good" UCDs, the `GAVO UCD resolver`_ can help.  An easy way to come
   up with them is also to leave them out initially and then run
   ``gavo admin suggestucds`` (it's what we do these days).
-* required – True if value must be set in order for the record to be
+* ``required`` – True if value must be set in order for the record to be
   valid.  By default, NULL (which in python is None) is a valid value
   for any column and will silently be inserted if you don't assign a
   value in the rowmaker (see below).  For required columns, an error
   will be raised when a value is missing.  In HTTP service interfaces,
   missing required parameters will lead to a 400 invalid parameters HTTP
   response.
-* verbLevel – A measure for the "importance" of the column.  Various
+* ``verbLevel`` – A measure for the "importance" of the column.  Various
   protocols have the notion of "verbosity", where higher verbosity means
   you get to see more columns with more esoteric content.  Within DaCHS,
   verbLevel is a number between (usefully) 1 and 30, with columns with
