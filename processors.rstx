@@ -117,16 +117,16 @@ using the database more or less indirectly, just let your processor run
 overnight rather than try to fix its database interface.
 
 
-Auxillaries
+Auxiliaries
 '''''''''''
 
 Once you have the catalogue name, you will want to read it and make it
 available to the process method.  To allow you to do this, you can
-override the _createAuxillaries(dd) method.  It receives the data
+override the _createAuxiliaries(dd) method.  It receives the data
 descriptor of the data to be processed.  Here's an example::
 
   class Processor(processing.FileProcessor):
-    def _createAuxillaries(self, dd):
+    def _createAuxiliaries(self, dd):
       self.catEntriesUsed = 0
       catPath = os.path.join(dd.rd.resdir, self.opts.catPath)
       self.catalogue = {}
@@ -148,7 +148,7 @@ simple size checker above that outputs a sorted list of bad files::
 
   class SizeChecker(processing.FileProcessor):
 
-    def _createAuxillaries(self, dd):
+    def _createAuxiliaries(self, dd):
       self.mess = []
 
     def process(self, srcName):
@@ -499,7 +499,7 @@ this is::
   keepKeys = set(["SIMPLE", "BITPIX", "NAXIS", "NAXIS1", "NAXIS2",
       "EXTEND", "BZERO", "BSCALE"])
 
-You can amend this list as necessary in your _createAuxillaries method,
+You can amend this list as necessary in your _createAuxiliaries method,
 most likely like this::
 
   self.keepKeys = self.keepKeys.copy()

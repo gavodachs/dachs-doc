@@ -1002,14 +1002,9 @@ like::
   <resource schema="test">
     <service id="look" allowed="dlget">
       <datalinkCore>
-        <metaMaker>
-          <code>
-            yield MS(InputKey, name="i", type="text")
-          </code>
-        </metaMaker>
         <descriptorGenerator>
           <code>
-            return ProductDescriptor(None, None, 'text/plain')
+            return ProductDescriptor(None, None, None, 'text/plain', )
           </code>
         </descriptorGenerator>
         <dataFunction>
@@ -1035,9 +1030,11 @@ like::
 All but the data formatter is just blind code for hiding our true
 intentions from the datalink machinery.  In the data formatter, you can
 return arbitrary text.  You can now access
-``http://localhost:8080/__tests/manhole/look?PUBDID=0&i=0`` and see
-whatever gets returned from ``renderHTTP`` (the values of PUBDID and i
-obviously play no role here).
+``http://localhost:8080/__tests/manhole/look?ID=0`` and see
+whatever gets returned from ``renderHTTP`` (the value of ID
+obviously is arbitrary here, although you could use it to transmit
+information into your debugging code; not that we think that's a good
+idea).
 
 Note that you can edit manhole.rd, save it, and reload the page; the
 server will notice your changes and display the new result without a

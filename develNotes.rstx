@@ -937,6 +937,71 @@ Building jquery-gavo.js
 Whatever CSS is necessary for jquery should go into gavo_dc.css.
 
 
+
+Different Database Backends
+===========================
+
+A request we get fairly regularly is to make DaCHS work with database
+engines other than Postgres, with MySQL and Oracle being the most
+popular alternatives for external requests and SQLite something we
+personally would like to see for ease of deployment.  
+
+The short answer to all this: It's tricky.  You might get away with
+using `foreign data wrappers`_ in some cases; a group at Paris
+Observatory reports fairly good results with them.
+
+Here's the longer answer: DaCHS does a lot of inspection of the
+database, while at the same time worrying about different access levels,
+reconnection on database restarts, and similar; it also creates
+extension types.  We are not aware of any abstraction layer that would
+let us keep all this code generic, and that's why we let DaCHS slide
+into a fairly deep entanglement with psycopg2 and Postgres.
+
+Seeing such an entanglement reduces the scope of DaCHS, we'd certainly
+help pulling it out of the entanglement.  We probably won't do it
+ourselves.  Here's a list of things that would need to be done for
+un-entanglement, that's probably somewhat incomplete and also contains
+some project mines (innocuous-looking things that blow up into a lot of
+refactoring once you step on them):
+
+(a) separate what's specific to postgresql+psycopg2 from sqlsupport,
+    put that into a module (backend_postgres, say), devise some sort 
+    of dispatcher to backends, and have, to work out things, a second
+    backend, that would then contain different implementations for
+    tableExists, indexExists, and so on.  Actually, throwing out
+    some cruft from sqlsupport that should have gone ages ago would
+    be a good thing, too.
+(b) figure out what other hidden dependencies exist; the most
+    worrisome part probably is the extension types DaCHS uses and
+    registers as well as the pgSphere interface; this is built into
+    typesystems and used left and right.  If there's no way to hide
+    DB-specific differences, there'll have to be some major redesign.
+    Also, DaCHS implicitely assumes TEXT in the database is cheap.
+    If that's not true of a DB (and I think in Oracle TEXT can't be
+    properly indexed) and you'll want much more VARCHARs and similar,
+    minor adjustments might be in order.
+(c) The ADQL translator would need to get another "morpher" (the
+    thing that turns ADQL parse trees into the language of the
+    backend database) That's already forseen, but figuring out how to
+    enable maximum reuse of code between the different morphers might
+    take some thought.  Also, again the question of spherical
+    geometry in the backend will have to be looked at.
+(d) Some mixins directly depend on postgres features (//scs#q3cindex
+    is an obvious example).  I believe it'd be ok to say "well, don't
+    use these on non-Postgres", and we'd provide similar things for
+    the other DBs.  But that would make RDs non-portable, which I
+    don't like too much either.
+(e) The C boosters generate material for Postgres binary copy.
+    Obviously, one would need to figure out the analogon on other
+    databases (which may not be well-documented; I had to check the
+    Postgres source for some details, too) and then split up
+    boosterskel.c into generic and postgres-specific parts.  Or
+    there'd be no support for C boosters on different databases,
+    which might not be unreasonable, either.
+
+.. _foreign data wrappers: https://wiki.postgresql.org/wiki/Foreign_data_wrappers
+
+
 Implementing Protocols
 ======================
 
