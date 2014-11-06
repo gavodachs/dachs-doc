@@ -462,57 +462,6 @@ operator's guide`_
 .. _Starting and Stopping the Server in the operator's guide: opguide.html#starting-and-stopping-the-server
 
 
-More dependencies
-=================
-
-The following software components are not really hard dependencies, but
-they are in some ways used by very common functions of DaCHS, and thus
-you *should* install them unless you know what you are doing.
-
-
-
-VOPlot
-------
-
-While DaCHS contains a very rudimentary Javascript-based plotting
-component, in-browser plotting is better done through VO India's VOPlot.
-Due to the applet security model, the applet has to originate from the
-server that will deliver the data, and so you will need to install
-VOPlot locally if you want to use this feature; if you don't do this,
-you should comment out or delete
-
-::
-
-  <button onClick="openVOPlot()">Open in VOPlot</button>
-
-from ``$INSTALLROOT/gavo/resources/templates/defaultresponse.html`` (or
-leave this out from your local defaultresponse.html).
-
-To make this work, first `download VOPlot
-<http://vo.iucaa.ernet.in/~voi/voplot.htm>`_ and unpack the distribution
-at a convenient place.  In the resulting folder, you'll find a
-subdirectory binaries.  Its contents is expected at
-``$GAVOROOT/web/nv_static/voplot``.
-
-Thus, within this ``binaries`` subdirectory, you could do::
-  
-  DESTDIR=`gavo config webDir`/nv_static/voplot
-  mkdir -p $DESTDIR
-  cp -r voplot* $DESTDIR
-
-(for VOPlot 1.2 – recommended for its compact size –, you can just copy
-voplot.jar).
-
-wcstools
---------
-
-To support cutout services, you need getfits from the wcstools package
-available at http://tdc-www.harvard.edu/software/wcstools/.   After
-building wcstools, the binary is in <build-dir>/bin/getfits.
-
-The system expects the binary getfits in $GAVO_INPUTSDIR/cutout/bin/getfits.
-
-
 This concludes the installation instructions for the normal case.  Only
 read on if you're curious and/or courageous.
 

@@ -2437,11 +2437,6 @@ There are two cores you may want for SIAP services:
   but returns cutouts rather than full images; the size of these cutouts
   is determined by the SIZE argument (i.e., the region of interest).
 
-For siapCutoutCore to work, you must install ``getfits`` from wcstools_
-into $GAVO_DIR/__system/bin/getfits.  No automated procedure is planned
-for this yet; given enough demand (or, even better, patches) we'd
-probably provide a pure python implementation of it.
-
 To furnish these cores with the parameters required by the standard, use
 the //siap#protoInput condDesc.  If you want to re-use the core for a
 form-based service, use the //siap#humanInput condDesc as well.  Both
