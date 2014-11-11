@@ -19,6 +19,18 @@ central concept, the resource descriptor (RD), recommended directory
 layouts, the basics of metadata and services, and debugging.
 
 
+Invoking DaCHS
+==============
+
+For historical reasons, all DaCHS functionality is invoked through a
+program called ``gavo``.  Multiple functions are integrated and selected
+through the first argument; run ``gavo help`` to see what's available;
+realistically, the functions most users will be confronted with are
+``import``, ``serve``, ``publish``, and ``test``.
+
+TBW
+
+
 Building a Catalog Service
 ==========================
 
