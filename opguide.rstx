@@ -752,6 +752,20 @@ for a public server would thus look like this::
   serverPort: 80
   serverURL: http://mydc.myvo.org
 
+Note that ``serverURL`` *must* include the port if it is not 80 (or 443
+for https).  If you actually kept the default and just put the machine
+on the net, your web section would need to include something like::
+
+  [web]
+  bindAddress:
+  serverURL: http://your.machine.example.org:8080
+
+– the empty ``bindAddress`` is necessary so DaCHS doesn't just bind to
+the loopback address, the ``serverURL`` because DaCHS has no way of
+knowing the preferred name of the machine it's running under; it *could*
+add the port, which it knows, but doing that would, e.g., make  the
+lives of people operating behind reverse proxies hard.
+
 While you are at it, set ``sitename`` to a short string describing your
 server (this is currently only used in the registry interface).
 
