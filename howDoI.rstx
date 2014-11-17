@@ -936,3 +936,23 @@ The disadvantage is that the (uninformative) PARAM with the utype in
 question will still be in the VOTable, so the using ``mixc`` would be
 cleaner.  On the other hand, we could add PRUNE to mixins should this really
 become a bother.
+
+
+Operations
+==========
+
+...get rid of DaCHS entirely?
+-----------------------------
+
+If you installed from package, first do::
+
+  apt-get --purge remove gavodachs-server
+
+This will *not* remove tables in the database or your gavo file system
+hierarchy.  These you can get rid of with something like this::
+
+  rm -r <your-gavo-root-path>
+  sudo -u postgres dropdb gavo
+
+We may be swayed into doing this by users; for now, we are reluctant to
+have a script blindly initiate a devastation of this scope.
