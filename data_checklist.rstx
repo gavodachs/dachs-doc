@@ -127,7 +127,7 @@ The italicized text in the explanations is taken from [RMI]_.
   acknowledge..."), or if you want to restrict what people can do with
   your data, this would go here.  GAVO offers "embargoed" publication
   where, for a limited time, only persons having a password can access
-  data files or a service.  If this is interesting for you, talk to us.
+  data files or a service.  
 
 :Service profile:
   Certain VO protocols have a notion of "verbosity", giving more or less
