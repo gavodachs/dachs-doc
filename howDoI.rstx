@@ -467,11 +467,12 @@ This is not sufficient for top secret things -- people can still
 inspect your column metadata, descriptions and so on.  But they
 shouldn't get to the data.
 
-o make this work with the TOPCAT TAP client, you'll need to set the
+Not all TAP clients support HTTP basic authentication, but several do.
+For instance, since v4.0-1 TOPCAT just pops up a box requesting the
+credentials.  On older releases you can still set the
 star.basicauth.user and star.basicauth.password java system properties.
 See http://www.star.bristol.ac.uk/~mbt/topcat/sun253/jvmProperties.html
-on how to do this; by the time your read this, TOPCAT may already
-provide less scary ways to enter credentials, as may other TAP clients.
+on how to do this.
 
 
 ...have output columns with URLs in them

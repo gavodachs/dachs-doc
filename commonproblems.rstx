@@ -447,3 +447,35 @@ renderer) when you've not created the datalink jobs table.  This is not
 async datalink to be a bit of an exotic case.  To fix this, run::
 
   gavo imp //datalink
+
+
+(some column) may be null but has no explicit null value
+=========================================================
+
+These are warnings emitted by the DaCHS' RD parser – since they are
+warnings, you could ignore them, but you shouldn't.
+
+This is about columns that have no "natural" NULL serialisation in
+VOTables, mostly integers.  Without such a natural NULL, making VOTables
+out of anything that comes out of these tables can fail under certain
+circumstances.
+
+There are (at least) two ways to fix this, depending on what's actually
+going on:
+
+(a) you're sure there are no NULLs in this column.  In that case, just
+    add ``required="True"``, and the warnings will go away.  Note,
+    however, that DaCHS will instruct the database to check that you're
+    not cheating, and an import will fail if your try to put NULLs into
+    such columns.
+
+(b) there are NULLs in this column.  In that case, find a value that
+    will work for NULL, i.e., one that is never used as an actual value.
+    "Suspicious" values like 0, -1, -9999 or the like are preferred as
+    this increases the chance that careless programs, formats, or users
+    who ignore a NULL value specification have a chance to catch their
+    error.  Then declare that null value like this::
+
+      <column name="withNull" type="integer"...>
+        <values nullLiteral="-9999"/>
+      </column>
