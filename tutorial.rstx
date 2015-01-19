@@ -824,8 +824,8 @@ imp``.
 Cores and Services
 ''''''''''''''''''
 
-The last part of the RD deals with how to get the data out of the
-database again, i.e., the services exposing the data.  This part is
+The last but one part of the RD deals with how to get the data out of
+the database again, i.e., the services exposing the data.  This part is
 fairly simple for arihip::
 
   <service id="cone" allowed="scs.xml,form">
