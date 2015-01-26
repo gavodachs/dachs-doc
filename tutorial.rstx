@@ -370,9 +370,11 @@ headache if you simply believe it).
 The type attribute defaults to real, and can otherwise take values in
 valid SQL datatypes.  The DC software knows how to handle
 
-* ``text`` – a string.  You can also use types like char(7) and the like,
-  but since that does not help postgres (or much anything else within
-  the DC), this is not recommended.
+* ``text`` – a string.  You could also use types with explicit length
+  like char(7), but this is highly discouraged; it does not help 
+  postgres (or much anything else within the DC), but it hurts insofar
+  as DaCHS cannot produce NULLs for such constructs in most VOTable
+  serialisations.
 * ``real``  – a real number.  
 * ``double precision`` – a floating point number.  You should use
   in doubles if you need to keep more than about 7 digits of mantissa.
