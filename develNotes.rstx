@@ -799,18 +799,8 @@ After some hesitation, we decided to use the jquery javascript library
 plotting; so, if you still see MochiKit somewhere, please disregard).
 We also include some of jquery-ui.  
 
-The result is ususally shipped in minimized form within DaCHS, which
-means that we have a little GPL issue here.  I guess we should keep a
-copy of the non-minimized source for the current DaCHS js somewhere.  On
-the other hand, jquery and jquery-ui currently have fine DVCSes, so I
-think we're fine with the spirit of the GPL...
-
-Locally developed code has extension .src.js.  What's actually shipped
-out is minified, where currently we're using *cough* google's online
-"closure" compiler for that.  There's a makefile in the js directory that
-does this.  This means that whenever you change javascript, you have to
-run Make in web/js for changes to become active; it uses a python wrapper
-around the web service to properly deal with errors and warnings.
+We keep all javascript in "full" source form (in resources/web/js).
+DaCHS performs on-the-fly minimisaton (unless [web]jsSource is False).
 
 For development of that, it's much more convenient if the stuff that
 gets served out is in source.  To enable that, set ``[web]jsSource`` to
@@ -909,9 +899,8 @@ the images necessary in ``resources/web/img``.
 samp.js
 +++++++
 
-This is the minified version for Mark Taylor's samp.js, checked out from 
-https://github.com/astrojs/sampjs.git and then minified as described
-there.
+This is Mark Taylor's samp.js, checked out from
+https://github.com/astrojs/sampjs.git.
 
 
 jquery.flot.js
