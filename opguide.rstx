@@ -1159,7 +1159,13 @@ After the upgrade, be sure to run your regression tests (if you have
 defined any)::
 
   gavo test ALL
+  gavo val -c ALL
 
+This last command might complain about mismatches between RD and on-disk
+metadata; there are several reasons why that may happen, including dumb
+or clever things we've done in the software (in the latter case, the
+Changes file should tell you about it).   In any case, you should fix
+the problem, usually by re-importing the respective table.
 
 Upgrading Installations from SVN
 ''''''''''''''''''''''''''''''''
@@ -1167,14 +1173,16 @@ Upgrading Installations from SVN
 The basic thing to remember: After every update, do, as a user with
 ingestion privileges, the restart sequence::
 
+  $ gavo val -c ALL
   $ sudo /etc/init.d/dachs stop # (or whatever you use to stop the server)
   $ gavo upgrade
   $ sudo /etc/init.d/dachs start # (or whatever you use to start the server)
   $ gavo test ALL
 
-(in principle, gavo upgrade can run while the server is active, and with
+In principle, gavo upgrade can run while the server is active, and with
 most updates, users won't even see errors, but since you need to restart
-anyway, why bother).
+anyway, why bother.  On possible failures of the gavo val command, see
+the last paragraph of the previous section.
 
 The steps to update depend on what you did to install out of the
 subversion checkout.  If you initially said ``setup.py develop`` (which
