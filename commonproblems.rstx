@@ -479,3 +479,33 @@ going on:
       <column name="withNull" type="integer"...>
         <values nullLiteral="-9999"/>
       </column>
+
+
+Column rave.main.logg_k: Unit dex is not interoperable
+======================================================
+
+The `VOUnit standard`_ lets you use essentially arbitrary strings as
+units – so does DaCHS.  VOUnit, however, contains a canon of units VO
+clients should understand.  If DaCHS understands units, you can, for
+instance, change them on form input and output using the displayUnit
+displayHint – other programs may allow automatic conversion and similar
+comforts.
+
+When DaCHS warns that a unit is not interoperable, this means your unit
+will not be understood in that way.  There are cases when that's
+justified, so it's just a warning, but be sure you understand what
+you've written and there actually is no interoperable (i.e., using the
+canonical VOUnits) way to express what you want to say.
+
+Also not that it is an excellent idea to quote free (i.e.,
+non-canonical) units, i.e., write ``unit='"Crab"'``.  The reason is that
+in the non-quoted case, VOUnit parsers will try do separate off SI
+prefixes, such that, e.g., ``dex`` will be interpreted as dezi-ex, i.e.,
+a tenth of an ex (which happens to actually be a unit, incidentally,
+although not a canonical VOUnit one).
+
+And yes, dex itself would be a free unit.  If you look, quantities given
+with "dex"" as a unit string actually are dimensionless.  Our
+recommendation therefore is to have empty units for them.
+
+.. _VOUnit standard: http://ivoa.net/documents/VOUnits/index.html
