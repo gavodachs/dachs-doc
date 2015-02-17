@@ -846,7 +846,8 @@ Paths and other general settings.
 * xsdclasspath: shell-type path; 
   defaults to 'None' --
   Classpath necessary to validate XSD using an xsdval java class.  You
-  want GAVO's VO schemata collection for this.
+  want GAVO's VO schemata collection for this.  Deprecated, we're now
+  using libxml2 for validation.
 
 Section [adql]
 ''''''''''''''
@@ -880,7 +881,8 @@ Settings concerning TAP, UWS, and friends
   Default match limit for ADQL queries via the UWS/TAP
 * hardMAXREC: integer; 
   defaults to '20000000' --
-  Default match limit for ADQL queries via the UWS/TAP
+  Hard match limit (i.e., users cannot raise MAXREC or TOP beyond that)
+  for ADQL queries via the UWS/TAP
 * maxTAPRunning: integer; 
   defaults to '2' --
   Maximum number of TAP jobs running at a time
@@ -901,18 +903,18 @@ Settings concerning database access.
   Don't change
 * maintainers: set of strings; 
   defaults to 'admin' --
-  Name(s) of profiles that should have full access to gavoimp-created
+  Name(s) of profiles that should have full access to gavo imp-created
   tables by default
 * msgEncoding: string; 
   defaults to 'utf-8' --
   Encoding of the messages coming from the database
 * profilePath: shell-type path; 
-  defaults to ' ~/.gavo:$configDir' --
+  defaults to '~/.gavo:$configDir' --
   Path for locating DB profiles
 * queryProfiles: set of strings; 
   defaults to 'trustedquery' --
-  Name(s) of profiles that should be able to read gavoimp-created tables
-  by default
+  Name(s) of profiles that should be able to read gavo imp-created
+  tables by default
 
 Section [ivoa]
 ''''''''''''''
@@ -921,7 +923,7 @@ The interface to the Greater VO.
 
 * authority: string; 
   defaults to 'x-unregistred' --
-  The authority id for this DC
+  The authority id for this DC; this has *no* leading ivo://
 * dalDefaultLimit: integer; 
   defaults to '10000' --
   Default match limit on SCS/SSAP/SIAP queries
@@ -934,6 +936,10 @@ The interface to the Greater VO.
 * oaipmhPageSize: integer; 
   defaults to '500' --
   Default number of records per page in the OAI-PMH interface
+* sdmVersion: value from the list 1, 2; 
+  defaults to '1' --
+  Version of the spectral data model we generate our spectra as (unless
+  someone asks for another version explicitly).
 * votDefaultEncoding: value from the list binary, td; 
   defaults to 'binary' --
   Default 'encoding' for VOTables in many places (like the DAL
@@ -967,8 +973,8 @@ Settings related to serving content to the web.
   defaults to '' --
   Password for online administration, leave empty to disable
 * adsMirror: string; 
-  defaults to 'http://ads.g-vo.org/' --
-  Root URL of ADS mirror to be used
+  defaults to 'http://ads.g-vo.org' --
+  Root URL of ADS mirror to be used (without a trailing slash)
 * bindAddress: string; 
   defaults to '127.0.0.1' --
   Interface to bind to
@@ -981,16 +987,22 @@ Settings related to serving content to the web.
 * graphicMimes: list of strings; 
   defaults to 'image/fits,image/jpeg' --
   MIME types considered as graphics (for SIAP, mostly)
+* jsSource: boolean; 
+  defaults to 'False' --
+  If True, Javascript will not be minified on delivery (this is for
+  debugging)
 * maxPreviewWidth: integer; 
   defaults to '300' --
-  Hard limit for the width of previews (necessary because previews on
-  protected items are free)
+  Ignored, only present for backward compatiblity
 * maxUploadSize: integer; 
   defaults to '20000000' --
   Maximal size of file uploads in bytes.
 * nevowRoot: path fragment; 
   defaults to '/' --
-  Path fragment to the server's root for operation off the server's root
+  Path fragment to the server's root for operation off the server's
+  root; this must end with a slash (and, frankly, if you must use this
+  feature, you'll probably encounter some bugs. we want to fix those,
+  though.)
 * preloadRDs: list of strings; 
   defaults to '' --
   RD ids to preload at the server start (this is mainly for RDs that
@@ -1007,9 +1019,11 @@ Settings related to serving content to the web.
   Port to bind the server to
 * serverURL: string; 
   defaults to 'http://localhost:8080' --
-  URL fragment used to qualify relative URLs where necessary
+  URL fragment used to qualify relative URLs where necessary.  Note that
+  this must contain the port the server is accessible under from the
+  outside if that is not 80.
 * sitename: string; 
-  defaults to 'GAVO data center' --
+  defaults to 'Unnamed data center' --
   A short name for your site
 * sqlTimeout: integer; 
   defaults to '15' --
@@ -1026,7 +1040,6 @@ Settings related to serving content to the web.
 * voplotUserman: URL fragment relative to the server's root; 
   defaults to 'Deprecated and ignored' --
   URL to the documentation of VOPlot
-
 .. END CONFIG REFERENCE
 
 Managing Runtime Resources
