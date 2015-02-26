@@ -61,13 +61,11 @@ other systems::
   python-nevow, python-numpy, python-pkg-resources, python-psycopg2,
   python-pyfits, python-soappy, python-twisted,
   python-zsi, python-setuptools, python-all, python-lxml,
-  python-docutils
+  python-docutils python-pywcs
 
-Again, for publishing images you'll need pywcs from
-http://stsdas.stsci.edu/astrolib/pywcs-1.11-4.8.2.tar.gz; there's a
-package python-pywcs, and you'll need packages like::
+If you want to use boosters, you will additionally need::
 
-  build-essential libjpeg62-dev libcfitsio3-dev python-dev
+  build-essential libcfitsio3-dev 
 
 Of course, you'll need postgres itself on top of that.  In principle
 anything newer than 8.0 should work, but by now out of lack of demand
