@@ -238,6 +238,7 @@ The RD goes on to give metadata applying to everything within the RD::
   <meta name="subject">Catalogs</meta>
   <meta name="subject">Astrometry</meta>
   <meta name="subject">Stars: Proper Motions</meta>
+  <meta name="type">Catalgo</meta>
 
   <meta name="coverage">
     <meta name="profile">AllSky ICRS</meta>
@@ -1869,10 +1870,10 @@ information as yet, and you most certainly should try to give positions
 in ICRS.
 
 
-Content Type
-------------
+(Content) Type
+--------------
 
-Values for, ``content.type`` come from a controlled vocabulary that
+Values for ``type`` come from a controlled vocabulary that
 includes Other, Archive,
 Bibliography, Catalog, Journal, Library, Simulation, Survey,
 Transformation, Education, Outreach, EPOResource, Animation, Artwork,
