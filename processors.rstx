@@ -405,6 +405,30 @@ ignored``, which is expected to change the primary header passed to it
 in place.  The changed header will then be written back to disk, if
 possible without touching the data part.
 
+Here's an example for a simple ImmediateHeaderProcessor::
+
+  import os
+
+  from gavo import api
+
+  class LinkAdder(api.ImmediateHeaderProcessor):
+	  def _createAuxiliaries(self, dd):
+		  self.staticBase = dd.rd.getById("dl").getURL("static")
+
+	  def _isProcessed(self, srcName, hdr):
+		  return hdr.get("FN-PRE", "").startswith("http")
+	  
+	  def _changeHeader(self, srcName, hdr):
+		  baseName = os.path.splitext(os.path.basename(srcName))[0]
+		  hdr.update("FN-WEDGE", "%s/wedges/%sw.fits"%(self.staticBase, baseName),
+			  after="FILENAME")
+		  hdr.update("FN-PRE", "%s/jpegs/%s.jpg"%(self.staticBase, baseName),
+			  after="FN-WEDGE")
+
+
+  if __name__=="__main__":
+      res = api.procmain(LinkAdder, "kapteyn/q", "import")
+
 With HeaderProcessors, you will rather to override the
 ``_isProcessed(srcName) -> boolean`` method and one of
 
