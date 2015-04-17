@@ -40,9 +40,8 @@ Here is an example checking whether the sizes of files match what an
   import os
 
   from gavo import api
-  from gavo.helpers import processing
 
-  class SizeChecker(processing.FileProcessor):
+  class SizeChecker(api.FileProcessor):
 
     def process(self, srcName):
       found = os.path.getsize(srcName)
@@ -52,7 +51,7 @@ Here is an example checking whether the sizes of files match what an
 
 
   if __name__=="__main__":
-    processing.procmain(SizeChecker, "potsdam/q", "import")
+    api.procmain(SizeChecker, "potsdam/q", "import")
 
 
 The call to ``procmain`` arranges for the command line to be
@@ -71,10 +70,10 @@ The processors can define command line options of their own.  You could,
 for example, read the expected sizes from some sort of catalogue.  To do
 that, define an addOptions static method, like this::
 
-  class Processor(processing.FileProcessor):
+  class Processor(api.FileProcessor):
     @staticmethod 
     addOptions(optParser):
-      processing.FileProcessor.addOptions(optParser)
+      api.FileProcessor.addOptions(optParser)
       optParser.add_option("--cat-name", help="Resdir-relative path to"
         " the plate catalogue", action="store", type="str", 
         dest="catPath", default="res/plates.cat")
@@ -125,7 +124,7 @@ available to the process method.  To allow you to do this, you can
 override the _createAuxiliaries(dd) method.  It receives the data
 descriptor of the data to be processed.  Here's an example::
 
-  class Processor(processing.FileProcessor):
+  class Processor(api.FileProcessor):
     def _createAuxiliaries(self, dd):
       self.catEntriesUsed = 0
       catPath = os.path.join(dd.rd.resdir, self.opts.catPath)
@@ -146,7 +145,7 @@ If you want your processor to gather data, you can use the fact that
 procmain returns the processor it created.  Here is a version of the
 simple size checker above that outputs a sorted list of bad files::
 
-  class SizeChecker(processing.FileProcessor):
+  class SizeChecker(api.FileProcessor):
 
     def _createAuxiliaries(self, dd):
       self.mess = []
@@ -159,7 +158,7 @@ simple size checker above that outputs a sorted list of bad files::
 
 
   if __name__=="__main__":
-    res = processing.procmain(SizeChecker, "potsdam/q", "import")
+    res = api.procmain(SizeChecker, "potsdam/q", "import")
     res.mess.sort(key=lambda rec: abs(rec[1]-rec[2]))
     for name, expected, found in res.mess:
       print "%10d %10d %8d %s"%(expected, found, expected-found, name)
@@ -240,11 +239,11 @@ Note that the preview path and mime are the same for both versions,
 which means that previews should only be computed for the first kind of
 data.  To effect that, write your PreviewMaker like this::
 
-  class PreviewMaker(processing.SpectralPreviewMaker):
+  class PreviewMaker(api.SpectralPreviewMaker):
 	  sdmId = "build_sdm_data"
 
 	  def iterIdentifiers(self):
-		  for id in processing.SpectralPreviewMaker.iterIdentifiers(self):
+		  for id in api.SpectralPreviewMaker.iterIdentifiers(self):
 			  if not id.endswith(".vot"):
 				  yield id
 
@@ -279,10 +278,10 @@ accrefs, you can retrieve the full path by computing
 ``os.path.join(api.getConfig("inputsDir"), accref)``.
 
 
-processing.PreviewMaker
-'''''''''''''''''''''''
+api.PreviewMaker
+''''''''''''''''
 
-processing contains a ``PreviewMaker`` class with some convenience
+The DaCHS API contains a ``PreviewMaker`` class with some convenience
 methods.  To use it, give the data descriptor a ``previewDir`` property,
 like this::
 
@@ -305,9 +304,8 @@ one-channel jpegs for some image format understood by PIL::
   import Image
 
   from gavo import api
-  from gavo.helpers import processing
 
-  class PreviewMaker(processing.PreviewMaker):
+  class PreviewMaker(api.PreviewMaker):
     def getPreviewData(self, accref):
       srcName = os.path.join(api.getConfig("inputsDir"), accref)
       
@@ -323,7 +321,7 @@ one-channel jpegs for some image format understood by PIL::
 
 
   if __name__=="__main__":
-    processing.procmain(PreviewMaker, "example/q", "import")
+    api.procmain(PreviewMaker, "example/q", "import")
 
 If this were in ``bin/mkpreview.py``, you could then say::
 
@@ -341,7 +339,6 @@ three filters in the FITS extensions 2, 3, and 4::
 
   import numpy
 
-  from gavo.helpers import processing
   from gavo.utils import fitstools
   from gavo.utils import imgtools
   from gavo.utils import pyfits
@@ -352,7 +349,7 @@ three filters in the FITS extensions 2, 3, and 4::
         fitstools.iterScaledRows(srcName, destSize=200, extInd=extInd)))
 
 
-  class PreviewMaker(processing.PreviewMaker):
+  class PreviewMaker(api.PreviewMaker):
     def getPreviewData(self, srcName):
       return imgtools.colorJpegFromNumpyArrays(
         _getArrayFor(srcName, 1),
@@ -360,7 +357,7 @@ three filters in the FITS extensions 2, 3, and 4::
         _getArrayFor(srcName, 1))
 
   if __name__=="__main__":
-    processing.procmain(PreviewMaker, "lmu/q", "import_imgs")
+    api.procmain(PreviewMaker, "lmu/q", "import_imgs")
 
 
 
@@ -369,19 +366,19 @@ Making Previews for Spectra
 
 If you already have a datalink service defined for making SDM-compliant
 spectra, you can easily re-use that to generate spectral previews.  For
-that, there's ``processingSpectralPreviewMaker``.  All it needs is the
+that, there's ``api.SpectralPreviewMaker``.  All it needs is the
 id of data element making the SDM instances in the ``sdmId`` class
 attribute.  The following would do::
 
-  from gavo.helpers import processing
 
+  from gavo import api
 
-  class PreviewMaker(processing.SpectralPreviewMaker):
+  class PreviewMaker(api.SpectralPreviewMaker):
     sdmId = "build_sdm_data"
 
 
   if __name__=="__main__":
-    processing.procmain(PreviewMaker, "flashheros/q", "import")
+    api.procmain(PreviewMaker, "flashheros/q", "import")
 
 By default, this produces spectra that are logscaled on the flux axis.
 You can set the class attribute ``linearFluxes = True`` to have linear
@@ -391,10 +388,24 @@ scaling instead if that works better for your data.
 Basic FITS Manipulation
 -----------------------
 
-For manipulating FITS headers, there is the HeaderProcessor class.  It
-is a FileProcessor, so everything said there applies here as well,
+For manipulating FITS headers, there are the ImmediateHeaderProcessor
+and HeaderProcessor classes.  The difference is that the full
+HeaderProcessor first writes detached headers and only applies them in a
+second step.  That's usually advisable for major surgery, in particular
+with largish files.
+
+Both are FileProcessors, so everything said there applies here as well,
 except that you usually do not want to override the process method.
-Rather, you will probably want to override the
+
+With the simple ImmdiateHeaderProcessors, you simply override
+``_isProcessed(srcName, hdr)`` that should return False whenever the
+action still is necessary (the default always returns False, so it's
+(overly) safe to just let it stand), and ``_changeHeader(hdr) ->
+ignored``, which is expected to change the primary header passed to it
+in place.  The changed header will then be written back to disk, if
+possible without touching the data part.
+
+With HeaderProcessors, you will rather to override the
 ``_isProcessed(srcName) -> boolean`` method and one of
 
 * ``_mungeHeader(srcName, header) -> pyfits hdr`` or
@@ -409,7 +420,7 @@ It must return the complete new header for the file named in the
 argument.  Since it is very common to base this on the file's existing
 header, there is ``_mungeHeader`` that receives the current header.
 
-_mungeHeader should in general raise a processing.CannotComputeHeader
+_mungeHeader should in general raise a api.CannotComputeHeader
 exception if it cannot generate a header (e.g., missing catalogue entry,
 nonsensical input data).  If you return None from either _mungeHeader or 
 _getHeader, a generic CannotComputeHeader exception will be raised.
@@ -421,9 +432,8 @@ cards you want to keep from the original header (but see
 A somewhat silly example could look like this::
 
   from gavo import api
-  from gavo import processing
 
-  class SillyProcessor(processing.HeaderProcessor):
+  class SillyProcessor(api.HeaderProcessor):
     def _isProcessed(self, srcName):
       return self.getPrimaryHeader(srcName).has_key("NUMPIXELS")
 
@@ -432,7 +442,7 @@ A somewhat silly example could look like this::
       return hdr
 
   if __name__=="__main__":
-    processing.procmain(SillyProcessor, "testdata/theRD", "sillyData")
+    api.procmain(SillyProcessor, "testdata/theRD", "sillyData")
 
 Processors are expected  to have an addOptions static method receiving
 an optparser.OptionParser instance and adding options it wants to see.
@@ -539,16 +549,16 @@ infrastructure is what you want to use here.
 You probably want to inherit from AnetHeaderProcessor, more or less like
 this::
 
-  from gavo.helpers import processing
+  from gavo import api
 
-  class MyProcessor(processing.AnetHeaderProcessor):
+  class MyProcessor(api.AnetHeaderProcessor):
     sp_indices = ["index-4215"],
     sp_lower_pix = 0.1
     sp_upper_pix = 0.2
     sp_endob = 50
 
     def _getHeader(self, srcName):
-      hdr = processing.AnetHeaderProcessor._getHeader(self, srcName)
+      hdr = api.AnetHeaderProcessor._getHeader(self, srcName)
       if hdr is not None:
         hdr.update("LOCATION", "Unknown")
       return hdr
@@ -626,7 +636,7 @@ So, if you had an attribute ``sexControl_in`` containing
     for minArea in [300, 50, 150, 800, 2000, 8000]:
       try:
         self.sexControl = self.sexControl_in%minArea
-        res = processing.AnetHeaderProcessor._runAnet(self, srcName)
+        res = api.AnetHeaderProcessor._runAnet(self, srcName)
         if res is not None:
           return res
       except ShellCommandFailed:  # Ignore failures
@@ -643,7 +653,7 @@ you want filters of your own.  This could look like this::
       return True
     if "left" in value:
       return False
-    return processing.AnetHeaderProcessor.historyFilter(self, value)
+    return api.AnetHeaderProcessor.historyFilter(self, value)
 
 To skip computation on some "known bad" cases without overriding
 ``_getHeader``, you can override ``_shouldRunAnet(srcName, hdr)``.  If
