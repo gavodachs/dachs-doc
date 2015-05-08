@@ -509,3 +509,23 @@ with "dex"" as a unit string actually are dimensionless.  Our
 recommendation therefore is to have empty units for them.
 
 .. _VOUnit standard: http://ivoa.net/documents/VOUnits/index.html
+
+
+Column tab.foo is not a regular ADQL identifier
+===============================================
+
+This is a message you may see when running ``gavo val``.  It means that
+the column in question has a name that will get you in trouble as soon
+as you open the table in question to TAP queries (and trust me, you will
+sooner or later).  Regular ADQL identifiers match the regular expression
+``[A-Za-z][A-Za-z0-9_]*`` with the additional restriction that ADQL
+reserved  words (including terms like distance, size, etc) are not
+allowed either.
+
+If you see the message, just change the name in question.  There's so
+many nice words that there's really no need to use funny characters in
+identifiers  or hog ADQL reserved words.
+
+If you *must* keep the name anyway, you can prefix it by ``q/`` to make
+it a delimited identifier.  There's madness down that road, though, so
+don't complain to us if you do that and regret it too late.
