@@ -505,7 +505,7 @@ a tenth of an ex (which happens to actually be a unit, incidentally,
 although not a canonical VOUnit one).
 
 And yes, dex itself would be a free unit.  If you look, quantities given
-with "dex"" as a unit string actually are dimensionless.  Our
+with "dex" as a unit string actually are dimensionless.  Our
 recommendation therefore is to have empty units for them.
 
 .. _VOUnit standard: http://ivoa.net/documents/VOUnits/index.html
@@ -526,6 +526,8 @@ If you see the message, just change the name in question.  There's so
 many nice words that there's really no need to use funny characters in
 identifiers  or hog ADQL reserved words.
 
-If you *must* keep the name anyway, you can prefix it by ``q/`` to make
-it a delimited identifier.  There's madness down that road, though, so
-don't complain to us if you do that and regret it too late.
+If you *must* keep the name anyway, you can prefix it by ``quoted/`` to
+make it a delimited identifier.  There's madness down that road, though,
+so don't complain to us if you do that and regret it too late.  In
+particular, you may have a hard time referencing such columns from STC
+declarations, when creating indices, etc.  So: Just don't do it.
