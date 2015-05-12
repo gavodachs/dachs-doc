@@ -426,7 +426,7 @@ Overridden distribution files are always a liability on upgrades.
 
 
 Userconfig RD
------------------
+-------------
 
 Fairly new in DaCHS is an RD exclusively for configuration.  This is a
 place in which you can put streams that fill certain  hooks; we expect
@@ -449,6 +449,18 @@ to pick out the templates for whatever elements you need to copy.
 Currently, userconfig is already used in configuring the registry
 interface and extending the built-in obscore schema.
 
+Changes to userconfig.rd are picked up by DaCHS but will usually not be
+visible in the RDs they end up in.  This is because DaCHS does not
+track which RDs make use of userconfig, so these will typically need to
+be reloaded manually.  For instance, if you changed TAP examples, you'd
+need to run::
+
+  gavo serve exp //tap
+
+to make your change show up in the web interface.  Although usually not
+necessary, you can reload userconfig itself using::
+
+  gavo serve exp %
 
 
 Simple Web Resources
