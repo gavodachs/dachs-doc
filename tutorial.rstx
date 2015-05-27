@@ -2749,6 +2749,8 @@ definition's body::
       calibLevel="2"
       >//obscore#publishSIAP</mixin>
 
+To find out what parameters the mixin takes, see
+`//obscore#publishSIAP`_ in the reference documentation.
 
 On a table import, the obscore table will automatically be recreated to
 include the data.  If you retrofit ObsCore support to large tables, you
@@ -2762,11 +2764,86 @@ obscore table::
 For SSAP tables, there is an ``//obscore#publishSSAPHCD`` mixin that works
 like its SIAP cousin (see the reference documentation of details).
 
-If you have "custom" tables, have a look at what GAVO does for its
-califa/q resource.
+You can also have "pure" Obscore tables which do not build on protocol
+mixins.  A live example is the cubes table in the `califa/q2`_ RD within
+the GAVO data center.  Here's a brief explanation of how this works.
+
+For the non-constant parts of your data, re-use the metadata given in
+the global obscore table – to make that convenient, tell DaCHS to
+resolve ``original`` references in there::
+
+  <table id="cubes" onDisk="True" namePath="//obscore#ObsCore">
+
+``adql="True"`` is absent here as the obscore mixin set it.  It wouldn't
+hurt, though.
+
+You will almost always want to have DaCHS manage your products.  This
+works even when all your files are external (i.e., you're entering http
+URLs in accessURL), so it's a good idea to always mix in products::
+
+  <mixin>//products#table</mixin>
+
+Then, you mix in ``//obscore#publish``, which is like the
+protocol-specific mixins except it doesn't pre-set parameters based on
+what's already in protocol-specific tables::
+
+  <mixin
+      accessURL="dlurl"
+      size="10"
+      mime="'application/x-votable+xml;content=datalink'"
+      calibLevel="3"
+      collectionName="'CALIFA'"
+      coverage="s_region"
+      dec="s_dec"
+      emMax="7e-7"
+      emMin="3.7e-7"
+      emResPower="4000/red_disp_mean"
+      expTime="t_exptime"
+      facilityName="'Calar Alto'"
+      fov="0.01"
+      instrumentName="'PMAS/PPAK at 3.5m Calar Alto'"
+      oUCD="'phot.flux;em.opt'"
+      productType="'cube'"
+      ra="s_ra"
+      sResolution="0.0002778"
+      title="obs_title"
+      tMax="t_min"
+      tMin="t_max"
+      targetClass="'Galaxy'"
+      targetName="target_name"
+    >//obscore#publish</mixin>
+
+Essentially, what's constant is given in literals, what's variable is
+given as a column reference.  It is a bit unfortunate that you have to
+enter quite a few identity mappings in here, so we might provide a mixin
+presetting those if this turns out to be a common use case.  Tell us if
+you're annoyed.
+
+You can then add your custom columns (which might be useful if people
+directly query your table).  The central part is copying over obscore
+columns that are not constant for your data collection.  For califa,
+this looks like this::
+
+  <LOOP listItems="obs_id obs_title obs_publisher_did
+      target_name t_exptime t_min t_max s_region
+      t_exptime">
+      <events>
+        <column original="\item"/>
+      </events>
+    </LOOP>
+
+– you'll obviously have to adapt the ``listItems``.  To see what column
+names are available, see the `obscore table description`_.
+
+That's about it for defining the table.  To fill the table, just have a
+normal rowmaker; since the table contains products, don't forget the
+``//products#define`` rowfilter in the grammar.
 
 .. _Tody et al (2011): http://www.ivoa.net/Documents/ObsCore/index.html
-
+.. _//obscore#publishSIAP: ./ref.html#the-obscore-publishsiap-mixin
+.. _//obscore#publishSSAPHCD: ./ref.html#the-obscore-publishsiap-mixin
+.. _califa/q2: http://svn.ari.uni-heidelberg.de/svn/gavo/hdinputs/califa/q2.rd
+.. _obscore table description: http://dc.g-vo.org/__system__/dc_tables/show/tableinfo/ivoa.ObsCore
 
 Publishing DaCHS-managed tables via TAP
 ---------------------------------------
@@ -2802,46 +2879,8 @@ declare that child tables are TAP-accessible, like this::
     <make table="part3"/>
   </data>
 
-Another thing you might want to do when publishing tables to TAP is add
-sample queries for them.  As an extension to the usual tap_schema, DaCHS
-has an example table giving a name, a query and a description.  TAP
-clients may exploit these examples to help users figure out what to
-usefully do with more arcane tables, and of course you can explain
-more interesting features of your server or data here.
-
-To add an example, create a file with a name ending in ``.sample`` in
-``$GAVO_INPUTS/__system/adqlexamples/``.  The grammar for theses files is
-defined in ``//tap#import_examples``.  You write the three keys, viz., name,
-query and description, in this sequence, each followed by a double colon
-and any material you want in the field.  The keys must start at the
-beginning of a line.  You must add a double period at the end of the
-file, and it's one file per example.  Here's what this should look
-like::
-
-  name::katkat bibliography
-  query:: 
-  select * 
-  from katkat.katkat 
-  where gavo_hasword('variable', source) 
-    and minEpoch<1900
-  description::To search for title (or other) words in the source
-  field of :taptable:`katkat.katkat` (or in some other similar
-  query), use the gavo_hasword locally defined function.  
-  This basically works a bit like you'd expect from search engines:
-  case-insensitive, and oblivious to any context.
-  ..
-
-The description can be reStructured text.  We have added an interpreted
-text role taptable (see the description above on how to use it).  Its
-effect is to declare the table name that follows as "pertinent" to the
-query.  Smart clients would then show that query together with the
-table metadata in their metadata browsers.
-
-After adding an example, run ``gavo imp //tap import_examples`` to
-update the database table.  The result of this query is cached in the
-server, so to see the result on TAP's example endpoint, you need to
-reload the tap service (e.g., by going to /tap, logging in as gavoadmin,
-clicking on "Admin me" and then on "Reload RD").
+When publishing "non-obvious" tables to TAP, it's a good idea to add one
+or more TAP examples for it.  See `Writing Examples`_
 
 
 Publishing existing tables via TAP
@@ -2992,7 +3031,7 @@ is also declared onDisk.  What's not declared is the table name,
 although it's fixed at epn_core.  Hence, the minimal definition of an
 EPN-TAP table is::
 
-	<table id="epn_core" mixin="//epntap#table"//>
+  <table id="epn_core" mixin="//epntap#table"//>
 
 You can of course add further columns as necessary.
 
@@ -3039,6 +3078,106 @@ For registration, just add::
   <publish/>
 
 to your table body and run ``gavo pub <rd-id>``.
+
+Writing Examples
+================
+
+In the VO, there is a (as of this writing, fledgling) standard for
+giving examples for service usage; the idea is to produce HTML that's
+useful for human consumption with additional, RDFa-based, markup to let
+clients figure out how to fill their interface forms.
+
+DaCHS lets you write such examples in ReStructuredText with some
+extra markup that is turned into the machine-readable semantics.
+
+TAP examples
+------------
+
+The most prominent kind of examples are the one for TAP/ADQL.
+These reside ``$GAVO_ROOT/etc/userconfig.rd``.  If you don't
+have that file yet, create it with a contents of::
+
+  <resource schema="__system">
+  </resource>
+
+There can be quite a bit of configuraiton in there 
+(``gavo admin dumpDF //userconfig`` shows you what DaCHS uses when
+you don't override the items).  TAP examples are taken from a STREAM
+with id ``tapexamples``.  One such example is already given in the
+userconfig.rd of the distribution.  It will be ignored if you define
+your own ``tapexamples``, which is probably not a major loss.
+
+In the stream, there are ``_example`` meta elements with a mandatory
+``title`` attribute and ReStructuredText contents.  The built-in example
+looks like this::
+
+
+    <meta name="_example" title="tap_schema example">
+      To locate columns "by physics", as it were, use UCD in
+      :taptable:`tap_schema.columns`.  For instance,
+      to find everything talking about the mid-infrared about 10µm, you
+      could write:
+
+      .. tapquery::
+        
+        SELECT * FROM tap_schema.columns 
+          WHERE description LIKE '%em.IR.8-15um%'
+    </meta>
+
+You must give a query in a block marked ``..tapquery::``.  A typical
+client would fill this into whatever its UI provides to write queries.
+
+Optionally, you can give the client a hint what table the example
+pertains to using the ``:taptable:`` interpreted text role.  A client
+would typically use that to restrict the display of the example to
+states in which it assumes the user wishes to runs queries against that
+particular table.
+
+DaCHS does not (yet) pick up changes to ``userconfig`` automatically.
+Hence, after adding or changing examples, you have to run::
+
+  gavo serve exp % //tap
+
+as the gavo user on the server.  The somewhat funky-looking command line
+consists of ``exp`` as the unique abbreviation of serve's exipireRDs
+subcommand, ``%`` as the identifier of userconfig (which needs manual
+reloading), and ``//tap`` (which needs reloading as the rendered
+examples text is cached on it).
+
+This will only work if you've set ``[web]adminpasswd`` in your
+``/etc/gavo.rc``; of course, you could also restart the server.
+
+To see your shiny new example(s), point your browser to ``<server
+url>/tap/examples``.
+
+Datalink examples
+-----------------
+
+DaCHS also contains provisional support for examples associated with
+datalink services.  Since client support for it is not in the pipeline
+and it's not planned for the standard either, it's of questionable
+utility so far, but hopefully that's going to change.
+
+To add an example to a datalink service, add an ``_example`` meta with a
+title attribute directly to the service definition; for instance::
+
+  <service id="sdl" allowed="dlget,dlmeta">
+    <meta name="title">FEROS Datalink Service</meta>
+    <meta name="_example" title="Usage Example">
+      On published datasets like 
+      :dl-id:`ivo://org.gavo.dc/~?feros/q/f04031.bdf`,
+      this service lets you to cutouts, translations into FITS binary
+      tables, ASCII, and possibly more, as well as simple recalibration.
+    </meta>
+
+There is only one interpreted text role in there so far, ``dl-id``.
+That's a PubDID the service will generate a datalink document for.
+
+To see the example, point your browser to the service URL with the
+examples renderer.  If the above fragment were in the RD ``flash/q``,
+the URL would thus work out to be ``<server url>/flash/q/sdl/examples``.
+No manual reloading is necessary here, changes will be picked up
+automatically.
 
 
 Services Over Views
