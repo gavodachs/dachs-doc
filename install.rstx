@@ -67,10 +67,9 @@ If you want to use boosters, you will additionally need::
 
   build-essential libcfitsio3-dev 
 
-Of course, you'll need postgres itself on top of that.  In principle
-anything newer than 8.0 should work, but by now out of lack of demand
-DaCHS refuses to work with anything below 9.0.  If you actually need
-support for older Postgres releases, let us know – it's easy to restore.
+Of course, you'll need postgres itself on top of that.  We currently
+require postgres 9.0 or newer.  If you actually need support for older
+Postgres releases, let us know – it's not  hard to restore.
 
 
 PgSphere
