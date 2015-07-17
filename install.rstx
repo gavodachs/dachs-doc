@@ -61,7 +61,7 @@ other systems::
   python-nevow, python-numpy, python-pkg-resources, python-psycopg2,
   python-pyfits, python-soappy, python-twisted,
   python-zsi, python-setuptools, python-all, python-lxml,
-  python-docutils python-pywcs
+  python-docutils, python-pywcs, python-matplotplib
 
 If you want to use boosters, you will additionally need::
 
