@@ -3179,6 +3179,34 @@ the URL would thus work out to be ``<server url>/flash/q/sdl/examples``.
 No manual reloading is necessary here, changes will be picked up
 automatically.
 
+Generic examples
+----------------
+
+The DALI standard defines a term *generic-parameter* which can be used
+to annotate all kinds of services; this may come in particularly handy
+with the api renderer.
+
+To use it, you can write something like::
+
+	<meta name="_example" title="Dataset identifier">
+		Publisher dataset identifiers have a query part, but the
+		IVORN part still has to resolve:
+		:genparam:`uri(ivo://org.gavo.dc/~?feros/data/f89411.vot)`
+	</meta>
+
+	<meta name="_example" title="Standard identifier">
+		New-style standardIds use fragments to refer to standard keys within
+		vstd:Standard records, as in
+		:genparam:`uri(ivo://org.gavo.dc/std/glots#tables-1.0)`
+	</meta>
+
+Note that such examples best sit in the service rather than top-level in
+the RD; if the are direct children of the RD, they would appear in all
+services defined in the RD.
+
+DaCHS does not yet have support for the *capability* and *continuation*
+properties defined by DALI.  Ask if you need them.
+
 
 Services Over Views
 ===================
