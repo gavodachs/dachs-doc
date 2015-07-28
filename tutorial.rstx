@@ -941,7 +941,9 @@ returning a nonempty result.
 Debugging
 ---------
 
-Writing RDs is like programming, and sometimes it involves programming.
+Writing RDs is like programming, and sometimes it involves actual
+programming in python.
+
 Hence, you'll get things wrong, and DaCHS probably will annoy you.
 Giving good error messages – neither drowning you in a deluge of
 mostly-useless information nor swallowing important pieces of data,
@@ -979,6 +981,16 @@ General Hints
 * If you're trying to figure out server behaviour, don't run the
   server daemonized but use ``gavo serve debug`` instead; this won't
   detach and log to stdout.
+* With this (or the problem is in normally-running DaCHS code in the
+  first place), the python debugger is your friend.  The ``gavo``
+  command has an option ``--enable-pdb`` that will dump you into the
+  debugger where an uncaught exception happened (as the server should
+  never let an uncaught exception through, that's not useful with
+  ``gavo serve``).  If that doesn't help you, you can set breakpoints 
+  (e.g., in your own in-RD procedure defininitions by writing 
+  ``import pdb; pdb.set_trace``.  If you install the python-ipdb package, 
+  and write ipdb instead of pdb, you'll get a nicer debugger commandline 
+  with tab completion and similar frills.
 * To see what SQL is actually sent to the database, set the
   GAVO_SQL_DEBUG environment variable to any value.  This could look like
   this::
@@ -992,7 +1004,7 @@ General Hints
   The messages are in the logs directory, in the file ``serverStderr``.
 
 Debugging Services
-''''''''''''''''''.
+''''''''''''''''''
 
 Debugging services is of course an extra challenge since code runs deep
 in the bowels of a complex system, with timeouts, threads, and all kinds
