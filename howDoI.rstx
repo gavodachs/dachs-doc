@@ -986,29 +986,62 @@ adapt the following a bit.
 
 To upgrade, first install the new engine and extensions, for instance::
 
-   sudo aptitude install postgresql-${NEWVER}-pgsphere postgresql-${NEWVER}-q3c postgresql-${NEWVER}
+   apt-get install postgresql-${NEWVER}-pgsphere postgresql-${NEWVER}-q3c postgresql-${NEWVER}
 
-To run Debian's pg_upgradecluster script, you need to drop the empty
-cluster that Debian's install scripts generated for your new version.
+If you have custom extensions, this is the point to install
+postgresql-server-dev-$NEWVER to rebuild and install those extensions.
+
+It is *wise* to drop and re-create the cluster created by the Debian
+package, as it may have been created with the wrong locale.  If that
+doesen't bother you, you can skip this step.
 
   pg_ctlcluster $NEWVER main stop
   # this is a good time to see if your data center still works; if not,
   # you stopped the currently active cluster and should *not* drop it
-  pg_dropcluster $NEWER main
+  pg_dropcluster $NEWVER main
+  pg_createcluster $NEWVER --locale=C -e UNICODE --lc-collate=C\
+    --lc-ctype=C $PGVERSION main
 
-You'll (temporarily) need twice the storage of your current cluster.  To
-estimate how much that is, run::
+You can pass a directory into which to put the datafiles to
+pg_createcluster's -d argument.  To see where the old ones are, see::
 
   grep data_directory /etc/postgresql/$OLDVER/main/postgresql.conf
 
-which will give you the location of the old cluster, ``du -L`` on that
-should give you an idea how much space the new cluster will need.
+You'll need something like what this needs (use du -s to
+find out) on the filesystem your new cluster uses.  Also, do *not* use
+the old data directory.
 
-Find a file system with enough free space (you can move the cluster
-later if necessary).
+During the actual update, the database system will be down, and hence
+your data center will not work.  You should let people know that there's
+something wrong as good as you can.  As long as nobody really does
+anything with VOSI availability, the next best thing is to put your
+DaCHS installation in panic mode.
+
+To do this, place a file called MAINT into DaCHS's stateDir, maybe
+somewhat like this::
+
+  cat <<EOF > `gavo config stateDir`/MAINT
+  We're currently upgrading our database and cannot properly respond to
+  requests.
+
+  We expect to be back online at about 15 UTC, 2015-08-11.
+  EOF
 
 Then say::
 
-  pg_upgradecluster -v $NEWVER $OLDVER main /path/to/new/data_dir
+  pg_upgradecluster -m upgrade -v $NEWVER $OLDVER main /var/lib/postgresql/$NEWVER
 
-This may take a long time depending on how much data you have.
+This may take a fairly long time depending on how much data you have and
+how fast your disks are.  You could update any estimations you've made
+in MAINT based on disk usage.
+
+When all is done, pg_upgradecluster configures the old cluster to no
+longer start automatically and the new cluster to listen where the old
+one was.   So, just remove MAINT in the stateDir, restart the server (it
+should re-open its connections, but that may involve failures) and run
+your regression tests (you wrote some, didn't you?).
+
+If all looks well, drop the old cluster.  pg_upgradecluster prints the
+respective command last thing it does.  And deinstall the old binaries
+to avoid confusion.
+

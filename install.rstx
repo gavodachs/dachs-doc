@@ -266,7 +266,7 @@ On Debian systems dedicated for GAVO DaCHS, you can try the following:
 
       sudo pg_createcluster -d /<path-to-where-your-db-should-reside> \
         --locale=C -e UNICODE\
-        --lc-collate=C --lc-ctype=C $PGVERSION pgdata
+        --lc-collate=C --lc-ctype=C $PGVERSION main
 
     The locale should currently be C, because only the C locale will
     allow you databases with all kinds of encodings.  The database
