@@ -957,3 +957,58 @@ hierarchy.  These you can get rid of with something like this::
 
 We may be swayed into doing this by users; for now, we are reluctant to
 have a script blindly initiate a devastation of this scope.
+
+...upgrade the database engine?
+-------------------------------
+
+Content in postgres databases needs to be dumped and re-ingested
+whenever you run a postgres version.  This makes upgrages a bit of an
+adventure, in particular if you have large databases that take days to
+export and ingest.  However, Debian helps a bit; even if you don't run
+Debian, the following might be helpful.
+
+As it's easy to destroy all of your tables at once if you mistype things
+here, it's highly recommended to dump your database somewhere before
+starting with this::
+
+  pg_dump -f (some descriptive name).pgdump -F c gavo
+
+Let's say you're upgrading from 9.1 to 9.4.  Get a root shell and set
+these values.  Be *very* careful, if you  get this wrong, the commands
+further down will nuke your database::
+
+  export OLDVER=9.1
+  export NEWVER=9.4
+
+We additionally assume you're using the ``main`` cluster Debian
+automatically creates.  If you're using a custom cluster you'll have to
+adapt the following a bit.
+
+To upgrade, first install the new engine and extensions, for instance::
+
+   sudo aptitude install postgresql-${NEWVER}-pgsphere postgresql-${NEWVER}-q3c postgresql-${NEWVER}
+
+To run Debian's pg_upgradecluster script, you need to drop the empty
+cluster that Debian's install scripts generated for your new version.
+
+  pg_ctlcluster $NEWVER main stop
+  # this is a good time to see if your data center still works; if not,
+  # you stopped the currently active cluster and should *not* drop it
+  pg_dropcluster $NEWER main
+
+You'll (temporarily) need twice the storage of your current cluster.  To
+estimate how much that is, run::
+
+  grep data_directory /etc/postgresql/$OLDVER/main/postgresql.conf
+
+which will give you the location of the old cluster, ``du -L`` on that
+should give you an idea how much space the new cluster will need.
+
+Find a file system with enough free space (you can move the cluster
+later if necessary).
+
+Then say::
+
+  pg_upgradecluster -v $NEWVER $OLDVER main /path/to/new/data_dir
+
+This may take a long time depending on how much data you have.

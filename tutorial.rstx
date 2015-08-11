@@ -238,7 +238,7 @@ The RD goes on to give metadata applying to everything within the RD::
   <meta name="subject">Catalogs</meta>
   <meta name="subject">Astrometry</meta>
   <meta name="subject">Stars: Proper Motions</meta>
-  <meta name="type">Catalgo</meta>
+  <meta name="type">Catalog</meta>
 
   <meta name="coverage">
     <meta name="profile">AllSky ICRS</meta>
