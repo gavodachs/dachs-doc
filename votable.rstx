@@ -57,7 +57,8 @@ To parse simple (one-table), moderately sized VOTable, do::
 
 Here, ``data`` is a list of records, each of which is a sequence,
 ``metadata`` is a ``TableMetadata`` instance, and ``source`` can be a
-string naming a local file, or it can be a file-like object.
+string naming a local file, or it can be a file-like object.  To
+parse material in a string, use ``votable.loads``.
 
 ``votable.load`` only looks at the first TABLE element encountered.  If
 the VOTable does not contain any tabular data at all (e.g., error

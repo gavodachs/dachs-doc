@@ -847,6 +847,20 @@ They're making a world of a difference, and they are in general not hard
 to make even if DaCHS doesn't support your formats out of the box. See
 http://docs.g-vo.org/DaCHS/ref.html#product-previews for details.
 
+...change metadata for a column coming from a mixin?
+----------------------------------------------------
+
+Sometimes you want to change a column coming from a mixin, for instance,
+to be more specific in the description, or to change a display hint.
+Most mixins add their columns at table instanciation, which means that
+the columns provided by them are already available when you define your
+columns.  Also, columns with the same name overwrite existing columns.
+Thus, if you say::
+  
+	<column original="bandpassLo" displayHint="displayUnit=Angstrom"/>
+
+you'll have the metadata from bandpassLo with a new displayHint.
+
 
 VO Protocols
 ============
