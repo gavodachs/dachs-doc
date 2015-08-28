@@ -975,11 +975,15 @@ have a script blindly initiate a devastation of this scope.
 ...upgrade the database engine?
 -------------------------------
 
-Content in postgres databases needs to be dumped and re-ingested
-whenever you run a postgres version.  This makes upgrages a bit of an
-adventure, in particular if you have large databases that take days to
-export and ingest.  However, Debian helps a bit; even if you don't run
-Debian, the following might be helpful.
+Postgres' on-disk formats change from version to version.  This makes
+upgrages a bit of an adventure, in particular if you have large
+databases that take days to export and ingest.  However, Debian helps a
+bit; even if you don't run Debian, the following might be helpful.
+
+The text assumes you're using the default cluster, which is called main.
+If – and that's likely if you installed DaCHS in the olden days – yours
+has a different name (we used to suggest "pgdata"), you'll have to
+replace "main" with that name throughout.
 
 As it's easy to destroy all of your tables at once if you mistype things
 here, it's highly recommended to dump your database somewhere before
@@ -994,10 +998,6 @@ further down will nuke your database::
   export OLDVER=9.1
   export NEWVER=9.4
 
-We additionally assume you're using the ``main`` cluster Debian
-automatically creates.  If you're using a custom cluster you'll have to
-adapt the following a bit.
-
 To upgrade, first install the new engine and extensions, for instance::
 
    apt-get install postgresql-${NEWVER}-pgsphere postgresql-${NEWVER}-q3c postgresql-${NEWVER}
@@ -1005,16 +1005,13 @@ To upgrade, first install the new engine and extensions, for instance::
 If you have custom extensions, this is the point to install
 postgresql-server-dev-$NEWVER to rebuild and install those extensions.
 
-It is *wise* to drop and re-create the cluster created by the Debian
-package, as it may have been created with the wrong locale.  If that
-doesen't bother you, you can skip this step.
+You will first have to drop the new cluster Debian has already created
+for you, as pg_upgradecluster wants a clean slate::
 
   pg_ctlcluster $NEWVER main stop
   # this is a good time to see if your data center still works; if not,
   # you stopped the currently active cluster and should *not* drop it
   pg_dropcluster $NEWVER main
-  pg_createcluster $NEWVER --locale=C -e UNICODE --lc-collate=C\
-    --lc-ctype=C $PGVERSION main
 
 You can pass a directory into which to put the datafiles to
 pg_createcluster's -d argument.  To see where the old ones are, see::
@@ -1026,7 +1023,8 @@ find out) on the filesystem your new cluster uses.  Also, do *not* use
 the old data directory.
 
 During the actual update, the database system will be down, and hence
-your data center will not work.  You should let people know that there's
+your data center will not work. For a large database, the update can
+take several hourse.  You should let people know that there's
 something wrong as good as you can.  As long as nobody really does
 anything with VOSI availability, the next best thing is to put your
 DaCHS installation in panic mode.
@@ -1038,22 +1036,22 @@ somewhat like this::
   We're currently upgrading our database and cannot properly respond to
   requests.
 
-  We expect to be back online at about 15 UTC, 2015-08-11.
+  We expect to be back online late afternoon UTC, 2015-08-11.
   EOF
 
 Then say::
 
   pg_upgradecluster -m upgrade -v $NEWVER $OLDVER main /var/lib/postgresql/$NEWVER
 
-This may take a fairly long time depending on how much data you have and
-how fast your disks are.  You could update any estimations you've made
-in MAINT based on disk usage.
+pg_upgradecluster is a bit finicky.  If it fails early on, it's usually
+safe to restart it, except you'll get unhelpful error messages ("cannot
+determine cluster locales") at least up to jessie unless you restart the
+old cluster manually (``service postgresql restart`` should work).
 
 When all is done, pg_upgradecluster configures the old cluster to no
 longer start automatically and the new cluster to listen where the old
-one was.   So, just remove MAINT in the stateDir, restart the server (it
-should re-open its connections, but that may involve failures) and run
-your regression tests (you wrote some, didn't you?).
+one was.   So, just remove MAINT in the stateDir, restart the DaCHS
+server and run your regression tests (you wrote some, didn't you?).
 
 If all looks well, drop the old cluster.  pg_upgradecluster prints the
 respective command last thing it does.  And deinstall the old binaries
