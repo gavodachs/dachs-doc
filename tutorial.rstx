@@ -1666,6 +1666,34 @@ the standard style sheet and the standard javascript, say::
 instead of the plain head.
 
 
+Values Metadata
+---------------
+
+For input parameters, it's usually a good idea to indicate to users what
+the valid range for them might be.  When you give ``values`` elements in
+your tables' columns, DaCHS will have placeholders in floating point and
+integer fields in web forms and appropriate VOTable values elements in
+the metadata responses for DAL protocols.  So, essentially::
+
+  <column ...>
+    <values min="-1.0" max="2.0/>
+  </column>
+
+would be enough.  However, maintaining these min and max values is a bit
+of a chore.  On the other hand, obtaining them from the database can be
+costly, and hence it shouldn't be done at each server start.  Hence,
+DaCHS has a subcommand ``limits`` that takes an RD or table id as the
+command line argument and replaces the *existing* min/max values in the
+referenced thing with data obtained from the database.  So, the
+recommended way to do these things is to stereotypically add ``<values
+min="0" max="0"/>`` in columns that generate query parameters and then
+run either of::
+
+  gavo limits arihip/q       # update all tables present
+  gavo limits arihip/q#main  # only update the single table
+
+after an import giving new data.
+
 
 More on Cores
 =============
