@@ -938,6 +938,29 @@ which, as laid down in the section on the `scs.xml`_ renderer in the
 reference documentation, requires the parameters of a test query
 returning a nonempty result.
 
+
+Starting from Scratch
+---------------------
+
+When you start to write your own RD, it might be a good idea to start
+from our RD template.  To do this, create your resource directory, go in
+there and say::
+
+  gavo admin dumpDF src/template.rd_ > q.rd
+
+(dumpDF stands for "dump distribution file" and is the canonical way to
+get at DaCHS "built-in" files).
+
+Right now, this only contains the skeleton for the metadata.  We may
+expand it as we get good ideas on how to keep things generic.  Or should
+we have different templates for various major service types?
+
+There's also ``gavo mkrd``, which can generate RD templates from some
+types of inputs.  We're not convinced this kind of thing actually is
+useful, but you're welcome to try it and encourage us if you like it, in
+particular if you have ideas on how to improve things.
+
+
 Debugging
 ---------
 
