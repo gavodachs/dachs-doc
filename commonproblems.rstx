@@ -227,7 +227,7 @@ So, within the grammar, say (at least, see the reference documentation
 for other parameters for rowgen)::
 
   <rowfilter procDef="//products#define">
-    <bind name="table">\schema.table</bind>
+    <bind name="table">"\schema.table"</bind>
   </rowfilter>
 
 -- substituting dest.table with the actual name of the table fed.  The
