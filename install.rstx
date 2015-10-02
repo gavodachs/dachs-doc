@@ -78,7 +78,10 @@ PgSphere
 PgSphere is a postgres extension for spherical geometry.  It is needed
 for support of the geometric types in DaCHS' ADQL implementation and in
 the preferred SIAP backend, so you should definitely install it.  Obtain
-the source from http://pgsphere.projects.postgresql.org/, and in the
+the source as
+https://github.com/mnullmei/pgsphere/archive/fixes-1-1-1.tar.gz
+(for the time being), install the server development packages for postgres
+(such as postgresql-server-dev-9.x or postgresql-devel), and in the
 source directory run::
 
   USE_PGXS=1 make
@@ -88,14 +91,16 @@ source directory run::
 Q3C
 '''
 
-DaCHS uses the Q3C library by Sergey Koposov et al,
+DaCHS uses the Q3C library by Sergey Koposov and Oleg Bartunov,
 http://www.sai.msu.su/~megera/oddmuse/index.cgi/SkyPixelization for
 positional indexes.  DaCHS uses it for positional indexes (the
 scs#q3cindex mixin) and in the interpretation of ADQL.  It is therefore
 highly recommended to install it.
 
-To do that, get the source from the web site given above or directly
-from http://code.google.com/p/q3c/, and in the source directory run::
+To do that, get the source directly
+from https://github.com/segasai/q3c/releases/, install the server development
+packages for postgres (such as postgresql-server-dev-9.x or postgresql-devel),
+and in the source directory run::
 
   make
   sudo make install
