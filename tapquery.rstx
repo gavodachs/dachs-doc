@@ -192,7 +192,10 @@ Errors
 ------
 
 All exceptions originating in the library are subclasses of
-``tapquery.Error``.  The `API docs`_ list some exceptions you should
+``tapquery.Error``.  For simple applications, this is also available as
+``votable.TAPQueryError``.
+
+The `API docs`_ list some exceptions you should
 expect; also, of course, all kinds of network-related exceptions could
 come out of the library.  No serious attempt is being made to catch
 such exceptions and translate them.  If something is wrong network-wise,
