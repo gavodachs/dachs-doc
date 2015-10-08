@@ -4,6 +4,8 @@ GAVO DaCHS operator's guide
 
 :Author: Markus Demleitner
 :Email: gavo@ari.uni-heidelberg.de
+:Date: |date|
+
 
 .. contents:: 
   :depth: 3
@@ -1229,16 +1231,8 @@ If you instead initially said ``setup.py install``, do::
 Upgrading Postgres
 ------------------
 
-Note that when upgrading Postgres still is not fun even with Debian's
-infrastructure, but you never need and should do that in parallel with
-an upgrade of DaCHS.  Postgres updates are also fairly rare events.
-
-Also note that after an update involving a restart of Postgres, a few
-requests to DaCHS may fail.  Either restart DaCHS or wait, things should
-quickly heal.
-
-Otherwise: TBW.
-
+There's a howto over at 
+http://docs.g-vo.org/DaCHS/howDoI.html#upgrade-the-database-engine
 
 .. _DaCHS-users: http://lists.g-vo.org/cgi-bin/mailman/listinfo/dachs-users
-
+.. |date| date::

@@ -4,6 +4,7 @@ GAVO DaCHS installation and configuration
 
 :Author: Markus Demleitner
 :Email: gavo@ari.uni-heidelberg.de
+:Date: |date|
 
 .. contents:: 
   :depth: 3
@@ -587,3 +588,5 @@ This will (for the ``gavo`` command in general) give additional error
 info where available.
 
 You should now be able to run the examples in the tutorial.
+
+.. |date| date::

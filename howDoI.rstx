@@ -7,6 +7,7 @@ Recipies and tricks for solving problems using GAVO DaCHS
 
 :Author: Markus Demleitner
 :Email: gavo@ari.uni-heidelberg.de
+:Date: |date|
 
 .. contents:: 
   :depth: 2
@@ -1057,3 +1058,4 @@ If all looks well, drop the old cluster.  pg_upgradecluster prints the
 respective command last thing it does.  And deinstall the old binaries
 to avoid confusion.
 
+.. |date| date::

@@ -4,6 +4,8 @@ Common Problems with DaCHS
 
 :Author: Markus Demleitner
 :Email: gavo@ari.uni-heidelberg.de
+:Date: |date|
+
 
 .. contents:: 
   :depth: 1
@@ -531,3 +533,5 @@ make it a delimited identifier.  There's madness down that road, though,
 so don't complain to us if you do that and regret it too late.  In
 particular, you may have a hard time referencing such columns from STC
 declarations, when creating indices, etc.  So: Just don't do it.
+
+.. |date| date::
