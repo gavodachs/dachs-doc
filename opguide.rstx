@@ -500,61 +500,10 @@ Other files you may want to override in this way include
 Templates
 ---------
 
-Note: If you just need some special behaviour in one or two services,
-use the ``template`` children of `service elements`_
+There is now `a document on HTML templating in DaCHS`_
 
-You will find the built-in templates in the unpacked DaCHS distribution,
-at ``gavo/resources/templates``; if you installed from a Debian package,
-that would be
-``/usr/lib/python*/dist-packages/gavo/resources/templates/``.
-Alternatively, you can pull the `templates from the repository`_
+.. `HTML templating in DaCHS`_: http://docs.g-vo.org/DaCHS/templating.html
 
-Copy the one you want to override to
-``$GAVO_ROOT/web/templates`` and edit it there.  You will need to
-restart the server to make it pick up a new file; changes in the
-templates should propagate without any intervention.
-
-One likely candidate you might want to change is sidebar.html.  However,
-in particular with the sidebar, functional changes are likely to come
-from us, so we'd put some work into making it possible to insert
-custom stuff into the sidebar without having to change the template.
-Please talk to us.
-
-Much less critical is the ``root.html`` template – you'll still pretty
-definitely want to change it.  While you could use any XHTML, we
-recommend to base your page on either the ``root.html`` template in the
-distribution, which mainly gives a list of all services available on the
-system, or ``root-tree.html``, which organizes services in trees and
-only downloads metadata as necessary (a simple non-javascript fallback
-is part of the distributed template, too).  The latter is intended for
-use on sites that have more then a few tens of services, when the plain
-``root.html`` would expand to several 100s of kilobytes.
-
-Whatever you use, it has to sit in
-``$GAVO_ROOT/web/templates/root.html``, as that's where DaCHS looks for
-the portal page.
-
-Note that such static documents are fairly aggressively cached by DaCHS.
-This means that changes to the docment will not usually become
-immediately visible in your browser.  However, documents are not cached
-when you are logged in.  As you write on your root page, it is therefore
-advisable to log in as administrator (see the [web]adminpasswd
-config item; e.g., click on the little [s] on the root page and select
-"Log in" from the sidebar); if you're happy with your design, simply reload the
-//services RD, which is where the root page cache lies on, and your new
-root page will be what's delivered to your "normal" users, too.
-
-Another candidate is serviceinfo.html – it contains an explanation of
-the various sets you may create.  Grep for GAVO in that file to see how
-we use it.
-
-Currently, we don't have good docs on the template language in use.
-There's http://docs.g-vo.org/meetstan.html on the templating engine,
-but the section on the render functions and data generators available
-is still missing.  Complain to make us write it sooner.
-
-.. _service elements: ref.html#element-service
-.. _templates from the repository: http://svn.ari.uni-heidelberg.de/svn/gavo/python/trunk/gavo/resources/templates/
 
 Overridden System RDs
 ---------------------

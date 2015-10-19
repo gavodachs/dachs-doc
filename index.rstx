@@ -60,6 +60,8 @@ For Data Center Operators
 * Hints on common problems (`commonproblems.html <./commonproblems.html>`_,
   `commonproblems.pdf <./commonproblems.pdf>`_, 
   `commonproblems.rstx <./commonproblems.rstx>`_)
+* Guide to writing HTML templates (`templating.html <./templating.html>`_,
+  `templating.pdf <./templating.pdf>`_, `templating.rstx <./templating.rstx>`_)
 * Guide to write booster grammars (`booster.html <./booster.html>`_,
   `booster.pdf <./booster.pdf>`_, `booster.rstx <./booster.rstx>`_)
 * Guide to preprocessing input files (`processors.html <./processors.html>`_,
