@@ -88,25 +88,35 @@ Templates Commonly Used
 Ignoring some templates used for administration and internal purposes,
 here is a list of templates used by DaCHS:
 
-* defaultresponse.html -- used by the form renderer for both the form
+:defaultresponse.html:
+  used by the form renderer for both the form
   itself and the result page.  This is what you want to start from when
   doing custom UIs.
-* examples.html -- used to format DALI examples (see `Writing
+:examples.html:
+  used to format DALI examples (see `Writing
   Examples`_)
-* loginout.html -- used when logging out; note that DaCHS uses HTTP
+:loginout.html:
+  used when logging out; note that DaCHS uses HTTP
   basic authentication; so, this is not a page you can use to explain to
   your users what to do to log in, they'll just see the browser's
   authentication window.
-* maintenance.html -- used when the service is taken offline by creating
+:maintenance.html:
+  used when the service is taken offline by creating
   a ``state/MAINT`` file.  The ``mainText`` data item contains the
   contents of that file
-* rdinfo.html -- the ``...browse/<rdId>`` pages are generated from these
-* root-tree.html -- see `The Root Template`_
-* root.html -- see `The Root Template`_
-* serviceinfo.html -- used by the info renderer
-* sidebar.html -- used by several browser-oriented renderers to create
+:rdinfo.html:
+  the ``...browse/<rdId>`` pages are generated from these
+:root-tree.html:
+  see `The Root Template`_
+:root.html:
+  see `The Root Template`_
+:serviceinfo.html:
+  used by the info renderer
+:sidebar.html:
+  used by several browser-oriented renderers to create
   the sidebar
-* tableinfo.html -- used by the tableinfo renderer (which is what makes
+:tableinfo.html:
+  used by the tableinfo renderer (which is what makes
   the ``tableinfo/<table name>`` pages)
 
 The Root Template
@@ -167,20 +177,20 @@ else.
 The nevow namespace contains the following names (examples below;
 you're not supposed to understand things here, this is just a reference):
 
-* ``n:invisible`` -- an element that doesn't appear in the output.
+* ``n:invisible`` – an element that doesn't appear in the output.
   this is useful when you need some render or data attribute but have
   no element to "hang it on".
-* ``n:attr`` -- an element to add computed attributes to the embedding
+* ``n:attr`` – an element to add computed attributes to the embedding
   element.  If you know ``xsl.attribute``: same thing.
-* ``n:slot`` -- an element replacing itself with the value a mapping
+* ``n:slot`` – an element replacing itself with the value a mapping
   in the context data has for its ``name`` attribute.
-* ``n:render`` -- a universal (i.e., can go on any HTML tag) attribute 
+* ``n:render`` – a universal (i.e., can go on any HTML tag) attribute 
   changing the way the DOM tree is built below that element.  To avoid
   confusion with DaCHS renderers, we will call the values of these 
   attributes "nevow renderers" in the following.
-* ``n:pattern`` -- a universal attribute a bit like a tree-typed
+* ``n:pattern`` – a universal attribute a bit like a tree-typed
   argument to a nevow renderer
-* ``n:data`` -- a universal attribute pulling a piece of data from
+* ``n:data`` – a universal attribute pulling a piece of data from
   python into the rendering context for use by nevow renderers.
 
 -- that's really all it takes for a powerful XML templating language.
@@ -306,8 +316,8 @@ If this seems spooky to you, play around with it for a moment – it's
 really not as hard as it might seem.
 
 What follows in ``serviceinfo.html`` is just more of the same, with some
-additional nevow renderers explained below.  The next new thing -- and
-the last major concept to understand for nevew renderering -- is
+additional nevow renderers explained below.  The next new thing – and
+the last major concept to understand for nevew renderering – is
 this::
 
   <ul n:data="rendAvail" n:render="sequence">
@@ -360,7 +370,7 @@ These are mappings in python lingo, and so it may not surprise you that
 to make something sensible of that, nevow provides a ``mapping`` nevow
 renderer.  It's a bit like ``sequence`` in that it inspects the tree
 below it.  Unlike it, it doesn't look for ``item`` patterns but for
-``n:slot``, which has a ``name`` attribute -- the element is then
+``n:slot``, which has a ``name`` attribute – the element is then
 replaced by the value of the named key in the mapping.
 
 One last new thing is a bit further down::
@@ -473,7 +483,7 @@ Until we get to imporve that, here's an overview of the nevow renderers
   logged user and that user is gavoadmin.
 
 :explodableMeta:
-  (from GavoRenderMixin) used in the sidebar -- see there for what it
+  (from GavoRenderMixin) used in the sidebar – see there for what it
   does.
 
 :authinfo:
@@ -756,7 +766,7 @@ and get the rising time formatted the way you want it.  If you get
 stuck, ask back, and we'll provide a solution and a new exercise.
 
 
-.. _How to I add an image to a query form?: http:///docs.g-vo.org/DaCHS/howDoI.html#add-an-image-to-query-forms
+.. _How do I add an image to a query form?: http:///docs.g-vo.org/DaCHS/howDoI.html#add-an-image-to-query-forms
 .. _Writing Examples: http://docs.g-vo.org/DaCHS/tutorial.html#writing-examples
 .. _apfs/res/apfs_new RD: https://svn.ari.uni-heidelberg.de/svn/gavo/hdinputs/apfs/res/apfs_new.rd
 
@@ -768,4 +778,4 @@ stuck, ask back, and we'll provide a solution and a new exercise.
    severely slowing them down by delaying delivery of the DTDs, which
    sometimes leads to surprising client behaviour.
 
-.. |da
+.. |date| date::
