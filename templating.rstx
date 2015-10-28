@@ -27,7 +27,7 @@ Overriding System Templates
 ---------------------------
 
 DaCHS web pages are generated from templates delivered in the
-distribution's gavo/resources/templates subdirectory.  Since that might
+distribution's ``gavo/resources/templates`` subdirectory.  Since that might
 actually be in an "egg" (compressed archive) on your installation, the
 easiest way to get at them is by using ``gavo admin dumpDF
 templates/<template-name>``.  The main reason to get them is to override
@@ -53,10 +53,10 @@ on non-well-formed XML.  You may want to use run XML validators – as in::
   xmlstarlet val -e sidebar.html
 
 (requires the xmlstarlet package) – on the file before deploying them,
-although DaCHS error messages should will typically give you a useful
+although DaCHS error messages should typically give you a useful
 hint on where you got it wrong in case of errors.
 
-While the sidebar (and some other templates') source may not immediately
+While the sidebar's (and some other templates') source may not immediately
 figure as HTML, you can simply start adding HTML.  Try, perhaps, adding::
 
   <p class="sidebaritem">Hello world.</p>
@@ -65,7 +65,8 @@ above the opening div in sidebar.html and reload a page showing the
 sidebar.  Your new material should show in the page.
 
 Note that, if you override a template, it is a good idea to evaluate
-changes in the upstream templates after updating.  You can to this by
+changes in the upstream templates after updating DaCHS.  
+You can do this by
 running::
 
   svn log https://svn.ari.uni-heidelberg.de/svn/gavo/python/trunk/gavo/resources/templates
@@ -73,13 +74,16 @@ running::
 (perhaps narrowing it down to the file you overrode).  We try to avoid
 breaking user templates, but as there's no regression testing against
 that in place, and sometimes templates might reference functionality
-that has been dropped, it may still happen.  Plus, of course, by
+that has been dropped. So, it may and therefore will still happen
+(which is an important reason for trying to avoid overriding system
+templates and asking on dachs-support if someone knows another way to
+achive some desired effect. Plus, of course, by
 following upstream changes you can follow improvements we make – the
 popular "Send via SAMP" functionality, for instance, required a template
 change.
 
-Templates to be Aware of
-------------------------
+Templates Commonly Used
+-----------------------
 
 Ignoring some templates used for administration and internal purposes,
 here is a list of templates used by DaCHS:
@@ -91,7 +95,8 @@ here is a list of templates used by DaCHS:
   Examples`_)
 * loginout.html -- used when logging out; note that DaCHS uses HTTP
   basic authentication; so, this is not a page you can use to explain to
-  your users what to do.
+  your users what to do to log in, they'll just see the browser's
+  authentication window.
 * maintenance.html -- used when the service is taken offline by creating
   a ``state/MAINT`` file.  The ``mainText`` data item contains the
   contents of that file
@@ -109,7 +114,8 @@ The Root Template
 
 The ``root.html`` template is what is rendered when users request the
 root resource of your DaCHS installation, so it is a fairly good target
-for changing it.  While you could put any well-formed XHTML there, we
+for changing (and it's also fairly safe to override).  
+While you could put any well-formed XHTML there, we
 recommend you base your template on either the distributed ``root.html``
 template distribution, which mainly gives a list of all services
 available on the system, or ``root-tree.html``, which organizes services
@@ -136,12 +142,12 @@ The Templating Language
 
 DaCHS employs nevow's stan as its templating language.  Our upstream,
 the Twisted community, has since integrated it into its web2 framework;
-for DaCHS, there is no compelling reason to migrate (but a fairly
+since for DaCHS there is no compelling reason to migrate (but a fairly
 compelling reason not to, since we want to avoid unnecessarily breaking
 templates), we will keep nevow for the time being.
 
 The great thing about nevow is that the templates are valid, verifyable
-XHTML.  This is because newow just adds a few elements and attributes in
+XHTML.  This is because nevow just adds a few elements and attributes in
 a separate namespace.  This must be declared alongside the XHTML
 namespace; a standalone template will thus have to start like this::
 
@@ -152,13 +158,13 @@ namespace; a standalone template will thus have to start like this::
 (prepending this with a doctype declaration like::
 
   <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
-		"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 
 is optional [#dtd]_); in the following, we assume the ``n`` prefix for
 the nevow namespace throughout, and you'd be devious to use something
 else.
 
-The newvow namespace contains the following names (examples below;
+The nevow namespace contains the following names (examples below;
 you're not supposed to understand things here, this is just a reference):
 
 * ``n:invisible`` -- an element that doesn't appear in the output.
@@ -166,8 +172,8 @@ you're not supposed to understand things here, this is just a reference):
   no element to "hang it on".
 * ``n:attr`` -- an element to add computed attributes to the embedding
   element.  If you know ``xsl.attribute``: same thing.
-* ``n:slot`` -- an element replacing itself with the value the "current
-  mapping" has for its ``name`` attribute.
+* ``n:slot`` -- an element replacing itself with the value a mapping
+  in the context data has for its ``name`` attribute.
 * ``n:render`` -- a universal (i.e., can go on any HTML tag) attribute 
   changing the way the DOM tree is built below that element.  To avoid
   confusion with DaCHS renderers, we will call the values of these 
@@ -194,11 +200,11 @@ The first is an empty title saying it wants to be rendered by ``title``.
 That is a DaCHS-defined nevow renderer that says "put the service title
 as a text child of the embedding element (and delete any previous
 child)".  If you are curious, the code implementing that is in
-``metarender.ServiceInfoRenderer`` and looks like this:
+``metarender.ServiceInfoRenderer`` and looks like this::
 
-	def render_title(self, ctx, data):
-		return ctx.tag["Information on Service '%s'"%
-			base.getMetaText(self.service, "title")]
+  def render_title(self, ctx, data):
+    return ctx.tag["Information on Service '%s'"%
+      base.getMetaText(self.service, "title")]
 
 Below is a list the more `Common Nevow Renderers`_.
 
@@ -212,7 +218,7 @@ into tags.
 
 The next magic thing is::
 
-	<body n:render="withsidebar">
+  <body n:render="withsidebar">
 
 Again, this is asks to pull in a whole lot of elements, this time from a
 template (you probably guessed that it is ``sidebar.html``), except that
@@ -222,29 +228,29 @@ helps here (don't sweat the details at this point; the code is in
 web.grend.GavoRenderMixin)::
 
 
-	def render_withsidebar(self, ctx, data):
-		oldChildren = ctx.tag.children
-		ctx.tag.children = []
-		return ctx.tag(class_="container")[
-			self._sidebar,
-			T.div(id="body")[
-				T.a(name="body"),
-				oldChildren
-			]]
+  def render_withsidebar(self, ctx, data):
+    oldChildren = ctx.tag.children
+    ctx.tag.children = []
+    return ctx.tag(class_="container")[
+      self._sidebar,
+      T.div(id="body")[
+        T.a(name="body"),
+        oldChildren
+      ]]
 
 (where ``self._sidebar`` contains a parse of the sidebar template). 
 
 Going on, you'll see::
 
-	<div class="useservice" n:data="browserURL" n:render="ifdata">
+  <div class="useservice" n:data="browserURL" n:render="ifdata">
 
 This is the first example for ``n:data``.  What happens here is that I
 put a thing into the render context, the ``browserURL``.  Again, that's
 mapped to a python function, which again comes from
-``web.metarender.ServiceInfoRenderer``.  It looks like this:
+``web.metarender.ServiceInfoRenderer``.  It looks like this::
 
-	def data_browserURL(self, ctx, data):
-		return self.service.getBrowserURL()
+  def data_browserURL(self, ctx, data):
+    return self.service.getBrowserURL()
 
 – where the method returns a URL suitable for a web browser, or ``None``
 if the service doesn't have a renderer for which a browser will display
@@ -262,11 +268,11 @@ The image is put in literally, but the link it points to has to be taken
 from the context object (the ``browserURL``).  To get it into the
 attribute, nevow uses a trick you may know from XSLT::
 
-	<a>
-		<n:attr name="href" n:render="string"/>
-		<img src="/static/img/usesvcbutton.png" class="silentlink"
-			alt="[Use this service from your browser]"/>
-	</a>
+  <a>
+    <n:attr name="href" n:render="string"/>
+    <img src="/static/img/usesvcbutton.png" class="silentlink"
+      alt="[Use this service from your browser]"/>
+  </a>
 
 Essentially, there's an element, ``n:attr``, that, when rendered, will
 end up as an attribute on the embedding element (the ``a``).  The name
@@ -285,7 +291,8 @@ the result would have been::
 
   <a href="http://foo.bar/baz">a link</a>
 
-– while that wouldn't make much sense, it might be useful if, for
+– while introducing constants in this way doesn't 
+make much sense, it might be useful if, for
 instance, the context object were a relative link, in which case you
 could have written::
 
@@ -300,23 +307,23 @@ really not as hard as it might seem.
 
 What follows in ``serviceinfo.html`` is just more of the same, with some
 additional nevow renderers explained below.  The next new thing -- and
-essentially the last thing to understand for nevew renderering -- is
+the last major concept to understand for nevew renderering -- is
 this::
 
-	<ul n:data="rendAvail" n:render="sequence">
-		<li n:render="mapping" n:pattern="item">
-			<em><n:slot name="rendName"/></em> --
-				<n:slot name="rendExpl"/></li>
-	</ul>
+  <ul n:data="rendAvail" n:render="sequence">
+    <li n:render="mapping" n:pattern="item">
+      <em><n:slot name="rendName"/></em> --
+        <n:slot name="rendExpl"/></li>
+  </ul>
 
 Let's take this step by step.  First, we put something into the context
 object: ``rendAvail``.  This is again taken from the DaCHS renderer
 (still the ``ServiceInfoRenderer``), which reads::
 
-	def data_rendAvail(self, ctx, data):
-		return [{"rendName": rend, 
-				"rendExpl": RendExplainer.explain(rend, self.service)}
-			for rend in self.service.allowed]
+  def data_rendAvail(self, ctx, data):
+    return [{"rendName": rend, 
+        "rendExpl": RendExplainer.explain(rend, self.service)}
+      for rend in self.service.allowed]
 
 ``RendExplainer.explain`` is a function returning DOM fragments
 explaining what a renderer does, with embedded links and similar as
@@ -337,9 +344,9 @@ that object.  You may want to read that sentence again...
 
 So, with example sequene above the::
 
-	<li n:render="mapping" n:pattern="item">
-		<em><n:slot name="rendName"/></em> --
-			<n:slot name="rendExpl"/></li>
+  <li n:render="mapping" n:pattern="item">
+    <em><n:slot name="rendName"/></em> --
+      <n:slot name="rendExpl"/></li>
 
 in the body of the ``ul`` element will be rendered twice, first with::
 
@@ -358,20 +365,20 @@ replaced by the value of the named key in the mapping.
 
 One last new thing is a bit further down::
 
-	<n:invisible n:render="ifmeta copyright">
-		<h2>Copyright, License, Acknowledgements</h2>
-		<p n:render="metahtml">copyright</p>
-	</n:invisible>
+  <n:invisible n:render="ifmeta copyright">
+    <h2>Copyright, License, Acknowledgements</h2>
+    <p n:render="metahtml">copyright</p>
+  </n:invisible>
 
 Here, the render attribute contains a blank.  Nevow interprets that as a
 parameterised renderer; in effect, the parameter(s) are passed to the
 renderer.  It probably helps to see how this is implemented::
 
-	def render_ifmeta(self, metaName):
-		if self.getMeta(metaName) is not None:
-			return lambda ctx, data: ctx.tag
-		else:
-			return lambda ctx, data: ""
+  def render_ifmeta(self, metaName):
+    if self.getMeta(metaName) is not None:
+      return lambda ctx, data: ctx.tag
+    else:
+      return lambda ctx, data: ""
 
 Anyway, parameterised nevow renderers need this extra argument, and
 you'll get weird errors if you don't provide it.
@@ -384,7 +391,7 @@ are.  The more useful of which are covered in the next chapter.
 Common Nevow Renderers
 ----------------------
 
-In DaCHS templates, newov renderers can come from nevow itself, the
+In DaCHS templates, nevow renderers can come from nevow itself, the
 active renderer (that's usually ``form`` for templates or a variety
 thereof), or the active service element in the RD (``customRF`` and
 ``customDF`` for nevow renderers and data functions).  Unfortunately,
@@ -484,17 +491,274 @@ Until we get to imporve that, here's an overview of the nevow renderers
 
 :resulttable:
   (from HTMLResultRenderMixin) renders an HTML table out of a ``result``
-  context object.
+  context object (this is what draws the table on default HTML results)
 
 :resultline:
-  (from HTMLResultRenderMixin) renders a single line of a table in a
-  key-value manner
+  (from HTMLResultRenderMixin) renders the first line of the result
+  table in a key-value manner (this is sometimes used with the qp
+  renderer)
+
+:parpair:
+  (from HTMLResultRenderMixin) expects a (key, value) pair in the
+  context and renders it as key:value in the current tag (this is used
+  to render the current parameters; to avoid showing lots of
+  non-informative lines, this will render nothing if value is None.
+
+:ifresult:
+  (from HTMLResultRenderMixin) swallows the child tree if no result is
+  available
+
+:ifnoresult:
+  (from HTMLResultRenderMixin) renders its content only if a result
+  table is available but contains no rows.
+
+:result:
+  (from HTMLResultRenderMixin) a data function putting the current
+  result into the context.  If no result is available (e.g., because no
+  query has been sent), ``None`` will be put into the context data.
+
+:queryseq:
+  (from HTMLResultRenderMixin) a data function putting a sequence of
+  (key, value) query parameters into the context data.
+
+:param:
+  (from HTMLResultRenderMixin) a parameterised renderer that takes a
+  python format string and formats the value of the param named in the
+  content with it, for instance::
+    
+    <span n:render="param %5.2f">rv</span>
+
+:resultmeta:
+  (from service.SvcResult) a data function on results (i.e., this
+  must be in an element with ``n:data="result"``) putting a dictionary
+  with at least the key ``itemsMatched`` into the context.
+
+:inputRec:
+  (from service.SvcResult) a data function on results (i.e., this
+  must be in an element with ``n:data="result"``) putting a the
+  parameters dictionary of the inputs table (typcially, the input
+  parameters) into the context.
+
+:table:
+  (from service.SvcResult) a data function on results (i.e., this
+  must be in an element with ``n:data="result"``) putting a the
+  result's primary table into the context
 
 
+Overriding the Default Response Template
+========================================
 
-TODO: where to put static data
+Sometimes you want to change something in the appearance of a service
+that cannot be done with either service/@customCSS or the tricks
+described in `How do I add an image to a query form?`_.  You will then
+need to override the defaultresponse template.  As an example, you can
+refer to `apfs/res/apfs_new RD`_; it has a custom template sitting next to
+the RD as ``response.template``, which is declared as a custom service
+template in the service element via::
 
+  <template key="response">res/response.template</template>
+
+(the path is relative to the RD's resdir).
+
+What we wanted to do here is change then title depending on input
+parameters (sometimes it's "apparent places", sometimes "intermediate
+places", and I also wanted to have a warning if users chose a non-single
+star for the ephemeris generated, as that is probably inaccurate.
+
+A word of warning: Do not introduce a custom template lightly.  We do
+change ``defaultresponse.html`` occasionally, and you should probably
+follow these changes in your templates.  So, before you do a custom,
+service-specific template, ask on the dachs-support mailing list if
+someone knows a smarter solution to your problem.
+
+In the APFS case, what made us use a custom template is teh varying
+title; that's really hard to do in some other way because the title is
+service metadata, and the service is persistent within DaCHS, possibly
+even used concurrently by concurrent requests.  Manipulating its
+metadata per-request is therefore a bad idea.
+
+So, what did we do?  First, get the default response template to have
+something to start with.  We recommend to put it into a subdirectory
+``/res``, so assuming you are in the RD's resdir, you'd do::
+
+  $ mkdir -p res
+  $ gavo admin dumpDF templates/defaultresponse.html > res/response.html
+
+That done, you can place the template declaration above into the service
+definition and start changing the template.  Changes should be
+immediately visible on reload.
+
+To give you an impression of the interplay between the template and the
+RD, here is a closer look at the `apfs/res/apfs_new RD`_ and the
+associated template at
+https://svn.ari.uni-heidelberg.de/svn/gavo/hdinputs/apfs/res/response.html
+There, we first had to add a custom render function rendering the title
+to the service::
+
+  <customRF name="apfsTitle">
+    # wants n:data="result"
+    if data.queryMeta.get("columnSet")==set(["equ"]):
+      denom = "Apparent Places"
+    elif data.queryMeta.get("columnSet")==set(["equ", "cio"]):
+      denom = "Apparent and Intermediate Places"
+    else:
+      denom = "Intermediate Places"
+    star = str(data.inputTable.getMeta("forStar"))
+    return ctx.tag[denom+" for star \catname "+star]
+  </customRF>
+
+We're getting a parameter from ``queryMeta`` here, an ugly piece of
+misdesign keeping lots of information on the request.  Before you repeat
+that stunt, ask on dachs-support, because there are most certainly
+better ways do do that.  The remaining part is a fairly straightforward
+nevow renderer, perhaps except for the call of the catname macro, which
+is here because in this particular case the render function is used by
+two services and we've put it into a STREAM to allow reuse.
+
+In comparison, the necessary changes in ``response.template`` are
+minor::
+
+      <h1 n:render="apfsTitle"/>
+
+is all that's needed.  The template goes on saying::
+
+  <p n:data="inputRec" n:render="mapping">
+    ICRS position is &alpha;=<n:slot name="alpha"/>, 
+    &delta;=<n:slot name="delta"/>.
+  </p>
+
+This displays the position of the star for which the ephemeris is
+computed for.  We do this here because the input to this service is
+something like a catalog number, and alpha and delta are actually
+computed by the service's input data descriptor.
+
+Finally, when the result is in context, we do::
+
+  <p style="border:2px solid red; max-width:400px; padding:5pt" 
+    n:render="multiplicityWarning"/>
+
+We would do this today by attaching a ``_warning`` meta item on the
+result, but since that was not available when we wrote the RD, we added
+a custom render function like this::
+
+  <customRF name="multiplicityWarning">
+    # wants n:data="result"
+    if data.inputTable.getMeta("multiple"):
+      return ctx.tag["Warning:  This star"
+        " is identified by Hipparcos as being a ",
+        T.strong["multiple star."],
+        " This means that proper motions given in the Hipparcos"
+        " catalogue are unreliable when applied to extended periods"
+        " of time.  Thus, the places given below will be severely"
+        " wrong unless the orbital period of the object is sufficiently"
+        " long (i.e., hundreds of years)."]
+    return ""
+  </customRF>
+
+The ``multiple`` meta is put to the table further up in the computation.
+Note how we leave as much as possible to the template; for instance, the
+style is set there rather in the render function.
+
+
+Custom Template, Custom Core
+============================
+
+For exotic, custom services you can combine a custom template with a
+python (or custom) core.  Here is a stripped-down example to get you
+started; if you want to run this, you will have to install pyephem
+(if you port this to astropy and share your port with us, you'll receive
+good Karma).
+
+First, the RD; the thing to watch out for is the creation of the output
+table, getting the input params, and setting the output params.  Note
+that you'd normally generate table rows, which would be dicts added
+through addRow::
+
+  <resource schema="neptune">
+    <!-- Metadata omitted.  Thou shalt not do this. -->
+    <service id="s">
+      <template key="response">response.html</template>
+      <pythonCore>
+        <inputTable>
+          <inputKey name="for_date" type="timestamp"
+            tablehead="Date"
+            description="Date to compute ephemeris for">
+            <property key="defaultForForm">1969-06-04</property>
+          </inputKey>
+          <inputKey name="lat" unit="deg" tablehead="Latitude">
+            <property key="defaultForForm">49.4294</property>
+          </inputKey>
+          <inputKey name="long" unit="deg" tablehead="Longitude">
+            <property key="defaultForForm">11.00417</property>
+          </inputKey>
+        </inputTable>
+
+        <outputTable>
+          <param name="next_rising" type="timestamp"/>
+          <param name="next_setting" type="timestamp"/>
+        </outputTable>
+
+        <coreProc>
+          <setup>
+            <code>
+              import ephem
+            </code>
+          </setup>
+          <code>
+            res = rsc.TableForDef(self.outputTable)
+            n = ephem.Neptune(inputTable.getParam("for_date"))
+            obs = ephem.Observer()
+            obs.lat = inputTable.getParam("lat")*DEG
+            obs.long = inputTable.getParam("long")*DEG
+            obs.date = inputTable.getParam("for_date")
+            res.setParam("next_rising", obs.next_rising(n).datetime())
+            res.setParam("next_setting", obs.next_setting(n).datetime())
+            return res
+          </code>
+        </coreProc>
+      </pythonCore>
+    </service>
+  </resource>
+
+And here's the template::
+
+  <html xmlns="http://www.w3.org/1999/xhtml"
+                  xmlns:n="http://nevow.com/ns/nevow/0.1">
+  <head n:render="commonhead">
+  <title>Nepune rising (and setting)</title>
+  <style type="text/css">
+    .horizontime {
+      font-size: 300%;
+      color: #ff6688;
+      font-family: fantasy;
+      white-space: nowrap;
+    }
+  </style>
+  </head>
+  <body n:data="result">
+    <p style="text-align:center">
+      Neptune rising: 
+        <span class="horizontime" n:render="param %s">next_rising</span>
+    </p>
+    <p style="text-align:center">
+      Neptune setting: 
+        <span class="horizontime" n:render="param %s">next_setting</span>
+    </p>
+    <n:invisible n:render="form genForm"/>
+  </body>
+  </html>
+
+Suggested exercise: write two renderers such that you can write::
+
+  <span class="horizontime" n:render="rising_time"/>
+
+and get the rising time formatted the way you want it.  If you get
+stuck, ask back, and we'll provide a solution and a new exercise.
+
+
+.. _How to I add an image to a query form?: http:///docs.g-vo.org/DaCHS/howDoI.html#add-an-image-to-query-forms
 .. _Writing Examples: http://docs.g-vo.org/DaCHS/tutorial.html#writing-examples
+.. _apfs/res/apfs_new RD: https://svn.ari.uni-heidelberg.de/svn/gavo/hdinputs/apfs/res/apfs_new.rd
 
 
 .. [#dtd] One reason *not* to declare a DTD is that careless clients 
@@ -504,5 +768,4 @@ TODO: where to put static data
    severely slowing them down by delaying delivery of the DTDs, which
    sometimes leads to surprising client behaviour.
 
-.. |date| date::
-
+.. |da

@@ -25,10 +25,58 @@ Invoking DaCHS
 For historical reasons, all DaCHS functionality is invoked through a
 program called ``gavo``.  Multiple functions are integrated and selected
 through the first argument; run ``gavo help`` to see what's available;
-realistically, the functions most users will be confronted with are
+realistically, the functions most operators will be confronted with are
 ``import``, ``serve``, ``publish``, and ``test``.
 
-TBW
+There is a man page on ``gavo``, but it's less well maintained then we
+would like, so the best way to discover subcommands and options
+available is to use the built-in help, as in::
+
+  $ gavo --help
+  Usage: gavo {<global option>} <func> {<func option>} {<func argument>}
+  <func> is a unique prefix into {admin, adql, config, dlrun, drop,
+    gendoc, import, info, init, limits, mkboost, mkrd, publish, purge,
+    raise, serve, show, stc, taprun, test, totesturl, upgrade, uwsrun,
+    validate}
+
+  Try gavo <func> --help for function-specific help
+
+  Options:
+    -h, --help            show this help message and exit
+    --traceback           print a traceback on all errors.
+    --hints               if there are hints on an error, display them
+    --enable-pdb          run pdb on all errors.
+    --disable-spew        Ignored.
+    --profile-to=PROFILEPATH
+                          enable profiling and write a profile to PROFILEPATH
+    --suppress-log        Do not log exceptions and such to the gavo-specific
+                          log files
+    --debug               Produce debug info as appropirate.
+    --version             Write software version to stdout and exit
+    -U UI, --ui=UI        use UI to show what is going on; try --ui=help to see
+                          available interfaces.
+
+Most of DaCHS's global options have to do with debugging_; it is
+sometimes useful go say::
+  
+  gavo --ui stingy ...
+
+do reduce the program's chattiness.
+
+For a brief overview what the individual functions are, see the man
+page or use the built-in help, as in::
+
+  $ gavo limits --help
+  usage: gavo limits [-h] itemId
+
+  Updates existing values min/max items in a referenced table or RD.
+
+  positional arguments:
+    itemId      Cross-RD reference of a table or RD to update, as in ds/q or
+                ds/q#mytable; only RDs in inputsDir can be updated.
+
+  optional arguments:
+    -h, --help  show this help message and exit
 
 
 Building a Catalog Service
@@ -44,7 +92,8 @@ configured otherwise, that's /var/gavo/inputs; we assume that in the
 following).
 
 This tutorial will use the ARIHIP catalog as an example – this is a
-re-reduction of Hipparcos with particularly careful solutions for proper
+re-reduction of the Hipparcos result catalog
+with particularly careful solutions for proper
 motion.  It has a column-based input and probably a few more columns
 than your average catalog these days.  It hence is simple in principle
 but let us demonstrate a few advanced concepts, too.

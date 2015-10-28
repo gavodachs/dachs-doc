@@ -578,6 +578,50 @@ exposing what you're interested in.  You can then use those in
 res/page1.html.  You can edit both files "live", they will both be
 reloaded as necessary.
 
+Debugging memory leaks
+----------------------
+
+Sometimes one is careless and leaves a reference somewhere, perhaps in
+an RD.  Since this really only matters in the server, such situations
+are particularly insidious to debug.  To help there, there's some
+scaffolding in web.root.
+
+To activate things, you set ``MEM_DEBUG`` to ``True``.  Down in
+``locateChild`` of ``ArchiveService``, there's code like::
+
+		if MEM_DEBUG:
+			from gavo.utils import codetricks
+			import gc
+			gr = gc.get_referrers
+			if hasattr(base, "getNewStructs"):
+				ns = base.getNewStructs()
+				print ">>>>>> new structs:", len(ns)
+
+What this lets you do is see when new structs are left somewhere in
+DaCHS' guts.  What you do when such a thing happens is higher magic.
+I've found it helps to put something like a mini-memory debugger right
+into that handler.  There's a rough one in testtricks, so you could put
+in something like::
+
+	if len(ns)==147:
+		from gavo.helpers import testtricks
+		ob = ns[0]
+		del ns
+    testtricks.debugReferenceChain(ob)
+
+after the print (of course, this only makes sense if you're running
+``gavo serve debug``, as the actual server detaches from its tty).  This
+lets you go through the objects referring to the first struct left over
+by hitting Return.  
+
+Enter anything to follow the (inverse) reference, except that a d will
+drop you in the debugger and x will continue normal execution.  Do this
+until you see where the reference comes from.  Just be aware that many
+references are harmless -- in particular, this function will hold a
+reference to the object in question, so you'll need some experience to
+figure out where to look.
+
+
 
 Delimited SQL identifiers
 =========================

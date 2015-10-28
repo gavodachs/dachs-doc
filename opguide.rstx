@@ -354,6 +354,17 @@ copy them to ``rootDir/web/xsl/``).  The default style sheets add a
 link to "All identifiers defined here".  Follow it to a list of all
 records you currently publish.
 
+The OAI endpoint can also be used to help you in debugging validity
+problems with your registry content.  To XSD-validate your registry
+without bothering the RofR (see above), you can do the following::
+
+  curl <your oai.xml url>?verb=ListRecords&metadataPrefix=ivo_vor |\
+    xmlstarlet fo > toval.xml
+  gavo admin xsdValidate toval.xml
+
+This may result in a few error messages; if you don't understand them,
+it's a good idea to just go to the respective line in toval.xml and give
+it a long, hard look.
 
 Making the VO see your Registry
 -------------------------------

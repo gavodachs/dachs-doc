@@ -15,6 +15,7 @@ LATEXOPTS=--documentoptions=11pt,a4paper --stylesheet stylesheet.tex
 
 %.dvi: %.tex
 	latex $<
+	latex $<
 	rm $*.log
 
 %.ps: %.dvi
