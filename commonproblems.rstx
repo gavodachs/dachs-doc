@@ -534,4 +534,5 @@ so don't complain to us if you do that and regret it too late.  In
 particular, you may have a hard time referencing such columns from STC
 declarations, when creating indices, etc.  So: Just don't do it.
 
+
 .. |date| date::
