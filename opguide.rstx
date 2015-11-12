@@ -190,7 +190,7 @@ In authority, change in particular
 * description – A sentence or two on what the authority
   you are using means.  This could be the same as site.description if
   all you're claiming authority for is that; if you're claiming
-  authority for your institute or organization, this obviously should
+  authority for your institute or organisation, this obviously should
   be different.  Example: ``The Data Center at the Observatory of Utopia 
   manages lots of substantial data sets created by the bright scientists
   all over the world`` (use backslashes an the end of the lines to break 
@@ -199,7 +199,7 @@ In authority, change in particular
   authority.  Example: GAVO DC.
 * referenceURL – A URL at which people can learn more about
   your data center.  Example: ``http://www.g-vo.org``.
-* managingOrg – an ivo id of the organization you're running
+* managingOrg – an ivo id of the organisation you're running
   the dc for.  The default is ivo://<your authority>/org, the content
   defined in the ``manager`` resRec.  If
   your institution has a registry entry independent of your DC, you
@@ -209,11 +209,11 @@ In authority, change in particular
 In the ``manager`` resRec (if you have it), change:
 
 * creationDate – as above for authority.
-* title – the name of the organization on behalf of which
+* title – the name of the organisation on behalf of which
   you are running the data center.  Example: ``Observatory of
   Utopia``
 * description and referenceURL – as the
-  analoguous item for authority, just for the organization for which
+  analoguous item for authority, just for the organisation for which
   you are running the data center (e.g., your "home institute").
   Example: ``The Observatory of Utopia is Lilliput's
   largest astronomical institution with ten large telescopes spread
@@ -223,7 +223,7 @@ In the ``manager`` resRec (if you have it), change:
 
 After you've specificed all that, you're ready to define your first
 resources, viz, your registry itself, the authority, and the
-organization that's managing it.  These are predefined using the data
+organisation that's managing it.  These are predefined using the data
 you just filled in in the //services RD.  To publish them, you say::
 
   gavo pub //services
@@ -406,12 +406,12 @@ The next adaptations are done through the configuration (as discussed in
 relevant item here is ``[web]sitename``, which should contain a terse
 identifier for the site (like "GAVO Data Center").  It is shown in
 titles and top headlines in many places.  If you plan to use DaCHS'
-embargo feature together with user authorization, you must also set
+embargo feature together with user authorisation, you must also set
 ``[web]realm`` to some characteristic string.  You could use the site
 name here; some user agents use it to display a prompt like "Credentials
 for <realm>" or similar.
 
-If you want, you can set ``[web]/favicon`` to either a webDir-relative
+If you want, you can set ``[web]favicon`` to either a webDir-relative
 path or a full URL to a `favicon`_.
 
 It is also advisable to configure ``[general]maintainerAddress`` to a
@@ -424,19 +424,59 @@ stand-in.  If you use something else, you may need to adapt
 ``[general]sendmail``.
 
 For the rest, you can customize almost everything by overriding built-in
-resources.  There are three major entities that you can override:
+resources.  There are five major entities that you can override:
 
+* `customisation hooks`_
 * `userconfig RD`_
 * `Simple Web Resources`_
 * `Templates`_
 * `Overridden System RDs`_
 
 If you find you need to override anything but the logo, please talk to
-us first – we'd in general prefer to provide customization hooks.
+us first – we'd in general prefer to provide customisation hooks.
 Overridden distribution files are always a liability on upgrades.
 
 .. _favicon: https://en.wikipedia.org/wiki/Favicon
 
+
+Customisation Hooks
+-------------------
+
+Operator CSS
+''''''''''''
+
+To override css rules we distribute or add new rules, avoid changing
+gavo_dc.css as described in `Simple Web Resources`_, as that will be
+a liability when upgrading.  Instead, drop a CSS file somewhere
+(recommended location: GAVO_ROOT/web/nv_static/user.css) and add a
+configuration item in ``[web]operatorCSS``.  With the recommended
+location, this would work out to be::
+
+  [web]
+  operatorCSS: /static/user.css
+
+in /etc/gavo.rc.
+
+This can also be an external URL, but we recommend against that, as that
+would force a browser to open one external connection per web page
+delivered.
+
+By far the most common complaint is that we are limiting the width of p
+and li elements to 40em.  We believe that text lines longer than about
+80 characters are hard to read and should be avoided.  On pages with
+tables where users might actually want to run browsers filling the
+entire screen, this choice cannot be made through a sensible choice of
+the width of the user agent window on the user side but requires CSS
+intervention.
+
+Having said that, if you really think you want window-filling text
+lines, just put::
+
+  p, li {
+	  max-width: none;
+  }
+
+into your operator CSS.
 
 Userconfig RD
 -------------
@@ -494,7 +534,7 @@ Other files you may want to override in this way include
   and you want easy upgrade paths when we change the master CSS.
 * ``help.shtml`` – the help file.  Unfortunately, we blurb quite 
   a lot about GAVO in there right now.  We'll think of something 
-  more parametrizable, but meanwhile you may want to have your own version
+  more parametrisable, but meanwhile you may want to have your own version
 * ``img/logo_big.png``, ``img/logo_tiny.png`` – 
   scaled versions of your logo; logo_big should be 200 pixels wide or 
   more, logo_tiny of order 50 pixels wide.
@@ -504,14 +544,14 @@ Other files you may want to override in this way include
 * ``xsl/oai.xsl``, ``xsl/uws-joblist-to-html.xsl``, 
   ``xsl/uws-job-to-html.xsl``, and ``vosi.xsl`` – XSLT stylesheet files.  
   If you override these to customize them, please let us know.  We'd try 
-  to put out generic stylesheets that are customizable without having 
+  to put out generic stylesheets that are customisable without having 
   to muck around in stuff that's basically functionality.
 
 
 Templates
 ---------
 
-There is now `a document on HTML templating in DaCHS`_
+There is now a document on `HTML templating in DaCHS`_
 
 .. `HTML templating in DaCHS`_: http://docs.g-vo.org/DaCHS/templating.html
 
@@ -634,7 +674,7 @@ unless they start with a slash.
 
 You may want to set tempDir and cacheDir to a directory local to your
 machine if rootDir is mounted via a network.  Also note that we do
-no synchronization for writing to the log (and never will -- we will
+no synchronisation for writing to the log (and never will -- we will
 provide syslog based logging if necessary), so you may want to tweak
 logDir too to keep actions from seperate users seperate.
 
@@ -1014,6 +1054,7 @@ Settings related to serving content to the web.
 * voplotUserman: URL fragment relative to the server's root; 
   defaults to 'Deprecated and ignored' --
   URL to the documentation of VOPlot
+
 .. END CONFIG REFERENCE
 
 Managing Runtime Resources
