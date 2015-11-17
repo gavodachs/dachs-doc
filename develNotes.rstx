@@ -579,7 +579,7 @@ res/page1.html.  You can edit both files "live", they will both be
 reloaded as necessary.
 
 Debugging memory leaks
-----------------------
+++++++++++++++++++++++
 
 Sometimes one is careless and leaves a reference somewhere, perhaps in
 an RD.  Since this really only matters in the server, such situations
