@@ -478,6 +478,30 @@ lines, just put::
 
 into your operator CSS.
 
+
+XSL configuration
+'''''''''''''''''
+
+DaCHS employs client-side XSLT for some purposes -- for instance, to
+show OAI-PMH (registry) responses in web browsers, to allow perusing
+datalink results in the browser, and to allow web browsers some
+rudimentary interaction with UWS applications like TAP.
+
+The default XSLT contains references to the GAVO data center; to change
+these (or something else), override the xsl config stylesheet, which is
+expected at /static/xsl/dachs-xsl-config.xsl.  The recommended way to go
+about this is::
+
+  cd /var/gavo  # or whereever your DaCHS root is
+  cd web/nv_static
+  mkdir -p xsl
+  cd xsl
+  gavo admin dumpDF web/xsl/dachs-xsl-config.xsl > dachs-xsl-config.xsl
+
+Then edit ``dachs-xsl-config.xsl``.  Note that you have to restart the
+server once to make it notice the override.
+
+
 Userconfig RD
 -------------
 
@@ -553,7 +577,7 @@ Templates
 
 There is now a document on `HTML templating in DaCHS`_
 
-.. `HTML templating in DaCHS`_: http://docs.g-vo.org/DaCHS/templating.html
+.. _HTML templating in DaCHS: http://docs.g-vo.org/DaCHS/templating.html
 
 
 Overridden System RDs

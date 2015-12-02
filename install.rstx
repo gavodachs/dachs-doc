@@ -32,12 +32,6 @@ running::
 With that, you're ready to proceed to the tutorial_ and the `Operator's
 Guide`_
 
-If you plan to publish SIAP services ("images"), you will probably want
-to manually compile the preview scaler as described below.  If you find
-yourself doing this, please complain to the authors – there's been code
-that should make all this superfluous in DaCHS for quite a time now and
-we've still not done it.  Sorry.
-
 
 .. _add our apt repository: http://soft.g-vo.org/repo
 .. _tutorial: tutorial.html
