@@ -858,10 +858,54 @@ the columns provided by them are already available when you define your
 columns.  Also, columns with the same name overwrite existing columns.
 Thus, if you say::
   
-	<column original="bandpassLo" displayHint="displayUnit=Angstrom"/>
+  <column original="bandpassLo" displayHint="displayUnit=Angstrom"/>
 
 you'll have the metadata from bandpassLo with a new displayHint.
 
+
+...have a custom upload parameter?
+----------------------------------
+
+Astronomers often want to upload object lists.  Typically, they don't
+know what they're talking about and would really like to use TAP and
+perhaps a good client or scripting environment.  However, there's no
+arguing with some people, so here's a way to receive an upload and make
+a query out of it from a web form.  Making this use a VOTable and proper
+metadata is left as an exercise to the operator (but then the
+browser-upload faction typically isn't hot about that either).
+
+This concrete example matches against the SSA ``ssa_location`` column
+using pgsphere; if you were to match against a split-coordinate thing in
+a table mixing in q3cindex, you'd rather use ``q3cjoin(ra, dec, ra, dec,
+radius)``, again all in degrees::
+
+  <condDesc>
+    <inputKey type="file" name="upload" 
+      description="Upload a list of target positions; this expects
+         a text file with three floats per line (ICRS RA, Dec, radius,
+         all in decimal degrees)."/>
+    <phraseMaker>
+      <code>
+        circles = []
+        for ln in inPars[inputKeys[0].name][1].readlines():
+          ra, dec, sr = map(float, ln.split()[:3])
+          circles.append(pgsphere.SCircle(
+            pgsphere.SPoint.fromDegrees(ra, dec),
+            sr*utils.DEG))
+        
+        yield " OR ".join(
+          "ssa_location @ %%(%s)s"%base.getSQLKey("roi", c, outPars)
+          for c in circles)
+      </code>
+    </phraseMaker>
+  </condDesc>
+
+Note that the much-asked-for pattern "do a query, then retrieve results
+as a tar" here has the snag that it's hard to transport file uploads
+from one HTTP request to the next and hence your users either have to
+use the back button and switch the output format on the orginal form or
+repeat the upload file selection on the form at the foot of the result
+table.
 
 VO Protocols
 ============
