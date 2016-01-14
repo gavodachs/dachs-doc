@@ -35,16 +35,56 @@ For the impatient
 All you need to query a server is its access URL.  What we need here is
 the root of the hierarchy, i.e., without any ``sync`` or ``async``.
 
-Then, you can say something like::
+For the typcial case of a sync query, here's the pattern to retrieve
+a sequence of dictionaries, one per result line, using sync querying::
 
   from gavo import votable
+
+  res = votable.ADQLSyncJob(
+    "http://dc.zah.uni-heidelberg.de/__system__/tap/run/tap",
+    "SELECT * FROM TAP_SCHEMA.tables"
+    ).run()
+
+  data, metadata = votable.load(res.openResult())
+  for row in metadata.iterDicts(data):
+    print row
+
+
+Here's a variation using async querying (meaning: your query can
+take a long time if necessary), and yielding a  numpy record array::
+
+  from gavo import votable
+  from numpy import rec
+
   accessURL = "http://dc.zah.uni-heidelberg.de/__system__/tap/run/tap"
   query = "SELECT TOP 3 * FROM TAP_SCHEMA.tables"
   job = votable.ADQLTAPJob(accessURL, query)
-  job.run()
-  dataIterator, metadata = votable.load(job.openResult())
-  job.delete()
-  print list(dataIterator)
+  try:
+    job.run()
+    data, metadata = votable.load(job.openResult())
+  finally:
+    job.delete()
+  ra = rec.fromrecords(data, dtype=votable.makeDtype(metadata))
+
+Note, however, that with record arrays NULL values will cause the whole
+thing to fail.  So, if you are after record arrays, our advice is to
+install astropy and write::
+
+  from cStringIO import StringIO
+
+  from astropy.table import Table
+  from gavo import votable
+
+  accessURL = "http://dc.zah.uni-heidelberg.de/__system__/tap/run/tap"
+  query = "SELECT TOP 3 * FROM TAP_SCHEMA.tables"
+  job = votable.ADQLTAPJob(accessURL, query)
+  try:
+    job.run()
+    table = Table.read(StringIO(job.openResult().read()), format="votable")
+  finally:
+    job.delete()
+
+  print table
 
 More on dataIterator and metadata can be found in the `GAVO VOTable
 library documentation`_.

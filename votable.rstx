@@ -87,7 +87,11 @@ say::
 However, you cannot in general store NULL values in record arrays (as
 None, that is), so this code will fail for many tables unless one
 introduces proper null values (e.g., nan for floats; for ints, you could
-ask metadata for the null value used by the VOTable).
+ask metadata for the null value used by the VOTable).  Also, record
+arrays cannot store variable-length strings, so makeDtype assumes some
+default length.   Pass a `defaultStringLength` keyword argument if your
+strings get truncated (or replace the ``*`` in the ``FIELD`` object with 
+whatever actual length you deem sufficient).
 
 
 Simple writing
