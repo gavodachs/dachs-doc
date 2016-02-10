@@ -388,7 +388,7 @@ The ``user.docgen`` module makes documentation out of these structures.
 There are several catches.  One of the more striking is that element
 names in the *entire* DaCHS code must be unique, since docgen generates
 section heading from those names and actually checks that these headings
-are unique; hence, only one (essentially randmonly selected) of two
+are unique; hence, only one (essentially randomly selected) of two
 identically-named elements would be documented, and parent links would
 both point there.  
 

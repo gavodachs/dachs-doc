@@ -2324,7 +2324,7 @@ for free::
     <meta name="testQuery.dec">10</meta>
     <meta name="testQuery.sr">0.01</meta>
     <dbCore id="xlcore" queriedTable="main">
-      <condDesc original="//scs#coreDescs"/>
+      <FEED source="//scs#coreDescs"/>
       <LOOP listItems="ipix bmag rmag jmag pmra pmde">
         <events>
           <condDesc buildFrom="\item"/>

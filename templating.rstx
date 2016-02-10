@@ -195,6 +195,33 @@ you're not supposed to understand things here, this is just a reference):
 
 -- that's really all it takes for a powerful XML templating language.
 
+In-Python Stan
+--------------
+
+While it's normally preferable to load templates from XML file,
+sometimes you want to inline HTML fragments.  Stan makes that relatively
+easy and save by providing a simple and elegant DOM-like language.
+Essentially, one says::
+
+  from nevow import tags as T
+
+and then has the usual HTML elements as names within T.  Calling them
+as functions will add attributes, indexing them will add  children.
+This may sound odd but allows relatively nice expressions such as::
+
+  T.body[
+    T.p["See also ", T.a(href="http://example.com")["here"], ". or"],
+    T.ul[[
+      T.li["or ", T.a(href=link)[anchor]
+        for link, anchor in linklist]]]]
+
+This T is already in the namespace of the renderer function (see below).
+
+More information and this (as well as the whole template language) is
+available in `Meet Stan <http://docs.g-vo.org/meetstan.html>`_.
+    
+
+
 Template Language Example
 -------------------------
 
