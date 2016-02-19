@@ -919,15 +919,16 @@ search but close enough.
 
 Since we've not yet migrated cone search querying to STREAMs, this is a
 bit clumsy, using the ``original`` attribute.  That said, the current
-way looks like this (for a query that does a proximity search on
-bboxes)::
+way looks like this (the example checks for an intersection between the
+search cone and a pgsphere geometry called ``origin_est``::
 
   <condDesc original="//scs#humanInput">
     <phraseMaker original="//scs#humanSCSPhrase">
       <setup original="//scs#scsSetup" id="proxQuery">
         <code><![CDATA[
           def genQuery(inPars, outPars):
-            return "POINT(%%(%s)s, %%(%s)s) <-> bbox < %%(%s)s"%(
+            return ("scircle(spoint(radians(%%(%s)s), radians(%%(%s)s)),"
+              " radians(%%(%s)s)) && origin_est")%(
               base.getSQLKey("RA", inPars["RA"], outPars),
               base.getSQLKey("DEC", inPars["DEC"], outPars),
               base.getSQLKey("SR", inPars["SR"], outPars))
@@ -936,18 +937,43 @@ bboxes)::
     </phraseMaker>
   </condDesc>
 
+
 -- so, you are inheriting from the SCS condition on three levels and then 
-override the genQuery function defined in the common setup code.  The
+override the ``genQuery`` function defined in the common setup code.  The
 way the condDescs are written, you must return rather than yield
 the actual query string.  See the tutorial on how condDesc code
-works in general.  The semi-good news is that if you want the same thing
-for an SCS query, you can reuse part of what you did above::
+works in general.  
 
-   <condDesc original="//scs#procInput">
-    <phraseMaker original="//scs#scsPhrase">
-      <setup original="proxQuery"/>
-    </phraseMaker>
-  </condDesc>
+This has only changed the condDesc used in web forms.  To change the
+condition used in the cone search protocol, you can re-use the match
+function, though.  Finally, you should include the normal DALI
+parameters, so the total template for an overridden search condition
+looks like this::
+
+  <scsCore queriedTable="data">
+    <condDesc silent="True">
+      <FEED source="//pql#DALIPars"/>
+    </condDesc>
+    <condDesc original="//scs#humanInput">
+      <phraseMaker original="//scs#humanSCSPhrase">
+        <setup original="//scs#scsSetup" id="proxQuery">
+          <code><![CDATA[
+            def genQuery(inPars, outPars):
+              return ("scircle(spoint(radians(%%(%s)s), radians(%%(%s)s)),"
+                " radians(%%(%s)s)) && origin_est")%(
+                base.getSQLKey("RA", inPars["RA"], outPars),
+                base.getSQLKey("DEC", inPars["DEC"], outPars),
+                base.getSQLKey("SR", inPars["SR"], outPars))
+          ]]></code>
+        </setup>
+      </phraseMaker>
+    </condDesc>
+    <condDesc original="//scs#protoInput">
+      <phraseMaker original="//scs#scsPhrase">
+        <setup original="proxQuery"/>
+      </phraseMaker>
+    </condDesc>
+  </scsCore>
 
 ...change a single param of ssap#hcd to being a column?
 -------------------------------------------------------
