@@ -77,6 +77,8 @@ API
     apidoc
 
 
+Developers
+
 .. toctree::
     :maxdepth: 1
 
