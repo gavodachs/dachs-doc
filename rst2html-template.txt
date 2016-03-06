@@ -1,0 +1,13 @@
+%(head_prefix)s
+%(head)s
+<script type="text/javascript" 
+  src="http://dc.g-vo.org/static/js/jquery-gavo.js">
+</script>
+<script type="text/javascript" src="gavodoc.js">
+</script>
+%(stylesheet)s
+%(body_prefix)s
+%(body_pre_docinfo)s
+%(docinfo)s
+%(body)s
+%(body_suffix)s
