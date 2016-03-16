@@ -282,7 +282,7 @@ The RD goes on to give metadata applying to everything within the RD::
     0.89 mas/year (about a factor of 1.3 better than Hipparcos for this 
     sample of stars).
   </meta>
-  <meta name="creator.name">Wielen, R.; Schwan, H.; Dettbarn, C.; et al</meta>
+  <meta name="creator">Wielen, R.; Schwan, H.; Dettbarn, C.; et al</meta>
 
   <meta name="subject">Catalogs</meta>
   <meta name="subject">Astrometry</meta>
@@ -1936,13 +1936,15 @@ Observatory`_; see also the `Reference Manual on RMI-style metadata`_.
 Authors
 -------
 
-DaCHS tries to interpret the creator.name metadata as the authors, and
-it will split strings passed in at semicolons.  So, the recommended way
-to write author lists in DaCHS is "Author1, S.; Author-Two, J.C.; et al"
-– the et al is ignored when trying to come up with individual names from
-such a string.
+VOResource wants split-up author specifications, and for a good reason.
+However, for longer author lists, these are a pain to write down (see
+also `RMI-Style Metadata in the reference`_).
 
-For alternatives, see `RMI-Style Metadata in the reference`_.
+As a shortcut, DaCHS lets you specify authors in the simple ``creator``
+metadata as semicolon-separated names.  Unless you want to set logos or
+similar, the recommended way to declare authors is::
+
+  <meta name="creator">Author1, S.; Author-Two, J.C.</meta>
 
 
 Coverage
