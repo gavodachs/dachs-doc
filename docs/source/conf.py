@@ -42,7 +42,7 @@ source_suffix = '.rstx'
 #source_encoding = 'utf-8-sig'
 
 # The master toctree document.
-master_doc = 'index'
+master_doc = 'index_new'
 
 # General information about the project.
 project = u'DaCHS'
