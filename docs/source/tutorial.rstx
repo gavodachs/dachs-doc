@@ -2959,6 +2959,139 @@ normal rowmaker; since the table contains products, don't forget the
 .. _califa/q2: http://svn.ari.uni-heidelberg.de/svn/gavo/hdinputs/califa/q2.rd
 .. _obscore table description: http://dc.g-vo.org/__system__/dc_tables/show/tableinfo/ivoa.ObsCore
 
+
+Datalink
+--------
+
+Datalink isn't a discovery protocol like the others discussed so far;
+rather, it is a file format and a simple access protocol for
+representing relationships between parts of complex datasets.
+Essentially, datalink is for you if you have parts of a dataset's
+provenance, refined products like source lists and cutouts, masks, or
+whatever else.
+
+Datalink is particularly attractive when you have large datasets and you
+don't want to push out the whole thing in one go by default.  Insteadt,
+clients retrieve the datalink document.  That then says how to retrieve
+cutouts (and also gives a link to the full dataset for those that want
+it and are aware they might be pulling a large chunk of data).
+
+Since Datalink is very flexible, defining datalink services is a bit
+involved.  The reference documentation has a `large section on it`_.
+Here, we discuss some standard cases.
+
+Datalinks in columns
+''''''''''''''''''''
+
+The simplest way to let people discover datalink documents is by
+including links in normal tables (as for DAL tables) and keep the normal
+access URL in the accref column.  To do that, define a column like
+this::
+
+	<column name="datalink" type="text"
+		ucd="meta.ref.url"
+		tablehead="DL"
+		description="URL of a datalink document for this dataset"
+		verbLevel="1" displayHint="type=url"/>
+
+and then fill it in the corresponding rowmaker.  For the normal case
+where a product corresponds to a disk file, there is a macro to help
+you::
+
+  <map key="datalink">\dlMetaURI{dl}</map>
+
+Here, the “dl” in the macro argument must be the id of the datalink
+service as discussed below.
+
+In such situations, it is still usually advisable to use the datalink
+URL rather than the naked accref in the obscore table – for instance,
+when you are using a SIAP cutout on large image (obscore cannot do
+cutouts) or to allow format conversions.  To do that, you need to advise
+the obscore to use the datalink response; besides changing the access
+URL, you will also need to adjust the access_format (so clients know
+they will have to deal with a datalink) and the access_estsize (because
+they will not have to download the entire dataset in one go).  For the
+latter, it is hard to predict how large the datalink stream will end up
+being.  Guessing “about 10 kB” should be good enough, though.
+
+In total, the obscore mixin would have to look like this::
+
+ 		<mixin
+			mime="'application/x-votable;content=datalink'"
+			accessURL="datalink"
+			size="10"
+			...
+		>//obscore#publish(WHATEVER)</mixin>
+
+(in case you're wondering: the ``datalink`` given here for accessURL is
+just the column name as given above).
+
+
+Datalinks as accrefs
+''''''''''''''''''''
+
+In particular for large datasets, it is probably a good idea to keep
+people from blindly pulling the data without first having been made
+aware that what they're accessing is not just a little CCD frame.
+Having the datalink document as the primary document retrieved is a
+fairly good way to do that; of course, without a datalink-enabled client
+people might be locked out from the dataset entirely.  On the other
+hand, DaCHS comes with a stylesheet that enables datalink operation from
+a common web brower, so that's perhaps not too bad.
+
+To have datalinks rather than the plain dataset as what the accref
+points to, you need to change what DaCHS thinks of your dataset; this is
+what the ``//products#define`` rowfilter in your grammar is for::
+
+		<fitsProdGrammar qnd="True">
+			<rowfilter procDef="//products#define">
+				<bind key="path">\dlMetaURI{dl}</bind>
+				<bind key="mime">'application/x-votable+xml;content=datalink'</bind>
+				[...]
+			</rowfilter>
+			[...]
+		</fitsProdGrammar>
+
+When you do this, you must use a custom descriptor generator.  See
+`Custom Product Descriptor Generators`_ in the reference manual.
+
+.. _Descriptor Generators: http://docs.g-vo.org/DaCHS/ref.html#descriptors-generators
+.. _Custom Product Descriptor Generators: http://docs.g-vo.org/DaCHS/ref.html#custom-product-descriptor-generators
+
+Simple FITS Datalink Services
+'''''''''''''''''''''''''''''
+
+A fairly typical case for a datalink service is a file that has a few
+related datasets and perhaps a cutout.  To define such a thing, write
+something like::
+
+	<service id="dl" allowed="dlget,dlmeta">
+		<meta name="title">HDAP Datalink</meta>
+		<meta name="description">This service lets you access cutouts
+			from HDAP plates and retrieve scaled versions.</meta>
+		<datalinkCore>
+ 			<FEED source="//soda#fits_standardDLFuncs" stcs=" "
+				accrefPrefix="lswscans"/>
+			<metaMaker>
+				<code>
+					yield descriptor.makeLink(
+						makeProductLink(descriptor.accref+"?scale=4"),
+						contentType="image/fits",
+						description="FITS, scaled by 1/4",
+						semantics="#science",
+						contentLength=descriptor.estimateSize()/16.)
+				</code>
+			</metaMaker>
+		</datalinkCore>
+	</service>
+
+TODO: Explain what's going on here.
+
+TBC
+
+.. _large section on it: http://docs.g-vo.org/DaCHS/ref.html#datalink-cores
+
+
 Publishing DaCHS-managed tables via TAP
 ---------------------------------------
 

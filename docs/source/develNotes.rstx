@@ -967,7 +967,8 @@ Building jquery-gavo.js
 * copy jquery-gavo.js to gavo/resources/web/js
 
 Whatever CSS is necessary for jquery should for now go into gavo_dc.css
-– I'm cutting and pasting.
+– I've simply been pasting in jquery-ui.css (no idea what "-structure"
+is).
 
 
 

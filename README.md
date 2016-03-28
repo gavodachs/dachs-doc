@@ -20,3 +20,5 @@ Plans for expansion include:
   * Query/request interfaces (renderers)
   * Input data processing (grammars)
   * Resources metadata
+
+[![Documentation Status](https://readthedocs.org/projects/dachs-doc/badge/?version=latest)](http://dachs-doc.readthedocs.org/en/latest/?badge=latest)

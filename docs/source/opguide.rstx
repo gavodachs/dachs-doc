@@ -552,10 +552,10 @@ Thus, you should put a PNG of your logo into
 Other files you may want to override in this way include
 
 * ``css/gavo_dc.css`` – the central CSS; you could use this for 
-  skinning.  However, we recommend you just add an 
-  ``@import url("<your css url>");`` to the file the server 
-  delivers by default, since some of the css is almost necessary, 
-  and you want easy upgrade paths when we change the master CSS.
+  skinning.  However, you are *strongly* advised not to replace this
+  file since some of the css is almost necessary for the web interface
+  to do useful things, and the upstream CSS gets changed fairly
+  regularly.  Instead, use `Operator CSS`_.
 * ``help.shtml`` – the help file.  Unfortunately, we blurb quite 
   a lot about GAVO in there right now.  We'll think of something 
   more parametrisable, but meanwhile you may want to have your own version
@@ -1041,6 +1041,10 @@ Settings related to serving content to the web.
   root; this must end with a slash (and, frankly, if you must use this
   feature, you'll probably encounter some bugs. we want to fix those,
   though.)
+* operatorCSS: string; 
+  defaults to '' --
+  URL of an operator-specific CSS.  This is included as the last item
+  and can therefore override rules in the distributed CSS.
 * preloadRDs: list of strings; 
   defaults to '' --
   RD ids to preload at the server start (this is mainly for RDs that
@@ -1078,7 +1082,6 @@ Settings related to serving content to the web.
 * voplotUserman: URL fragment relative to the server's root; 
   defaults to 'Deprecated and ignored' --
   URL to the documentation of VOPlot
-
 .. END CONFIG REFERENCE
 
 Managing Runtime Resources
