@@ -3070,7 +3070,7 @@ something like::
 		<meta name="description">This service lets you access cutouts
 			from HDAP plates and retrieve scaled versions.</meta>
 		<datalinkCore>
- 			<FEED source="//soda#fits_standardDLFuncs" stcs=" "
+ 			<FEED source="//soda#fits_standardDLFuncs" 
 				accrefPrefix="lswscans"/>
 			<metaMaker>
 				<code>

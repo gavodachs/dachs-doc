@@ -475,6 +475,15 @@ Until we get to imporve that, here's an overview of the nevow renderers
   DaCHS was deployed in practice, it's not used consistently, so there's
   no point in using it right now.
 
+:getconfig:
+  (from  GavoRenderMixin) takes a config key from its content and
+  renders it as the value of this configuration item, e.g.::
+
+    Finish up in 
+    <span n:render="getconfig">[async]defaultExecTime</span> seconds
+
+  If you leave out the section, [general] is assumed as usual.
+
 :ifmeta:
   (from GavoRenderMixin) a parameterised renderer, i.e. used like
   this::

@@ -559,6 +559,29 @@ define::
     return "IMPORTANT" in comment
 
 
+Scanned Plates
+--------------
+
+For scanned plates, the `plate archive standard`_ proposes a fairly
+large and standardised set of headers.  DaCHS supports you in generating
+those with its FITS header template system; this lacks proper
+documentation right now – see the docstrings in gavo.helpers.fitstricks
+in the meantime.
+
+For scanned plates, there is the canned WFPDB_TEMPLATE.  In usage, it
+is fairly simple; essentially, you say::
+
+  from gavo.helpers import fitstricks
+  hdr = fitstricks.makeHeaderFromTemplate(fitstricks.WFPDB_TEMPLATE,
+    OBJECT = "some star",
+    SITELAT = 0.0,
+    ...
+   )
+
+– and then use the header as you otherwise would.
+
+.. _plate archive standard: https://www.plate-archive.org/wiki/index.php/FITS_header_format
+
 Astrometry.net
 --------------
 
