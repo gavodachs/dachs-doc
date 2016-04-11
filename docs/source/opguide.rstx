@@ -815,7 +815,6 @@ You can get an up-to-date version of this by running ``gavo config``.
 
 .. BEGIN CONFIG REFERENCE
    refresh by going one line below this comment in vi and saying
-   :.,/END CONFIG REFERENCE/-1!gavo config
 
 Section [general]
 '''''''''''''''''
@@ -924,6 +923,9 @@ Settings concerning TAP, UWS, and friends
 * maxTAPRunning: integer; 
   defaults to '2' --
   Maximum number of TAP jobs running at a time
+* maxUserUWSRunningDefault: integer; 
+  defaults to '2' --
+  Maximum number of user UWS jobs running at a time
 
 Section [db]
 ''''''''''''
@@ -1016,6 +1018,11 @@ Settings related to serving content to the web.
 * bindAddress: string; 
   defaults to '127.0.0.1' --
   Interface to bind to
+* corsOriginPat: string; 
+  defaults to '' --
+  A regular expression for URLs from which to authorise cross-origin
+  requests. This is matched, i.e., the RE must account for the whole URL
+  including the schema. Example: https?://example\.com/apps/.*.
 * enableTests: boolean; 
   defaults to 'False' --
   Enable test pages (don't if you don't know why)
