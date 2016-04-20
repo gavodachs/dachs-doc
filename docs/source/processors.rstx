@@ -649,10 +649,11 @@ You can even filter what sextractor has obtained.  To do that, define
 and ``objectFilter`` method (in addition to the ``sexControl``
 attribute)::
 
+  import numpy
   from gavo.utils import pyfits
   ...
 
-  def objectFilter(inName):
+  def objectFilter(self, inName):
     """throws out funny-looking objects from inName and throws out objects
     near the border.
     """
@@ -666,7 +667,10 @@ attribute)::
     data = data[data.field("X_IMAGE")<width-width*badBorder]
     data = data[data.field("Y_IMAGE")>height*badBorder]
     data = data[data.field("Y_IMAGE")<height-height*badBorder]
-    hdu = pyfits.new_table(data)
+
+    # the extra numpy.array below works around a bug in several versions
+    # of pyfits that would write the full, not the filtered array
+    hdu = pyfits.new_table(numpy.array(data))
     hdu.writeto("foo.xyls")
     hdulist.close()
     os.rename("foo.xyls", inName)
