@@ -206,46 +206,46 @@ The classical case is getting accrefs from a table, like this::
   from gavo import api
   ...
 
-	  def iterIdentifiers(self):
-		  tableId = self.dd.makes[0].table.getQName()
-		  with api.getTableConn() as conn:
-			  for r in conn.queryToDicts("select accref from %s"%tableId):
-				  yield r["accref"]
+    def iterIdentifiers(self):
+      tableId = self.dd.makes[0].table.getQName()
+      with api.getTableConn() as conn:
+        for r in conn.queryToDicts("select accref from %s"%tableId):
+          yield r["accref"]
 
 
 A very typical case is when an "artificial" format generated on the fly
 gets added to the SDM table to return something for FORMAT=compliant
 queries.  In the RD, this could look like this::
 
-			<rowfilter procDef="//products#define">
-				<bind name="table">"\schema.data"</bind>
-				<bind name="mime">"image/fits"</bind>
-				<bind name="preview_mime">"image/png"</bind>
-				<bind name="preview">\standardPreviewPath</bind>
-			</rowfilter>
-			<rowfilter name="addSDM">
-				<code>
-					yield row
-					baseAccref = os.path.splitext(row["prodtblPath"])[0]
-					row["prodtblAccref"] = baseAccref+".vot"
-					row["prodtblPath"] = "dcc://\rdIdDotted/mksdm?"+urllib.quote(
-						row["prodtblPath"])
-					row["prodtblMime"] = "application/x-votable+xml"
-					yield row
-				</code>
-			</rowfilter>
+      <rowfilter procDef="//products#define">
+        <bind name="table">"\schema.data"</bind>
+        <bind name="mime">"image/fits"</bind>
+        <bind name="preview_mime">"image/png"</bind>
+        <bind name="preview">\standardPreviewPath</bind>
+      </rowfilter>
+      <rowfilter name="addSDM">
+        <code>
+          yield row
+          baseAccref = os.path.splitext(row["prodtblPath"])[0]
+          row["prodtblAccref"] = baseAccref+".vot"
+          row["prodtblPath"] = "dcc://\rdIdDotted/mksdm?"+urllib.quote(
+            row["prodtblPath"])
+          row["prodtblMime"] = "application/x-votable+xml"
+          yield row
+        </code>
+      </rowfilter>
 
 Note that the preview path and mime are the same for both versions,
 which means that previews should only be computed for the first kind of
 data.  To effect that, write your PreviewMaker like this::
 
   class PreviewMaker(api.SpectralPreviewMaker):
-	  sdmId = "build_sdm_data"
+    sdmId = "build_sdm_data"
 
-	  def iterIdentifiers(self):
-		  for id in api.SpectralPreviewMaker.iterIdentifiers(self):
-			  if not id.endswith(".vot"):
-				  yield id
+    def iterIdentifiers(self):
+      for id in api.SpectralPreviewMaker.iterIdentifiers(self):
+        if not id.endswith(".vot"):
+          yield id
 
 
 Utility Methods
@@ -412,18 +412,18 @@ Here's an example for a simple ImmediateHeaderProcessor::
   from gavo import api
 
   class LinkAdder(api.ImmediateHeaderProcessor):
-	  def _createAuxiliaries(self, dd):
-		  self.staticBase = dd.rd.getById("dl").getURL("static")
+    def _createAuxiliaries(self, dd):
+      self.staticBase = dd.rd.getById("dl").getURL("static")
 
-	  def _isProcessed(self, srcName, hdr):
-		  return hdr.get("FN-PRE", "").startswith("http")
-	  
-	  def _changeHeader(self, srcName, hdr):
-		  baseName = os.path.splitext(os.path.basename(srcName))[0]
-		  hdr.update("FN-WEDGE", "%s/wedges/%sw.fits"%(self.staticBase, baseName),
-			  after="FILENAME")
-		  hdr.update("FN-PRE", "%s/jpegs/%s.jpg"%(self.staticBase, baseName),
-			  after="FN-WEDGE")
+    def _isProcessed(self, srcName, hdr):
+      return hdr.get("FN-PRE", "").startswith("http")
+    
+    def _changeHeader(self, srcName, hdr):
+      baseName = os.path.splitext(os.path.basename(srcName))[0]
+      hdr.update("FN-WEDGE", "%s/wedges/%sw.fits"%(self.staticBase, baseName),
+        after="FILENAME")
+      hdr.update("FN-PRE", "%s/jpegs/%s.jpg"%(self.staticBase, baseName),
+        after="FN-WEDGE")
 
 
   if __name__=="__main__":
@@ -604,11 +604,14 @@ this::
     sp_upper_pix = 0.2
     sp_endob = 50
 
-    def _getHeader(self, srcName):
-      hdr = api.AnetHeaderProcessor._getHeader(self, srcName)
-      if hdr is not None:
-        hdr.update("LOCATION", "Unknown")
-      return hdr
+    def _mungeHeader(self, srcName, hdr):
+      vals = {
+        "OBJTYP": "Galaxy",
+        "OBSERVAT": "HST",
+        ....}
+      return fitstricks.makeHeaderFromTemplate(
+        fitstricks.WFPDB_TEMPLATE,
+        originalHeader=hdr, **vals)
 
 
 The class attributes starting with ``sp\_`` are parameters for the solver.
@@ -617,10 +620,18 @@ parameter is important on larger images because it instructs anet to
 give up when no identification has been possible within the first endob
 objects.  It keeps the solver from wasting enormous amounts of time on
 potentially thousands of spurious detections, e.g., on photographic
-plates.
+plates.  
 
-The call to ``_getHeader`` illustrates how to modify the default
-behaviour (which is to just add the WCS headers if they are available).
+Overriding ``_mungeHeader`` lets you add header cards of your own.  The
+default is again to just return the header.  Here, we're using DaCHS
+FITS templating engine (which is generally a good idea and deserves
+more documentation; please complain if you're reading this and missing
+docs).
+
+Note that the ``_mungeHeader`` code can run independently of the
+(potentially time-consuming) astrometry.net code.  Run the processor
+with ``--no-anet --reprocess`` to re-create the headers computed there
+without re-running astrometry.net.
 
 If you want to use SExtractor for source extraction, add a sexControl
 class attribute.  If it is empty, extraction will be done using some
