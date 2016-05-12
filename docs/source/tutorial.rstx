@@ -393,6 +393,10 @@ table, grouping together positions, errors, and proper motions in a
 specific reference frame.  This is again a topic of its own, discussed
 in `STC`_
 
+
+Column definition
+.................
+
 Finally, we're at the column definitions::
 
     <column name="hipno" type="integer" ucd="meta.id;meta.main"
