@@ -273,6 +273,21 @@ file.  Hence, you'd say::
   <map dest="modstamp">os.path.getmtime(@parser_.sourceToken)</map>
 
 
+...update ivoa.obscore when I've changed something in an obscore mixin?
+-----------------------------------------------------------------------
+
+When you change a specification in an obscore mixin, it would be a waste
+to re-import the table with the mixin, since in general nothing has
+changed there.  However, the script updating the obscore view will only
+be run on a full ``gavo imp``, not on a ``gavo imp -m``.
+
+Since version 0.9.7, ``gavo imp`` now at least updates the view fragment
+when the table metadata of a table with obscore is updated.  It does
+not, however, re-make the view.  You can easily do that, manually,
+however::
+
+  gavo imp //obscore
+
 
 
 
