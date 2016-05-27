@@ -292,6 +292,31 @@ like this::
 – the value is the resdir-relative name of the directory that will
 contain the preview files.
 
+This previewDir property is evaluated by the preview name generators
+(and only there; if you set up a naming policy of your own, there's no
+need to set previewDir).  DaCHS currently has two of those, both
+available as macros for use in products#define.  Here's how to use
+them::
+
+	<rowfilter procDef="//products#define">
+		<bind name="table">"\schema.data"</bind>
+		<bind name="mime">"image/fits"</bind>
+		<bind name="preview_mime">"image/png"</bind>
+		<bind name="preview">\standardPreviewPath</bind>
+	</rowfilter>
+
+The ``standardPreviewPath`` macro arranges things such that all previews are
+in one directory with base64 encoded names.  This is fairly low overhead
+and is recommended for smallish data collections up to, say, a few
+thousand datasets.
+
+For larger data collections, it is recommended to use the
+``splitPreviewPath{extension}`` macro.  It arranges the previews in a
+hierarchy analogous to the data files themselves.  In order to avoid
+confusion, it is recommended to set the extension according to the file
+type generated (i.e., typically “.png” or “.jpeg”), like this:
+``\splitPreviewPath{.png}``.
+
 To generate the previews, all you have to do is inherit from
 ``PreviewMaker`` and implement ``getPreviewData(srcName) -> imageData``.
 PIL, stuff from `utils.imgtools`_ or something similar usually is your
