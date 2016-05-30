@@ -1193,6 +1193,34 @@ them messages in this way (and clear away their resource hogs at the
 same time).
 
 
+Housekeeping
+============
+
+There are a few things you should do to keep your data center function
+well.  Most importantly, see how your services do in the VO ecosystem.
+Some places operate validators that tell you if there is something wrong
+with your site.  If you are logged in as gavoadmin, you can run some of
+these interactively from the service info pages.  We recommend, however,
+to peruse your results on
+http://heasarc.gsfc.nasa.gov/vo/validation/vresults.pl (the interface
+lets you select just your services).
+
+Also, if you run a TAP service, you should run something like::
+
+  stilts taplint tapurl=<root-url>/tap | grep "^E-"
+
+– stilts you can get from `Mark Taylor's TOPCAT page`_; this will output
+errors with your service.  A fairly typical reason for errors is that
+you changed metadata without running ``gavo imp -m``.  If the metadata is
+wrong for just a few tables, just ``gavo imp -m`` their respective RDs.
+An easy way to fix all such problems is to just run::
+
+  gavo admin updateTAPSchema
+
+which goes over all RDs that have contributed metadata to TAP_SCHEMA and
+re-ingests that metadata.
+
+
 Upgrading
 =========
 
@@ -1271,3 +1299,4 @@ http://docs.g-vo.org/DaCHS/howDoI.html#upgrade-the-database-engine
 
 .. _DaCHS-users: http://lists.g-vo.org/cgi-bin/mailman/listinfo/dachs-users
 .. |date| date::
+.. _Mark Taylor's TOPCAT page: http://www.star.bris.ac.uk/~mbt/topcat/
