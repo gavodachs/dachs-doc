@@ -64,8 +64,11 @@ For Data Center Operators
 
 * `Reference <http://docs.g-vo.org/DaCHS/ref.html>`_
 
-  * :download:`ref.pdf <../pdf/ref.pdf>`
-  * :download:`ref.rstx <./ref.rstx>`
+  * :download:`ref.pdf <http://docs.g-vo.org/DaCHS/ref.pdf>`
+  * :download:`refdoc.rstx <./refdoc.rstx>` (this is a template, built
+    with ``gavo gendoc``.  You're welcome to fix problems in the
+    template, but the documents cannot be updated on
+    github/readthedocs).
 
 * :doc:`How do I? <howDoI>`
 

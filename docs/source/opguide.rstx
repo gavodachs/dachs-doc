@@ -1089,6 +1089,7 @@ Settings related to serving content to the web.
 * voplotUserman: URL fragment relative to the server's root; 
   defaults to 'Deprecated and ignored' --
   URL to the documentation of VOPlot
+
 .. END CONFIG REFERENCE
 
 Managing Runtime Resources
