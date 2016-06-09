@@ -42,7 +42,7 @@ factoring out libraries).
 * There is a hierarchy of subpackages, where subpackages lower in the
   hierarchy may not import anything from the higher or equal levels, but 
   only from lower levels.  This hierarchy currently looks like this:
-  imp [<] utils < stc < (votable, adql) < base < rscdef < grammars 
+  imp [<] utils < stc < (votable, adql) < base < dm < rscdef < grammars 
   < formats < rsc < svcs < registry < protocols < web < rscdesc 
   < (helpers, user)
   utils should never assume anything from imp is present, i.e., it may
@@ -1044,6 +1044,29 @@ TBD
 You should add the protocol mixin(s) in user.docgen.PUBLIC_MIXINS so
 they get included in the documentation; likewise if you need apply
 and/or rowfilters, amend PUBLIC_APPLYS or PUBLIC_ROWFILTERS.
+
+
+Writing Documentation
+=====================
+
+Documentation on DaCHS is maintained in ReStructuredText format with
+some minor extensions (see below).  While there's documentation in the
+tarball and the main SVN, in order to encourage external contributions
+(including, but not restricted to, typo fixes and the like) the main
+copy now is at https://github.com/chbrandt/dachs-doc.git.
+
+When authoring, you can use some extra RST features (the price: stock
+rst2pdf and friends don't work properly; use ``gavo gendoc latex`` or
+``gavo gendoc html``, or a special sphinx configuration).  These
+include:
+
+* dachsref: Give a reference documentation heading (as in
+  :dachsref:`The //obscore#publishSIAP Mixin`), and you'll get a link
+  there.
+* dachsdoc: Works like normal links, including explicit targets,
+  but it prepends the root URL of the DaCHS documentation
+* bibcode: Adds an ADS link to a bibcode
+
 
 
 Random Stuff

@@ -45,7 +45,7 @@ either.
 Finally, ``gavo serve restart`` restarts the server.  The start, stop,
 reload, and restart operations generally should be run as root; you
 can run them as the server user (by default, gavo), too, as long as the
-server doesn't try to bind to a privileged (lower than 1025).
+server doesn't try to bind to a privileged port (lower than 1025).
 
 All this can and should be packed into a startup script or the
 equivalent entity for the init systme of your choice.  Our Debian
@@ -63,15 +63,18 @@ Publication
 
 To "publish" a resource – which means include it either on your site's
 home page or in what you report to the VO registry –, add a ``publish``
-element to a ``service`` element or a ``register`` element to data or
-table elements.  Both of these let you specify the sets the resources
-shall be published to.  Unless you have specific application, only two
+element to a ``service`` (for a normal CatalogService publication), 
+``data``, or
+``table`` (these are data publications, typically for the TAP service)
+elements.  The ``publish`` element lets you specify the sets the resources
+shall be published to.  Unless you have specific applications, only two
 sets are relevant: ``ivo_managed`` for publishing to the VO (see
-`Registry Matters`_, and ``local`` for publishing to your data center's
+`Registry Matters`_), and ``local`` for publishing to your data center's
 service roster.  Other sets can be introduced and used for, e.g.,
 specific sub-rosters.
 
-The ``publish`` element needs, in addition, a render attribute, giving a
+In services, the ``publish`` element needs, in addition, 
+a ``render`` attribute, giving a
 comma-separated list of renderers the publication is for.  The various
 renderers are translated into capability element in the VO resource
 records.  For example, a typical pattern could be::
@@ -79,16 +82,19 @@ records.  For example, a typical pattern could be::
     <publish render="scs.xml" sets="ivo_managed"/>
     <publish render="form" sets="local,ivo_managed"/>
 
-This generates a capability each for the simple cone search and a
+This generates one capability each for the simple cone search and a
 browser-based interface; the browser-based interface is, in addition,
 listed in the local service roster.
 
-You can also publish tables; for those, the notion of renderers make no
-sense, so the publish element doesn't have that.  Instead, you could
-define services that serve that data.  For many cases, you don't even
-need to do this, since for tables that have ``adql="True"``, the local
+When you publish tables (or collection of tables via a ``data``
+element), the notion of renderers makes no
+sense.  Instead, you would have to
+define services that serve that data, except that when you publish
+tables that have ``adql="True"``, the local
 TAP service is automatically considered to be a service for that data.
-
+Otherwise (or in addition), add service references in ``service``
+children.
+  
 So, to publish an ADQL-queriable table to the VO for querying via TAP, 
 just write:: 
 
@@ -99,11 +105,14 @@ in a SIAP service in a different RD, would require something like::
 
   <publish service="other/rd#siapsvc/>
 
+(use ``service`` elements if there are multiple services).
+
 Once you have done this, run ``gavo pub <rdid>``.  This causes all
 publishable items in the RD to be published.  It also unpublishes
 everything that was published through the RD before and is no longer
-published.  If the ``serverURL`` config item on the machine running gavo
-pub is pointing to the actual running server, the latter will
+published.  If the ``[web]serverURL`` config item on the machine running gavo
+pub is pointing to the actual running server and ``[web]adminpasswd``
+machtes, the server will
 automatically be made aware of these changes.  Otherwise, you need to
 prod the server as discussed in `Managing Runtime Resources`_.
 
@@ -134,13 +143,13 @@ don't repeat our (the GAVO DC's) mistake and invert the sequence of
 particles in your DNS name.  Also, this is just the name, there is no
 ivo:// or other decoration.
 
-Then, add metadata about yourself in ``GAVO_ROOT/etc/defaultmeta.txt``.
+Then, add metadata about yourself in ``GAVO_ROOT/etc/defaultmeta.txt``;
+these provide some values that stand in in registry records you generate
+whenever their values are not overridden in actual records, which
+obviously is particularly pertinent to things like the publisher, which
+very typically will be you for all the resources.
 It is a file in the `meta stream format`_; basically it's lines
 of ``<key>: <value>``.  
-
-In defaultmeta.txt, you must give basic information on your authority
-and some fallback for services (the defaults all make no sense at all
-and should never escape to the VO registry):
 
 * publisher – A short, human-readable name for you
 * publisherID – An IVOA id for yourself;  set this to
@@ -172,12 +181,12 @@ and should never escape to the VO registry):
 
 
 Then, fill out the metadata for the system registry resources
-in your userconfig RD.  This is the stuff in the
+in your userconfig RD.  See `Userconfig RD`_ below if you are not sure
+what we are talking about.  
+
+The registry is configured in the
 ``registry-interfacerecords`` stream (which you can copy from
-//userconfig if it's not yet in your ``etc/userconfig.rd``.  Fill things
-out; in particular everything where there's a ``\\metaString`` expansion.
-This still is filled from defaultmeta.txt, but as we want to get rid of
-that file on the long run, just enter the text as you see fit.
+//userconfig if it's not yet in your ``etc/userconfig.rd``).
 
 In authority, change in particular
 
@@ -199,27 +208,10 @@ In authority, change in particular
   authority.  Example: GAVO DC.
 * referenceURL – A URL at which people can learn more about
   your data center.  Example: ``http://www.g-vo.org``.
-* managingOrg – an ivo id of the organisation you're running
-  the dc for.  The default is ivo://<your authority>/org, the content
-  defined in the ``manager`` resRec.  If
-  your institution has a registry entry independent of your DC, you
-  can enter that IVORN here as well (and you would remove the
-  ``manager`` resRec).
-
-In the ``manager`` resRec (if you have it), change:
-
-* creationDate – as above for authority.
-* title – the name of the organisation on behalf of which
-  you are running the data center.  Example: ``Observatory of
-  Utopia``
-* description and referenceURL – as the
-  analoguous item for authority, just for the organisation for which
-  you are running the data center (e.g., your "home institute").
-  Example: ``The Observatory of Utopia is Lilliput's
-  largest astronomical institution with ten large telescopes spread
-  around the Plain Mountains.  Beautiful vistas and lush valleys
-  make them an attractive holiday spot as well.  Book now at the
-  Observatories soft money department at 1-800-GOOD-GREED.``
+* managingOrg – A human-readable name for the organisation running this
+  authority.  The default is what you gave as publisher, which should
+  be ok most of the time.  If you make a registry record for yourself,
+  you can also give managingOrg.ivo-id.
 
 After you've specificed all that, you're ready to define your first
 resources, viz, your registry itself, the authority, and the
