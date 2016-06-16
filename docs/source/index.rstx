@@ -62,7 +62,7 @@ For Data Center Operators
   * :download:`tutorial.pdf <../pdf/tutorial.pdf>`
   * :download:`tutorial.rstx <./tutorial.rstx>`
 
-* `Reference <http://docs.g-vo.org/DaCHS/ref.html>`_
+* :doc:`Reference <refdoc>`
 
   * :download:`ref.pdf <http://docs.g-vo.org/DaCHS/ref.pdf>`
   * :download:`refdoc.rstx <./refdoc.rstx>` (this is a template, built
