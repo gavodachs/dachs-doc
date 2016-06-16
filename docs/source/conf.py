@@ -32,6 +32,7 @@ sys.path.append(os.path.abspath('includes'))
 extensions = [
     'sphinx.ext.todo',
     'sphinx_role_dachsref',
+    'sphinx.ext.extlinks'
 ]
 
 # The custom extension for DachsRefs (sphinx_role_dachsref.py) has a
@@ -40,6 +41,11 @@ extensions = [
 # That said, setting a value for 'dachsref_base' here applies only for
 # those running sphinx; currently, readthedocs.
 dachsref_base = 'http://dachs-doc.readthedocs.io/en/latest/refdoc.html'
+
+# Pretty much the same arguments as for 'dachsref', now for role 'dachsdoc',
+# which uses sphinx 'extlinks' extension; points to documentation root.
+extlinks = {'dachsdoc':('http://dachs-doc.readthedocs.io/en/latest/%s',
+                        '')}
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
