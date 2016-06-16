@@ -7,20 +7,16 @@ GAVO DaCHS operator's guide
 :Date: |date|
 
 
-.. contents:: 
+.. contents::
   :depth: 3
   :backlinks: entry
   :class: toc
 
 This document details the configuration and operation of the GAVO DaCHS
 server.  For information on installing the software, please refer to
-the `installation guide`_, to learn how to import data, see the
-tutorial_.  For an overview of the available documentation, see `DaCHS
-documentation`_
-
-.. _DaCHS documentation: http://docs.g-vo.org/DaCHS
-.. _installation guide: http://docs.g-vo.org/DaCHS/install.html
-.. _tutorial: http://docs.g-vo.org/DaCHS/tutorial.html
+the :dachsdoc:`installation guide <install.html>`, to learn how to import data,
+see the :dachsdoc:`tutorial <tutorial.html>`.  For an overview of the available documentation,
+see :dachsdoc:`DaCHS documentation <>`
 
 
 Starting and stopping the server
@@ -63,7 +59,7 @@ Publication
 
 To "publish" a resource – which means include it either on your site's
 home page or in what you report to the VO registry –, add a ``publish``
-element to a ``service`` (for a normal CatalogService publication), 
+element to a ``service`` (for a normal CatalogService publication),
 ``data``, or
 ``table`` (these are data publications, typically for the TAP service)
 elements.  The ``publish`` element lets you specify the sets the resources
@@ -73,7 +69,7 @@ sets are relevant: ``ivo_managed`` for publishing to the VO (see
 service roster.  Other sets can be introduced and used for, e.g.,
 specific sub-rosters.
 
-In services, the ``publish`` element needs, in addition, 
+In services, the ``publish`` element needs, in addition,
 a ``render`` attribute, giving a
 comma-separated list of renderers the publication is for.  The various
 renderers are translated into capability element in the VO resource
@@ -94,9 +90,9 @@ tables that have ``adql="True"``, the local
 TAP service is automatically considered to be a service for that data.
 Otherwise (or in addition), add service references in ``service``
 children.
-  
-So, to publish an ADQL-queriable table to the VO for querying via TAP, 
-just write:: 
+
+So, to publish an ADQL-queriable table to the VO for querying via TAP,
+just write::
 
   <publish/>
 
@@ -120,7 +116,7 @@ prod the server as discussed in `Managing Runtime Resources`_.
 Registry Matters
 ================
 
-As explained in the `tutorial chapter on the registry`_, you must provide 
+As explained in the `tutorial chapter on the registry`_, you must provide
 enough data to allow the VO to tell who you are before the VO registry
 can usefully include your registry records.
 
@@ -149,7 +145,7 @@ whenever their values are not overridden in actual records, which
 obviously is particularly pertinent to things like the publisher, which
 very typically will be you for all the resources.
 It is a file in the `meta stream format`_; basically it's lines
-of ``<key>: <value>``.  
+of ``<key>: <value>``.
 
 * publisher – A short, human-readable name for you
 * publisherID – An IVOA id for yourself;  set this to
@@ -182,7 +178,7 @@ of ``<key>: <value>``.
 
 Then, fill out the metadata for the system registry resources
 in your userconfig RD.  See `Userconfig RD`_ below if you are not sure
-what we are talking about.  
+what we are talking about.
 
 The registry is configured in the
 ``registry-interfacerecords`` stream (which you can copy from
@@ -200,9 +196,9 @@ In authority, change in particular
   you are using means.  This could be the same as site.description if
   all you're claiming authority for is that; if you're claiming
   authority for your institute or organisation, this obviously should
-  be different.  Example: ``The Data Center at the Observatory of Utopia 
+  be different.  Example: ``The Data Center at the Observatory of Utopia
   manages lots of substantial data sets created by the bright scientists
-  all over the world`` (use backslashes an the end of the lines to break 
+  all over the world`` (use backslashes an the end of the lines to break
   long lines).
 * shortName – a short (about 16 chars) identifier for your
   authority.  Example: GAVO DC.
@@ -333,7 +329,7 @@ Here's an example::
     ...
   </service>
 
-To publish 
+To publish
 
 
 Simple OAI operation
@@ -538,38 +534,36 @@ Simple Web Resources
 For items coming from ``static`` (e.g., images, css, javascript), this
 overriding works by dropping same-named files in ``$GAVO_ROOT/web/nv_static``.
 
-Thus, you should put a PNG of your logo into 
+Thus, you should put a PNG of your logo into
 ``$GAVO_ROOT/web/nv_static/img/logo_medium.png``.
 
 Other files you may want to override in this way include
 
-* ``css/gavo_dc.css`` – the central CSS; you could use this for 
+* ``css/gavo_dc.css`` – the central CSS; you could use this for
   skinning.  However, you are *strongly* advised not to replace this
   file since some of the css is almost necessary for the web interface
   to do useful things, and the upstream CSS gets changed fairly
   regularly.  Instead, use `Operator CSS`_.
-* ``help.shtml`` – the help file.  Unfortunately, we blurb quite 
-  a lot about GAVO in there right now.  We'll think of something 
+* ``help.shtml`` – the help file.  Unfortunately, we blurb quite
+  a lot about GAVO in there right now.  We'll think of something
   more parametrisable, but meanwhile you may want to have your own version
-* ``img/logo_big.png``, ``img/logo_tiny.png`` – 
-  scaled versions of your logo; logo_big should be 200 pixels wide or 
+* ``img/logo_big.png``, ``img/logo_tiny.png`` –
+  scaled versions of your logo; logo_big should be 200 pixels wide or
   more, logo_tiny of order 50 pixels wide.
-* ``js/gavo.js`` – could be the place for additional javascript; 
-  but frankly, if you want custom javascript, write to us and we'll 
+* ``js/gavo.js`` – could be the place for additional javascript;
+  but frankly, if you want custom javascript, write to us and we'll
   think of a sane mechanism.
-* ``xsl/oai.xsl``, ``xsl/uws-joblist-to-html.xsl``, 
-  ``xsl/uws-job-to-html.xsl``, and ``vosi.xsl`` – XSLT stylesheet files.  
-  If you override these to customize them, please let us know.  We'd try 
-  to put out generic stylesheets that are customisable without having 
+* ``xsl/oai.xsl``, ``xsl/uws-joblist-to-html.xsl``,
+  ``xsl/uws-job-to-html.xsl``, and ``vosi.xsl`` – XSLT stylesheet files.
+  If you override these to customize them, please let us know.  We'd try
+  to put out generic stylesheets that are customisable without having
   to muck around in stuff that's basically functionality.
 
 
 Templates
 ---------
 
-There is now a document on `HTML templating in DaCHS`_
-
-.. _HTML templating in DaCHS: http://docs.g-vo.org/DaCHS/templating.html
+There is now a document on :dachsdoc:`HTML templating in DaCHS <templating.html>`
 
 
 Overridden System RDs
@@ -618,7 +612,7 @@ Key normally is a single path element (i.e., a string without a slash).
 If this path element is found in the first segment, it is replaced with
 the segments in target.
 
-<option> can only be ``!redirect`` or empty right now.  
+<option> can only be ``!redirect`` or empty right now.
 
 If it is ``!redirect``, ``<key>`` may be a path fragment (as opposed to
 a single path element); leading and trailing slashes are ignored.  If
@@ -636,7 +630,7 @@ endless loop then), so you should avoid that situation.
 
 Empty lines and #-on-a-line-comments are allowed in the input.
 
-As an example, here's the vanity map that DaCHS had builtin as of 
+As an example, here's the vanity map that DaCHS had builtin as of
 version 0.6::
 
   __system__/products/p/get getproduct
@@ -649,7 +643,7 @@ version 0.6::
   __system__/adql/query/form adql !redirect
 
 
-Note again that ``<key>`` must be a *single* path element only. 
+Note again that ``<key>`` must be a *single* path element only.
 
 
 Configuration Settings
@@ -776,7 +770,7 @@ should keep whatever gavo init has come up with and hence not change
 anything here.
 
 The profiles contain a specification of the access to the database in
-(unfortunately yet another, but simple) language.  Each line in 
+(unfortunately yet another, but simple) language.  Each line in
 such a profile is either a comment (starting with #), an assignment
 (with "=") or an instruction (consisting of a command and arguments,
 separated by whitespace).
@@ -784,11 +778,11 @@ separated by whitespace).
 Keywords available for assignment are
 
 * host -- the host the database resides on.  Leave empty for a Unix
-  socket connection. 
+  socket connection.
 * port -- the port the database listens on.  Leave empty for default
   5432.
 * database -- the database your tables live in.
-* user -- the user through which the db is accessed.  
+* user -- the user through which the db is accessed.
 * password -- the password of user.
 
 There's just one command available, viz.,
@@ -813,66 +807,66 @@ Section [general]
 
 Paths and other general settings.
 
-* cacheDir: path relative to rootDir; 
+* cacheDir: path relative to rootDir;
   defaults to 'cache' --
   Path to the DC's persistent scratch space
-* configDir: path relative to rootDir; 
+* configDir: path relative to rootDir;
   defaults to 'etc' --
   Path to the DC's non-ini configuration (e.g., DB profiles)
-* defaultProfileName: string; 
+* defaultProfileName: string;
   defaults to '' --
   Deprecated and ignored.
-* gavoGroup: string; 
+* gavoGroup: string;
   defaults to 'gavo' --
   Name of the unix group that administers the DC
-* group: string; 
+* group: string;
   defaults to 'gavo' --
   Name of the group that may write into the log directory
-* inputsDir: path relative to rootDir; 
+* inputsDir: path relative to rootDir;
   defaults to 'inputs' --
   Path to the DC's data holdings
-* logDir: path relative to rootDir; 
+* logDir: path relative to rootDir;
   defaults to 'logs' --
   Path to the DC's logs (should be local)
-* logLevel: value from the list info, debug, warning, error; 
+* logLevel: value from the list info, debug, warning, error;
   defaults to 'info' --
   How much should be logged?
-* maintainerAddress: string; 
+* maintainerAddress: string;
   defaults to '' --
   An e-mail address to send reports and warnings to; this could be the
   same as contact.email; in practice, it is shown in more technical
   circumstances, so it's adviable to have a narrower distribution here.
-* operator: string; 
+* operator: string;
   defaults to '' --
   Deprecated and ignored.  Use contact.email in defaultmeta.txt instead.
-* platform: string; 
+* platform: string;
   defaults to '' --
   Platform string (can be empty if inputsDir is only accessed by
   identical machines)
-* rootDir: string; 
+* rootDir: string;
   defaults to '/var/gavo' --
   Path to the root of the DC file (all other paths may be relative to
   this
-* sendmail: string; 
+* sendmail: string;
   defaults to 'sendmail -t' --
   Command that reads a mail from stdin, taking therecipient address from
   the mail header, and transfers the mail (this is for sending mails to
   the administrator). This command is processed by a shell (generally
   running as the server user), so you can do tricks if necessary.
-* stateDir: path relative to rootDir; 
+* stateDir: path relative to rootDir;
   defaults to 'state' --
   Path to the DC's state information (last imported,...)
-* tempDir: path relative to rootDir; 
+* tempDir: path relative to rootDir;
   defaults to 'tmp' --
   Path to the DC's scratch space (should be local)
-* uwsWD: path relative to rootDir; 
+* uwsWD: path relative to rootDir;
   defaults to 'state/uwsjobs' --
   Directory to keep uws jobs in.  This may need lots of space if your
   users do large queries
-* webDir: path relative to rootDir; 
+* webDir: path relative to rootDir;
   defaults to 'web' --
   Path to the DC's web related data (docs, css, js, templates...)
-* xsdclasspath: shell-type path; 
+* xsdclasspath: shell-type path;
   defaults to 'None' --
   Classpath necessary to validate XSD using an xsdval java class.  You
   want GAVO's VO schemata collection for this.  Deprecated, we're now
@@ -883,7 +877,7 @@ Section [adql]
 
 Settings concerning the built-in ADQL core
 
-* webDefaultLimit: integer; 
+* webDefaultLimit: integer;
   defaults to '2000' --
   Default match limit for ADQL queries via a web form
 
@@ -892,30 +886,30 @@ Section [async]
 
 Settings concerning TAP, UWS, and friends
 
-* csvDialect: string; 
+* csvDialect: string;
   defaults to 'excel' --
   CSV dialect as defined by the python csv module used when writing CSV
   files.
-* defaultExecTime: integer; 
+* defaultExecTime: integer;
   defaults to '3600' --
   Default timeout for UWS jobs, in seconds
-* defaultExecTimeSync: integer; 
+* defaultExecTimeSync: integer;
   defaults to '60' --
   Default timeout for synchronous UWS jobs, in seconds
-* defaultLifetime: integer; 
+* defaultLifetime: integer;
   defaults to '172800' --
   Default time to destruction for UWS jobs, in seconds
-* defaultMAXREC: integer; 
+* defaultMAXREC: integer;
   defaults to '2000' --
   Default match limit for ADQL queries via the UWS/TAP
-* hardMAXREC: integer; 
+* hardMAXREC: integer;
   defaults to '20000000' --
   Hard match limit (i.e., users cannot raise MAXREC or TOP beyond that)
   for ADQL queries via the UWS/TAP
-* maxTAPRunning: integer; 
+* maxTAPRunning: integer;
   defaults to '2' --
   Maximum number of TAP jobs running at a time
-* maxUserUWSRunningDefault: integer; 
+* maxUserUWSRunningDefault: integer;
   defaults to '2' --
   Maximum number of user UWS jobs running at a time
 
@@ -924,26 +918,26 @@ Section [db]
 
 Settings concerning database access.
 
-* adqlProfiles: set of strings; 
+* adqlProfiles: set of strings;
   defaults to 'untrustedquery' --
   Name(s) of profiles that get access to tables opened for ADQL
-* defaultLimit: integer; 
+* defaultLimit: integer;
   defaults to '100' --
   Default match limit for DB queries
-* interface: string; 
+* interface: string;
   defaults to 'psycopg2' --
   Don't change
-* maintainers: set of strings; 
+* maintainers: set of strings;
   defaults to 'admin' --
   Name(s) of profiles that should have full access to gavo imp-created
   tables by default
-* msgEncoding: string; 
+* msgEncoding: string;
   defaults to 'utf-8' --
   Encoding of the messages coming from the database
-* profilePath: shell-type path; 
+* profilePath: shell-type path;
   defaults to '~/.gavo:$configDir' --
   Path for locating DB profiles
-* queryProfiles: set of strings; 
+* queryProfiles: set of strings;
   defaults to 'trustedquery' --
   Name(s) of profiles that should be able to read gavo imp-created
   tables by default
@@ -953,26 +947,26 @@ Section [ivoa]
 
 The interface to the Greater VO.
 
-* authority: string; 
+* authority: string;
   defaults to 'x-unregistred' --
   The authority id for this DC; this has *no* leading ivo://
-* dalDefaultLimit: integer; 
+* dalDefaultLimit: integer;
   defaults to '10000' --
   Default match limit on SCS/SSAP/SIAP queries
-* dalHardLimit: integer; 
+* dalHardLimit: integer;
   defaults to '1000000' --
   Hard match limit on SCS/SSAP/SIAP queries (be careful: due to the way
   these protocols work, the results cannot be streamed, and the results
   have to be kept in memory; 1e7 rows requiring 1k of memory each add up
   to 10 Gigs...)
-* oaipmhPageSize: integer; 
+* oaipmhPageSize: integer;
   defaults to '500' --
   Default number of records per page in the OAI-PMH interface
-* sdmVersion: value from the list 1, 2; 
+* sdmVersion: value from the list 1, 2;
   defaults to '1' --
   Version of the spectral data model we generate our spectra as (unless
   someone asks for another version explicitly).
-* votDefaultEncoding: value from the list binary, td; 
+* votDefaultEncoding: value from the list binary, td;
   defaults to 'binary' --
   Default 'encoding' for VOTables in many places (like the DAL
   responses; this can be user-overridden using the _TDENC local HTTP
@@ -991,7 +985,7 @@ Section [ui]
 
 Settings concerning the local user interface
 
-* outputEncoding: string; 
+* outputEncoding: string;
   defaults to 'iso-8859-1' --
   Encoding for system messages.  This should match what your terminal
   emulator is set to
@@ -1001,84 +995,84 @@ Section [web]
 
 Settings related to serving content to the web.
 
-* adminpasswd: string; 
+* adminpasswd: string;
   defaults to '' --
   Password for online administration, leave empty to disable
-* adsMirror: string; 
+* adsMirror: string;
   defaults to 'http://ads.g-vo.org' --
   Root URL of ADS mirror to be used (without a trailing slash)
-* bindAddress: string; 
+* bindAddress: string;
   defaults to '127.0.0.1' --
   Interface to bind to
-* corsOriginPat: string; 
+* corsOriginPat: string;
   defaults to '' --
   A regular expression for URLs from which to authorise cross-origin
   requests. This is matched, i.e., the RE must account for the whole URL
   including the schema. Example: https?://example\.com/apps/.*.
-* enableTests: boolean; 
+* enableTests: boolean;
   defaults to 'False' --
   Enable test pages (don't if you don't know why)
-* favicon: path relative to webDir; 
+* favicon: path relative to webDir;
   defaults to 'None' --
   Webdir-relative path to a favicon
-* graphicMimes: list of strings; 
+* graphicMimes: list of strings;
   defaults to 'image/fits,image/jpeg' --
   MIME types considered as graphics (for SIAP, mostly)
-* jsSource: boolean; 
+* jsSource: boolean;
   defaults to 'False' --
   If True, Javascript will not be minified on delivery (this is for
   debugging)
-* maxPreviewWidth: integer; 
+* maxPreviewWidth: integer;
   defaults to '300' --
   Ignored, only present for backward compatiblity
-* maxUploadSize: integer; 
+* maxUploadSize: integer;
   defaults to '20000000' --
   Maximal size of file uploads in bytes.
-* nevowRoot: path fragment; 
+* nevowRoot: path fragment;
   defaults to '/' --
   Path fragment to the server's root for operation off the server's
   root; this must end with a slash (and, frankly, if you must use this
   feature, you'll probably encounter some bugs. we want to fix those,
   though.)
-* operatorCSS: string; 
+* operatorCSS: string;
   defaults to '' --
   URL of an operator-specific CSS.  This is included as the last item
   and can therefore override rules in the distributed CSS.
-* preloadRDs: list of strings; 
+* preloadRDs: list of strings;
   defaults to '' --
   RD ids to preload at the server start (this is mainly for RDs that
   have execute children that should run regularly).
-* previewCache: path relative to webDir; 
+* previewCache: path relative to webDir;
   defaults to 'previewcache' --
   Webdir-relative directory to store cached previews in
-* realm: string; 
+* realm: string;
   defaults to 'X-Unconfigured' --
   Authentication realm to be used (currently, only one, server-wide, is
   supported)
-* serverPort: integer; 
+* serverPort: integer;
   defaults to '8080' --
   Port to bind the server to
-* serverURL: string; 
+* serverURL: string;
   defaults to 'http://localhost:8080' --
   URL fragment used to qualify relative URLs where necessary.  Note that
   this must contain the port the server is accessible under from the
   outside if that is not 80.
-* sitename: string; 
+* sitename: string;
   defaults to 'Unnamed data center' --
   A short name for your site
-* sqlTimeout: integer; 
+* sqlTimeout: integer;
   defaults to '15' --
   Default timeout for db queries via the web
-* templateDir: path relative to webDir; 
+* templateDir: path relative to webDir;
   defaults to 'templates' --
   webDir-relative location of global nevow templates
-* user: string; 
+* user: string;
   defaults to 'gavo' --
   Run server as this user.
-* voplotCodeBase: URL fragment relative to the server's root; 
+* voplotCodeBase: URL fragment relative to the server's root;
   defaults to 'None' --
   Deprecated and ignored.
-* voplotUserman: URL fragment relative to the server's root; 
+* voplotUserman: URL fragment relative to the server's root;
   defaults to 'Deprecated and ignored' --
   URL to the documentation of VOPlot
 
@@ -1096,7 +1090,7 @@ of this can is reloaded on ``gavo serve reload``, but certain settings
 (like ``serverPort`` and ``bindAddress``) only take effect on a restart.
 
 The resource descriptors are special.  The server should pick up edits
-on RDs automatically, with the following exceptions: 
+on RDs automatically, with the following exceptions:
 
 * Built-in ``__system__`` RDs are not controlled.  The main reason here
   is that these may not actually have disk files behind them, depending
@@ -1287,8 +1281,7 @@ If you instead initially said ``setup.py install``, do::
 Upgrading Postgres
 ------------------
 
-There's a howto over at 
-http://docs.g-vo.org/DaCHS/howDoI.html#upgrade-the-database-engine
+There's a howto over at :dachsdoc:`howDoI <howDoI.html#upgrade-the-database-engine>`
 
 .. _DaCHS-users: http://lists.g-vo.org/cgi-bin/mailman/listinfo/dachs-users
 .. |date| date::
