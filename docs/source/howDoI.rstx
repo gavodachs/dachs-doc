@@ -1143,4 +1143,32 @@ If all looks well, drop the old cluster.  pg_upgradecluster prints the
 respective command last thing it does.  And deinstall the old binaries
 to avoid confusion.
 
+...switch between SVN and Packaged DaCHS?
+-----------------------------------------
+
+Sometimes you need to be at the bleeding edge with your DaCHS and run
+from SVN for a while.  This is even the recommended way to do an SVN
+installation, as dependency installation is taken care of for you.
+
+To go from package to SVN, do something like::
+
+  $ sudo apt-get remove python-gavodachs gavodachs-server
+  $ svn co http://svn.ari.uni-heidelberg.de/svn/gavo/python/trunk/ dachs
+  $ cd dachs
+  $ sudo python setup.py develop
+
+Note, however, that all dependencies of DaCHS that are not used by
+anything else will be removed on, e.g., apt-get autoremove or by
+aptitude, so you may want to mark them manually installed, perhaps even
+before package removal (this is fairly convenient in aptitude).
+
+To go back to package, you will need to remove the path entry that tells
+python to look in that local directory for ``gavo`` packages.  The
+concrete location of that file is a bit variable.  Use, for instance,
+locate (mlocate package) for find the file gavodachs.egg-link; when you
+have the path, do::
+
+  $ sudo rm /usr/local/lib/python2.7/dist-packages/gavodachs.egg-link
+  $ sudo apt-get install python-gavodachs gavodachs-server
+
 .. |date| date::

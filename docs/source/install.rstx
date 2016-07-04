@@ -32,6 +32,9 @@ running::
 With that, you're ready to proceed to the tutorial_ and the `Operator's
 Guide`_
 
+This is the recommended way to get up to speed with DaCHS regardless of
+whether you want to run the bleeding-edge version.  You can
+:dachsdoc:`switch later <howDoI.html#switch-between-svn-and-packaged-dachs>`.
 
 .. _add our apt repository: http://soft.g-vo.org/repo
 .. _tutorial: tutorial.html
