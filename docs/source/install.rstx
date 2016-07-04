@@ -424,29 +424,6 @@ directories if you changed locations in ``gavo.rc``.
 .. _Database Connection Control Functions in the postgres documentation: http://www.postgresql.org/docs/current/static/libpq-connect.html
 
 
-Binaries
-========
-
-If you want to provide previews for images, you must compile some
-binaries.  these are in the ``src`` subdirectory of the source tree.
-Just enter all subdirectories there in turn and say ``make install`` in
-each.  Run these as yourself (i.e., as datacenter administrator), not as
-root.  [If you're looking for a nice project to contribute, replacing
-those with python equivalents would be welcome and doesn't take
-much knowledge of DaCHS' internals.  products.ScaledFITSProduct shows
-how this could work for the FITS case, and jpegpreview should
-probably be done by PIL in-memory]
-
-
-Specifying meta information fallbacks
-=====================================
-
-In the file ``$GAVO_ROOT/etc/defaultmeta.txt`` you should give some
-information filled in when the resources do not give this kind of
-metadata themselves.  Don't sweat it for now, but you must fix it before
-you run your own registry.
-
-
 The init script
 ===============
 

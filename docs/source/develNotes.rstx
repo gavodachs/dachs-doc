@@ -1081,13 +1081,6 @@ produces more useful output than naive hooks::
 
   strace gavo imp -h 2>&1 | grep 'open' | grep -v ENOENT | grep -v "pyc" | sed -e 's/.*"\(.*\)".*/\1/'
 
-Move to some "well known properties" section soon
-+++++++++++++++++++++++++++++++++++++++++++++++++
-
-To declare support for standard data models (TAPRegExt), add supportsModel
-and supportsModelURI properties to a table definition belonging to this
-model.  (This needs to be documented somewhere else).
-
 matplotlib
 ++++++++++
 
