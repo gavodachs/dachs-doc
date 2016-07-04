@@ -50,16 +50,15 @@ Dependencies
 
 Unfortunately, DaCHS has quite a few dependencies;
 here's the list of dependencies of our Debian package as of version
-0.8.4; this should give you some clue as to what might be necessary on
+0.9.45 this should give you some clue as to what might be necessary on
 other systems::
 
-  adduser, members, postgresql-8.4-pgsphere |
-  postgresql-9.0-pgsphere | postgresql-9.1-pgsphere, postgresql-8.4-q3c |
-  postgresql-9.0-q3c | postgresql-9.1-q3c, python, python-imaging,
-  python-nevow, python-numpy, python-pkg-resources, python-psycopg2,
-  python-pyfits, python-soappy, python-twisted,
-  python-zsi, python-setuptools, python-all, python-lxml,
-  python-docutils, python-pywcs, python-matplotplib
+  postgresql-9.4-pgsphere|postgresql-9.1-pgsphere, 
+  postgresql-9.4-q3c|postgresql-9.1-q3c,
+  python-docutils, python-imaging, python-lxml, python-nevow, python-numpy,
+  python-pkg-resources, python-psycopg2, python-pyfits (>= 1:2.0),
+  python-pywcs, python-soappy, python-twisted, python-zsi,
+  python-matplotlib
 
 If you want to use boosters, you will additionally need::
 
@@ -241,21 +240,23 @@ cluster (you could skip this, but the all bets are off as to whether
 you'll be able to store non-ASCII characters in strings).  
 
 It is recommended to create a dedicated cluster first even if you want
-to connect DaCHS to a pre-existing database later to get a feel for how
+to connect DaCHS to a pre-existing database later to get a feeling for how
 it works.  See `Connecting to a remote database`_ for information on
 what setup is necessary in this case.
 
 Database cluster generator is very system-dependent, and ideally a
 database admin would assist you.  
 
-On Debian systems dedicated for GAVO DaCHS, you can try the following:
+On Debian systems dedicated for GAVO DaCHS, you can try the following
+(*Warning*: This will destroy any previous content anyone put in
+postgres databases on that particular system):
 
 (#) Find out the version of the server you will be running (e.g., using
     ``dpkg -l``; in Debian, more than one version may be installed in
     parallel.  It's probably a good idea to use the most recent one.
     Set your desired version for subsequent use::
 
-      export PGVERSION=9.1
+      export PGVERSION=9.4
 
 (#) Drop the Debian default cluster (this will delete everything in
     there -- for a fresh install, that doesn't matter, but don't do this
@@ -276,6 +277,9 @@ On Debian systems dedicated for GAVO DaCHS, you can try the following:
     stores descriptions and similar entities, and you may encounter
     funny characters in there.  It would be a shame if you couldn't
     store them (plus, you would get odd error messages for those).
+
+    If unsure where to put the cluster: Debian's default is
+    ``/var/lib/postgresql/<postgres-version>/main
 
 (#) Start the server::
     
