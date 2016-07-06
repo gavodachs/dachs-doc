@@ -64,6 +64,11 @@ If you want to use boosters, you will additionally need::
 
   build-essential libcfitsio3-dev 
 
+To install from our version control system (see below), you will also
+need::
+
+  subversion
+
 Of course, you'll need postgres itself on top of that.  We currently
 require postgres 9.0 or newer.  If you actually need support for older
 Postgres releases, let us know – it's not  hard to restore.
