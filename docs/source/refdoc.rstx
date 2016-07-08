@@ -155,7 +155,7 @@ feeding the tables mixing in a given mixin.
   "//siap#bbox", "//siap#pgs", "//ssap#hcd", "//obscore#publish",
   "//obscore#publishSIAP", "//slap#basic",
   "//ssap#sdm-instance", "//ssap#mixc",
-  "//obscore#publishSSAPHCD", "//epntap#table"])
+  "//obscore#publishSSAPHCD", "//epntap#table", "//epntap#table-2_0"])
 
 
 Triggers
@@ -208,7 +208,7 @@ Procedures available for rowmaker apply
     "//siap#computeBbox", "//siap#setMeta", "//ssap#setMeta",
     "//siap#getBandFromFilter", "//ssap#setMixcMeta",
     "//slap#fillBasic",
-    "//epntap#populate",
+    "//epntap#populate", "//epntap#populate-2_0",
     ])(docStructure)
 
 
