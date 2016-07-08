@@ -21,7 +21,7 @@ order to keep the modules dependency graph manageable (and facilitate
 factoring out libraries).
 
 * Each functionality block is in a subpackage, the __init__ for which
-  contains the main functions, classes, etc., of the the sub-package
+  contains the main functions, classes, etc., of the sub-package
   interface most clients will be concerned with.  Clients needing
   special tricks may still import individual modules (but then they're
   in much larger danger of breaking).  What's in __init__ should be 
@@ -173,14 +173,26 @@ out why resource generation fails and fix it.
 XSD validation
 ++++++++++++++
 
-XML Schema is a pain all around, and there doesn't seem to be an XSD
-validator capable of handling the thicket that is the schema landscape
-of the VO.
+XML Schema is a pain all around, and given that we don't want to hit W3C
+and IVOA with requests for schema files every time someone needs schema
+validation (which includes RD validation and unit tests), DaCHS goes to
+some lengths to use its own schema files.
 
-Hence, we're trying to use xerces in a fairly specific way.  If this
-isn't set up, all tests involving validating XSD will be skipped.
+The standard way these days is the LXML-based validator from
+gavo.helpers.testtricks; the rocket science part of this is to make LXML
+use the plethora of schema files we have locally.
 
-To make this work, you first need xerces itself, which on debian is the
+“Locally” here means in the ``schemata`` subdirectory of the
+distribution.  When you add a schema there that should be available in
+validation, you also need to add the filename to
+``gavo.testtricks.VO_SCHEMATA`` (background: we keep some schema files
+in gavo/schema that the validator should not be bothered with; still, we
+should probably just pull in *.xsd at some point).
+
+With this, run ``gavo admin xsdVal`` to XSD-validate a VO file.
+
+*If uncertain*, you can also fall back so a xerces-based validator we
+used to use. Here, you first need xerces itself, which on debian is the
 package ``libxerces2-java``, and you'll also need
 ``libxerces2-java-doc`` (really).  These packages will dump the
 necessary jars (``xercesImpl.jar`` and ``xmlParserAPIs.jar``) in
@@ -188,15 +200,26 @@ necessary jars (``xercesImpl.jar`` and ``xmlParserAPIs.jar``) in
 ``xsdclasspath`` in ``tests/test_data/test-gavorc`` within your checkout
 and curse java's classpath construct.
 
-After that, just tear down the test environment (``rm -r ~/_gavo_test;
-dropdb dachstest``) and run some test.  If all is well, the validator
-will be built and run.  You can also manually build the validator by
-going to the ``schemata`` subdirectory and saying ``python
-makeValidator.py``.  This will use your normal environment, though, so
-the validator (``xsdval.class``) will end up in the "real" cache
-directory (which is good, as it then is available for regression
-testing).  You'll need to manually copy it to ``~/_gavo_test/caches/``
-then.
+You can then manually build the legacy validator by going to
+``schemata`` subdirectory and saying ``python makeValidator.py``.  This
+will use leave the validator as ``xsdval.class`` in the cache directory
+(/var/gavo/cache by default).
+
+To run this legacy validator, you could change::
+
+  getXSDErrors = getXSDErrorsLXML
+
+in gavo.helpers.testtricks to
+
+  getXSDErrors = getXSDErrorsXerces
+
+– but it's probably better to just run this one-off with a commandline
+like::
+
+  classpath=/usr/share/doc/libxerces2-java-doc/examples/xercesSamples.jar:/usr/share/java/xercesImpl.jar:/usr/share/java/xmlParserAPIs.jar
+  java -cp `gavo config cacheDir`/xsdval.class:$classpath xsdval -n -v -s -f to_validate.xml
+
+or similar.
 
 
 Setting package installs up for testing
