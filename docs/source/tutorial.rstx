@@ -3274,7 +3274,7 @@ Tables
 ''''''
 
 In essence, EPN-TAP is just a set of columns.  In DaCHS, these are in
-the `//epntap#table`_ mixin.  See the reference documentation of
+the `//epntap#table-2_0`_ mixin.  See the reference documentation of
 details.  If your data are images calibrated in some sort of spherical
 coordinates, you'll likely not have to change anything here.  The mixin
 will already open the table for ADQL querying, and to make that work, it
@@ -3282,7 +3282,7 @@ is also declared onDisk.  What's not declared is the table name,
 although it's fixed at epn_core.  Hence, the minimal definition of an
 EPN-TAP table is::
 
-  <table id="epn_core" mixin="//epntap#table"//>
+  <table id="epn_core" mixin="//epntap#table-2_0"//>
 
 You can of course add further columns as necessary.
 
@@ -3296,7 +3296,7 @@ DaCHS-generated previews.
 Filling the table from what comes from the grammar happens through and
 ``idmaps="*"`` (which you want as the ``apply`` doesn't actually map
 anything into the results and there's too many columns to make
-enumerating fun) and an application of `//epntap#populate`_ .  There's
+enumerating fun) and an application of `//epntap#populate-2_0`_ .  There's
 little to add to the description of the parameters.  You will probably
 need to refer to the `EPN-TAP proposed specification`_ now and then
 while filling things out.  Note again that as always when binding apply
@@ -3310,7 +3310,7 @@ If, on the other hand, you already have a database table containing the
 data as well as a network service pushing out the data products, you can
 still use the mixin and just create a view as described in `Services
 Over Views`_ .  To see what columns you can map, you should still
-consult the documentation of ``epntap#populate`` (the parameter names
+consult the documentation of ``epntap#populate-2_0`` (the parameter names
 are simply the column names).  In addition there are the columns from
 the product mixin (accref, mime, embargo, and owner, which in this case
 probably should all be NULL). [TODO: example; if you have data like
@@ -3837,9 +3837,9 @@ data – see above for details on how to create users and groups.
 .. _aladin: http://aladin.u-strasbg.fr/aladin.gml
 .. _splat: http://star-www.dur.ac.uk/~pdraper/splat/splat-vo
 .. _PyPDS: https://github.com/RyanBalfanz/PyPDS
-.. _//epntap#table: http://docs.g-vo.org/DaCHS/ref.html#the-epntap-table-mixin
-.. _//epntap#populate: http://docs.g-vo.org/DaCHS/ref.html#epntap-populate
-.. _EPN-TAP proposed specification: http://voparis-europlanet.obspm.fr/docs/EPN_TAP_v_0.37.pdf
+.. _//epntap#table-2_0: http://docs.g-vo.org/DaCHS/ref.html#the-epntap-table-2-0-mixin
+.. _//epntap#populate-2_0: http://docs.g-vo.org/DaCHS/ref.html#epntap-populate-2-0
+.. _EPN-TAP proposed specification: https://voparis-confluence.obspm.fr/display/VES/EPNcore+v2
 
 .. [#binding] This assumes you're doing this on your local machine (which
    were recommend to get started.  If you do this on a remote machine,
