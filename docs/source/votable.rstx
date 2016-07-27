@@ -26,15 +26,15 @@ This library lets you parse and generate VOTables.  These are data
 containers as used in the Virtual Observatory and specified in
 http://www.ivoa.net/Documents/VOTable/20091130/REC-VOTable-1.2.html
 
-This library supports Version 1.2 VOTables and to some extent earlier
-versions as well.
+This library supports Version 1.3 VOTables (including BINARY3) and 
+to some extent earlier versions as well.
 
-An `alternative python library to handle VOTables
-<http://stsdas.stsci.edu/astrolib/vo/html/intro_table.html>`_
-is included in STSci's astrolib.
+There are many other libraries to parse VOTables into python programs,
+the default probably being astropy's.  This one is geared for maximal
+control, streaming, and the possibility to write fairly mad instance
+documents.
 
-The library has a simplied high-level interface for simple applications
-and a low-level streaming interface for advanced use.
+There's a simplified high-level interface for simple applications, too.
 
 
 Obtaining the library
@@ -68,21 +68,22 @@ Metadata contains is the VOTable.TABLE element the data comes from in
 its votTable atttribute.  By iterating over the metadata you get the
 field objects. For example::
 
-  labels = [field.name for field in metadata]
-  print [dict(zip(labels, row)) for row in data]
+>>> from gavo import votable
+>>> labels = [field.name for field in metadata]
+>>> print [dict(zip(labels, row)) for row in data]
 
 There's a convenience method that does the dictification for you; to
 iterate over all rows of a VOTable as dicts, you can say::
 
-  data, metadata = votable.load(source)
-  for row in metadata.iterDicts(data):
+>>> data, metadata = votable.load(source)
+>>> for row in metadata.iterDicts(data):
     ...
 
 If you want to create a numpy record array from that data, you can
 say::
 
-  data, metadata = votable.load(source)
-  ra = rec.array(data, dtype=votable.makeDtype(metadata))
+>>> data, metadata = votable.load(source)
+>>> ra = rec.array(data, dtype=votable.makeDtype(metadata))
 
 However, you cannot in general store NULL values in record arrays (as
 None, that is), so this code will fail for many tables unless one
@@ -93,6 +94,15 @@ default length.   Pass a `defaultStringLength` keyword argument if your
 strings get truncated (or replace the ``*`` in the ``FIELD`` object with 
 whatever actual length you deem sufficient).
 
+All the above examples will fail on VOTables with features they cannot
+understand.  `Current VO practices`_ recommend ignoring unknown tags
+and attributes, though.  The VOTable library has a brute force
+approach so far; pass ``raiseOnInvalid=False`` to the parsing functions
+and they will ignore constructs the do not understand.  Note that this
+will lead to surprising behaviour in cases where you input non-VOTables
+to your program.  As long as it is well-formed XML, you will not receive
+error messages.
+
 
 Simple writing
 --------------
@@ -102,12 +112,12 @@ You can do some manipulations on data and metadata as returned by
 ``votable.save(data, metadata, destF)``, where ``destF`` is a writable
 file object.  This could look like this::
 
-  data, metadata = votable.load("in.vot")
-  tableDef = metadata.votTable.deepcopy()
-  tableDef[V.FIELD(name="sum", datatype="double")]
-  newData = [row+(row[1]+row[2],) for row in data]
-  with open("res.vot", "w") as f:
-    votable.save(newData, tableDef, f)
+>>> data, metadata = votable.load("in.vot")
+>>> tableDef = metadata.votTable.deepcopy()
+>>> tableDef[V.FIELD(name="sum", datatype="double")]
+>>> newData = [row+(row[1]+row[2],) for row in data]
+>>> with open("res.vot", "w") as f:
+>>>   votable.save(newData, tableDef, f)
 
 Manipulating the table definitions is not convenient in this library so
 far.  If you need such functionality, we would probably provide funtions
@@ -146,14 +156,13 @@ behaviour is undefined.
 So, if you were interested in the the resource structure of a VOTable,
 you could write::
 
-  from gavo import votable
-  from gavo.votable import V
-
-  for element in votable.parse(open("in.vot"), watchset=[V.RESOURCE]):
-    if isinstance(element, V.RESOURCE):
-      print "Starting new resource: %s"%element.name
-    else:
-      print "Discarding %s elements"%len(list(element))
+>>> from gavo.votable import V
+>>>
+>>> for element in votable.parse(open("in.vot"), watchset=[V.RESOURCE]):
+>>>   if isinstance(element, V.RESOURCE):
+>>>     print "Starting new resource: %s"%element.name
+>>>   else:
+>>>     print "Discarding %s elements"%len(list(element))
 
 
 
@@ -243,16 +252,13 @@ When creating a VOTable using the low-level interface, you write the
 VOTable using DOM elements, using a simple notation gleaned from
 `Nevow Stan`.  This looks like this::
 
-  from gavo import votable
-  from gavo.votable import V
-
-  vot = V.VOTABLE[
-    V.INFO(name="generic", value="example)["This is an example"],
-    V.RESOURCE[
-      votable.DelayedTable(
-        V.TABLE[
-          V.FIELD(name="col1", datatype="char", arraysize="*"),],
-        rows, V.BINARY)]]
+>>> vot = V.VOTABLE[
+...    V.INFO(name="generic", value="example)["This is an example"],
+...    V.RESOURCE[
+...      votable.DelayedTable(
+...        V.TABLE[
+...          V.FIELD(name="col1", datatype="char", arraysize="*"),],
+...        rows, V.BINARY)]]
 
 -- square brackets thus denote element membership, round parentheses are
 used to set attributes.

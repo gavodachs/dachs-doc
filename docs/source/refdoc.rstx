@@ -2002,7 +2002,7 @@ Data links frequently should expose some data that's not in the product
 table (e.g., because you don't want the error files to show up there).
 In such cases, a good pattern is to allow a static renderer on the
 datalink service and use ``makeLinkFromFile``, which expects file paths
-relative to the value of the ``staticData`` property::
+relative to the the service's resdir::
 
   <service id="d" allowed="dlget,dlmeta,static">
     <property name="staticData">data/errors</property>
@@ -2012,7 +2012,7 @@ relative to the value of the ``staticData`` property::
       <metaMaker>
         <code>
           stem = descriptor.accref.split("/")[-1].split("_")[0]
-          yield descriptor.makeLinkFromFile("%s_err.fits"%stem),
+          yield descriptor.makeLinkFromFile("%s_err.fits"%stem,
             contentType="image/fits", semantics="#error")
         </code>
       </metaMaker>
@@ -2021,7 +2021,10 @@ relative to the value of the ``staticData`` property::
 
 Note, however, that the static renderer does not enforce any access
 control.  That means that embargoed files must never be within the
-staticData (or they are not embargoed any more...).
+staticData (or they are not embargoed any more...).   Note also that
+this will of course fail if the file in question isn't below
+what's given in the service's ``staticData`` property, because the
+service then will not serve the file.
 
 Although it is preferable to have this static data on the datalink
 service to keep things simple, you can reuse an existing service's
