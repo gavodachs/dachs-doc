@@ -3260,12 +3260,12 @@ column that also lets users retrieve the data.
 
 For access through a standard protocol, start TOPCAT_, select "VO/TAP
 Query", and at the bottom of the dialog enter http://localhost:8080/tap
-(or whatever you configured) in "TAP URL".  Hit "Enter Query", wait
+(or whatever you configured) in "TAP URL".  Hit "Use Service", wait
 until the table metadata is in and then again query something like::
 
   SELECT * FROM lutetia.epn_core
 
-Open the table and play with it.  As a little visual treat, in TOPCAT's
+Hit "Run Query",open the table and play with it.  As a little visual treat, in TOPCAT's
 main window hit "Activation Action", and configure the ``preview_url``
 column under "View URL as Image".  Then click on the table rows.
 
