@@ -3279,7 +3279,7 @@ details.  If your data are images calibrated in some sort of spherical
 coordinates, you'll likely not have to change anything here.  The mixin
 will already open the table for ADQL querying, and to make that work, it
 is also declared onDisk.  What's not declared is the table name,
-although it's fixed at epn_core.  Hence, the minimal definition of an
+although it's fixed at epn_core. Hence, the minimal definition of an
 EPN-TAP table is::
 
   <table id="epn_core" mixin="//epntap#table-2_0"//>
@@ -3316,6 +3316,12 @@ the product mixin (accref, mime, embargo, and owner, which in this case
 probably should all be NULL). [TODO: example; if you have data like
 this, talk to us so we can get an example here]
 
+About the ``s_region`` parameter (see `//epntap#populate-2_0`_): this is 
+a footprint describing the area covered by 2D spatially extended data products.
+It uses pgshpere types such as ``spoly``, ``scircle``, ``sbox`` or ``spoint`` 
+(though we advise against the use of ``spoint``, only spatially extended 
+types should be used). The type must be specified using the ``regiontype`` mixin
+parameter. Please refer to `//epntap#table-2_0`_.
 
 Service
 '''''''
