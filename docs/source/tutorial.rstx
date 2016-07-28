@@ -446,7 +446,7 @@ valid SQL datatypes.  The DC software knows how to handle
 * ``time`` – a time.  See timestamp
 * ``box`` – a rectangle.
 * ``spoint``, ``scircle``, ``sbox``, ``spoly`` – objects of spherical geometry, taken
-  from pgSphere (http://pgsphere.projects.pgfoundry.org/).  Ask for documentation...
+  from `pgSphere`_.  Ask for documentation...
 
 Some more types (like ``raw`` and ``file``) are available to tables in service
 definitions, but they should, in general, not appear in database tables.
@@ -3265,9 +3265,9 @@ until the table metadata is in and then again query something like::
 
   SELECT * FROM lutetia.epn_core
 
-Hit "Run Query",open the table and play with it.  As a little visual treat, in TOPCAT's
-main window hit "Activation Action", and configure the ``preview_url``
-column under "View URL as Image".  Then click on the table rows.
+Hit "Run Query",open the table and play with it.  As a little visual treat, 
+in TOPCAT's main window hit "Activation Action", and configure the 
+``preview_url``column under "View URL as Image".  Then click on the table rows.
 
 
 Tables
@@ -3321,10 +3321,35 @@ About ``s_region``
 
 The ``s_region`` parameter (see `//epntap#populate-2_0`_) is essentially
 a footprint describing the area covered by 2D spatially extended data products.
-It uses pgshpere types such as ``spoly``, ``scircle``, ``sbox`` or ``spoint`` 
-(though we advise against the use of ``spoint``, only spatially extended 
-types should be used). The type must be specified using the ``regiontype`` mixin
-parameter (Please refer to `//epntap#table-2_0`_).
+It uses `pgshpere`_ types such as ``spoly``, ``scircle``, ``sbox`` or ``spoint`` 
+(We advise against the use of ``spoint`` as a ``s_region`` type: only spatially 
+extended types should be used). The default type is ``spoly``, the others
+ must be specified using the ``regiontype`` mixin parameter (Please refer to 
+`//epntap#table-2_0`_).
+
+Please note that the ``spoly`` type has some limitations that can trigger
+unclear errors when not respected: the segments can not be crossed and, more 
+important, the maximum dimension of a polygon must be less than 180°.
+
+Here are some example that shows how to implement it with a ``sbox``:
+
+First the ``regiontype``
+
+  <table id ="epn_core">
+  ...
+    <mixin ... regiontype="sbox">//epntap#table-2_0</mixin>
+  </table>
+
+Then the ``s_region`` parameter, defined in the rowmaker (see `Mapping data`_)
+
+  <rowmaker idmaps="*">
+    <map key = "s_region">
+      pgsphere.SBox(
+        pgsphere.SPoint.fromDegrees(float(@c1_min),float(@c2_min)),
+        pgsphere.SPoint.fromDegrees(float(@c1_max),float(@c2_max)))
+    </map>
+  </rowmaker>
+
 
 Service
 '''''''
@@ -3849,6 +3874,8 @@ data – see above for details on how to create users and groups.
 .. _//epntap#table-2_0: http://docs.g-vo.org/DaCHS/ref.html#the-epntap-table-2-0-mixin
 .. _//epntap#populate-2_0: http://docs.g-vo.org/DaCHS/ref.html#epntap-populate-2-0
 .. _EPN-TAP proposed specification: https://voparis-confluence.obspm.fr/display/VES/EPNcore+v2
+.. _Mapping data: http://docs.g-vo.org/DaCHS/tutorial.html#mapping-data
+.. _pgsphere: http://pgsphere.projects.pgfoundry.org/
 
 .. [#binding] This assumes you're doing this on your local machine (which
    were recommend to get started.  If you do this on a remote machine,
