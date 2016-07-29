@@ -752,7 +752,7 @@ Analyzing calibration failures
 ''''''''''''''''''''''''''''''
 
 If astrometry.net fails to solve fields, you can get a copy of the
-"sandbox" in which the helpers.anet runs the the software by passing
+"sandbox" in which the helpers.anet runs the software by passing
 your processing script the --copy-to=path option. Caution: If
 the directory path already exists, it will be deleted.
 If you run your processor with --bail, it will stop at the first

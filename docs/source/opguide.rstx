@@ -311,7 +311,7 @@ doesn't add significant functionality, this would usually seem overkill
 – e.g., your service would show up twice in resource listings.
 
 Therefore, it is typically preferable to add the web interface as a
-capability to the the resource record of the standard service.  To let
+capability to the resource record of the standard service.  To let
 you do that, the ``publish`` element takes an optional ``service``
 attribute containing the id of a service that should be used to fill the
 capability's metadata.

@@ -1881,7 +1881,7 @@ Phrase maker code has the following names available:
   dictionary to the query.
 
 The code should amend the outPars dictionary with the keys mentioned in
-the the conditions.  The conditions themselves are yielded.  So, a very
+the conditions.  The conditions themselves are yielded.  So, a very
 simple condDesc with generated SQL could look like this::
 
   <condDesc> <!-- don't do it like this, see below -->
@@ -2178,7 +2178,7 @@ about that UCD is horrible, and it is generally accepted in the VO that
 this was an error.
 
 Finally, there is advanced metadata, in particular time zones, time
-scales (i.e., how does the the time pass) and reference positions (i.e.,
+scales (i.e., how does the time pass) and reference positions (i.e.,
 where is the clock positioned).  
 
 Time zones are not supported at all in the VO.  All times are for the
@@ -3057,10 +3057,8 @@ what the ``//products#define`` rowfilter in your grammar is for::
 		</fitsProdGrammar>
 
 When you do this, you must use a custom descriptor generator.  See
-`Custom Product Descriptor Generators`_ in the reference manual.
+:dachsref:`Custom Product Descriptor Generators` in the reference manual.
 
-.. _Descriptor Generators: http://docs.g-vo.org/DaCHS/ref.html#descriptors-generators
-.. _Custom Product Descriptor Generators: http://docs.g-vo.org/DaCHS/ref.html#custom-product-descriptor-generators
 
 Simple FITS Datalink Services
 '''''''''''''''''''''''''''''
