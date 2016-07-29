@@ -182,12 +182,12 @@ The standard way these days is the LXML-based validator from
 gavo.helpers.testtricks; the rocket science part of this is to make LXML
 use the plethora of schema files we have locally.
 
-“Locally” here means in the ``schemata`` subdirectory of the
+"Locally" here means in the ``schemata`` subdirectory of the
 distribution.  When you add a schema there that should be available in
 validation, you also need to add the filename to
 ``gavo.testtricks.VO_SCHEMATA`` (background: we keep some schema files
 in gavo/schema that the validator should not be bothered with; still, we
-should probably just pull in *.xsd at some point).
+should probably just pull in ``*.xsd`` at some point).
 
 With this, run ``gavo admin xsdVal`` to XSD-validate a VO file.
 

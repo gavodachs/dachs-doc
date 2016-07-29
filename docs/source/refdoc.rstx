@@ -1680,7 +1680,7 @@ parameter dict and stuffing that into an attribute of the derived class.
 Also, since SSA tables already contain a column containing PubDIDs, we
 can treat them as opaque.
 
-Incidentally, in this case you could stuff the entire code into the the
+Incidentally, in this case you could stuff the entire code into the 
 main code element, saving on the extra setup.  However, apart from a
 minor speed benefit, keeping things like function or class definitions
 in setup allows easier re-use of such definitions in procedure
@@ -2002,7 +2002,7 @@ Data links frequently should expose some data that's not in the product
 table (e.g., because you don't want the error files to show up there).
 In such cases, a good pattern is to allow a static renderer on the
 datalink service and use ``makeLinkFromFile``, which expects file paths
-relative to the the service's resdir::
+relative to the service's resdir::
 
   <service id="d" allowed="dlget,dlmeta,static">
     <property name="staticData">data/errors</property>
@@ -3027,7 +3027,7 @@ spectrum according to the data model.  There's a mixin for that::
 In addition to adding lots and lots of params, the mixin also defines
 two columns, ``spectral`` and ``flux``; these have units and ucds as
 taken from the SSA metadata.  You can add additional columns (e.g., a
-flux error depending the the spectral coordinate) as requried.
+flux error depending on the spectral coordinate) as requried.
 
 The actual spectral instances can be built by sdmCores and delivered
 through DaCHS' product interface.  Note, however, that clients
@@ -3270,7 +3270,7 @@ unless they depend on sourceToken.  In general, you should rather define
 a function makeDataPack in the module.  Whatever is returned by this
 function is available as self.grammar.dataPack in the row iterator.
 
-The function receives an instance of the the customGrammar as an
+The function receives an instance of the customGrammar as an
 argument.  This means you can access the resource descriptor and
 properties of the grammar.  As an example of how this could be used,
 consider this RD fragment::
@@ -3325,7 +3325,7 @@ Special care needs to be taken when a dispatching grammar parses
 products, because the product table is fed by a special make inserted
 from the products mixin.  This make of course doesn't see the rows you
 are yielding from your dispatching grammar.  This means that without
-further action, your files will not end up the the product table at all.
+further action, your files will not end up in the product table at all.
 In turn, getproducts will return 404s instead of your products.
 
 To fix this, you need to explicitely yield the rows destined for the 
