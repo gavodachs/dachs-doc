@@ -110,8 +110,8 @@ and in the source directory run::
 
 
 
-Installing without a package manager
-------------------------------------
+Installing DaCHS
+----------------
 
 
 Getting the source
@@ -571,5 +571,19 @@ This will (for the ``gavo`` command in general) give additional error
 info where available.
 
 You should now be able to run the examples in the tutorial.
+
+
+Docker
+======
+
+We do not really recommend using Docker containers on production
+machines.  We do, however, use Docker in our internal QC to check
+installability and upgradeability [well, this may be a lie].  Because of
+this rather special use case, we are ignoring several best practices
+Docker gives; in particular, we are running DaCHS and Docker in one
+container, and we're recklessly playing with uids.
+
+Still, if you want to build a Docker-able DaCHS, this might be a useful
+start: http://svn.ari.uni-heidelberg.de/svn/integration/dockerbased
 
 .. |date| date::
