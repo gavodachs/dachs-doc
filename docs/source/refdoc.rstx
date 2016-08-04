@@ -152,7 +152,7 @@ feeding the tables mixing in a given mixin.
 
 .. replaceWithResult getMixinDocs(docStructure, [
   "//products#table", "//scs#positions", "//scs#q3cindex",
-  "//siap#bbox", "//siap#pgs", "//ssap#hcd", "//obscore#publish",
+  "//siap#pgs", "//ssap#hcd", "//obscore#publish",
   "//obscore#publishSIAP", "//slap#basic",
   "//ssap#sdm-instance", "//ssap#mixc",
   "//obscore#publishSSAPHCD", "//epntap#table", "//epntap#table-2_0"])
@@ -190,7 +190,7 @@ based cores to renderers:
   letting you specify ranges and such.
 
 Unchecked renderers can be applied to any service and need not be
-explicitely allowed by the service.
+explicitly allowed by the service.
 
 .. replaceWithResult getRendererDocs(docStructure)
 
@@ -205,7 +205,7 @@ Procedures available for rowmaker apply
     "//procs#simpleSelect", "//procs#resolveObject",
     "//procs#mapValue", "//procs#fullQuery", "//procs#dictMap", 
     "//siap#computePGS",
-    "//siap#computeBbox", "//siap#setMeta", "//ssap#setMeta",
+    "//siap#setMeta", "//ssap#setMeta",
     "//siap#getBandFromFilter", "//ssap#setMixcMeta",
     "//slap#fillBasic",
     "//epntap#populate", "//epntap#populate-2_0",
@@ -1241,7 +1241,7 @@ Here's a list of assertion methods defined right now:
 
 All of these are methods, so you would actually write
 ``self.assertHasStrings('a', 'b', 'c')`` in your test code (rather than
-pass self explicitely.
+pass self explicitly).
 
 When writing tests, you can, in addition, use assertions from python's
 unittest TestCases (e.g., assertEqual and friends).  This is provided in
@@ -3328,7 +3328,7 @@ are yielding from your dispatching grammar.  This means that without
 further action, your files will not end up in the product table at all.
 In turn, getproducts will return 404s instead of your products.
 
-To fix this, you need to explicitely yield the rows destined for the 
+To fix this, you need to explicitly yield the rows destined for the 
 products table with a products role, from within your grammar.  Where
 the grammar yield rows for the table with metadata (i.e., rows that actually
 contain the fields with prodtblAccref, prodtblPath, etc), yield
