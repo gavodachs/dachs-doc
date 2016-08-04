@@ -838,9 +838,9 @@ arihip's opening table element::
 Mixins are DaCHS' primary tool to endow tables with "everything needed
 to serve a standard" (e.g., a minimal set of columns, certain indices,
 or metadata).  For instance, an image table must have a certain
-structure determined by the SIA protocol.  Either of the ``//siap#pgs``
-and ``//siap#bbox`` mixins make sure that tables have this structure,
-and they make sure that the table containing information on all the
+structure determined by the SIA protocol.  The ``//siap#pgs``
+mixin makes sure that tables have this structure,
+and it makes sure that the table containing information on all the
 file-like datasets in the data center (which is called ``dc.products``)
 is updated when the table is filled.
 
@@ -2404,9 +2404,8 @@ to query non-registred SIAP services in Aladin.
 Tables
 ''''''
 
-SIAP-capable tables should mix in ``//siap#pgs`` (the older
-``//siap#bbox`` is deprecated; you could still use it if for some reason
-you have no pgSphere).  This mixin provides all the columns necessary
+SIAP-capable tables should mix in ``//siap#pgs``.
+This mixin provides all the columns necessary
 for valid SIAP responses.
 
 So, in the simplest case, a table that's going to be published through
