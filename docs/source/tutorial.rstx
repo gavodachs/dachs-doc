@@ -445,8 +445,8 @@ valid SQL datatypes.  The DC software knows how to handle
 * ``date`` – a date.  See timestamp.
 * ``time`` – a time.  See timestamp
 * ``box`` – a rectangle.
-* ``spoint``, ``scircle``, ``sbox``, ``spoly`` – objects of spherical geometry, taken
-  from `pgSphere`_.  Ask for documentation...
+* ``spoint``, ``scircle``, ``sbox``, ``spoly`` – objects of spherical 
+  geometry, taken from pgSphere.  Ask for documentation...
 
 Some more types (like ``raw`` and ``file``) are available to tables in service
 definitions, but they should, in general, not appear in database tables.
@@ -801,7 +801,7 @@ to save a comma, you could use::
   <map dest="Vmag" nullExcs="TypeError"
     >parseWithNull(@VmagSrc, float, "99999")/1000.</map>
 
-If ``parseWithNull22 here returns None, a ``TypeError`` will be raised
+If ``parseWithNull`` here returns None, a ``TypeError`` will be raised
 and caught, and ``Vmag`` will be None.
 
 You can turn more than one exception into None.  For example example, if
@@ -3264,7 +3264,7 @@ until the table metadata is in and then again query something like::
 
 Hit "Run Query",open the table and play with it.  As a little visual treat, 
 in TOPCAT's main window hit "Activation Action", and configure the 
-``preview_url``column under "View URL as Image".  Then click on the table rows.
+``preview_url`` column under "View URL as Image".  Then click on the table rows.
 
 
 Tables
@@ -3316,13 +3316,13 @@ this, talk to us so we can get an example here]
 About ``s_region``
 ''''''''''''''''''
 
-The ``s_region`` parameter (see `//epntap#populate-2_0`_) is essentially
+The ``s_region`` parameter (see :dachsref:`//epntap#populate-2_0`) is essentially
 a footprint describing the area covered by 2D spatially extended data products.
-It uses `pgshpere`_ types such as ``spoly``, ``scircle``, ``sbox`` or ``spoint`` 
+It uses pgshpere types such as ``spoly``, ``scircle``, ``sbox`` or ``spoint`` 
 (We advise against the use of ``spoint`` as a ``s_region`` type: only spatially 
 extended types should be used). The default type is ``spoly``, the others
- must be specified using the ``regiontype`` mixin parameter (Please refer to 
-`//epntap#table-2_0`_).
+must be specified using the ``regiontype`` mixin parameter (Please refer to 
+:dachsref:`//epntap#table-2_0`).
 
 Please note that the ``spoly`` type has some limitations that can trigger
 unclear errors when not respected: the segments can not be crossed and, more 
@@ -3330,14 +3330,15 @@ important, the maximum dimension of a polygon must be less than 180°.
 
 Here are some example that shows how to implement it with a ``sbox``:
 
-First the ``regiontype``
+First the ``regiontype``::
 
   <table id ="epn_core">
   ...
     <mixin ... regiontype="sbox">//epntap#table-2_0</mixin>
   </table>
 
-Then the ``s_region`` parameter, defined in the rowmaker (see `Mapping data`_)
+Then the ``s_region`` parameter, defined in the rowmaker (see `Mapping
+data`_)::
 
   <rowmaker idmaps="*">
     <map key = "s_region">

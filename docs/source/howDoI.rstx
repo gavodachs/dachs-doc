@@ -281,7 +281,7 @@ to re-import the table with the mixin, since in general nothing has
 changed there.  However, the script updating the obscore view will only
 be run on a full ``gavo imp``, not on a ``gavo imp -m``.
 
-Since version 0.9.7, ``gavo imp`` now at least updates the view fragment
+Since version 0.9.7, ``gavo imp -m`` now at least updates the view fragment
 when the table metadata of a table with obscore is updated.  It does
 not, however, re-make the view.  You can easily do that, manually,
 however::
@@ -491,8 +491,8 @@ See http://www.star.bristol.ac.uk/~mbt/topcat/sun253/jvmProperties.html
 on how to do this.
 
 
-...have output columns with URLs in them
-----------------------------------------
+...have output columns with URLs in them?
+-----------------------------------------
 
 You might be tempted to use ``outputField/formatter`` for this, and
 indeed this lets you generate arbitrarily odd things, including

@@ -535,4 +535,60 @@ particular, you may have a hard time referencing such columns from STC
 declarations, when creating indices, etc.  So: Just don't do it.
 
 
+Unhandled exception ProgrammingError while importing an obscore table
+=====================================================================
+
+This typically looks somewhat like this::
+
+  ProgrammingError: syntax error at or near "/"
+  LINE 28:       CAST(/RR/V/ AS text) AS pol_states,
+                      ^
+
+  *** Error: Oops.  Unhandled exception ProgrammingError.
+
+  Exception payload: syntax error at or near "/" LINE 28:
+  CAST(/RR/V/ AS text) AS pol_states,
+
+While ProgrammingErrors in general happen whenever an invalid query is
+sent to the database engine, when they pop up in gavo imp with obscore
+not far away it almost invariably means that there is a syntax error,
+most likely forgotten quotes, in the obscore mixin definitions of one of
+the tables published through obscore.  The trick is to figure out which
+of them causes the trouble.
+
+The most straightforward technique is to take the fragement shown in the
+error message and look in ivoa._obscoresources like this::
+
+  $ psql gavo
+  ...
+  # select tablename 
+  - from ivoa._obscoresources where sqlfragment like '%CAST(/RR/V/%';
+       tablename      
+  --------------------
+   test.pgs_siaptable
+
+You could ``gavo purge`` the table in question to fix this the raw way,
+but it's of course much more elegant to just remove the offending piece
+from _obscoresources::
+
+  # delete from ivoa._obscoresources where tablename='test.pgs_siaptable';
+
+Then fix the underlying problem – in this case that was replacing::
+
+		<mixin
+  		polStates="/RR/V/"
+  		...
+
+with::
+
+		<mixin
+  		polStates="'/RR/V/'"
+  		...
+
+– and re-import the obscore meta; you'll usually use ``gavo imp -m &&
+gavo imp //obscore`` for that (see also `updating obscore`_)
+
+.. _updating obscore: http://docs.g-vo.org/DaCHS/howDoI.html#update-ivoa-obscore-when-i-ve-changed-something-in-an-obscore-mixin
+
+
 .. |date| date::
