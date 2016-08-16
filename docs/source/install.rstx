@@ -6,7 +6,7 @@ GAVO DaCHS installation and configuration
 :Email: gavo@ari.uni-heidelberg.de
 :Date: |date|
 
-.. contents:: 
+.. contents::
   :depth: 3
   :backlinks: entry
   :class: toc
@@ -53,7 +53,7 @@ here's the list of dependencies of our Debian package as of version
 0.9.45 this should give you some clue as to what might be necessary on
 other systems::
 
-  postgresql-9.4-pgsphere|postgresql-9.1-pgsphere, 
+  postgresql-9.4-pgsphere|postgresql-9.1-pgsphere,
   postgresql-9.4-q3c|postgresql-9.1-q3c,
   python-docutils, python-imaging, python-lxml, python-nevow, python-numpy,
   python-pkg-resources, python-psycopg2, python-pyfits (>= 1:2.0),
@@ -62,7 +62,7 @@ other systems::
 
 If you want to use boosters, you will additionally need::
 
-  build-essential libcfitsio3-dev 
+  build-essential libcfitsio3-dev
 
 To install from our version control system (see below), you will also
 need::
@@ -132,7 +132,7 @@ This is development code, so *please* do not hesitate to contact us if
 something weird is going on with it.  We mean it; even trivial reports
 help us to gauge where our software behaves contrary to expectations.
 Plus, we don't have oodles of users, so chances are you won't
-get on our nerves.  For contact options see 
+get on our nerves.  For contact options see
 http://docs.g-vo.org/DaCHS/#support.
 
 .. _our distribution page: http://vo.ari.uni-heidelberg.de/soft/dist
@@ -150,8 +150,8 @@ above, say::
 
   sudo python setup.py develop
 
-(there are various options to get the stuff installed when you prefer 
-not to install as root; refer to the `setuptools documentation`_ if 
+(there are various options to get the stuff installed when you prefer
+not to install as root; refer to the `setuptools documentation`_ if
 necessary).  The checkout itself needs to be readable by whoever later
 runs the server in this mode.  You can also use ``install`` instead of
 ``develop``; in that case, you will have to rerun setup.py everytime
@@ -177,7 +177,7 @@ Experience has shown that user setup is the number one reason for
 installation problems.  So, up front, here's what the steps given
 below should create:
 
-* A group  that will own certain directories that must be writable by 
+* A group  that will own certain directories that must be writable by
   the server (by default gavo).
 * A user  that the server will run as (by default gavo).
 * A unix account for you that should not be root (in particular not if
@@ -242,7 +242,7 @@ Cluster Creation
 
 You first need a database to play with, preferably in a suitable
 cluster (you could skip this, but the all bets are off as to whether
-you'll be able to store non-ASCII characters in strings).  
+you'll be able to store non-ASCII characters in strings).
 
 It is recommended to create a dedicated cluster first even if you want
 to connect DaCHS to a pre-existing database later to get a feeling for how
@@ -250,7 +250,7 @@ it works.  See `Connecting to a remote database`_ for information on
 what setup is necessary in this case.
 
 Database cluster generator is very system-dependent, and ideally a
-database admin would assist you.  
+database admin would assist you.
 
 On Debian systems dedicated for GAVO DaCHS, you can try the following
 (*Warning*: This will destroy any previous content anyone put in
@@ -287,12 +287,12 @@ postgres databases on that particular system):
     ``/var/lib/postgresql/<postgres-version>/main``.
 
 (#) Start the server::
-    
+
        sudo /etc/init.d/postgresql start
 
 (#) Create the database itself::
 
-       sudo -u postgres createdb --encoding=UTF-8 gavo  
+       sudo -u postgres createdb --encoding=UTF-8 gavo
 
 On Debian, the configuration files for this cluster are at
 ``/etc/postgresql/$PGVERSION/pgdata/``.
@@ -357,7 +357,7 @@ whacky places.
 
 Note that running a database server always is a security liability.  You
 should make sure you understand what the pg_hba.conf (in postgres'
-configuration directory) says.  
+configuration directory) says.
 
 To let DaCHS access postgres via unix domain sockets, you must have a
 line like::
@@ -388,7 +388,7 @@ DaCHS is configured in an INI-style configuration file in
 have ~/.gavorc files, the contents of which override settings in
 /etc/gavo.rc.
 
-`Configuration Settings <./opguide.html#configuration-settings>`_ 
+`Configuration Settings <./opguide.html#configuration-settings>`_
 gives a walkthrough through the most important
 settings; for now, you must set the DaCHS root dir if you are not happy
 with ``/var/gavo``::
@@ -442,7 +442,7 @@ The init script
 Though you can operate the server manually through ``gavo serve
 (start|stop|reload)``, you will probably want to install an init script
 to ``/etc/init.d`` (or your system's equivalent place).  More
-information on this is in `Starting and Stopping the Server in the 
+information on this is in `Starting and Stopping the Server in the
 operator's guide`_
 
 .. _Starting and Stopping the Server in the operator's guide: opguide.html#starting-and-stopping-the-server
@@ -487,7 +487,7 @@ default profiles (if you made yourself a superuser account as described
 above you do not need the ``sudo -u postgres`` in these commands)::
 
   # create the database that'll hold your data
-  sudo -u postgres createdb --encoding=UTF-8 gavo  
+  sudo -u postgres createdb --encoding=UTF-8 gavo
   # create the user that feeds the db...
   sudo -u postgres createuser -P -ADsr gavoadmin
   # and a user that usually has no write privileges
@@ -499,7 +499,7 @@ Enter the passwords you assign here into the ``feed``, ``trustedquery``,
 and ``untrustedquery`` profiles, respectively.  These profiles are found
 in ``rootDir/etc``.
 
-Finally, you need to let the various roles you just created access the 
+Finally, you need to let the various roles you just created access the
 database; you do this using the command line interface to postgres::
 
   sudo -u postgres psql gavo \
@@ -566,7 +566,7 @@ If you get error messages, add a ``--hints`` after the gavo command,
 like this::
 
   gavo --hints imp --system //dc_tables
-  
+
 This will (for the ``gavo`` command in general) give additional error
 info where available.
 
@@ -583,7 +583,11 @@ this rather special use case, we are ignoring several best practices
 Docker gives; in particular, we are running DaCHS and Docker in one
 container, and we're recklessly playing with uids.
 
-Still, if you want to build a Docker-able DaCHS, this might be a useful
-start: http://svn.ari.uni-heidelberg.de/svn/integration/dockerbased
+Still, if you want to build a Docker-able DaCHS -- and perhaps help us on our
+container's development(?) --, the section
+
+* :dachsdoc:`DaCHS on Docker <deploy_docker.html>`
+
+section may be useful.
 
 .. |date| date::
