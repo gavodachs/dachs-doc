@@ -19,6 +19,7 @@ import os
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
 #sys.path.insert(0, os.path.abspath('.'))
+sys.path.append(os.path.abspath('includes'))
 
 # -- General configuration ------------------------------------------------
 
@@ -30,7 +31,21 @@ import os
 # ones.
 extensions = [
     'sphinx.ext.todo',
+    'sphinx_role_dachsref',
+    'sphinx.ext.extlinks'
 ]
+
+# The custom extension for DachsRefs (sphinx_role_dachsref.py) has a
+# default value (for 'dachsref_base') which direct to Gavo-Dachs server.
+# Markus' server does not run sphinx (and so: does not run this conf.py).
+# That said, setting a value for 'dachsref_base' here applies only for
+# those running sphinx; currently, readthedocs.
+dachsref_base = 'http://dachs-doc.readthedocs.io/en/latest/refdoc.html'
+
+# Pretty much the same arguments as for 'dachsref', now for role 'dachsdoc',
+# which uses sphinx 'extlinks' extension; points to documentation root.
+extlinks = {'dachsdoc':('http://dachs-doc.readthedocs.io/en/latest/%s',
+                        '')}
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']

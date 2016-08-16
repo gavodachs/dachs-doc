@@ -7,7 +7,7 @@ GAVO DaCHS Tutorial
 :Date: |date|
 
 
-.. contents:: 
+.. contents::
   :depth: 3
   :backlinks: entry
   :class: toc
@@ -58,7 +58,7 @@ available is to use the built-in help, as in::
 
 Most of DaCHS's global options have to do with debugging_; it is
 sometimes useful go say::
-  
+
   gavo --ui stingy ...
 
 do reduce the program's chattiness.
@@ -140,7 +140,7 @@ abbreviated as long as the abbreviation is unambiguous::
 
 This should run for a while, reporting the number of ingested rows now
 and then, and finally say something like "Rows affected: XY".  With this,
-the data is in the database and is ready for querying.  
+the data is in the database and is ready for querying.
 
 Let us mention in passing that ``gavo imp`` tries to interpret its first
 argument first as a file system path.  If that fails, it tries to
@@ -277,9 +277,9 @@ The RD goes on to give metadata applying to everything within the RD::
   <meta name="description">
     The catalogue ARIHIP has been constructed by
     selecting the 'best data' for a given star from combinations of HIPPARCOS
-    data with Boss' GC and/or the Tycho-2 catalogue as well as the FK6.  It 
-    provides 'best data' for 90 842 stars with a typical mean error of 
-    0.89 mas/year (about a factor of 1.3 better than Hipparcos for this 
+    data with Boss' GC and/or the Tycho-2 catalogue as well as the FK6.  It
+    provides 'best data' for 90 842 stars with a typical mean error of
+    0.89 mas/year (about a factor of 1.3 better than Hipparcos for this
     sample of stars).
   </meta>
   <meta name="creator">Wielen, R.; Schwan, H.; Dettbarn, C.; et al</meta>
@@ -296,8 +296,8 @@ The RD goes on to give metadata applying to everything within the RD::
 
   <meta name="_longdoc" format="rst">
     The ARIHIP Catalogue is a suitable combination of the results of the
-    HIPPARCOS astrometry satellite with ground-based data. 
-  
+    HIPPARCOS astrometry satellite with ground-based data.
+
     (abridged)
   </meta>
 
@@ -372,19 +372,19 @@ What follows is a definition of the structure of the space-time
 coordinates::
 
     <stc>
-      Position ICRS Epoch J2000.0 "raj2000" "dej2000" Error "err_ra" "err_de" 
+      Position ICRS Epoch J2000.0 "raj2000" "dej2000" Error "err_ra" "err_de"
         Velocity "pmra" "pmde" Error "err_pmra" "err_pmde"
     </stc>
     <stc>
-      Position ICRS Epoch J2000.0 "raHIP" "deHIP" Error "err_raHIP" "err_deHIP" 
+      Position ICRS Epoch J2000.0 "raHIP" "deHIP" Error "err_raHIP" "err_deHIP"
         Velocity "pmraHIP" "pmdeHIP" Error "err_pmraHIP" "err_pmdeHIP"
     </stc>
     <stc>
-      Position ICRS Epoch J2000.0 "raSTP" "deSTP" Error "err_raSTP" "err_deSTP" 
+      Position ICRS Epoch J2000.0 "raSTP" "deSTP" Error "err_raSTP" "err_deSTP"
         Velocity "pmraSTP" "pmdeSTP" Error "err_pmraSTP" "err_pmdeSTP"
     </stc>
     <stc>
-      Position ICRS Epoch J2000.0 "raLTP" "deLTP" Error "err_raLTP" "err_deLTP" 
+      Position ICRS Epoch J2000.0 "raLTP" "deLTP" Error "err_raLTP" "err_deLTP"
         Velocity "pmraLTP" "pmdeLTP" Error "err_pmraLTP" "err_pmdeLTP"
     </stc>
 
@@ -416,7 +416,7 @@ different tables in one RD to have columns with the same name, and that
 would violate the id attribute's uniqueness constraint), the key for
 the column's value in record dictionaries that the software uses
 internally, and it is usually used to reference the column from the
-outside.  Column names must be legal identifiers for both python and SQL in 
+outside.  Column names must be legal identifiers for both python and SQL in
 DaCHS.  SQL delimited identifiers thus are not allowed (this is not the
 whole truth, but it's true enough, and you're saving yourself a lot of
 headache if you simply believe it).
@@ -425,11 +425,11 @@ The type attribute defaults to real, and can otherwise take values in
 valid SQL datatypes.  The DC software knows how to handle
 
 * ``text`` – a string.  You could also use types with explicit length
-  like char(7), but this is highly discouraged; it does not help 
+  like char(7), but this is highly discouraged; it does not help
   postgres (or much anything else within the DC), but it hurts insofar
   as DaCHS cannot produce NULLs for such constructs in most VOTable
   serialisations.
-* ``real``  – a real number.  
+* ``real``  – a real number.
 * ``double precision`` – a floating point number.  You should use
   in doubles if you need to keep more than about 7 digits of mantissa.
 * ``integer`` – typically a 32-bit integer
@@ -445,7 +445,7 @@ valid SQL datatypes.  The DC software knows how to handle
 * ``date`` – a date.  See timestamp.
 * ``time`` – a time.  See timestamp
 * ``box`` – a rectangle.
-* ``spoint``, ``scircle``, ``sbox``, ``spoly`` – objects of spherical 
+* ``spoint``, ``scircle``, ``sbox``, ``spoly`` – objects of spherical
   geometry, taken from pgSphere.  Ask for documentation...
 
 Some more types (like ``raw`` and ``file``) are available to tables in service
@@ -490,7 +490,7 @@ Futher metadata on columns includes:
   column is part of the output table if its verbLevel is smaller or
   equal to ten times the query's VERB parameter.
 
-Column elements may have a child element 
+Column elements may have a child element
 `values <./ref.html#element-values>`_.  This lets you specify
 metadata like maximum or minimum, or enumerate possible values.  The
 most common use is the definition of null literals, though.  This is not
@@ -506,7 +506,7 @@ VOTable rendering when NULLs are encountered in such a situation.
 So, just define null values whenever you define a non-required integral
 column, like this::
 
-  <column name="n_obs" type="integer" 
+  <column name="n_obs" type="integer"
       description="Number of
       observations, NULL if interpolated data">
     <values nullLiteral="-1"/>
@@ -582,7 +582,7 @@ There are many grammars defined, e.g., for getting values from FITS
 files, VOTables, or using column-based formats; you can also write
 specialized grammars in python.   All grammars read "something" and emit
 a mapping from names to (mostly) string values; those unprocessed
-string-to-string mappings are called "rawdicts" in DaCHS jargon 
+string-to-string mappings are called "rawdicts" in DaCHS jargon
 (distinguished from "rowdicts" ready for database ingestion, which sport
 processed and typed data).
 
@@ -669,7 +669,7 @@ The arihip RD then goes on with::
 
 The make_ element brings together a table (in the ``table``
 attribute) with a recipe how to fill it from the output of the grammar
-(the row maker). 
+(the row maker).
 
 Incidentally, there can be multiple ``make`` elements in a single
 ``data`` element if multiple tables (using different row makers) are
@@ -697,7 +697,7 @@ Basically a row maker consists of
 * var_ elements -- assignments of expression values names in the rawdict.
 * map_ elements -- simple mappings of (python) expressions to values in
   the destination rowdict
-* procedure applications (see apply_) -- manipulations of both rawdicts 
+* procedure applications (see apply_) -- manipulations of both rawdicts
   and rowdicts in python code
 
 The fragment above shows one of several ways to use both ``var`` and
@@ -744,10 +744,10 @@ no further manipulations, a row maker like::
 
 would to the trick. Since this is a bit unwieldy, DaCHS provides a
 shortcut::
-  
+
   <rowmaker> <simplemaps>evi:evi,av:av,ai:ai</simplemaps> </rowmaker>
 
-which expands to exactly what is written above.  The keys in each pair do not 
+which expands to exactly what is written above.  The keys in each pair do not
 need to be identical; the first item of each pair is the table column
 name, the second the rawdict key.
 
@@ -781,7 +781,7 @@ Null values are always troublesome.  Within DaCHS, the null value
 ``parseWithNull`` to help you come up with those; if your upstream was
 devious enough to use 99.99 as a null value for a magnitude, you could
 say::
-  
+
   <map dest="Vmag">parseWithNull(@VmagSrc, float, "99.99")</map>
 
 Note that the null value here is a literal matched against the string
@@ -857,7 +857,7 @@ like this::
   gavo admin dumpDF //scs
 
 The ``//scs#q3cindex`` mixin referenced here arranges for spatial
-indexing of tables having some sort of spherical coordinates. 
+indexing of tables having some sort of spherical coordinates.
 To identify which columns to index, DaCHS inspects the UCDs of the
 columns; what it looks for here are columns with UCDs of
 ``pos.eq.(ra|dec);meta.main``` as index columns [#othercone]_.  Contrary
@@ -896,7 +896,7 @@ fairly simple for arihip::
       <FEED source="//scs#coreDescs"/>
       <condDesc buildFrom="mv"/>
       <condDesc>
-        <inputKey original="hipno" required="False"/>  
+        <inputKey original="hipno" required="False"/>
       </condDesc>
     </dbCore>
 
@@ -942,8 +942,8 @@ and returns a table that you describe through an output table.  Cores
 are defined as direct children of the resource (as with grammars, you
 can also have them in ``resource`` and then write
 ``core="id-of-element"``, which makes sense when a single core is shared
-by several services).  
-  
+by several services).
+
 dbCores need a ``queriedTable`` attribute, the value of which must be a
 table reference.  This is the table the query will run against.
 
@@ -1042,9 +1042,9 @@ General Hints
   cause the problem and possible solutions.  Note that ``--hints``, like
   the other debugging switches, goes between ``gavo`` and the subcommand
   name, as in ``gavo --hints serve``.
-* Validate your RD.  This is, in general, a good idea before doing 
-  anything with the RD, since it will allow you to more easily catch errors 
-  than the in all likelihood even more byzantine error messages that 
+* Validate your RD.  This is, in general, a good idea before doing
+  anything with the RD, since it will allow you to more easily catch errors
+  than the in all likelihood even more byzantine error messages that
   may arise when something goes wrong later.  The ``gavo val``
   subcommand takes one or more RDs.    If you don't understand its
   output, complain to gavo@ari.uni-heidelberg.de -- the command is really
@@ -1062,10 +1062,10 @@ General Hints
   command has an option ``--enable-pdb`` that will dump you into the
   debugger where an uncaught exception happened (as the server should
   never let an uncaught exception through, that's not useful with
-  ``gavo serve``).  If that doesn't help you, you can set breakpoints 
-  (e.g., in your own in-RD procedure defininitions by writing 
-  ``import pdb; pdb.set_trace``.  If you install the python-ipdb package, 
-  and write ipdb instead of pdb, you'll get a nicer debugger commandline 
+  ``gavo serve``).  If that doesn't help you, you can set breakpoints
+  (e.g., in your own in-RD procedure defininitions by writing
+  ``import pdb; pdb.set_trace``.  If you install the python-ipdb package,
+  and write ipdb instead of pdb, you'll get a nicer debugger commandline
   with tab completion and similar frills.
 * To see what SQL is actually sent to the database, set the
   GAVO_SQL_DEBUG environment variable to any value.  This could look like
@@ -1346,7 +1346,7 @@ the ``required`` attribute on the column vrad by editing it like this::
   <column name="vrad" ucd="phys.veloc;pos.heliocentric"
     required="True"
     tablehead="v_rad" verbLevel="20" unit="km/s"
-    description="Radial velocity as used in calculating the foreshortening 
+    description="Radial velocity as used in calculating the foreshortening
     effect."/>
 
 This now yields an error; note that the message is fairly generic, but
@@ -1583,7 +1583,7 @@ This is tricky when you access the table being written or otherwise
 being accessed.  This is because sourceTokens run in the midst of a
 transaction updating the table.  So, something like::
 
-  <code> 
+  <code>
     <!-- will deadlock, don't do it like this -->
     base.SimpleQuerier().query(...)
   </code>
@@ -1914,7 +1914,7 @@ write the equivalent vizier-like expressions)::
       <inputKey name="within" required="True" type="integer"
         multiplicity="single"
         tablehead="plus/minus" unit="minutes"
-        description="Give measurements within this many minutes 
+        description="Give measurements within this many minutes
          of your chosen date and time.  The sampling rate is 20 minutes">
         <values default="11"/>
       </inputKey>
@@ -2011,7 +2011,7 @@ Within the astronomical community, licensing issues have traditionally
 played a minor role – if you referenced properly, using data from other
 people was not only ok, it was encouraged.  We should keep it that way,
 even in the days of easy reproducability.  Still, formal statements
-about how your data may be used may be useful.  These statements are 
+about how your data may be used may be useful.  These statements are
 called licenses.
 
 RMI has the copyright meta for this purpose.  Right now, DaCHS doesn't do much
@@ -2044,7 +2044,7 @@ the future we may expand this to a formal, machine-readable declaration.
 Active Tags
 ===========
 
-Active "tags" delemit elements within resource descriptor XML that 
+Active "tags" delemit elements within resource descriptor XML that
 do not directly contribute to result tree.  Their typical use is to
 "record" event sequences and replay them later.  Much of this is used
 internally.  However, some applications of active tags are interesting
@@ -2179,10 +2179,10 @@ this was an error.
 
 Finally, there is advanced metadata, in particular time zones, time
 scales (i.e., how does the time pass) and reference positions (i.e.,
-where is the clock positioned).  
+where is the clock positioned).
 
 Time zones are not supported at all in the VO.  All times are for the
-Greenwhich meridian (i.e., they should be close to UTC).  
+Greenwhich meridian (i.e., they should be close to UTC).
 
 The time scales are important on the level of seconds; they include  TAI
 (the time scale defined by a bunch of atomic clocks, UTC (TAI with leap
@@ -2258,7 +2258,7 @@ specified in this way.
 
 You almost always want to have a spatial index on these columns.  To do
 that, use the ``//scs#q3cindex`` mixin on the tables, like this::
-  
+
   <table id="forSCS" onDisk="true" mixin="//scs#q3cindex"> ...
 
 Finally, note that to have a valid SCS service, you must make sure the
@@ -2394,7 +2394,7 @@ to Aladin (Interop/Send to/Aladin), which will respond by presenting a
 load dialog.  Doubleclick and load as you like (yes, the images look a
 bit like static noise; that's all right here; but do combine these
 images with, say, DSS colored optical imagery and marvel at the wonders
-of modern VLBI interferometry).  
+of modern VLBI interferometry).
 
 Indicentally, we made the detour through TOPCAT since there's no nice UI
 to query non-registred SIAP services in Aladin.
@@ -2434,7 +2434,7 @@ In the case of the Lockman Hole RD, things are a bit more verbose::
     <column name="object" type="text"
       ucd="meta.id"
       tablehead="Object"
-      description="Source name as in 
+      description="Source name as in
         2009MNRAS.397..281I (VizieR J/MNRAS/397/281)"
       verbLevel="1"/>
     <column name="obsra"
@@ -2508,7 +2508,7 @@ handy::
             @object = nameMap[@object]
           </code>
         </apply>
-        
+
         <map key="weighting">\inputRelativePath.split("_")[-1][:-5]</map>
       </rowmaker>
     </make>
@@ -2518,9 +2518,9 @@ This does, step by step:
 
 * The ``sources`` element is as always – with image collections, the
   ``recurse`` attribute usually comes in particularly handy.
-* When ingesting images, you will (at least for a while, still) almost 
-  always read from FITS images, i.e., FITS primary headers.  
-  A ``fitsProdGrammar`` delivers the key-value-pairs from a 
+* When ingesting images, you will (at least for a while, still) almost
+  always read from FITS images, i.e., FITS primary headers.
+  A ``fitsProdGrammar`` delivers the key-value-pairs from a
   header as a rawdict.
 * The ``qnd`` attribute of the grammar is recommended.  It makes
   some (weak) assumptions to yield significant speedups with large
@@ -2542,7 +2542,7 @@ This does, step by step:
 * You then need to define a rowmaker that must apply two procs.  For
   one, you need `//siap#computePGS <ref.html#siap-computepgs>`_
   (if you mixed in ``//siap#pgsSIAP``).  No bindings are required here.
-* The second proc application required is 
+* The second proc application required is
   `//siap#setMeta <ref.html#siap-setmeta>`_ .  Try to give all its keys
   somewhat sensible values, you will make your users' lives much easier.
 * Typically, many values coming in the FITS headers will be messy and
@@ -2584,8 +2584,8 @@ this::
       <condDesc buildFrom="dateObs"/>
       <condDesc buildFrom="bandpassId" />
       <condDesc>
-        <inputKey name="object" type="text" 
-            tablehead="Target Object" 
+        <inputKey name="object" type="text"
+            tablehead="Target Object"
             description="Object being observed, Simbad-resolvable form"
             ucd="meta.name" verbLevel="5" required="True">
             <values fromdb="object FROM lensunion.main"/>
@@ -2603,7 +2603,7 @@ Service
 If you wrote the core to work for both SIAP and form as described above,
 there's little more to say except you'll want to use the ``siap.xml``
 renderer, and you need some additional metadata for VO registration.
-The latter is described in the 
+The latter is described in the
 `siap.xml reference <ref.html#the-siap-xml-renderer>`_.
 
 With this, the service definition would look like this::
@@ -2612,7 +2612,7 @@ With this, the service definition would look like this::
     <meta name="shortName">sample images</meta>
     <meta name="title">Sample Image Archive</meta>
     <meta name="sia.type">Pointed</meta>
-    
+
     <meta name="testQuery.pos.ra">230.444</meta>
     <meta name="testQuery.pos.dec">52.929</meta>
     <meta name="testQuery.size.ra">0.1</meta>
@@ -2637,7 +2637,7 @@ likelihood).
 There is a sitewide SIAPv2 service at ``<root
 URL>/__system__/siap2/sitewide/siap.xml`` which is always there.  It is,
 however, unpublished by default.  To publish it, you should furnish some
-extra metadata in your userconfig RD (see 
+extra metadata in your userconfig RD (see
 :dachsdoc:`opguide.html#userconfig-rd`).
 
 Specifically, get the ``sitewidesiap2-extras`` stream and follow the
@@ -2881,7 +2881,7 @@ down in `Tody et al (2011)`_.
 In the simplest case, a SIAP table, you could get by simply adding::
 
     mixin="//obscore#publishSIAP"
-  
+
 to the table definition's start tag.  You do not have to re-import a table to
 publish it to obscore after the fact – ``gavo imp -m <rd id> && gavo imp
 //obscore create`` will include an existing table to the obscore view.
@@ -3100,7 +3100,7 @@ something like::
 		<meta name="description">This service lets you access cutouts
 			from HDAP plates and retrieve scaled versions.</meta>
 		<datalinkCore>
- 			<FEED source="//soda#fits_standardDLFuncs" 
+ 			<FEED source="//soda#fits_standardDLFuncs"
 				accrefPrefix="lswscans"/>
 			<metaMaker>
 				<code>
@@ -3171,7 +3171,7 @@ like::
   <resource schema="mydata">
     <meta name="title">My great table</meta>
     <meta name="creationDate">... (more metadata)
-    
+
     <table id="values" onDisk="True" adql="True">
        <column name="id" type="bigint" unit="" ucd="meta.id;meta.main">
          <description>id of object covered here</description></column>
@@ -3197,10 +3197,10 @@ paragraph.
 This adds the metadata you've given to all kinds of administrative
 tables DaCHS keeps but does not touch the data.  It will also try to fix
 the permissions of the table such that DaCHS's untrusted user can read
-it.  To let DaCHS manage the permissions, in psql say (assuming standard 
+it.  To let DaCHS manage the permissions, in psql say (assuming standard
 profiles)::
 
-  GRANT ALL PRIVILEGES ON SCHEMA <your schema> TO gavoadmin 
+  GRANT ALL PRIVILEGES ON SCHEMA <your schema> TO gavoadmin
     WITH GRANT OPTION;
   GRANT SELECT ON <your schema>.<your table> TO gavoadmin
     WITH GRANT OPTION;
@@ -3291,8 +3291,8 @@ until the table metadata is in and then again query something like::
 
   SELECT * FROM lutetia.epn_core
 
-Hit "Run Query",open the table and play with it.  As a little visual treat, 
-in TOPCAT's main window hit "Activation Action", and configure the 
+Hit "Run Query",open the table and play with it.  As a little visual treat,
+in TOPCAT's main window hit "Activation Action", and configure the
 ``preview_url`` column under "View URL as Image".  Then click on the table rows.
 
 
@@ -3347,14 +3347,14 @@ About ``s_region``
 
 The ``s_region`` parameter (see :dachsref:`//epntap#populate-2_0`) is essentially
 a footprint describing the area covered by 2D spatially extended data products.
-It uses pgshpere types such as ``spoly``, ``scircle``, ``sbox`` or ``spoint`` 
-(We advise against the use of ``spoint`` as a ``s_region`` type: only spatially 
+It uses pgshpere types such as ``spoly``, ``scircle``, ``sbox`` or ``spoint``
+(We advise against the use of ``spoint`` as a ``s_region`` type: only spatially
 extended types should be used). The default type is ``spoly``, the others
-must be specified using the ``regiontype`` mixin parameter (Please refer to 
+must be specified using the ``regiontype`` mixin parameter (Please refer to
 :dachsref:`//epntap#table-2_0`).
 
 Please note that the ``spoly`` type has some limitations that can trigger
-unclear errors when not respected: the segments can not be crossed and, more 
+unclear errors when not respected: the segments can not be crossed and, more
 important, the maximum dimension of a polygon must be less than 180°.
 
 Here are some example that shows how to implement it with a ``sbox``:
@@ -3426,8 +3426,8 @@ looks like this::
       could write:
 
       .. tapquery::
-        
-        SELECT * FROM tap_schema.columns 
+
+        SELECT * FROM tap_schema.columns
           WHERE description LIKE '%em.IR.8-15um%'
     </meta>
 
@@ -3466,7 +3466,7 @@ title attribute directly to the service definition; for instance::
   <service id="sdl" allowed="dlget,dlmeta">
     <meta name="title">FEROS Datalink Service</meta>
     <meta name="_example" title="Usage Example">
-      On published datasets like 
+      On published datasets like
       :dl-id:`ivo://org.gavo.dc/~?feros/q/f04031.bdf`,
       this service lets you to cutouts, translations into FITS binary
       tables, ASCII, and possibly more, as well as simple recalibration.
@@ -3547,7 +3547,7 @@ First, you'll obviously define the tables involved::
 A good approach might be to stuff the columns that will later show up in
 the view into a STREAM and then replay that stream in both the table
 definitions and the view definition, but since the RD we're using as an
-`example <http://svn.ari.uni-heidelberg.de/svn/gavo/hdinputs/arigfh/q.rd>`_ 
+`example <http://svn.ari.uni-heidelberg.de/svn/gavo/hdinputs/arigfh/q.rd>`_
 here worked with ``original``, this we use in this introduction; with
 STREAMs, sharing the columns looks differently, the rest remains the
 same.
@@ -3574,7 +3574,7 @@ the source columns.  The view definition then looks somewhat like this::
         <column original="identified.\item"/>
       </events>
     </LOOP>
-    
+
     <LOOP>
       <codeItems>
         for col in context.getById("gfh"):
@@ -3587,14 +3587,14 @@ the source columns.  The view definition then looks somewhat like this::
 
     <viewStatement>
       CREATE VIEW \curtable AS (
-        SELECT \colNames FROM 
-          (SELECT catno, raj2000, dej2000, 
+        SELECT \colNames FROM
+          (SELECT catno, raj2000, dej2000,
             pmra AS pmraMaster,
             pmde AS pmdeMaster,
             mv AS mvMaster,
             mb AS mbMaster,
             component AS compMaster FROM \schema.master) AS m
-        JOIN 
+        JOIN
           \schema.identified AS idf
         ON (masterNo=catno)
         JOIN \schema.gfh
@@ -3610,10 +3610,10 @@ in the view has to do with the specific dataset).
 
 The viewStatement essentially is more or less arbitrary SQL.  For
 robustness against changes of table structure or schema or table name
-changes, however, you should probably always start with::      
+changes, however, you should probably always start with::
 
       CREATE VIEW \curtable AS (
-        SELECT \colNames FROM 
+        SELECT \colNames FROM
 
 – ``\\curtable`` will automatically adjust to whatever schema and table
 name is given in the RD, and ``\\colNames`` gives all the names of the
@@ -3630,7 +3630,7 @@ re-make it.  The recommended setup for this looks like this::
   <data id="import_master" recreateAfter="gfhtables">
     ...
     <make table="master"...
- 
+
   <data id="import_identified" recreateAfter="gfhtables">
     ...
     <make table="identified"...
@@ -3811,7 +3811,7 @@ the observation::
     </fitsProdGrammar>
 
 
-This is, in our view, an acceptable policy, but many observers want 
+This is, in our view, an acceptable policy, but many observers want
 weird policies (try to talk them out of it, since such behaviour is
 not nice, and it leads to a bad user experience in the VO as a whole).
 You can get as fancy (or antisocial) as you like using custom
@@ -3825,8 +3825,8 @@ two objects made in 2003::
           <![CDATA[
           def getEmbargo(row):
             res = '2008-12-31'
-            if (row.get("ARI_TYPE")!="SCIENCE" or 
-                row["ARI_OBJC"]=='Q2237+0305' 
+            if (row.get("ARI_TYPE")!="SCIENCE" or
+                row["ARI_OBJC"]=='Q2237+0305'
                 or row["ARI_OBJC"]=='SBSS 1520+530'):
               if '2003-01-01'<=row['DATE_OBS']<='2003-12-31':
                 res = '2005-12-31'
@@ -3862,7 +3862,7 @@ data – see above for details on how to create users and groups.
 .. _cores available: http://docs.g-vo.org/DaCHS/ref.html#cores-available
 .. _write your own core: http://docs.g-vo.org/DaCHS/ref.html#writing-custom-cores
 .. _data checklist: http//docs.g-vo.org/DaCHS/data_checklist.html
-.. _scs.xml: http://docs.g-vo.org/DaCHS/ref.html#the-scs-xml-renderer 
+.. _scs.xml: http://docs.g-vo.org/DaCHS/ref.html#the-scs-xml-renderer
 .. _ESAVO registry: http://esavo.esa.int/registry/index.jsp
 .. _VAO registry: http://nvo.stsci.edu/vor10/index.aspx
 .. _IVOA identifiers: http://www.ivoa.net/Documents/REC/Identifiers/Identifiers-20070302.html
@@ -3918,7 +3918,7 @@ data – see above for details on how to create users and groups.
    If you want to allow queryies in other systems, just write the index
    statement inline, e.g., for galactic coordinates in the columns
    ``lambda``, ``beta``::
-    
+
     <index name="q3c_gal" cluster="True" columns="lambda,beta"
       >q3c_ang2ipix(lambda,beta)</index>
 

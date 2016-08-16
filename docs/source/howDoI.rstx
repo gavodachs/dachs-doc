@@ -9,7 +9,7 @@ Recipies and tricks for solving problems using GAVO DaCHS
 :Email: gavo@ari.uni-heidelberg.de
 :Date: |date|
 
-.. contents:: 
+.. contents::
   :depth: 2
   :backlinks: entry
   :class: toc
@@ -81,7 +81,7 @@ like this::
 There are many reasons why you could violate the uniqueness constraints on
 primary keys, but let's say you just got a message saying::
 
-  Primary key <whatever> could not be added ('could not create unique 
+  Primary key <whatever> could not be added ('could not create unique
   index "data_pkey" DETAIL:  Table contains duplicated values.)'
 
 The question at this point is: What are the duplicated values?  For a
@@ -94,11 +94,11 @@ import your data.
 
 Then, exececute a query like::
 
-  select * 
+  select *
   from (
-    select <primary-col>, count(*) as ct 
+    select <primary-col>, count(*) as ct
     from <your-table>
-    group by <primary-col>) as q 
+    group by <primary-col>) as q
   where ct>1;
 
 
@@ -111,7 +111,7 @@ you want to parse from values that *sometimes* are Undefined, use code
 like::
 
   <bind name="alpha">parseWithNull(@RA,
-    lambda l: hmsToDeg(l, ":"), 
+    lambda l: hmsToDeg(l, ":"),
     checker=lambda l: isinstance(l, utils.pyfits.Undefined))</bind>
 
 
@@ -132,7 +132,7 @@ it isn't), such characters make other software's lives much harder – the
 plus above, for example, may be turned to a space if used in a URL.
 
 Thus, we discourage the use of such names, and if at all possible, you
-should try and use simpler names.  If, however, you insist on such 
+should try and use simpler names.  If, however, you insist on such
 names, you can simply write something::
 
    <rowfilter procDef="//products#define">
@@ -252,7 +252,7 @@ ICRS)::
     <setup>
       <code>
         gal2ICRS = stc.getSimple2Converter(
-          stc.parseSTCS("Position GALACTIC"), 
+          stc.parseSTCS("Position GALACTIC"),
           stc.parseSTCS("Position ICRS"))
       </code>
     </setup>
@@ -338,7 +338,7 @@ add a spherical distance to a cone search service over a table with
 positions in raj2000, dej2000, say something like::
 
   <outputTable verbLevel="20">
-    <outputField name="_r" 
+    <outputField name="_r"
       unit="deg" ucd="pos.andDistance"
       tablehead="Dist"
       description="Distance to the queried position"
@@ -415,8 +415,8 @@ Within DaCHS, this is currently only supported using custom phrase
 makers.  This would look like this::
 
   <condDesc>
-    <inputKey name="columnwords" 
-      description="Terms in column description (case does not 
+    <inputKey name="columnwords"
+      description="Terms in column description (case does not
         matter, patterns not allowed)"
       type="text" tablehead="Column words"/>
     <phraseMaker>
@@ -582,7 +582,7 @@ fields" widget at the bottom of the form.  To suppress it, add a line
 ::
 
   <property name="noAdditionals">True</property>
-  
+
 to the service definition.  The "True" in there actually is a bit of a
 red herring, the widget is suppressed for any value.
 
@@ -621,7 +621,7 @@ if the server ran off-root.
 This is the recommended way of doing things.  If, however, you insist on
 fancy layouts or need complete control over the appearance of your
 image (or whatever), you can use the evil "raw" meta format::
-  
+
   <meta name="_bottominfo" format="raw"><![CDATA[
     <a href="\servicelink{cars/q/cat/static/fields.png}">
     <img src="\servicelink{cars/q/cat/static/fields-inline.png}"/>
@@ -671,7 +671,7 @@ template::
   <STREAM id="massfrac_template">
     <doc>A condDesc for a mass fraction.  These consist of an element label,
     a center value and a weird way of specifying the error.
-    
+
     There can be a few of them for a given service, and thus you need to
     define the macro item. It is used to disambiguate the names.
     </doc>
@@ -708,7 +708,7 @@ And here's a service with that ``condDesc``, including the custom css::
 
   <service id="web">
     <meta name="title">Theoretical spectra of hot compact stars</meta>
-    
+
     <dbCore queriedTable="newdata">
       <LOOP listItems="1 2" source="massfrac_template"/>
     </dbCore>
@@ -842,7 +842,7 @@ displayed and which go where, use the following pattern::
         </events>
       </LOOP>
 
-      <outputField 
+      <outputField
         original="accref" displayHint="type=product,nopreview=1"/>
 
       <LOOP listItems="raj2000 dej2000">
@@ -861,7 +861,7 @@ version 0.7.
 But then, the main point is: Don't do this – just provide previews.
 They're making a world of a difference, and they are in general not hard
 to make even if DaCHS doesn't support your formats out of the box. See
-http://docs.g-vo.org/DaCHS/ref.html#product-previews for details.
+:dachsref:`Product Previews` for details.
 
 ...change metadata for a column coming from a mixin?
 ----------------------------------------------------
@@ -872,7 +872,7 @@ Most mixins add their columns at table instanciation, which means that
 the columns provided by them are already available when you define your
 columns.  Also, columns with the same name overwrite existing columns.
 Thus, if you say::
-  
+
   <column original="bandpassLo" displayHint="displayUnit=Angstrom"/>
 
 you'll have the metadata from bandpassLo with a new displayHint.
@@ -895,7 +895,7 @@ a table mixing in q3cindex, you'd rather use ``q3cjoin(ra, dec, ra, dec,
 radius)``, again all in degrees::
 
   <condDesc>
-    <inputKey type="file" name="upload" 
+    <inputKey type="file" name="upload"
       description="Upload a list of target positions; this expects
          a text file with three floats per line (ICRS RA, Dec, radius,
          all in decimal degrees)."/>
@@ -907,7 +907,7 @@ radius)``, again all in degrees::
           circles.append(pgsphere.SCircle(
             pgsphere.SPoint.fromDegrees(ra, dec),
             sr*utils.DEG))
-        
+
         yield " OR ".join(
           "ssa_location @ %%(%s)s"%base.getSQLKey("roi", c, outPars)
           for c in circles)
@@ -953,11 +953,11 @@ search cone and a pgsphere geometry called ``origin_est``::
   </condDesc>
 
 
--- so, you are inheriting from the SCS condition on three levels and then 
+-- so, you are inheriting from the SCS condition on three levels and then
 override the ``genQuery`` function defined in the common setup code.  The
 way the condDescs are written, you must return rather than yield
 the actual query string.  See the tutorial on how condDesc code
-works in general.  
+works in general.
 
 This has only changed the condDesc used in web forms.  To change the
 condition used in the cone search protocol, you can re-use the match
@@ -1012,13 +1012,13 @@ following workaround in such a case:
           ...
           fluxCalibration="__NULL__"
         >//ssap#hcd</mixin>
-    
+
     (you only need to do this when the parameter overridden is required
     by the mixin).
 
 (2) Add a column with the right utype to the table::
 
-       <column name="ssa_fluxcalib" type="text" 
+       <column name="ssa_fluxcalib" type="text"
         utype="ssa:Char.FluxAxis.Calibration"
         tablehead="Calib Flux" verbLevel="20"
         description="Type of flux calibration"/>
