@@ -1,0 +1,147 @@
+DaCHS on Docker
+###############
+
+Here go some lines about encapsulating DaCHS in Docker container(s).
+
+Rationale
+=========
+Dachs is composed by two living blocks: (1) the data access interface consulting (2) a Postgres database. Not all data is stored in the sql-db, but instead reside in files within Dachs directories tree. Typically, those files -- which we can say *connect* both running blocks -- are placed inside Dachs's ``GAVO_ROOT/inputs``.
+
+A very relevant point is to have a way to persist data and keep datasets separated.
+
+The files structure of Dachs goes like::
+
+  /var/gavo
+  ├── cache
+  ├── etc
+  │   ├── defaultmeta.txt
+  │   ├── userconfig.rd
+  │   └── ...
+  ├── inputs
+  │   ├── DATASET_1
+  │   │   ├── data
+  │   │   └── q.rd
+  │   └── DATASET_2
+  │       ├── data
+  │       └── q.rd
+  ├── logs
+  ├── state
+  ├── tmp
+  └── web
+      └── templates
+          └── root.html
+
+, where ``DATASET_1`` and ``DATASET_2`` are hypothetical datasets with files ``q.rd`` named to describe the resources. Without loosing generality lots of files have been omitted in this (example files) tree and some other have been exposed, the reason is to call attention for those files carrying information of interest for persistence.
+
+For instance, it would be nice to have ``DATASET_1`` and ``DATASET_2`` as "plugable" container/volumes. Also, site-dependent files like the ones in ``etc`` and ``web`` should compose the "main" container, but be editable.
+
+
+The server
+----------
+The (main) container encapsulates the server itself, files and directories to run the software.
+
+
+Detached config
+...............
+To be able to have the settings independent from software installation -- for maintenance purposes, for example -- we would like to have files in ``/var/gavo/etc`` (remember file ``/etc/gavo.rc``) and alike directories to be part of another docker volume.
+
+
+Mobile datasets
+---------------
+Whenever a dataset is added to *dachs-docker*, an ``gavo import`` command should be run. For example, mounting ``DATASET_1`` volume to ``/var/gavo/inputs/DATASET_1``, should trigger the command::
+
+  $ gavo import /var/gavo/inputs/DATASET_1/q.rd
+
+
+About ingesting data
+--------------------
+Before getting into the docker node, is worth it to highlight the steps and states of the system we need to have a dataset ingested-and-available through dachs.
+
+First, we have to place the data and their descriptor (``RD``) in some directory -- for instance, ``DATASET_1/``.
+To ingest the data, ``gavo``/dachs server has to be running, as well as ``postgresql``.
+And then we can ``gavo import DATASET_1/q``.
+
+Picture the components::
+
+                     +-------------+          +------------+
+                     | gavo daemon |   ----   | postgresql |
+                     +-------------+          +------------+
+                      |                        |
+  +...........+       |                        |
+  | DATASET_1 |  -----+----  gavo import  -----`
+  +...........+       |      ```````````
+                      |
+                      |
+                      `===============
+                       | data access |
+                       |  interface  |
+                       ===============
+
+
+It is important to have this diagram in mind to understand not only the components but the steps to make data available for Docker each container can run only one process (ideally).
+
+
+Dockerizing
+===========
+A first try on dockerizing DaCHS can be taken from the `Docker hub`_ (the respective Dockerfile is linked from there).
+There you have dachs and postgres servers running all together.
+Current version is ``v0.2``.
+
+Next step is to plug-in data volumes; to have data added from the outside world -- take ``DATASET_1`` and ``DATASET_2`` as examples.
+
+
+Volumes on
+----------
+Attaching a volume to a container -- as well as detaching and keeping it for persistence to another mount in the future -- is a simple process, we just have to follow some rules to make good use of it.
+
+First of all, volumes can be attached to a container *only* at the moment the container is initialized; volumes *cannot* be mounted on already running containers.
+Second, volumes are made to persist; this means that volumes will still exist even after the (main) container removal.
+
+To create a data volume, we basically initialize a container with no action, but a volume::
+
+ $ docker create --name dataset_1 \
+                 -v $PWD/DATASET_1:/var/gavo/inputs/dataset_1 \
+                 ubuntu /bin/true
+
+The line above supposes the directory ``DATASET_1`` is under our current directory. The volume created has ``/var/gavo/inputs/dataset_1`` mapping to host's ``$PWD/DATASET_1``. (The image ``ubuntu`` is used without particular reason; **any** image should do the job.)
+
+Now, another container can have access to the very same volume(s) mounted in ``dataset_1`` through ``docker run``'s option ``--volumes-from``; without further arguments, the vary same mounting points will be replicated.
+In our current sandbox, a line like the following is to work::
+
+ $ docker run -it --name server \
+                  --volumes-from dataset_1 \
+                  -p 8080:8080
+                  chbrandt/dachs-server
+
+After that, you should find yourself inside server's shell. The next steps are the usual ones to publish ``dataset_1``, we just have to put things up-and-running before::
+
+ $ service postgresql start
+ $ gavo serve start
+ $ gavo import dataset_1/q
+
+Now gavo/DaCHS should be accessible from the host (localhost) at port ``8080``.
+
+
+Next steps
+----------
+To make a proper, or better use of containers capacities, dachs (server) and postgres should be separated; each one to run in its own container. And then ``dachs`` access ``postgres`` through (tcp) network.
+
+Split dachs/postgres
+....................
+I understand the very same image, for instance `chbrandt/dachs-server`_, can be used as base image for the new ones. **The use of two containers instead of one seem to be pretty simple, leaving to the ``dachs`` side a bit more of complexity for to deal with eventual permissions and resolving names -- I lack the details therein, that's why I call Markus here.**
+
+The new ``postgres`` image has to be slightly modified to ``EXPOSE`` postgres port (usually 5432) and to run the service during the initialization (``ENTRYPOINT=["service postgresql start"]``. Let's call this new image ``dachs-postgres``.
+
+I see no modifications to the ``dachs`` image, but to the container -- i.e, when image is ``run``.
+To connect to ``dachs-postgres``, the ``dachs-server`` has to ``run --link db``[1]_, where "``db``" here is the name given when the ``dachs-postgres`` image was ``run --name db``.
+From inside the container being initialized, a script (i.e, the ``ENTRYPOINT``) has to establish the connection.
+A set o environment variables will be available when using ``--link`` to help the setup of the application.
+In our case, considering we called the ``postgres`` container ``db`` and the exposed port was ``5432``, we will have the variable ``DB_PORT_5432_TCP_ADDR`` informing the ip address of that container. Other variables, like ``DB_PORT`` informing the whole address to reach the resource, are also available [*]_.
+
+
+
+.. _chbrandt/dachs-server: `Docker hub`_
+.. _Docker hub: https://hub.docker.com/r/chbrandt/dachs-server/
+
+.. [1] https://docs.docker.com/engine/userguide/networking/default_network/dockerlinks/
+.. [*] https://docs.docker.com/engine/userguide/networking/default_network/dockerlinks/#/environment-variables
