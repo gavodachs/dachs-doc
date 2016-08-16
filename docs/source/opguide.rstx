@@ -516,7 +516,8 @@ distributed one::
 Once it's already there, use ``dumpDF //userconfig`` and, say, ``less``
 to pick out the templates for whatever elements you need to copy.
 Currently, userconfig is already used in configuring the registry
-interface and extending the built-in obscore schema.
+interface, extending the built-in obscore schema, and providing SIAPv2
+metadata, and its use is growing.
 
 Changes to userconfig.rd are picked up by DaCHS but will usually not be
 visible in the RDs they end up in.  This is because DaCHS does not
@@ -531,6 +532,8 @@ necessary, you can reload userconfig itself using::
 
   gavo serve exp %
 
+Note that for ``gavo serve exp`` to work, you need ``[web]adminpasswd``
+set in your ``/etc/gavo.rc``.
 
 Simple Web Resources
 --------------------

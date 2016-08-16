@@ -2625,6 +2625,35 @@ With this, the service definition would look like this::
 (where again you can just write the above core inline rather than
 referencing it; that's the style we usually recommend).
 
+
+SIAP version 2
+--------------
+
+SIAP version 2 is just a a thin layer of parameters on top of obscore.
+To publish with SIAP version 2, simply ingest your data as for SIAP_ and
+add the appropriate ObsTAP_ mixin (``//obscore#publishSIAP``, in all
+likelihood).
+
+There is a sitewide SIAPv2 service at ``<root
+URL>/__system__/siap2/sitewide/siap.xml`` which is always there.  It is,
+however, unpublished by default.  To publish it, you should furnish some
+extra metadata in your userconfig RD (see 
+:dachsdoc:`opguide.html#userconfig-rd`).
+
+Specifically, get the ``sitewidesiap2-extras`` stream and follow the
+instructions there and update the meta items as appropriate; they are
+analogous to the ones for SIAP_.
+
+Once that's done, you can say::
+
+  gavo pub //siap2
+
+and you're done.
+
+There currently is no facility for having SIAPv2 services for individual
+services.  If you want them, talk to us.
+
+
 SSAP
 ----
 
@@ -3377,18 +3406,13 @@ TAP examples
 ------------
 
 The most prominent kind of examples are the one for TAP/ADQL.
-These reside ``$GAVO_ROOT/etc/userconfig.rd``.  If you don't
-have that file yet, create it with a contents of::
+These reside in userconfig – please read
+:dachsdoc:`opguide.html#userconfig-rd` before writing examples.
 
-  <resource schema="__system">
-  </resource>
-
-There can be quite a bit of configuraiton in there 
-(``gavo admin dumpDF //userconfig`` shows you what DaCHS uses when
-you don't override the items).  TAP examples are taken from a STREAM
+TAP examples are taken from a STREAM
 with id ``tapexamples``.  One such example is already given in the
-userconfig.rd of the distribution.  It will be ignored if you define
-your own ``tapexamples``, which is probably not a major loss.
+userconfig.rd of the distribution which you can take as a template for
+your own examples.
 
 In the stream, there are ``_example`` meta elements with a mandatory
 ``title`` attribute and ReStructuredText contents.  The built-in example
@@ -3416,22 +3440,17 @@ would typically use that to restrict the display of the example to
 states in which it assumes the user wishes to runs queries against that
 particular table.
 
-DaCHS does not (yet) pick up changes to ``userconfig`` automatically.
-Hence, after adding or changing examples, you have to run::
+As is described in the operator's guide, DaCHS does not pick up changes
+to ``userconfig`` automatically.  Hence, after adding or changing
+examples, you have to run::
 
   gavo serve exp % //tap
 
-as the gavo user on the server.  The somewhat funky-looking command line
-consists of ``exp`` as the unique abbreviation of serve's exipireRDs
-subcommand, ``%`` as the identifier of userconfig (which needs manual
-reloading), and ``//tap`` (which needs reloading as the rendered
-examples text is cached on it).
-
-This will only work if you've set ``[web]adminpasswd`` in your
-``/etc/gavo.rc``; of course, you could also restart the server.
+as the gavo user on the server.
 
 To see your shiny new example(s), point your browser to ``<server
 url>/tap/examples``.
+
 
 Datalink examples
 -----------------
