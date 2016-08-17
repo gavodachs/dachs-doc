@@ -1,6 +1,16 @@
 DaCHS on Docker
 ###############
 
+:Author: Carlos Brandt
+:Email: carloshenriquebrandt@gmail.com
+:Date: |date|
+
+
+.. contents::
+  :depth: 2
+  :backlinks: entry
+  :class: toc
+
 Here go some lines about encapsulating DaCHS in Docker container(s).
 
 Rationale
