@@ -1,5 +1,6 @@
+===============
 DaCHS on Docker
-###############
+===============
 
 :Author: Carlos Brandt
 :Email: carloshenriquebrandt@gmail.com
@@ -22,26 +23,26 @@ A very relevant point is to have a way to persist data and keep datasets separat
 The files structure of Dachs goes like::
 
   /var/gavo
-  ├── cache
-  ├── etc
-  │   ├── defaultmeta.txt
-  │   ├── userconfig.rd
-  │   └── ...
-  ├── inputs
-  │   ├── DATASET_1
-  │   │   ├── data
-  │   │   └── q.rd
-  │   └── DATASET_2
-  │       ├── data
-  │       └── q.rd
-  ├── logs
-  ├── state
-  ├── tmp
-  └── web
-      └── templates
-          └── root.html
+  +---cache
+  +---etc
+  |   +---defaultmeta.txt
+  |   +---userconfig.rd
+  |   +---...
+  +---inputs
+  |   +-- DATASET_1
+  |   |   +---data
+  |   |   +---q.rd
+  |   +-- DATASET_2
+  |       +---data
+  |       +---q.rd
+  +---logs
+  +---state
+  +---tmp
+  +---web
+      +---templates
+          +---root.html
 
-, where ``DATASET_1`` and ``DATASET_2`` are hypothetical datasets with files ``q.rd`` named to describe the resources. Without loosing generality lots of files have been omitted in this (example files) tree and some other have been exposed, the reason is to call attention for those files carrying information of interest for persistence.
+where ``DATASET_1`` and ``DATASET_2`` are hypothetical datasets with files ``q.rd`` named to describe the resources. Without loosing generality lots of files have been omitted in this (example files) tree and some other have been exposed, the reason is to call attention for those files carrying information of interest for persistence.
 
 For instance, it would be nice to have ``DATASET_1`` and ``DATASET_2`` as "plugable" container/volumes. Also, site-dependent files like the ones in ``etc`` and ``web`` should compose the "main" container, but be editable.
 
@@ -155,3 +156,5 @@ In our case, considering we called the ``postgres`` container ``db`` and the exp
 
 .. [1] https://docs.docker.com/engine/userguide/networking/default_network/dockerlinks/
 .. [*] https://docs.docker.com/engine/userguide/networking/default_network/dockerlinks/#/environment-variables
+.. |date| date::
+
