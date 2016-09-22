@@ -157,6 +157,15 @@ runs the server in this mode.  You can also use ``install`` instead of
 ``develop``; in that case, you will have to rerun setup.py everytime
 you update the source.
 
+**Note**: If running from SVN, do not forget to run ``gavo upgrade``
+*after* an ``svn update``.  The on-disk structures of DaCHS sometimes
+change, and ``gavo upgrade`` makes sure they are properly updated if
+necessary.  Technically, you would only need to run gavo upgrade if, in
+gavo --version, the two numbers behind “Schema” are different, but since
+``gavo upgrade`` is smart enough to figure out when there's no need to
+do anything, just make it a routine to run it.
+
+
 .. _nevow: http://divmod.org/trac/wiki/DivmodNevow
 .. _setuptools documentation: http://peak.telecommunity.com/DevCenter/EasyInstall
 

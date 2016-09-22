@@ -68,22 +68,22 @@ Metadata contains is the VOTable.TABLE element the data comes from in
 its votTable atttribute.  By iterating over the metadata you get the
 field objects. For example::
 
->>> from gavo import votable
->>> labels = [field.name for field in metadata]
->>> print [dict(zip(labels, row)) for row in data]
+  from gavo import votable
+  labels = [field.name for field in metadata]
+  print [dict(zip(labels, row)) for row in data]
 
 There's a convenience method that does the dictification for you; to
 iterate over all rows of a VOTable as dicts, you can say::
 
->>> data, metadata = votable.load(source)
->>> for row in metadata.iterDicts(data):
-    ...
+  data, metadata = votable.load(source)
+  for row in metadata.iterDicts(data):
+     ...
 
 If you want to create a numpy record array from that data, you can
 say::
 
->>> data, metadata = votable.load(source)
->>> ra = rec.array(data, dtype=votable.makeDtype(metadata))
+  data, metadata = votable.load(source)
+  ra = rec.array(data, dtype=votable.makeDtype(metadata))
 
 However, you cannot in general store NULL values in record arrays (as
 None, that is), so this code will fail for many tables unless one
@@ -95,7 +95,7 @@ strings get truncated (or replace the ``*`` in the ``FIELD`` object with
 whatever actual length you deem sufficient).
 
 All the above examples will fail on VOTables with features they cannot
-understand.  `Current VO practices`_ recommend ignoring unknown tags
+understand.  Current VO practices recommend ignoring unknown tags
 and attributes, though.  The VOTable library has a brute force
 approach so far; pass ``raiseOnInvalid=False`` to the parsing functions
 and they will ignore constructs the do not understand.  Note that this
@@ -252,13 +252,13 @@ When creating a VOTable using the low-level interface, you write the
 VOTable using DOM elements, using a simple notation gleaned from
 `Nevow Stan`.  This looks like this::
 
->>> vot = V.VOTABLE[
-...    V.INFO(name="generic", value="example)["This is an example"],
-...    V.RESOURCE[
-...      votable.DelayedTable(
-...        V.TABLE[
-...          V.FIELD(name="col1", datatype="char", arraysize="*"),],
-...        rows, V.BINARY)]]
+  vot = V.VOTABLE[
+     V.INFO(name="generic", value="example)["This is an example"],
+     V.RESOURCE[
+       votable.DelayedTable(
+         V.TABLE[
+           V.FIELD(name="col1", datatype="char", arraysize="*"),],
+         rows, V.BINARY)]]
 
 -- square brackets thus denote element membership, round parentheses are
 used to set attributes.
