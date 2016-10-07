@@ -603,7 +603,7 @@ registry, it is possibly unwelcome when publishing URLs outside of the
 VO.  To overcome it, you can define "vanity names", single path elements
 that are mapped to paths.
 
-These mappings are read from the file ``GAVO_ROOT/etc/vanitymap.txt``.
+These mappings are read from the file ``GAVO_ROOT/etc/vanitynames.txt``.
 The file contains lines of the format::
 
     <target> <key> [<option>]
