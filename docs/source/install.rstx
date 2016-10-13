@@ -301,7 +301,7 @@ postgres databases on that particular system):
 
 (#) Create the database itself::
 
-       sudo -u postgres createdb --encoding=UTF-8 gavo
+       sudo -u postgres createdb --encoding=UTF-8 --locale=C gavo
 
 On Debian, the configuration files for this cluster are at
 ``/etc/postgresql/$PGVERSION/pgdata/``.
