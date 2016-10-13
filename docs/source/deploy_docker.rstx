@@ -8,7 +8,7 @@ DaCHS on Docker
 
 
 .. contents::
-  :depth: 2
+  :depth: 3
   :backlinks: entry
   :class: toc
 
@@ -128,14 +128,16 @@ Dockerizing
 
 A first try on dockerizing DaCHS can be taken from the `Docker hub`_
 (the respective Dockerfile is linked from there).  There you have dachs
-and postgres servers running all together.  Current version is ``v0.2``.
+and postgres servers running all together -- the ``latest`` image --,
+but also the option for dachs and postgres running individually (see
+section `Splitting dachs/postgres`_).
 
 Next step is to plug-in data volumes; to have data added from the
 outside world -- take ``DATASET_1`` and ``DATASET_2`` as examples.
 
 
-Volumes on
-----------
+Data Volumes
+------------
 
 Attaching a volume to a container – as well as detaching and keeping it
 for persistence to another mount in the future – is a simple process,
@@ -170,7 +172,7 @@ In our current sandbox, a line like the following is to work::
  $ docker run -it --name server \
                   --volumes-from dataset_1 \
                   -p 8080:8080
-                  chbrandt/dachs-server
+                  chbrandt/dachs:latest
 
 After that, you should find yourself inside server's shell. The next
 steps are the usual ones to publish ``dataset_1``, we just have to put
@@ -183,46 +185,66 @@ things up-and-running before::
 Now gavo/DaCHS should be accessible from the host (localhost) at port ``8080``.
 
 
-Next steps
-----------
+Splitting dachs/postgres
+------------------------
 
 To make a proper, or better use of containers capacities, dachs (server)
 and postgres should be separated; each one to run in its own container.
 And then ``dachs`` access ``postgres`` through (tcp) network.
 
-Split dachs/postgres
-....................
+Since the Debian package provided -- ``gavodachs-server`` -- provides
+a complete setup solution in what regards both PostgreSQL and DaCHS
+servers, the idea to have them on their own containers was/is to make
+use of the Debian-apt solution and modify the environment as needed
+on each image.
 
-I understand the very same image, for instance `chbrandt/dachs-server`_,
-can be used as base image for the new ones. **The use of two containers
-instead of one seem to be pretty simple, leaving to the ``dachs`` side a
-bit more of complexity for to deal with eventual permissions and
-resolving names -- I lack the details therein, that's why I call Markus
-here.**
+The modifications, that can be seen through their (public) dockerfiles
+are here listed:
 
-The new ``postgres`` image has to be slightly modified to ``EXPOSE``
-postgres port (usually 5432) and to run the service during the
-initialization (``ENTRYPOINT=["service postgresql start"]``. Let's call
-this new image ``dachs-postgres``.
+* dachs_
+   * the server looks for a host called "postgres" at the same network;
+     this is accomplished by changing ``/var/gavo/etc/dsn`` "host" entry,
+     addition of corresponding line in ``/etc/hosts`` (automatically)
+     added by Docker when using the ``--link postgres`` option (see below)
+     and by ``gavo init host=postgres``
+* postgres_
+   * PSQL trusts on every host from the (Docker) network 172.17.0.0/24;
+     this is accomplished by modifying the corresponding ``pg_hba.conf``
 
-I see no modifications to the ``dachs`` image, but to the container --
-i.e, when image is ``run``.  To connect to ``dachs-postgres``, the
-``dachs-server`` has to ``run --link db``[1]_, where "``db``" here is
-the name given when the ``dachs-postgres`` image was ``run --name db``.
-From inside the container being initialized, a script (i.e, the
-``ENTRYPOINT``) has to establish the connection.  A set o environment
-variables will be available when using ``--link`` to help the setup of
-the application.  In our case, considering we called the ``postgres``
-container ``db`` and the exposed port was ``5432``, we will have the
-variable ``DB_PORT_5432_TCP_ADDR`` informing the ip address of that
-container. Other variables, like ``DB_PORT`` informing the whole address
-to reach the resource, are also available [*]_.
+Clearly, a downside of dachs' customization is the forced name for
+``postgres``' container.
+
+Apart from that, the ``postgres`` exposes (default) port ``5432``.
+The other container, ``dachs`` exposes the port ``8080``.
+
+The way ``dachs`` container knows about ``postgres`` is through the use
+of ``--link`` option, for when used this option receives the *name* of
+the linked container (for instance, ``postgres``) the exposed ports are
+automatically recognized by the calling container.
+For more details, please take a look at the official documentation[1]_.
+
+To have them running -- the servers alone -- one should go like::
+
+$ docker run -dt --name postgres chbrandt/dachs:postgres
+$ docker run -it --link postgres chbrandt/dachs:server
+
+Sure we want to add other options to ``dachs:server``:
+
+* to map port 8080: ``-p 8080:8080``
+* to mount data volumes, for ``gavo import`` one/some RDs
+
+For a first try, and example data/RD is available as ``chbrandt/dachs:data``.
+Have a look at `Docker hub`_ description for complete command lines.
+
+Complain if something is not clear.
 
 
 
-.. _chbrandt/dachs-server: `Docker hub`_
-.. _Docker hub: https://hub.docker.com/r/chbrandt/dachs-server/
+.. _chbrandt/dachs: `Docker hub`_
+.. _Docker hub: https://hub.docker.com/r/chbrandt/dachs/
+
+.. _dachs: https://github.com/chbrandt/docker-dachs/tree/dachs/dockerfile
+.. _postgres: https://github.com/chbrandt/docker-dachs/tree/postgres/dockerfile
 
 .. [1] https://docs.docker.com/engine/userguide/networking/default_network/dockerlinks/
-.. [*] https://docs.docker.com/engine/userguide/networking/default_network/dockerlinks/#/environment-variables
 .. |date| date::
