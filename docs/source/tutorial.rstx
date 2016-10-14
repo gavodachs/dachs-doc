@@ -2837,34 +2837,64 @@ This service will expose all standard SSAP query parameters, and
 additionally condDescs built from the ``t_eff`` and ``log_g`` columns in
 the source table (see above).
 
-Incidentally, in web versions of such services, you may want to have
-specview-based "quick-view" links based on the ``run`` system rd that
-exposes the specview template.  Here's an example of an ``outputTable``
-(that would reside in the service element)::
+The web interfaces the form renderer builds from SSAP services are
+essentially unusable, and it's hard to fix that in DaCHS' current
+architecture.  So, you'll typically define extra browser-based
+services; this one here is taken from `flashheros/q`_::
 
-  <outputTable>
-    <outputField original="accref">
-      <formatter><![CDATA[
-        res[T.a(href=makeProductLink(data))[
-          "[Spectrum as VOTable]"]]
-        res[" ", T.a(href=base.makeAbsoluteURL(
-          "__system__/run/specview/fixed?source=%s%%3fdm=sed"%
-          urllib.quote(makeProductLink(data))))["[in VOSpec]"]]
-        return res
-      ]]></formatter>
-    </outputField>
-    <outputField original="ssa_specstart" displayHint="displayUnit=Å"/>
-    <outputField original="ssa_specend" displayHint="displayUnit=Å"/>
-  </outputTable>
+  <service id="web" defaultRenderer="form">
+    <meta name="shortName">FEROS Web</meta>
+    <meta name="title">FEROS Public Spectra Web Interface</meta>
+    <meta name="_related" title="FEROS SSAP"
+      >\internallink{feros/q/ssa/info}</meta>
+    <publish render="form" sets="local"/>
+    
+    <dbCore queriedTable="data">
+      <condDesc>
+        <inputKey original="ssa_targname" showItems="10">
+          <values fromdb=
+            "ssa_targname from feros.data order by ssa_targname"
+            multiOk="True"/>
+          <description>
+          Somewhat cleaned name of the target object as
+          given in the file.  The names should either be SIMBAD-resolvable
+          or give a reference for the source.  Some names we could not make
+          sense of are marked with a tilda (~); any help figuring out what
+          they are is appreciated.
+          </description>
+        </inputKey>
+      </condDesc>
+      <condDesc buildFrom="ssa_location"/>
+      <condDesc buildFrom="ssa_dateObs"/>
+      <condDesc>
+        <inputKey original="mime">
+          <property name="defaultForForm">application/x-votable+xml</property>
+          <values>
+            <option title="SDM VOTable">application/x-votable+xml</option>
+            <option title="1D FITS image">image/fits</option>
+          </values>
+        </inputKey>
+      </condDesc>
+    </dbCore>
 
-Some less cody approach would be welcome, but we'd need to collect some
-experience what people expect there.  Also note that specview is (or
-possibly was, when you're reading this) very picky in what it accepts as
-VOTables; in the example, the ``dm=sed`` parameter is used to instruct
-DaCHS' SDM-making machinery to come up with a table palatable by current
-specviews.
+    <outputTable>
+      <autoCols>accref, mime, ssa_targname, 
+        ssa_aperture, ssa_dateObs</autoCols>
+      <FEED source="//ssap#atomicCoords"/>
+      <outputField original="ssa_specstart" displayHint="displayUnit=Angstrom"/>
+      <outputField original="ssa_specend" displayHint="displayUnit=Angstrom"/>
+    </outputTable>
+  </service>
+
+As you can see, this adds a proper selector for object names and
+restricts the query parameters to what can reasonably be expected to be
+of interest in interactive work.  It also fixes the output table to only
+display a couple of columns astronomers immediately care about, and
+it makes some allowances for the preferred spectral units in optical
+astronomy as of the early 3rd millennium.
 
 .. _ssap.xml renderer: ./ref.html#the-ssap-xml-renderer
+.. _feros/q: http://svn.ari.uni-heidelberg.de/svn/gavo/hdinputs/feros/
 
 
 ObsTAP
@@ -3020,11 +3050,11 @@ including links in normal tables (as for DAL tables) and keep the normal
 access URL in the accref column.  To do that, define a column like
 this::
 
-	<column name="datalink" type="text"
-		ucd="meta.ref.url"
-		tablehead="DL"
-		description="URL of a datalink document for this dataset"
-		verbLevel="1" displayHint="type=url"/>
+  <column name="datalink" type="text"
+    ucd="meta.ref.url"
+    tablehead="DL"
+    description="URL of a datalink document for this dataset"
+    verbLevel="1" displayHint="type=url"/>
 
 and then fill it in the corresponding rowmaker.  For the normal case
 where a product corresponds to a disk file, there is a macro to help
@@ -3048,12 +3078,12 @@ being.  Guessing “about 10 kB” should be good enough, though.
 
 In total, the obscore mixin would have to look like this::
 
- 		<mixin
-			mime="'application/x-votable;content=datalink'"
-			accessURL="datalink"
-			size="10"
-			...
-		>//obscore#publish(WHATEVER)</mixin>
+     <mixin
+      mime="'application/x-votable;content=datalink'"
+      accessURL="datalink"
+      size="10"
+      ...
+    >//obscore#publish(WHATEVER)</mixin>
 
 (in case you're wondering: the ``datalink`` given here for accessURL is
 just the column name as given above).
@@ -3075,14 +3105,14 @@ To have datalinks rather than the plain dataset as what the accref
 points to, you need to change what DaCHS thinks of your dataset; this is
 what the ``//products#define`` rowfilter in your grammar is for::
 
-		<fitsProdGrammar qnd="True">
-			<rowfilter procDef="//products#define">
-				<bind key="path">\dlMetaURI{dl}</bind>
-				<bind key="mime">'application/x-votable+xml;content=datalink'</bind>
-				[...]
-			</rowfilter>
-			[...]
-		</fitsProdGrammar>
+    <fitsProdGrammar qnd="True">
+      <rowfilter procDef="//products#define">
+        <bind key="path">\dlMetaURI{dl}</bind>
+        <bind key="mime">'application/x-votable+xml;content=datalink'</bind>
+        [...]
+      </rowfilter>
+      [...]
+    </fitsProdGrammar>
 
 When you do this, you must use a custom descriptor generator.  See
 :dachsref:`Custom Product Descriptor Generators` in the reference manual.
@@ -3095,25 +3125,25 @@ A fairly typical case for a datalink service is a file that has a few
 related datasets and perhaps a cutout.  To define such a thing, write
 something like::
 
-	<service id="dl" allowed="dlget,dlmeta">
-		<meta name="title">HDAP Datalink</meta>
-		<meta name="description">This service lets you access cutouts
-			from HDAP plates and retrieve scaled versions.</meta>
-		<datalinkCore>
- 			<FEED source="//soda#fits_standardDLFuncs"
-				accrefPrefix="lswscans"/>
-			<metaMaker>
-				<code>
-					yield descriptor.makeLink(
-						makeProductLink(descriptor.accref+"?scale=4"),
-						contentType="image/fits",
-						description="FITS, scaled by 1/4",
-						semantics="#science",
-						contentLength=descriptor.estimateSize()/16.)
-				</code>
-			</metaMaker>
-		</datalinkCore>
-	</service>
+  <service id="dl" allowed="dlget,dlmeta">
+    <meta name="title">HDAP Datalink</meta>
+    <meta name="description">This service lets you access cutouts
+      from HDAP plates and retrieve scaled versions.</meta>
+    <datalinkCore>
+       <FEED source="//soda#fits_standardDLFuncs"
+        accrefPrefix="lswscans"/>
+      <metaMaker>
+        <code>
+          yield descriptor.makeLink(
+            makeProductLink(descriptor.accref+"?scale=4"),
+            contentType="image/fits",
+            description="FITS, scaled by 1/4",
+            semantics="#science",
+            contentLength=descriptor.estimateSize()/16.)
+        </code>
+      </metaMaker>
+    </datalinkCore>
+  </service>
 
 TODO: Explain what's going on here.
 
@@ -3490,17 +3520,17 @@ with the api renderer.
 
 To use it, you can write something like::
 
-	<meta name="_example" title="Dataset identifier">
-		Publisher dataset identifiers have a query part, but the
-		IVORN part still has to resolve:
-		:genparam:`uri(ivo://org.gavo.dc/~?feros/data/f89411.vot)`
-	</meta>
+  <meta name="_example" title="Dataset identifier">
+    Publisher dataset identifiers have a query part, but the
+    IVORN part still has to resolve:
+    :genparam:`uri(ivo://org.gavo.dc/~?feros/data/f89411.vot)`
+  </meta>
 
-	<meta name="_example" title="Standard identifier">
-		New-style standardIds use fragments to refer to standard keys within
-		vstd:Standard records, as in
-		:genparam:`uri(ivo://org.gavo.dc/std/glots#tables-1.0)`
-	</meta>
+  <meta name="_example" title="Standard identifier">
+    New-style standardIds use fragments to refer to standard keys within
+    vstd:Standard records, as in
+    :genparam:`uri(ivo://org.gavo.dc/std/glots#tables-1.0)`
+  </meta>
 
 Note that such examples best sit in the service rather than top-level in
 the RD; if the are direct children of the RD, they would appear in all
@@ -3660,46 +3690,199 @@ resource descriptors describe; DaCHS RDs may descibe zero, one, or
 multiple VO resources.  We apologize for the confused nomenclature.
 
 Physically, there are several services that keep and update this set and
-let people query them (a "full registry"), e.g., the `VAO registry`_,
-the `ESAVO registry`_, or the Astrogrid registry.  All these should
-harvest each other and thus have identical content (this is currently
-not always true).
+let people query them (a "full registry"), e.g., the `ESAVO registry`_
+or the DaCHS network of RegTAP services [#rr], with a web interface at
+http://dc.g-vo.org/WIRR.
 
-To be part of the VO, you have to register your services.  DaCHS makes
-this fairly easy since it contains a publishing registry.  This is again
-a service that exposes a standard interface defined by the Open Archives
-Initiatives.  There is a renderer for the OAI harvesting protocol
-(`OAI-PMH`_) called ``pubreg.xml`` that goes together with
-``registryCore``.  The service ``//services#registry`` with this
-renderer has a vanity name of ``/oai.xml``, which is you data center's
-publishing registry "endpoint".  Full registries obtain the resource
-records present on your data center for there.
 
-Each VO resource has a unique identifier of the form::
+Choose your Authority
+---------------------
+
+To actually be part of the VO, you have to register your services.  
+Registration means assigning a (globally unique) identifier to it.
+This identifier has the form
 
   ivo://<authority>/<stuff>
 
 -- <stuff> is defined by the DaCHS software (to be ``<RD id>/<XML id of
-registred object``), whereas <authority> is a globally unique string.
-It is recommended that you use your DNS name (or some appropriate part
-of it), which will provide some uniqueness.  The authority is declared
-in your gavorc (see below).  Details on VO identifiers can be found in
-`IVOA Identifiers`_.
+registred object``), whereas <authority> is a globally unique string
+identifying your.  It is recommended that you use your DNS name (or some
+appropriate part of it), which will provide some uniqueness.  Details on
+VO identifiers can be found in `IVOA Identifiers`_.
 
-To claim an authority, you have to define who you -- as an organization
--- are.  For this, DaCHS will create a resource record for your
-organization, too, where "your organization" for DaCHS means whatever
-you give as creator.name in defaultmeta (see below), which in general
-should be something like "My Institute Data Center" rather than "My
-Institute".  You can register "My Institute" as well, if you want, but,
-the way things are written now, not as the entity running managing the
-authority.
+Before you settle for an authority, do an `authority query`_ for your
+chosen string.  Make sure nobody else has registered it, then enter it
+into the [ivoa]authority field in your /etc/gavo.rc, like this::
+
+  [ivoa]
+  authority: org.gavo.dc
+
+To keep others from claiming your authority later, you will have to
+register your authority, too.  How to do this depends on how you intend
+to feed the registry (see below).
+
+
+Adding Publish Elements
+-----------------------
+
+With that done, you add ``<publish>`` elements to the services you want
+to publish to the registry.  These were introduced under `Cores and
+Services`_; in the most typical case, you want at least one protocol
+interface and one browser interface per data sets, but there are many
+exceptions.
+
+Here's "best practice" recommendations:
+
+* for SCS services, you can simply use the generated web interface as
+  the browser interace.  This leads to the pattern shown
+  in `Cores and Services`_ .  This will also create an auxiliary TAP
+  publication if the queried table is adql-accessible.  In plain
+  English: the table will also be discoverable if people look for TAP
+  services.
+* as discussed above, you'll usually have a separate browser service for
+  SSAP services.  When you register these, you don't want separate
+  registry records for the SSAP and the web service.  Instead, you just
+  register the SSAP service and tell DaCHS to put the browser service
+  down as a separate capability of that resource.  For this, use the
+  ``service`` attribute of ``publish``; this example is again taken from
+  `feros/q`_:
+
+  	<publish render="ssap.xml" sets="ivo_managed"/>
+		<publish render="form" sets="ivo_managed" service="web"/>
+* for SIAP services, that might work, too; usually, however, you'll want
+  to trim the interface and in particular the response a bit (using
+  outputTable).  If you do, you'll have to use the ``service=`` trick as
+  in SSAP.
+* your TAP service you only need to register once: ``gavo pub //tap``.
+  this will register any obscore table you may have.  Similarly, if you
+  want to register your SIAv2 service, you'll just say ``gavo pub
+  //siap2``.
+
+For compound services like TAP, Obscore and SIAv2, which typically
+provide access to many different data collections, each of these should
+be registered as a data collection record.  In the TAP case, that's
+easy.  Simply write::
+
+  <publish/>
+
+into the body of the table and be done with it.  If your "resource"
+consists of several tables, do not individually publish them.  Instead,
+publish the data item that creates them, as in this example taken from
+`rr/q`_::
+
+	<data id="create" auto="false">
+	
+		<publish sets="ivo_managed" services="//tap#run"/>
+
+		<make table="resource" role="resource">
+	    [...]
+		<LOOP listItems="capability res_schema res_table 
+				table_column res_detail interface intf_param
+				relationship res_role 
+				validation res_date oairecs res_subject
+				stc_spatial stc_temporal stc_spectral stc_redshift">
+			<events>
+				<make table="\item" role="\item"/>
+			</events>
+		</LOOP>
+		[...]
+	</data>
+
+If such a data item doesn't exist, perhaps because the various tables
+are built in different data elements, just make a non-importable
+artificial collection of the tables, as in this example taken from
+`arigfh/q`_::
+
+	<data id="gfhtables" auto="False">
+		<publish/>
+		<make table="id"/>
+		<make table="nid"/>
+	</data>
+
+.. _rr/q: http://svn.ari.uni-heidelberg.de/svn/gavo/hdinputs/rr/
+.. _arigfh/q: http://svn.ari.uni-heidelberg.de/svn/gavo/hdinputs/arigfh/
+
+
+
+Sets
+----
+
+The ``ivo_managed`` set that came up in some of the examples above (it
+is the default for ``publish`` in data publications) has the special
+role of indicating "put this service into the VO Registry".
+
+While you can define as many other sets as you want (by just mentioning
+them in ``sets`` attributes), DaCHS as delivered just uses one other set
+name, ``local``.  Register a service in that set, and it will be
+displayed on the root page when you use one of the default root page
+templates.
+
+Doing the Publication
+---------------------
+
+The ``publish`` elements as such have no immediate effect.  This is to
+prevent accidental publications of unfinished resources, and it also
+avoids having to speculatively re-publish resources when you change the
+RD.  I won't hide that it's also technically simpler this way.
+
+So, to actually make the publication happen, run::
+
+  gavo pub q.rd
+
+(you pass RD ids instead of filenames, too, as in ``gavo pub
+arigfh/q``).  When there are ``local`` publications in the RD published,
+the ``//services`` RD on the running DaCHS instance has to be reloaded.
+If you gave the [web]adminpasswd configuration item in your ``gavo.rc``
+(and you're running gavo pub on a machine that has serverURL configured
+to point to the running instance), DaCHS will automatically do this;
+otherwise, it will issue a warning.
+
+This will still not automatically propagate your records to the VO
+Registry unless you're running a publishing registry.  The next three
+sections discuss the transport options to the VO Registry.
+
+Running a Publishing Registry
+-----------------------------
+
+If you run a largeish data center with perhaps dozens of resources that
+change now and then, you should run a publishing registry.  This is not
+terribly hard, but it incurs that you owe it to the world to let your
+service run fairly continuously.  If you're not sure you're up to that,
+choose another option (below).  Likewise, if you're only running one or
+two services, this is probably not for you either and you should read on
+below.
+
+The first step to running a registry is to define what your authority
+corresponds to in the first place.  DaCHS will then create a resource 
+record based on that information.  How to do this `is described in the
+operator's guide`_.  The fact that that's a bit involved is the main
+reason we're discussion other options below.
+
+.. _is described in the operator's guide: http://docs.g-vo.org/DaCHS/opguide.html#defining-basic-metadata
+
+The next step is to acquaint the VO with your publishing registry.
+Technically, this is again a service that exposes a standard interface.
+In this case, it is defined by the Open Archives Initiative; in case
+you're curious, you'll find it at ``/oai.xml`` on your site, and DaCHS
+has several stylesheets in place that make it somewhat human-readable.
+Once the VO knows about your publishing registries, full registries will
+start pulling ("harvesting") your resource records from there.
 
 To make the VO aware of the existence of your data center, you will need
-to tell the `RofR`_ (Registry of Registries) about your data center.
-Before you can do this, you need to fill in quite a bit of information
-in your gavorc and ``etc/defaultmeta.txt``.  The `registry section
-in the operator's guide`_ has information on what to do.
+to tell the `RofR`_ (Registry of Registries) about your data center.  Go
+there, hit "Register/Validate a Registry", enter ``<your data center's
+base URL>/oai.xml`` in the URL box and let it run.
+
+If your endpoint does not validate, please run ``gavo val`` on all RDs
+that contain published services.  If that doesn't turn up the problem,
+complain to us.
+
+Using ESAVO's Registration Web Interface
+----------------------------------------
+
+
+Using a Proxy Publishing Registry
+---------------------------------
 
 
 
@@ -3865,7 +4048,7 @@ data – see above for details on how to create users and groups.
 .. _scs.xml: http://docs.g-vo.org/DaCHS/ref.html#the-scs-xml-renderer
 .. _ESAVO registry: http://esavo.esa.int/registry/index.jsp
 .. _VAO registry: http://nvo.stsci.edu/vor10/index.aspx
-.. _IVOA identifiers: http://www.ivoa.net/Documents/REC/Identifiers/Identifiers-20070302.html
+.. _IVOA identifiers: http://www.ivoa.net/documents/IVOAIdentifiers/20150709/index.html
 .. _RofR: http://rofr.ivoa.net/
 .. _OAI-PMH: http://www.openarchives.org/OAI/openarchivesprotocol.html
 .. _operator's guide: http://docs.g-vo.org/DaCHS/opguide.html
@@ -3893,6 +4076,7 @@ data – see above for details on how to create users and groups.
 .. _EPN-TAP proposed specification: https://voparis-confluence.obspm.fr/display/VES/EPNcore+v2
 .. _Mapping data: http://docs.g-vo.org/DaCHS/tutorial.html#mapping-data
 .. _pgsphere: http://pgsphere.projects.pgfoundry.org/
+.. _authority query: http://dc.g-vo.org/WIRR/?field0=ivorn&operator0=%3D&operand0=your.authority.here&MAXREC=20&OFFSET=0
 
 .. [#binding] This assumes you're doing this on your local machine (which
    were recommend to get started.  If you do this on a remote machine,
@@ -3938,5 +4122,15 @@ data – see above for details on how to create users and groups.
           base.getSQLKey("sr", inPars["sr"], outPars))
       </phraseMaker>
     </condDesc>
+
+.. [#rr] If you are running DaCHS on a reasonably stable platform,
+   you're most welcome to join it.  You would have to check out the
+   resdir at http://svn.ari.uni-heidelberg.de/svn/gavo/hdinputs/rr/,
+   follow the instructions in the README (after which you have a fully
+   functionaly RegTAP registry).  To be part of the machines that
+   provide fallbacks in case of failures, please contact the Heidelberg
+   maintainers.  Incidentally, you can also run a mirror of the web
+   interface to the registry then; you'd have to check out
+   http://svn.ari.uni-heidelberg.de/svn/gavo/hdinputs/wirr/ then.
 
 .. |date| date::
