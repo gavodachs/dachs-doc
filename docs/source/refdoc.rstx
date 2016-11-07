@@ -472,7 +472,7 @@ renderers -- include:
 * utype – tables (and possibly other items) can have utypes to signify
   their role in specific data models.  For tables, this utype gets
   exported to the tap_schema.
-* identifier – this is the IVORN of the resource, usually generated
+* identifier – this is the IVOID of the resource, usually generated
   by DaCHS.  Do not override this unless you know what you are doing
   (which at least means you know how to make DaCHS declare an authority
   and claim it).  If you do override the identifier of a service that's
@@ -524,26 +524,21 @@ To avoid this, make a new creator node in between, i.e., write::
   creator:
   creator.name: Berta
 
-In DaCHS resources, it's better to be explicit about the tree structure
-(though you could write it like in metastream)::
-
-  <meta name="creator">
-    <meta name="name">Arthur</meta>
-  </meta>
-  <meta name="creator">
-   <meta name="name">Berta</meta>
-  </meta>
-
-However, for creator.name specifically, it's highly likely that people
-accept things like "Arthur; Berta" anyway, and so here it might be
-better to disregard the tree structure issues entirely.
-
-Actually, the DaCHS internal author table as used by the alternative
-portal interprets one special notation::
+In the creator.name case, where this is so common, DaCHS provides a
+shortcut, which you should use as a default; if you set ``creator``
+directly, DaCHS will expect a string of the form::
 
   <author1>, <inits1> {; <authorn>, <initsn>}
 
-That is, you should write authors lists like "Foo, X.; Bar, Q.; et al".
+(i.e., Last, I.-form separated by semicolons, as in "Foo, X.; Bar, Q.;
+et al") and split it up into the proper structure.  You can mix the two
+notations, for instance if you want to set a logo on the first creator::
+
+  <meta name="creator">
+    <meta name="name">Chandrasekhar, S.</meta>
+    <meta name="logo">http://sit.in/chandra.png</meta>
+  </meta>
+  <meta name="creator">Copernicus, N.; Gallilei, G.</meta>
 
 
 Coverage Metadata
