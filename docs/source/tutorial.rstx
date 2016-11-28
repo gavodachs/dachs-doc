@@ -3114,9 +3114,25 @@ what the ``//products#define`` rowfilter in your grammar is for::
       [...]
     </fitsProdGrammar>
 
-When you do this, you must use a custom descriptor generator.  See
-:dachsref:`Custom Product Descriptor Generators` in the reference manual.
+When you do this, you must use a datalink-aware descriptor generator.
+When you use the recommended setup, where the accref is the
+inputsDir-relative path to the main file, and you're dealing with FITS,
+you can use the ``DLFITSProductDescriptor`` class (in other cases, its
+implementation (in gavo.protocols.datalink) will show you how to handle
+these cases).   Thus, the base functionality of a FITS cutout service
+with datalink products would be:
 
+ 	<service id="dl" allowed="dlget,dlmeta">
+	  <meta name="title">My Cutout Service</meta>
+	  <datalinkCore>
+		  <descriptorGenerator procDef="//soda#fits_genDesc" 
+			  name="genFITSDesc">
+			  <bind key="accrefPrefix">'mysvcs/data'</bind>
+			  <bind key="descClass">DLFITSProductDescriptor</bind>
+		  </descriptorGenerator>
+		  <FEED source="//soda#fits_standardDLFuncs"/>
+	  </datalinkCore>
+  </service>
 
 Simple FITS Datalink Services
 '''''''''''''''''''''''''''''

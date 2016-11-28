@@ -2167,6 +2167,11 @@ STREAM ``//soda#fits_genKindPar``::
     </code>
   </dataFunction>
 
+When writing data functions, you should raise
+``soda.EmptyData()`` when a cutout results in empty data (e.g.,
+because the cutout limits are out of range).  If you don't, users of
+your service might become angry with you when they have to click away
+many empty windows (say).
 
 
 Data Formatters
