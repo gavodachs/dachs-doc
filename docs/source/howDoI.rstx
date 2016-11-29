@@ -1143,7 +1143,7 @@ If all looks well, drop the old cluster.  pg_upgradecluster prints the
 respective command last thing it does.  And deinstall the old binaries
 to avoid confusion.
 
-...switch between SVN and Packaged DaCHS?
+...switch between SVN and packaged DaCHS?
 -----------------------------------------
 
 Sometimes you need to be at the bleeding edge with your DaCHS and run
@@ -1170,5 +1170,58 @@ have the path, do::
 
   $ sudo rm /usr/local/lib/python2.7/dist-packages/gavodachs.egg-link
   $ sudo apt-get install python-gavodachs gavodachs-server
+
+
+...run DaCHS behind a proxy?
+----------------------------
+
+The recommended way to run DaCHS when it has to share a public IP with
+other services is to use a dedicated virtual server as a reverse proxy.
+Here's how to do this when your main server is an apache.
+
+Suppose your server's primary name is www.obs.example.org. Then, add a
+DNS entry for vo.obs.example.org; depending on taste, make it a CNAME of
+www.obs.example.org or have it point to its IP directly.
+
+To create a virtual server that will serve as reverse proxy, adapt the
+following snippet and drop it into
+``/etc/apache/sites-available/voproxy``::
+
+  <VirtualHost *:80>
+	  ServerName vo.obs.example.org
+	  ProxyRequests off
+	  <Location />
+		  ProxyPass http://localhost:8080/
+	  </Location>
+  </VirtualHost>
+
+This assumes you're using a Debian-derived apache package and that DaCHS
+is running on the same machine as the apache; it shouldn't be hard to
+adapt the example to other situations.
+
+Still assuming you're on a Debian-derived apache, run::
+
+  $ sudo a2ensite voproxy
+  $ sudo service apache reload
+
+For many purposes, DaCHS has to know which external IP it is visible
+under.  You need to configure that in ``/etc/gavo.rc``, [web]serverURL.
+In the example, you'd write::
+
+  [web]
+  serverURL: http://vo.obs.example.org
+
+This is enough when DaCHS runs on the same machine as the reverse proxy.
+
+When the machines are different (which includes DaCHS running within a
+Docker), note that DaCHS only binds to the loopback interface.  Thus,
+in such cases you'd have to write::
+
+  [web]
+  bindAddress:
+  serverURL: http://vo.obs.example.org
+
+to make it bind to all interfaces the machine has (in particular the one
+that the reverse proxy can see).
 
 .. |date| date::
