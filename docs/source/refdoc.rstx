@@ -11,6 +11,9 @@ GAVO DC Software Reference Documentation
   :backlinks: entry
   :class: toc
 
+..
+  headline character sequence in this document: =, ', . (Sorry)
+
 
 Resource Descriptor Element Reference
 =====================================
@@ -1468,18 +1471,8 @@ you could, for example, extract from a tcpdump log.
 
 
 
-Datalink Cores
-==============
-
-**Historical note:**   DaCHS, which actually did much of the prototyping
-for the respective IVOA standards, treats datalink (metadata management)
-and SODA (actual operations on data) as a fairly integral system; the
-separation between the two does not make much sense within DaCHS.
-During prototyping, many of the procDefs and STREAMs for data
-manipulation mentioned below started their lives in the //datalink RD.
-Although they have not been removed there yet, please do not take them
-from there any more.  Take them from //soda, which is where they are
-maintained and developed.
+Datalink and SODA
+=================
 
 Datalink is an IVOA protocol that allows associating various products
 and artifacts with a data set id.  Think the association of error or
@@ -1489,54 +1482,232 @@ set.
 It also lets you associate data processing services with datasets,
 which allows on-the-fly generation of cutouts, format conversions or
 recalibrations; the details of how this is done are described in another
-standard called SODA.  In DaCHS, Datalink is implemented by the
-``dlmeta`` renderer, SODA by the ``dlget`` renderer.  In all but fairly
-exotic cases, both renderers are used on the same service.  In the
-following treatment, we do not really distinguish between Datalink and
-SODA.
+standard called SODA.  
+
+In DaCHS, Datalink is implemented by the ``dlmeta`` renderer, SODA by
+the ``dlget`` renderer.  In all but fairly exotic cases, both renderers
+are used on the same service.   While in DaCHS, you cannot use SODA
+without Datalink, there are perfectly sensible datalink services without
+SODA.  In the following, we first treat the generation of “normal”
+datalinks and discuss processing services later.
 
 A central term for datalink is the pubDID, or publisher DID.  This is an
 identifier assigned (essentially) by you that points to a concrete
 dataset.  In DaCHS, datalink services always use pubDIDs as the values
 of the datalink ID parameter.
 
-Within DaCHS, you can write datalink services using a specialized type
-of core.  Its function is twofold:
+Unless you arrange things differently (for which you should have good
+reasons), the pubDIDs used by DaCHS are formed as::
 
-(1) when operated by the dlmeta renderer, it returns the access options 
-    ("Datalink document")
-(2) when operated by the dlget renderer, it performs some computation
-    ("Processed data")
+  <authority>/~?<accref>
 
-Function (1) is implemented by DaCHS code working on the metadata of the
-Datalink core.  Function (2) requires custom code (or the assembly of
-pre-provided building blocks).
+where the accref usually is the inputsDir-relative path to the file.
 
-A datalink core consists of 
+Making Datalinks
+''''''''''''''''
 
-* exactly one descriptor generator,
-* zero or more data functions, generating and manipulating data
-* zero or one formatters, formatting the generated and/or manipulated
-  data
-* zero or more meta makers, generating input parameter descriptions
-  for data functions and any formatter present and/or related links
+A dataset frequently has associated data, like error or weight maps,
+derived data, or pieces of provenance.  Datalink lets you tie these
+together algorithmically, using a specialised core (see `element
+DatalinkCore`_) and `the dlmeta renderer`_.
 
-Here's how they work together in providing the Datalink functionality:
+To produce datalinks, the datalink core must be furnished with
 
-To generate the Datalink document, the descriptor generator is passed
-the pubDID and is expected to return a ``datalink.ProductDescriptor``
-instance (or None, in which case the datalink request will be rejected
-by a 404).  In addition to attributes named after the columns of the
-product table (and potentially other attributes added by deriving from
-the base ProductDescriptor), it has an attribute ``data`` defaulting to
-``None``, intended to be filled by the core's data generator on data
-processing runs.
+* exactly one descriptor generator (you can let DaCHS fall back to a
+  default),
+* one or more meta makers, generating related links.
 
-The descriptor is then passed, in turn, to the meta makers, which yield
-``InputKey`` or ``LinkDef`` instances to describe the retrival options
-for the product.  The combination of both is then formatted to a proper
-Datalink document and returned, which concludes the processing of the
-metadata request.
+Here is an example, adapted from :samplerd:`boydende/q.rd`::
+
+    <datalinkCore>
+      <descriptorGenerator procDef="//soda#fits_genDesc"/>
+      <metaMaker>
+        <code>
+          svc = rd.getById("dl")
+          basename = descriptor.accref.split("/")[-1].split(".")[0]
+          envPath = "data/static/envelopes/{0}.jpg".format(basename)
+
+          yield descriptor.makeLinkFromFile(
+            envPath,
+            description="Scan of the plate envelope",
+            semantics="#isMetadataFor")
+        </code>
+      </metaMaker>
+    </datalinkCore>
+
+A descriptor generator – in the example, one that has additional
+functionality for FITS files, although the default
+(``//soda#fromStandardPubDID``) would work here, too – is passed
+the pubDID and returns an instance of ``datalink.ProductDescriptor`` (or
+a derived class).  If a descriptor generator returns 
+None, the datalink request will be rejected with a 404).  
+
+Whatever is returned by the descriptor generator is then available as
+``descriptor`` to the remaining datalink procs.  The columns of the
+product table are available as attributes of this object.  In addition,
+subclesses of ``data.ProductDescriptor`` may add more attributes; the
+``fits_genDesc`` used in the example, for instance, provides a ``hdr``
+attribute containing the primary header as given by pyfits.
+
+The descriptor is then passed, in turn, to all meta makers given.  These
+must ``yield`` ``LinkDef`` instances that describe additional data
+products; a single meta make may yield zero or more of these.  An
+example where multiple ``LinkDef`` instances are yielded from a single
+``metaMaker``  can be found in the ``dl`` service of
+:samplerd:`cars/q``.
+
+When the files, as is quite common, correspond to simple files, the
+easiest way to generate them is through the descriptor's
+``makeLinkFromFile`` method, that takes the source path, a description,
+and semantics (which are taken from a controlled vocabulary – see
+below).  File size and media type type, which otherwise should be given
+when constructing a ``LinkDef``, then default to what's inferrable from
+the file (name).
+
+Another recommended pattern is used in the example: the datalink service
+itself is used to deliver the static, non-product files.  This is
+effected by declaring the service embedding the core somewhat like
+this::
+
+  <service id="dl" allowed="dlget,dlmeta,static">
+    <property name="staticData">data/static</property>
+    <datalinkCore .../>
+  </service>
+
+Note that, of course, exposing  directory via the static renderer like
+this bypasses any access restrictions (e.g., embargos) on the respective
+data.  So, do not expose you primary data in this way if you want to
+enforce access control.
+
+A ``LinkDef`` for the product itself (semantics ``#this``) and, if
+defined in the product table, a preview (semantics ``#preview``) is
+automatically added by DaCHS unless a ``suppressAutoLinks`` attribute is
+set on the descriptor (you can set that in a meta maker or the
+descriptor generator).
+
+For more information on the elements used here, see below.
+
+Defining Processing Services
+''''''''''''''''''''''''''''
+
+In DaCHS data processing services (“SODA services”) use the same
+datalink cores as the datalink services, and they share the same
+descriptor.  A datalink core does data processing when used by `the
+dlget renderer`_.
+
+To enable data processing, datalink cores additionally need data
+functions (see `element dataFunction`_) and up to one data formatter
+(see `element dataFormatter`_).  The first data function must add a
+``data`` attribute to the descriptor and thus plays a somewhat special
+role.
+
+Processing services also use meta makers, but instead of links, these
+yield parameter definitions in the form of InputKeys.  So, typically, a
+given piece of SODA functionality comes as a pair of a meta maker and a
+data function.  Typically, these are combined in stream (cf.
+`Datalink-related Streams`_).
+
+Processing services usually are a good deal more stereotypical than
+metadata generation; it is actually beneficial if different services
+have identical behaviour to facilitate the creation of interoperable
+clients; SODA itself essentially enumerates what in DaCHS are
+pre-defined meta makers and data functions.  So, most of the time data
+processing will just re-use STREAMs and procDefs from the ``//soda`` RD.
+
+The two most common cases are cutouts over FITS cubes and over spectra.
+
+FITS/SODA processing
+....................
+
+In the first case, the core would like this piece extracted from
+the ``dl`` service in :samplerd:`califa/q3`::
+
+    <datalinkCore>
+      <descriptorGenerator procDef="//soda#fits_genDesc" 
+          name="genFITSDesc">
+        <bind key="accrefPrefix">'califa/datadr3'</bind>
+        <bind key="descClass">DLFITSProductDescriptor</bind>
+      </descriptorGenerator>
+
+      <FEED source="//soda#fits_standardDLFuncs" spectralAxis="3"/>
+    </datalinkCore>
+
+Here, we use the ``fits_genDesc`` descriptor generator with a
+DLFITSProductDescriptor because CALIFA DR3 stores datalink URLs rather
+than actual file paths in the product table.  You would leave the
+``descClass`` parameter out when you point to FITS files directly.
+
+Giving an ``accrefPrefix`` usually is a good idea.  If you don't give
+it, users can apply the datalink service to any dataset you publish,
+which might lead to information leaks and hard-to-understand error
+messages on the user side.  ``accrefPrefix`` is simply a string that the
+accref of the product being processed must match.  Since in the usual
+setup, the accref is the inputsDir-relative path of the file, you're
+usually fine if you just give the path to the directory containing the
+products in question.
+
+The `//soda#fits_standardDLFuncs`_ STREAM arrange for all general FITS
+processing functions to be pulled in; these encompass the SODA
+parameters where applicable (at the time of this writing, there is no
+support for TIME and POL yet, but if you have such data, we'll be glad
+to add it), and some additional ones.
+
+If you need extended functionality, it is a good idea to start from this
+STREAM.  Copy it from ``gavo adm dumpDF //soda`` and hack from there.
+
+SDM processing
+..............
+
+!!!!!!!!!! Continue revising here.
+
+The other very common sort of SODA-like processing is for spectra.  A
+sketch for these from the ``sdl`` service in :samplerd:`flashheros/q`::
+
+  <datalinkCore>
+    <descriptorGenerator procDef="//soda#sdm_genDesc">
+      <bind name="ssaTD">"\rdId#data"</bind>
+    </descriptorGenerator>
+    <dataFunction procDef="//soda#sdm_genData">
+      <bind name="builder">"\rdId#build_sdm_data"</bind>
+    </dataFunction>
+    <FEED source="//soda#sdm_plainfluxcalib"/>
+    <FEED source="//soda#sdm_cutout"/>
+    <FEED source="//soda#sdm_format"/>
+  </datalinkCore>
+
+Here, the descriptor generator will in general be `//soda#sdm_genDesc`_.
+It builds a special descriptor that contains the full metadata from an
+associated SSA row, which is why you need to give the id of the SSA
+table in the ``ssaTD`` parameter.  Since pubDIDs will only be resolved
+within this table, no ``accrefPrefix`` is necessary or supported.
+
+The first data function for spectra usually will be
+`//soda#sdm_genData`_.  This will read the entire spectrum into memory
+using a data item, the id of which is given in the ``builder``
+parameter.  This has to build an SDM-compliant spectrum.  Some examples
+of how to do this can be found in :samplerd:`cdfspect/q.rd` (reading
+from half-broken FITS files), :samplerd:`c8spect/q.rd` (which shows how
+to create spectra that don't exist on disk as files),
+:simplerd:`pcslg/q.rd` (which nicely uses WCSAxis for parsing spectra
+that come as 1D-array, “IRAF-style”), or :simplerd:`theossa/q.rd` (which
+pulls the source files from a remote server and caches it).
+
+For large spectra, reading the spectrum in its entirety may incur a
+significant CPU cost; if it is, you'll need to write a different data
+function, perhaps only parsing a header, and implement, e.g., cutouts
+directly in a subsequent data function.
+
+The two next STREAMs pulled in are just combinations of data functions
+and meta makers, one for optionally re-calibrating the spectrum (right
+now, only maximum normalisation is supported), the other for providing a
+SODA-like cutout.
+
+Finally, `//soda#sdm_format`_ pulls in a meta maker defining a FORMAT
+parameter (letting people order several formats including VOTable, FITS
+binary table, and CSV) and a formatter that interprets it.
+
+General Notes on Processing Services
+....................................
 
 When a request for processed data comes in, the descriptor generator is
 again used to make a product descriptor, and again the input keys are

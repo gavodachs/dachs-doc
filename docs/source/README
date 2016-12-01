@@ -1,0 +1,13 @@
+Extra interpreted text roles for writing such documents:
+
+* dachsdoc -- generates a link into the current DaCHS documentation.
+  The argument is the relative path, e.g., 
+  :dachsdoc:`opguide.html#userconfig-rd`.
+* dachsref -- generates a link into the reference documentation.  The 
+  argument is a section header within the reference documentation, e.g.,
+  :dachsref:`//epntap#populate-2_0` or :dachsref:`the form renderer`.
+* samplerd -- generates a link to an RD used by the GAVO data center
+  (exhibiting some feature).  The argument is the relative path to
+  the RD (or, really, anything else in the VCS), e.g.,
+  :samplerd:`ppmxl/q.rd`.
+
