@@ -1474,15 +1474,17 @@ you could, for example, extract from a tcpdump log.
 Datalink and SODA
 =================
 
-Datalink is an IVOA protocol that allows associating various products
+[Datalink]_ is an IVOA protocol that allows associating various products
 and artifacts with a data set id.  Think the association of error or
 mask maps, progenitor datasets, or processed data products, with a data
 set.  
 
 It also lets you associate data processing services with datasets,
 which allows on-the-fly generation of cutouts, format conversions or
-recalibrations; the details of how this is done are described in another
-standard called SODA.  
+recalibrations; a particular set of parameters for working with certain
+kinds of cubes is described in a standard called [SODA]_ (Serverside
+Operations for Data Access).  Hence, we sometimes call the processing
+part of datalink SODA.
 
 In DaCHS, Datalink is implemented by the ``dlmeta`` renderer, SODA by
 the ``dlget`` renderer.  In all but fairly exotic cases, both renderers
@@ -1501,7 +1503,38 @@ reasons), the pubDIDs used by DaCHS are formed as::
 
   <authority>/~?<accref>
 
-where the accref usually is the inputsDir-relative path to the file.
+where the accref usually is the inputsDir-relative path to the file.  If
+you use datalinks of that form, you should at some point run ``gavo pub
+//products``; this will register the products deliverer as
+``<authority>/~``, which means that pubDIDs of this form are compliant
+with [IVOA Identifiers]_
+
+When developing datalink services, it sometimes is useful to access
+datalink services directly, in particular because they don't usually
+have a useful web interface.  Armed with the knowledge about the
+structure of DaCHS standard PubDIDs, you can easily build the URLs and
+parameters.  For instance, to retrieve the datalink document for
+``mlqso/data/FBQ0951_data.fits`` on the server dc.g-vo.org using the
+datalink renderer on the ``mlqso/q/d`` service, you'd write::
+
+  curl -FID=ivo://org.gavo.dc/~?mlqso/data/slits/FBQ0951_data.fits \
+    http://dc.g-vo.org/mlqso/q/d/dlmeta | xmlstarlet fo
+
+(of course, ``xmlstarlet`` isn't actually necessary, and you can use
+``wget`` if you want, but you get the idea).  Going on, you could pull
+out what parameters are mentioned somewhat like this::
+
+  curl -s -FID=ivo://org.gavo.dc/~?mlqso/data/slits/FBQ0951_data.fits \
+    http://dc.g-vo.org/mlqso/q/d/dlmeta | \
+    xmlstarlet sel -N v=http://www.ivoa.net/xml/VOTable/v1.3 -T \
+    -t -m "//v:PARAM" -v "@name" -nl
+
+In the remainder of this section, we first discuss the generation of
+datalinks and processing services „by example”, which should do for a
+basic use of the facilities.  We continue with a somewhat more in-depth
+look at the processing of a SODA request, after which we look more
+closely at the various elements that make up Datalink/SODA services.
+
 
 Making Datalinks
 ''''''''''''''''
@@ -1537,30 +1570,32 @@ Here is an example, adapted from :samplerd:`boydende/q.rd`::
 
 A descriptor generator – in the example, one that has additional
 functionality for FITS files, although the default
-(``//soda#fromStandardPubDID``) would work here, too – is passed
+(`//soda#fromStandardPubDID`_) would work here, too – is passed
 the pubDID and returns an instance of ``datalink.ProductDescriptor`` (or
 a derived class).  If a descriptor generator returns 
-None, the datalink request will be rejected with a 404).  
+None, the datalink request will be rejected with a 404.  
 
 Whatever is returned by the descriptor generator is then available as
-``descriptor`` to the remaining datalink procs.  The columns of the
-product table are available as attributes of this object.  In addition,
-subclesses of ``data.ProductDescriptor`` may add more attributes; the
+``descriptor`` to the remaining datalink procs (in this case, the meta
+makers).  The columns of the product table (see `dc.products`_) 
+are available as attributes of this object.  In addition,
+subclasses of ``data.ProductDescriptor`` may add more attributes; the
 ``fits_genDesc`` used in the example, for instance, provides a ``hdr``
 attribute containing the primary header as given by pyfits.
 
 The descriptor is then passed, in turn, to all meta makers given.  These
 must ``yield`` ``LinkDef`` instances that describe additional data
-products; a single meta make may yield zero or more of these.  An
+products; a single meta maker may yield zero or more of these.  An
 example where multiple ``LinkDef`` instances are yielded from a single
 ``metaMaker``  can be found in the ``dl`` service of
-:samplerd:`cars/q``.
+:samplerd:`cars/q`.
 
-When the files, as is quite common, correspond to simple files, the
+When the links, as is quite common, correspond to simple files, the
 easiest way to generate them is through the descriptor's
 ``makeLinkFromFile`` method, that takes the source path, a description,
-and semantics (which are taken from a controlled vocabulary – see
-below).  File size and media type type, which otherwise should be given
+and semantics (which should be taken from a controlled vocabulary at
+http://www.ivoa.net/rdf/datalink/core).  
+File size and media type type, which otherwise should be given
 when constructing a ``LinkDef``, then default to what's inferrable from
 the file (name).
 
@@ -1602,15 +1637,17 @@ functions (see `element dataFunction`_) and up to one data formatter
 role.
 
 Processing services also use meta makers, but instead of links, these
-yield parameter definitions in the form of InputKeys.  So, typically, a
+yield parameter definitions in the form of InputKeys (they are used by
+the datalink services, too, because the datalink documents contain the
+metadata of the processing services).  So, typically, a
 given piece of SODA functionality comes as a pair of a meta maker and a
-data function.  Typically, these are combined in stream (cf.
+data function, which then normally are combined in a STREAM (cf.
 `Datalink-related Streams`_).
 
 Processing services usually are a good deal more stereotypical than
 metadata generation; it is actually beneficial if different services
 have identical behaviour to facilitate the creation of interoperable
-clients; SODA itself essentially enumerates what in DaCHS are
+clients. SODA itself essentially enumerates what in DaCHS are
 pre-defined meta makers and data functions.  So, most of the time data
 processing will just re-use STREAMs and procDefs from the ``//soda`` RD.
 
@@ -1632,12 +1669,15 @@ the ``dl`` service in :samplerd:`califa/q3`::
       <FEED source="//soda#fits_standardDLFuncs" spectralAxis="3"/>
     </datalinkCore>
 
-Here, we use the ``fits_genDesc`` descriptor generator with a
+Here, we use the `//soda#fits_genDesc`_ descriptor generator with a
 DLFITSProductDescriptor because CALIFA DR3 stores datalink URLs rather
 than actual file paths in the product table.  You would leave the
-``descClass`` parameter out when you point to FITS files directly.
+``descClass`` parameter out when your products are the FITS files
+themselves.
 
-Giving an ``accrefPrefix`` usually is a good idea.  If you don't give
+Giving an ``accrefPrefix`` to anything using the product table to get
+accrefs (`//soda#fromStandardPubDID`_ is another example for these) 
+usually is a good idea.  If you don't give
 it, users can apply the datalink service to any dataset you publish,
 which might lead to information leaks and hard-to-understand error
 messages on the user side.  ``accrefPrefix`` is simply a string that the
@@ -1657,8 +1697,6 @@ STREAM.  Copy it from ``gavo adm dumpDF //soda`` and hack from there.
 
 SDM processing
 ..............
-
-!!!!!!!!!! Continue revising here.
 
 The other very common sort of SODA-like processing is for spectra.  A
 sketch for these from the ``sdl`` service in :samplerd:`flashheros/q`::
@@ -1688,14 +1726,15 @@ parameter.  This has to build an SDM-compliant spectrum.  Some examples
 of how to do this can be found in :samplerd:`cdfspect/q.rd` (reading
 from half-broken FITS files), :samplerd:`c8spect/q.rd` (which shows how
 to create spectra that don't exist on disk as files),
-:simplerd:`pcslg/q.rd` (which nicely uses WCSAxis for parsing spectra
-that come as 1D-array, “IRAF-style”), or :simplerd:`theossa/q.rd` (which
-pulls the source files from a remote server and caches it).
+:samplerd:`pcslg/q.rd` (which nicely uses WCSAxis for parsing spectra
+that come as 1D-array, “IRAF-style”), or :samplerd:`theossa/q.rd` (which
+pulls the source files from a remote server and caches it).  For more on
+generating SDM-compliant spectra, see `SDM compliant tables`_.
 
 For large spectra, reading the spectrum in its entirety may incur a
-significant CPU cost; if it is, you'll need to write a different data
-function, perhaps only parsing a header, and implement, e.g., cutouts
-directly in a subsequent data function.
+significant CPU cost. When that becomes a problem for you, you'll need
+to write different data functions, perhaps only parsing a header, and
+implement, e.g., cutouts directly in a subsequent data function.
 
 The two next STREAMs pulled in are just combinations of data functions
 and meta makers, one for optionally re-calibrating the spectrum (right
@@ -1706,50 +1745,58 @@ Finally, `//soda#sdm_format`_ pulls in a meta maker defining a FORMAT
 parameter (letting people order several formats including VOTable, FITS
 binary table, and CSV) and a formatter that interprets it.
 
+
 General Notes on Processing Services
-....................................
+''''''''''''''''''''''''''''''''''''
+
+This section contains an overview over how data processing services are
+built and executed.  You should read it if you want to write data
+processing functions; for just using them, don't bother.
 
 When a request for processed data comes in, the descriptor generator is
-again used to make a product descriptor, and again the input keys are
-updated as before.  They are then used to build the arguments described
-by the input keys.  
+used to make a product descriptor, and the input keys are adapted to the
+concrete dataset.  This means that, contrary to normal DaCHS services,
+services with a Datalink core have a variable interface; in particular,
+the interface on the dlmeta renderer (essentially, just ID) is very
+different from the one on the dlget renderer (ID plus whatever the meta
+makers produce).  
 
-If the context grammar succeeds, the data descriptor is passed to the
-first data function together with the arguments parsed.  This must fill
-out the ``data`` attribute of the descriptor or raise a ValidationError
-for the PUBDID; leaving descriptor as ``None`` results in a 500 server
-error.  Descriptor.data could an ``rsc.InMemoryTable`` (e.g., in SSAP)
+The input key so produced are used to build a context grammar that
+parses the request.  If this succeeds, the data descriptor is passed to the
+initial data function together with the arguments parsed.  This must set
+the ``data`` attribute of the descriptor or raise a ValidationError
+on the ID parameter; leaving ``data`` as ``None`` results in a 500 server
+error.  Descriptor.data could an ``rsc.InMemoryTable`` (e.g., in SDM
+processing)
 or a ``products.Products`` instance, but as long as the other data
-functions and the formatter agree on what it is, anything goes.  It will
-usually be fed from a database, pixels in FITS files, or the like.
+functions and the formatter agree on what it is, anything goes.
 
-This object is then handed through all remaining data functions; these
-change the data in place or create a new one as convenient and
-manipulate ``descriptor.data`` accordingly.
+The remaining data functions can change the data in place or potentially
+replace ``descriptor.data``.  When writing code, be aware, though, that
+a data function should only do something when the corresponding
+parameter has actually been used.  When you change ``descriptor.data``
+fundamentally, you'll probably make the lives of further data functions
+and the formatter a good deal harder.
 
 Finally, the data enters the formatter, which actually generates the
 output, usually returning a pair of mime type and string to be
 delivered.
 
-It is a design descision which manipulations are done in the data
-generator, which are in later filters, and which perhaps only in the
+It is a design descision of the service creator
+which manipulations are done in the initial data
+function, which are in later filters, and which perhaps only in the
 formatter.  The advantage of filters is that they are more flexible and
 can more easily be reused, while doing it things in the data generator
 itself will usually be more efficient, sometimes much so (e.g., sums
 being computed within a database rather than in a filter after all the
 data had to go through the interface of the database).
 
-Incidentally (we mention it here for lack of a better place) DaCHS
-automatically adds links for the dataset itself (semantics #this) and a
-preview of the dataset (semantics #this) whenever sensible.  There are
-exotic situations in which that is unwelcome.  If you end up in such a
-situation, in a metaMaker say ``descriptor.suppressAutoLinks = True``.
 
-Descriptors Generators
-'''''''''''''''''''''''
+Descriptor Generators
+'''''''''''''''''''''
 
 Descriptor generators (see `element descriptorGenerator`_) are procedure
-applications that see a pubDID value and are expected to return a
+applications that, roughly, see a pubDID value and are expected to return a
 ``datalink.ProductDescriptor`` instance, or something derived from it.  
 
 Simple Product Descriptor Generator
@@ -1758,35 +1805,24 @@ Simple Product Descriptor Generator
 In the end, this usually boils down to figuring out the value of accref
 in the product table and using what's there to construct the descriptor
 generator.  In the simplest case, the pubDID will be in DaCHS'
-"standard" format (see the ``getStandardPubDID`` rowmaker function), in
+“standard” format (see the ``getStandardPubDID`` rowmaker function or
+the `macro standardPubDID`_), in
 which case the default descriptor generator works and you don't have to
 specify anything.  You could manually insert that default by saying::
   
   <descriptorGenerator procDef="//soda#fromStandardPubDID"/>
 
-(this happens to be DaCHS' default if no descriptor generator is given).
-It's functionality is equivalent to this::
+This happens to be DaCHS' default if no descriptor generator is given,
+but as said above that is suboptimal as no accrefPrefix constrains what
+the service will run on.
 
-  <descriptorGenerator>
-    <code>
-      return ProductDescriptor.fromAccref(pubDID,
-        "/".join(pubDID.split("/")[4:]))
-    </code>
-  </descriptorGenerator>
+The easiest way to furnish your descriptors with additional information
+is to grab that code (use ``gavo adm dumpDF //soda``) and just add
+attributes to the ``ProductDescriptor`` generated in this way.
 
-– which might be a good place to start if you need to write your own
-d.g., e.g., because you have some special logic to encode the accref in
-the PubDID).
-
-Incidentally, such custom pubDID schemes are what makes this so obscure.
-We'll try to come up with something a bit clearer as soon as the
-Datalink dust has settled.
-
-The default ``ProductDescriptor`` class exposes all the columns from the
-products table, i.e., accref, accessPath, mime, owner, embargo, 
-sourceTable, datalink (a specialised datalink service for this data
-set),
-preview, and previewMime in addition to the pubDID itself.
+The default ``ProductDescriptor`` class exposes as attributes 
+all the columns from the products table.  See `dc.products`_ for their
+names and descriptions.
 
 Spectrum Product Descriptor Generators
 ......................................
@@ -1795,59 +1831,52 @@ A slightly more interesting example is provided by datalink for SSA,
 where cutouts and similar is generated from spectra.  The actual
 definition is in ``//soda#sdm_genDesc``, but the gist of it is::
 
-  <descriptorGenerator>
-    <setup>
-      <par key="ssaTD" description="Full reference (like path/rdname#id)
-        to the SSA table the spectrum's PubDID can be found in."/>
+	<procDef type="descriptorGenerator" id="sdm_genDesc">
+		<setup>
+			<par key="ssaTD" description="Full reference (like path/rdname#id)
+				to the SSA table the spectrum's PubDID can be found in."/>
+			<par key="descriptorClass" description="The SSA descriptor
+				class to use.  You'll need to override this if the dc.products
+				path doesn't actually lead to the file (see
+				`custom generators &lt;#custom-product-descriptor-generators&gt;`_)."
+				late="True">ssap.SSADescriptor</par>
+			<code>
+				from gavo import rscdef
+				from gavo import rsc
+				from gavo import svcs
+				from gavo.protocols import ssap
+				ssaTD = base.resolveCrossId(ssaTD, rscdef.TableDef)
+			</code>
+		</setup>
+		
+		<code>
+			with base.getTableConn() as conn:
+				ssaTable = rsc.TableForDef(ssaTD, connection=conn)
+				matchingRows = list(ssaTable.iterQuery(ssaTable.tableDef, 
+					"ssa_pubdid=%(pubdid)s", {"pubdid": pubDID}))
+				if not matchingRows:
+					return DatalinkFault.NotFoundFault(pubDID,
+						"No spectrum with this pubDID known here")
 
-      <code>
-        from gavo import rsc
-        from gavo import rscdef
-        from gavo import svcs
+				# the relevant metadata for all rows with the same PubDID should
+				# be identical, and hence we can blindly take the first result.
+				return descriptorClass.fromSSARow(matchingRows[0],
+					ssaTable.getParamDict())
+		</code>
+	</procDef>
 
-        class SSADescriptor(ProductDescriptor):
-          ssaRow = None
-
-          @classmethod
-          def fromSSARow(cls, ssaRow, paramDict):
-            """returns a descriptor from a row in an ssa table and
-            the params of that table.
-            """
-            paramDict.update(ssaRow)
-            ssaRow = paramDict
-            res = cls.fromAccref(ssaRow['accref'])
-            res.ssaRow = ssaRow
-            return res
-      
-        ssaTD = base.resolveCrossId("myres/q#mytable, rscdef.TableDef)
-      </code>
-    </setup>
-    
-    <code>
-      with base.getTableConn() as conn:
-        ssaTable = rsc.TableForDef(ssaTD, connection=conn)
-        matchingRows = list(ssaTable.iterQuery(ssaTable.tableDef, 
-          "ssa_pubdid=%(pubDID)s", {"pubDID": pubDID}))
-        if not matchingRows:
-          raise svcs.UnknownURI("No spectrum with pubDID %s known here"%
-            pubDID)
-
-        # the relevant metadata for all rows with the same PubDID should
-        # be identical, and hence we can blindly take the first result.
-        return SSADescriptor.fromSSARow(matchingRows[0],
-          ssaTable.getParamDict())
-    </code>
-  </descriptorGenerator>
-
-Note how we derive from ProductDescriptor to get something that metadata
-makers can later consult to figure out the spectral extent, the
-calibration status, etc., by combining a row from an SSA table and its
-parameter dict and stuffing that into an attribute of the derived class.
-Also, since SSA tables already contain a column containing PubDIDs, we
-can treat them as opaque.
+Here, we use ``ssa.SSADescriptor``, derived from ``ProductDescriptor``,
+rather than monkeypatching the extra ``ssaRow`` attribute the former
+provides; being explicit here may help when debugging.  
+As usual, the descriptor generates encodes how to resolve a
+pubDID to an accref, in this case using an SSA table.  
+If the product table just lists a datalink
+URL, you will want to override the accessPath this comes up with.  
+See, for instance, :samplerd:`pcslg/q` for how to do this.
 
 Incidentally, in this case you could stuff the entire code into the 
-main code element, saving on the extra setup.  However, apart from a
+main ``code`` element, saving on the extra ``setup`` element.  
+However, apart from a
 minor speed benefit, keeping things like function or class definitions
 in setup allows easier re-use of such definitions in procedure
 applications and is therefore recommended.
@@ -1856,69 +1885,15 @@ applications and is therefore recommended.
 FITS Product Descriptor Generators
 ..................................
 
-For FITS files, you will usually just just //soda#fits_genDesc,
-preferably giving its ``accrefStart`` parameter to prevent confusion.
-
-
-Custom Product Descriptor Generators
-....................................
-
-When the ``accessPath`` in the products table is the datalink already – as
-is sometimes desirable with large datasets –, the standard descriptor
-generators don't work, because they pull the physical file path from the
-product table.
-
-You therefore need to override the computation of the path.  This is
-done by deriving from the product descriptor path and manipulating its
-arguments.  Use the following pattern; this uses the
-``FITSProductDescriptor``, as its base class, but the principle otherwise
-is the same::
-
-  <descriptorGenerator procDef="//soda#fits_genDesc" 
-      name="genFITSDesc">
-    <bind key="accrefPrefix">'califa/data'</bind>
-    <setup>
-      <code>
-        class CALIFADescriptor(FITSProductDescriptor):
-          def __init__(self, *args, **kwargs):
-            kwargs["accessPath"] = os.path.join(
-              base.getConfig("inputsDir"),
-              kwargs["accref"])
-            FITSProductDescriptor.__init__(self, *args, **kwargs)
-      </code>
-    </setup>
-    <code>
-      return getFITSDescriptor(pubDID, CALIFADescriptor)
-    </code>
-  </descriptorGenerator>
-
--- except that absent getFITSDescriptor you'd write something like::
-
-  <code>
-    return ProductDescriptor.fromAccref(pubDID, 
-      "/".join(pubDID.split("/")[4:]))
-  </code>
-
-as explained above.
-
-
-For spectral data model datalink services based on SSAP services, you'll
-have to tell the normal sdm generator that you want a different
-descriptor class.  This could look like this::
-
-  <descriptorGenerator procDef="//soda#sdm_genDesc">
-    <setup>
-      <code>
-        class PCSLGDescriptor(ssap.SSADescriptor):
-          def __init__(self, *args, **kwargs):
-            kwargs["accessPath"] = os.path.join(
-              base.getConfig("inputsDir"), kwargs["accref"])
-            ssap.SSADescriptor.__init__(self, *args, **kwargs)
-      </code>
-    </setup>
-    <bind name="ssaTD">"\rdId#data"</bind>
-    <bind name="descriptorClass">PCSLGDescriptor</bind>
-  </descriptorGenerator>
+For FITS files, you will usually just use `//soda#fits_genDesc`_,
+defining the ``accrefStart`` as discussed  in `FITS/SODA processing`_.
+This will produce `datalink.FITSProductDescriptor` instances.  As in the
+SSA/SDM case, you may need different descriptor classes in special
+situations.  Since for large FITS files, just delivering datalink files
+is a fairly compelling proposition, there is actually a predefined
+descriptor class to use with datalink access paths,
+`DLFITSProductDescriptor`; the ``dl`` service in :samplerd:`califa/q3`
+shows how to use it.
 
 
 Meta Makers
@@ -1929,200 +1904,26 @@ of service metadata from a data descriptor.  All meta makers belonging
 to a service are unconditionally executed, and all must be generator
 bodies (i.e., contain a yield statement).
 
-Meta makers may yield input keys (``InputKey`` instances) and/or 
-link definitions (``LinkDef`` instances).  The input
-keys make up a service's interface in the usual way.
-
-The classes usually required to build input keys return (InputKey,
-Values, Option) are available to the code as local names.  There is also
-LinkDef, but there is not usually a good reason to use it directly.
-
-As usual, DaCHS structs – that's InputKey, Values, and Option here –
-should not be constructed directly but only using the ``MS`` helper
-(which is really an alias for base.makeStruct; it takes care that the
-special postprocessing of DaCHS structures takes place).
-
-Parameter Definitions
-.....................
-
-Hence, a meta maker that generates SSA cutout parameters could look like
-this::
-
-  <metaMaker>
-    <setup>
-      <code>
-        parSTC = stc.parseQSTCS('SpectralInterval "LAMBDA_MIN" "LAMBDA_MAX"')
-      </code>
-    </setup>
-    <code>
-      for ik in genLimitKeys(MS(InputKey, name="LAMBDA",
-        unit="m", stc=parSTC, ucd="em.wl", 
-        description="Spectral cutout interval",
-        values=MS(Values, 
-          min=descriptor.ssaRow["ssa_specstart"],
-          max=descriptor.ssaRow["ssa_specend"]))):
-        yield ik
-    </code>
-  </metaMaker>
-
-(something like this is part of the ``//soda#sdm_cutout`` predefined
-stream).
-
-The example shows two general techniques for "physical" parameters.
-For one, it defines an STC structure.  This is again the "quoted STC" as
-discussed in `the DaCHS tutorial`_.  It is a good idea to create the STC
-structure in the setup code since parsing STC-S can be relatively CPU 
-intensive.  The STC structure resulting from should then be passed as
-the ``stc`` keyword parameter to each input key mentioned in the STC
-clause.
-
-The second typical technique is the use of the ``genLimitKeys``
-function.  This takes a "template" key specifying names, units, and
-everything else that can be generically specified, and returns a
-sequence of input keys for the limits (i.e., minimal and maximal value
-for this).  You'll almost always want this when accepting floating-point
-valued parameters, as matching these exactly is at least tricky and
-rarely useful.
-
-If the thing you are matching against actually is a column in a database
-table, it is usually a good idea to build the input key from the column,
-much like with the original mechanism in condition descriptors.  In
-python code, this looks like this::
-
-  <metaMaker>
-    <code>
-      baseIK = InputKey.fromColumn(
-        rd.getById("orders").getColumnByName("ecorder")
-       ).change(
-        values=MS(Values, 
-          min=descriptor.ssaRow["order_min"],
-          max=descriptor.ssaRow["order_max"]))
-      for ik in genLimitKeys(baseIk):
-        yield ik
-    </code>
-  </metaMaker>
-
-This takes input key metadata from the column ecorder in the table
-orders.  The change method can take additional keyword/value pairs to
-change further properties.
-
-When publishing FITS cubes, you will usually use the
-`//soda#fits_makeWCSParams`_ meta maker; it accepts similar QSTCS
-specifications as well.  To find out what parameter names the individual
-axes are mapped to, first use makeWCSParams without the STC metadata::
-
-   <service id="d" allowed="dlmeta,dlget,form">
-    <datalinkCore>
-      <descriptorGenerator procDef="//soda#fits_genDesc"/>
-      <metaMaker procDef="//soda#fits_makeWCSParams"/>
-    </datalinkCore>
-  </service>
-
-Then have a look at the metadata produced for a file.  Unless you did
-something special, to do that you can just take the accref of a file
-from the table containing the products; if the source table was
-``mlqso.cubes``, you could figure one out via::
-
-  select accref from dc.products where sourcetable='mlqso.cubes' limit 1
-
-(talk to postgres directly for this query, dc.products is not available
-via TAP).
-
-The standard pubDID (as assigned using the ``getStandardPubDID``
-rowmaker function) uses your datacenter authority (as configured in
-/etc/gavo.rd, when you forget it you can also figure it out by using
-``gavo config ivoa authority``) and this accref like this::
-
-  ivo://<authority>/~?<accref>
-
-Hence, to retrieve the datalink document for
-``mlqso/data/FBQ0951_data.fits`` on the server dc.g-vo.org using the
-datalink renderer on the ``mlqso/q/d`` service, you'd write::
-
-  curl -DID=ivo://org.gavo.dc/~?mlqso/data/FBQ0951_data.fits \
-    http://dc.g-vo.org/mlqso/q/d/dlmeta | xmlstarlet fo
-
-(of course, ``xmlstarlet`` isn't actually necessary, and you can use
-``wget`` if you want, but you get the idea).
-
-In there you'll see the parameter names for the axes, e.g.,::
-
-  $ curl -s -FID="ivo://org.gavo.dc/~?mlqso/data/FBQ0951_data.fits" \
-  >> http://dc.g-vo.org/mlqso/q/d/dlmeta \
-  >> | xmlstarlet sel -N v=http://www.ivoa.net/xml/VOTable/v1.2 -T \
-  >> -t -m "//v:PARAM" -v "@name" -nl
-  serviceAccessURL
-  ID
-  DEC_MIN
-  DEC_MAX
-  RA_MIN
-  RA_MAX
-  WAVELEN_1_MIN
-  WAVELEN_1_MAX
-
-If the image is calibrated using a catalog on ICRS, with the wavelength
-given as measured, change the ``fits_makeWCSParams`` call to::
-
-  <metaMaker procDef="//soda#fits_makeWCSParams>
-    <setup>
-      <bind key="stcs"
-        >('PositionInterval ICRS "RA_MIN" "DEC_MIN" "RA_MAX" "DEC_MAX"\n'
-          'SpectralInterval TOPOCENTER "WAVELEN_1_MIN" "WAVELEN_1_MAX"')
-       </bind>
-    </setup>
-  </metaMaker>
-
-The effect should be a group like::
-
-    <GROUP utype="stc:CatalogEntryLocation">
-      <PARAM arraysize="*" datatype="char" 
-        name="CoordFlavor" 
-        utype="stc:AstroCoordSystem.SpaceFrame.CoordFlavor" value="SPHERICAL"/>
-      <PARAM arraysize="*" datatype="char" 
-        name="CoordRefFrame" 
-        utype="stc:AstroCoordSystem.SpaceFrame.CoordRefFrame" value="ICRS"/>
-      <PARAM arraysize="*" datatype="char" 
-        name="ReferencePosition" 
-        utype="stc:AstroCoordSystem.SpectralFrame.ReferencePosition" 
-        value="TOPOCENTER"/>
-      <PARAM arraysize="*" datatype="char" name="URI" 
-        utype="stc:DataModel.URI" 
-        value="http://www.ivoa.net/xml/STC/stc-v1.30.xsd"/>
-      <PARAMref ref="apausoh" 
-        utype="stc:AstroCoordArea.Position2VecInterval.HiLimit2Vec.C1"/>
-      <PARAMref ref="aedwpnn" 
-        utype="stc:AstroCoordArea.Position2VecInterval.HiLimit2Vec.C2"/>
-      <PARAMref ref="asausoh" 
-        utype="stc:AstroCoordArea.Position2VecInterval.LoLimit2Vec.C1"/>
-      <PARAMref ref="ahgwpnn" 
-        utype="stc:AstroCoordArea.Position2VecInterval.LoLimit2Vec.C2"/>
-      <PARAMref ref="ahiusoh" 
-        utype="stc:AstroCoordArea.SpectralInterval.HiLimit"/>
-      <PARAMref ref="aeiusoh" 
-        utype="stc:AstroCoordArea.SpectralInterval.LoLimit"/>
-    </GROUP>
-
-All this is explained in [VOTSTC]_.
-
 
 Link Definitions
 .................
 
-Link definitions are usually created using the ``makeLink`` or
-``makeLinkFromFile`` methods of descriptor (they are available if the
-descriptor class was derived from ``datalink.ProductDescriptor``, as it
-usually should).
+While meta makers see the ``LinkDef`` class itself, too, you should
+normally use the ``makeLink`` or ``makeLinkFromFile`` methods of the
+descriptor (they are available if the descriptor class was derived from
+``datalink.ProductDescriptor``, as it usually should).
 
-These functions take a link as the first argument.  The rest are keyword
-arguments corresponding to the datalink columns, viz., 
+These methods take a link or a path as the first argument, respectively.
+The rest are keyword arguments corresponding to the datalink columns,
+viz., 
 
 description
-  A human-readable short information what's behind the link
+  A human-readable short information on what's behind the link
 semantics
   A term from a controlled-vocabulary describing what's behind the link
   (see below)
 contentType
-  An (advisory) media type of whatever accessURL points to.  Please make
+  An (advisory) media type of whatever this link points to.  Please make
   sure it's consistent with what the server actually returns if the
   protocol used by accessURL supports that.
 contentLength
@@ -2140,10 +1941,7 @@ and if possible choose one of the terms given at
 http://www.ivoa.net/rdf/datalink/core
 
 You can inspect the definition of the datalinks table active in your
-system by saying::
-
-  gavo admin dumpDF //datalink | less
-
+system by saying ``gavo admin dumpDF //datalink | less``
 (the table definition is right at the top).
 
 When returning link definitions, the tricky part mostly is to come up
@@ -2164,45 +1962,56 @@ example could look like this::
     </code>
   </metaMaker>
 
-Data links frequently should expose some data that's not in the product
-table (e.g., because you don't want the error files to show up there).
-In such cases, a good pattern is to allow a static renderer on the
-datalink service and use ``makeLinkFromFile``, which expects file paths
-relative to the service's resdir::
 
-  <service id="d" allowed="dlget,dlmeta,static">
-    <property name="staticData">data/errors</property>
+Parameter Definitions
+.....................
 
-    <datalinkCore>
-      ...
-      <metaMaker>
-        <code>
-          stem = descriptor.accref.split("/")[-1].split("_")[0]
-          yield descriptor.makeLinkFromFile("%s_err.fits"%stem,
-            contentType="image/fits", semantics="#error")
-        </code>
-      </metaMaker>
-    </datalinkCore>
-  </service>
+To define a datalink service's processing capabilities, meta makers
+yield input keys (``InputKey`` instances).  The classes usually required
+to build input keys return (InputKey, Values, Option) are available to
+the code as local names.  As usual, DaCHS structs 
+should not be constructed directly but only using the ``MS`` helper
+(which is really an alias for base.makeStruct; it takes care that the
+special postprocessing of DaCHS structures takes place).
 
-Note, however, that the static renderer does not enforce any access
-control.  That means that embargoed files must never be within the
-staticData (or they are not embargoed any more...).   Note also that
-this will of course fail if the file in question isn't below
-what's given in the service's ``staticData`` property, because the
-service then will not serve the file.
 
-Although it is preferable to have this static data on the datalink
-service to keep things simple, you can reuse an existing service's
-static renderer; you would pass in something like
-``service=base.resolveCrossId('otherres/q#staticsvc')`` as an addtional
-argument to ``makeLinkFromFile``.
+Hence, a meta maker that generates an extra cutout parameter for radio
+astronomers (note that this is of course a bad idea -- unit adaption
+should be done on the client side) could be::
+
+
+  <metaMaker>
+    <setup>
+      <code>
+        from gavo.utils import unitconv
+      </code>
+    </setup>
+    <code>
+      yield MS(InputKey, name="FREQ", unit="MHz", ucd="em.freq", 
+        description="Spectral cutout interval",
+        type="double precision[2]" xtype="interval"
+        multiplicity="forced-single"
+        values=MS(Values, 
+          min=1e-6*unitconv.LIGHT_C/(descriptor.ssaRow["ssa_specstart"],
+          max=1e-6*unitconv.LIGHT_C/descriptor.ssaRow["ssa_specend"]))
+    </code>
+  </metaMaker>
+
+The SODA-compliant version of this is in the ``//soda#sdm_cutout``
+predefined stream.
+
+The main point here is that you should follow section 4.3 for the [SODA]_
+spec, i.e., use interval-xtyped parameters.  Also, unless you're
+actually prepared to handle multiply-specified parameter values, you
+should use the ``forced-single`` mulitplicity, which makes DaCHS reject
+requests that contain a parameter more than once.
+
 
 
 Metadata Error Messages
 '''''''''''''''''''''''
 
-Both description generators and meta makers can return (or yield, in the
+Both descriptor generators and meta makers can return (or yield, in the
 case of meta makers) error messages instead of either a descriptor or a
 link definition.  This allows more fine-tuned control over the messages
 generated than raising an exception.
@@ -2223,12 +2032,6 @@ spec and match the semantics given there:
 Thus, a descriptor generator could look like this::
 
   <descriptorGenerator>
-    <setup>
-      <code>
-        class MyCustomDescriptor(ProductDescriptor):
-          ...
-      </code>
-    </setup>
     <code>
       with base.getTableConn() as conn:
         matchingRows = list(conn.queryToDicts(
@@ -2249,10 +2052,11 @@ Data Functions
 ''''''''''''''
 
 Data functions (see `element dataFunction`_) generate or manipulate
-data.  They see the descriptor and the arguments, parsed according to
+data.  They see the descriptor and the arguments (as ``args``), 
+parsed according to
 the input keys produced by the meta makers, where the descriptor's
 ``data`` attribute is filled out by the first data function called (the
-"generating data function").
+“initial data function”).
 
 As described above, DaCHS does not enforce anything on the ``data``
 attribute other than that it's not None after the first data function
@@ -2267,7 +2071,7 @@ functions expects which parameters.  If no value for a parameter was
 provided on input, the corresponding value is None but a data function
 using it still is called.
 
-An example for a generating data function is ``//soda#generateProduct``,
+An example for a generating data function is `//soda#generateProduct`_,
 which may be convenient when the manipulations operate on plain local files;
 it basically looks like this::
 
@@ -2280,48 +2084,55 @@ it basically looks like this::
 (the actual implementation lets you require certain mime types and is
 therefore a bit more complicated).
 
-Another generating data function, this time creating a Data instance
-containing a spectral data model-compliant structure, is in
-``//soda#sdm_genData`` and looks essentially like this::
+You could do whatever you want, however.  The following would work
+perfectly if you make your data functions handle lists of dicts::
 
   <dataFunction>
+    <setup>
+      <code>
+        import random
+      </code>
+    </setup>
     <code>
-      from gavo import rscdef
-      from gavo.protocols import sdm
-      builder = base.resolveCrossId(
-        "flashheros/q#buildsdm, rscdef.DataDescriptor)
-      descriptor.data = sdm.makeSDMDataForSSARow(descriptor.ssaRow, builder)
+      descriptor.data = [{"pix": i, "val": random.random()}
+        for i in range(20000)]
     </code>
   </dataFunction>
 
-More on this will be discussed in our section on SDM support.
+It wouldn't be hard to come up with a formatter that turns this into a
+nice VOTable.
 
-Filtering data functions should always come with a corresponding
-metaMaker.  As an example, continuing the spectral cutout example above,
-is again in ``//soda#sdm_cutout``.  It simply looks like this::
+Filtering data functions should always come with a meta maker declaring
+their parameters.  As an example, continuing the frequency cutout
+example above, consider this::
 
   <dataFunction>
     <code>
-      if not args.get("LAMBDA_MIN") and not args.get("LAMBDA_MAX"):
+      if not args.get("FREQ"):
         return
 
+      lam_min, lam_max = (unitconv.LIGHT_C/(args[FREQ][0]*1e6)
+        unitconv.LIGHT_C/(args[FREQ][1]*1e6))
       from gavo.protocols import sdm
       sdm.mangle_cutout(
         descriptor.data.getPrimaryTable(),
-        args["LAMBDA_MIN"] or -1, args["LAMBDA_MAX"] or 1e308)
+        lam_min, lam_max)
     </code>
   </dataFunction>
 
+(Ignoring for the moment troubles with half-open intervals).
+
 There are situations in which a data function must shortcut, mostly
-because it is doing something other than just "pushing on"
+because it is doing something other than just “pushing on”
 descriptor.data.  Examples include preview producers or a data function
-that returns the a FITS header.  For cases like this, data functions can
-raise one of DeliverNow (which means ``descriptor.data`` must be
+that should produce the FITS header only.  
+For cases like this, data functions can
+raise one of ``DeliverNow`` (which means ``descriptor.data`` must be
 something servable, see `Data Formatters`_ and causes that to be
-immediately served) or FormatNow (which immediately goes to the data
+immediately served) or ``FormatNow`` (which immediately goes to the data
 formatter; this is less useful).
 
-Here's an example for FormatNow; a similar thing is contained in the
+Here's an example for ``DeliverNow``; a similar thing is contained in the
 STREAM ``//soda#fits_genKindPar``::
 
   <dataFunction>
@@ -2344,17 +2155,22 @@ because the cutout limits are out of range).  If you don't, users of
 your service might become angry with you when they have to click away
 many empty windows (say).
 
+For further examples of data functions, see the ``//soda`` RD coming
+with the distribution.  If you write some, please consider whether they
+might be interesting for other DaCHS users, too, and submit them for
+inclusion into //soda.
+
 
 Data Formatters
 '''''''''''''''
 
 Data formatters (see `element dataFormatter`_) take a descriptor's data
-attribute and build something serveable out of it.  Datalink cores do
+attribute and build something servable out of it.  Datalink cores do
 not absolutely need one; the default is to return ``descriptor.data``
 (the ``//soda#trivialFormatter``, which might be fine if that data is
-serveable itself).
+servable itself).
 
-What is serveable?  The easiest thing to come up with is a pair of
+What is servable?  The easiest thing to come up with is a pair of
 content type and data in byte strings; if ``descriptor.data`` is a Table
 or Data instance, the following could work::
 
@@ -2389,7 +2205,7 @@ method that works in nevow.  This is true for the Product instances that
 write something yourself by inheriting from
 protocols.products.ProductBase and overriding its iterData method.
 
-If you don't inherit from ProductBase, take care that this renderHTTP
+If you don't inherit from ProductBase, be aware that this renderHTTP
 runs in the main server loop.  If it blocks, the server blocks, so make
 sure that this doesn't happen.  The conventional way would be to return,
 from the renderHTTP method, some twisted producer.  Non-Product nevow
@@ -2404,143 +2220,109 @@ saying ``<publish render="dlmeta" sets="ivo_managed"/>``.  However, that
 is not recommended, as it clutters the registry with services that
 are not really usable after discovery.
 
-An alternative is to add the capability to the service that houses the
-discovered datasets.  TODO: Tell people how :-)
+Datalink services will, however, appear as capabilities of services
+they're assigned to.  You do this by setting a ``datalink`` property on
+the main service like this::
 
+		<property name="datalink">my-datalink-service</property>
 
-Datalink and Obscore
-''''''''''''''''''''
+as, for instance, in :samplerd:`mlqso/q`.
+
+While it might be a good idea to provide some ``_example`` meta for all
+datalink services, when you register them, you really should provide one in any
+case so validators can pick up IDs and parameters to use when valdiating
+your service.  Here is an example, taken from :samplerd:`califa/q3`::
+
+  CALIFA cubes can be cut out along RA, DEC, and spectral axes.
+	CIRCLE and POLYGON cutouts yield bounding boxes.  Also note that the
+	coverage of CALIFA cubes is hexagonal in space.  This explains
+	the empty area when cutting out :genparam:`CIRCLE(225.5202 1.8486 0.001)`
+	:genparam:`BAND(366e-9 370e-9)` on
+	:dl-id:`ivo://org.gavo.dc/~?califa/datadr3/V1200/UGC9661.V1200.rscube.fits`.
+
+Essentially, an identifier to use is given as the ``dl-id`` interpreted
+text role, whereas processing parameters are given as DALI genparams.
+In DaCHS, they are written as the parameter name and its value in
+parentheses.
+
+Datalinks as Product URLs
+'''''''''''''''''''''''''
 
 In particular for larger datasets like cubes, it is rude to put the
 entire dataset into an obscore table.  Although obscore gives expected
-download sizes, clients nevertheless do not usually expecte to have to
+download sizes, clients nevertheless do not usually expect to have to
 retrieve several gigabytes or even terabytes of data when dereferencing
 an obscore access URL.
 
-Instead, the access URL in the obscore table can point to a datalink
-service.  There are various ways to effect this, but the recommended one
-is to precompute datalink URLs in the embedding table and then pass
-that column to obscore.  This entails defining a suitable column, which
-could look like this::
+While you could define additional datalink URLs and use these in
+Obscore – this is what :samplerd:`lswscans/res/positions` does, and
+there's a piece of text on this in the tutorial –, you should in general
+use datalinks as product URLs throughout with datasets larger than a
+couple of Megabytes.  :samplerd:`c8spect/q` shows how to do that with
+completely virtual data, :samplerd:`califa/q3` and :samplerd:`pcslg/q`
+are examples for what to do with FITS cubes or spectra.
 
-  <column name="dlurl" type="text"
-    ucd="meta.ref.url"
-    tablehead="DL"
-    description="URL of a datalink document for this dataset"
-    verbLevel="1" displayHint="type=url"/>
+This way, of course, without a datalink-enabled client people might be
+locked out from the dataset entirely.  On the other hand, DaCHS comes
+with a stylesheet that enables datalink operation from a common web
+brower, so that's perhaps not too bad.
 
-Then fill this column in the rowmaker::
+To have datalinks rather than the plain dataset as what the accref
+points to, you need to change what DaCHS thinks of your dataset; this is
+what the `//products#define`_ rowfilter in your grammar is for::
 
-  <var key="obs_id">\standardPubDID</var>
-    <map key="dlurl">makeAbsoluteURL(
-      "\rdId/*dl*/dlmeta?ID="+urllib.quote(@obs_id))</map>
+    <fitsProdGrammar qnd="True">
+      <rowfilter procDef="//products#define">
+        <bind key="path">\dlMetaURI{dl}</bind>
+        <bind key="mime">'application/x-votable+xml;content=datalink'</bind>
+        <bind key="fize">10000</bind>
+        [...]
+      </rowfilter>
+      [...]
+    </fitsProdGrammar>
 
-– you'll need to change ``*dl*`` to the id of your datalink service.
-It is true that this stores quite a bit of stuff in the database that
-could be computed at runtime.  However, even when you have 1e5 datasets,
-we'd be only talking of savings of the order of 10 MB, at the cost of a
-seriously ugly obscore expression and reduced debuggability.  Having
-said that, it wouldn't be too hard to build these URLs in the obscore
-mixin.  With these column, however, you can just state::
+This includes the estimate that the datalink document will have about
+10k octets; in that region, there is no need to be precise.  Note that
+the argument to the `macro dlMetaURI`_ is the id of the datalink
+service; DaCHS has no way to work that out by itself.
 
-  <mixin
-    accessURL="dlurl"
-    size="10"
-    mime="'application/x-votable+xml;content=datalink'"
-    ... (all the other stuff) ...
-    >//obscore#publish</mixin>
+When you do this, you must use a datalink-aware descriptor generator in
+SODA.
+When you use the recommended setup, where the accref is the
+inputsDir-relative path to the main file, and you're dealing with FITS,
+you can use the ``DLFITSProductDescriptor`` class.  Thus, the base
+functionality of a FITS cutout service with datalink products would be::
 
-This says that what's coming back is going to be about 10k; it's hard to
-predict the exact size of a datalink response, and there's no need to
-sweat things for a couple of k more or less.  The mime type given here
-is defined by Datalink exactly this purpose.  This is non-negotiable if
-you want clients to understand your data.
-
-
-Datalink Examples
-'''''''''''''''''
-
-FITS cutout service
-...................
-
-A plain FITS cutout service is assembled like this::
-
-  <service id="dl">
-    <meta name="title">Generic FITS datalink service</meta>
-    <datalinkCore>
-      <descriptorGenerator procDef="//soda#fits_genDesc"/>
-      <FEED source="//soda#fits_standardDLFuncs"/>
-    </datalinkCore>
+ 	<service id="dl" allowed="dlget,dlmeta">
+	  <meta name="title">My Cutout Service</meta>
+	  <datalinkCore>
+		  <descriptorGenerator procDef="//soda#fits_genDesc" 
+			  name="genFITSDesc">
+			  <bind key="accrefPrefix">'mysvcs/data'</bind>
+			  <bind key="descClass">DLFITSProductDescriptor</bind>
+		  </descriptorGenerator>
+		  <FEED source="//soda#fits_standardDLFuncs"/>
+	  </datalinkCore>
   </service>
 
-This works for all FITS files in the products table and has no usable
-STC metadata.  Good datalink services do better; by giving more
-metadata, you of course commit to certain FITS structures, which means
-that you should restrict to only those files that actually match your
-assumptions.  The easiest way to do this is to structure your input
-directories accordingly and then filter early by using fits_genDesc's
-``accrefStart`` parameter.  If, for instance, the data processed where
-in INPUTSDIR/thisdata/release2, you would give your descriptor generator
-as::
+When not using FITS, you will need to change the descriptor generator's
+computation of the local file path yourself, as done, e.g., in
+:samplerd:`pcslg/q`.
 
-  <descriptorGenerator procDef="//soda#fits_genDesc">
-    <bind key="accrefPrefix">"thisdata/release2"</bind>
-  </descriptorGenerator>
+SDM compliant tables
+''''''''''''''''''''
 
-To have physical SODA cutout parameter, you need to explictly designate
-the axes (this is done because FITS files cannot be trusted to properly
-declare STC on non-spatial axes).  You can still use
-``fits_standardDLFuncs``.  In the simplest case, that would be::
+A common use for datalink cores in DaCHS is for server-side generation
+and processing of spectra as discussed in `SDM processing`_ . This almost
+invariably involves defining tables compliant with the spectral data
+model and filling them.
 
-   <FEED source="//soda#fits_standardDLFuncs" spectralAxis="3"/>
-
-(you can also pass ``wavelengthUnit`` if that information is missing
-from the FITS.
-
-TODO: Custom function, return link to error file.
-
-
-SSAP auxillary datalink
-.......................
-
-Another use for datalink cores in DaCHS is for server-side processing of
-spectra.  A typical service there looks like this::
-
-  <service id="ssaaux" allowed="dlmeta,dlget">
-    <meta name="title">Datalink service to retrieve individual spectra</meta>
-    <datalinkCore>
-      <descriptorGenerator procDef="//soda#sdm_genDesc">
-        <bind name="ssaTD">"\rdId#slitspectra"</bind>
-      </descriptorGenerator>
-      <dataFunction procDef="//soda#sdm_genData">
-        <bind name="builder">"\rdId#get_slitcomponent"</bind>
-      </dataFunction>
-      <FEED source="//soda#sdm_plainfluxcalib"/>
-      <FEED source="//soda#sdm_cutout"/>
-      <FEED source="//soda#sdm_format"/>
-    </datalinkCore>
-  </service>
-
-For SDM processing, the descriptor contains the SSA row, and thus
-the descriptor generator needs to know the SSA table that keeps the
-spectra to be processed.  It is here identified using a full reference
-(i.e., including the RD id) to the table definition, in the ssaTD
-parameter of ``sdm_genData``; this must of course match whatever is the
-``queriedTable`` of the core of the SSA service that refers to this
-datalink service. 
-
-The ``sdm_genData`` data function should again cover most uses of this.
-Its parameter, however, is somewhat more involved.  The data attribute
-of SDM descriptors contains SDM compliant data items, which need to be
-created using appropriate RD ``data`` elements.  Such a ``data`` element
-needs to be referenced in the ``builder`` parameter of ``sdm_genData``,
-again including the RD in the reference.
-
-To define this ``builder``, you first need to define an instance table.
-The columns that are in there depend on your data.  In the simplest
-case, the ``//ssap#sdm-instance`` mixin is sufficient and bring columns
-name ``flux`` and ``spectral``. Here's how you'd add flux errors if you
-needed to::
+The ``builder`` parameter of `//soda#sdm_genData`_ expects a reference
+to an SDM compliant ``data`` element.  To define it, you first need to
+define an instance table.  The columns that are in there depend on your
+data.  In the simplest case, the ``//ssap#sdm-instance`` mixin is
+sufficient and adds the columns ``flux`` and ``spectral``. Here's how
+you'd add flux errors if you needed to::
 
   <table id="instance" onDisk="False">
     <mixin ssaTable="slitspectra"
@@ -2548,16 +2330,15 @@ needed to::
       fluxDescription="Flux"
       >//ssap#sdm-instance</mixin>
 
-    <meta name="description">A spectrum from a slit spectrum obtained
-      for systems of quasars and lensing galaxies.  See 
-      ivo://org.gavo.dc/mlqso/q/q</meta>
-
-    <column name="fluxerror" ucd="stat.error;phot.flux.density;em.wl"/>
+    <column name="fluxerror" 
+      ucd="stat.error;phot.flux.density;em.wl"
+      unit="m" 
+      description="Estimate for error in flux based on the procedure
+        discussed at referenceURL"/>
   </table>
 
-What's referenced in the datalink core's builder data function then is a
-``data`` element that builds this table.  Here's one that fills the table
-from the database::
+What's referenced in `//soda#sdm_genData`_ is a ``data`` element that
+builds this table.  Here's one that fills the table from the database::
 
   <data id="get_slitcomponent">
     <!-- datamaker to pull spectra values out of the database -->
@@ -2580,9 +2361,12 @@ from the database::
     </make>
   </data>
 
-The ``parmaker`` with the ``//ssap#feedSSAToSDM`` call is generic.  You
-will in general have to write custom code for the embedded grammar; just
-yield rows matching the instance table.
+-- obviously, you can just as well fill it from a file (e.g.,
+:samplerd:`cdfspect/q`, which also shows what to do when the metadata
+that comes with the files is boken).
+
+The ``parmaker`` with the ``//ssap#feedSSAToSDM`` call is generic, i.e.,
+you won't usually need any more tricks here.  
 
 
 Product Previews
@@ -3712,14 +3496,18 @@ which, again, you can read in source using ``gavo admin dumpDF
 .. _dachs-support: http://lists.g-vo.org/cgi-bin/mailman/listinfo/dachs-support
 
 
-Bibliography
-============
-
 .. [RMI]  Hanisch, R., et al, "Resource Metadata for the Virtual
    Observatory", http://www.ivoa.net/Documents/latest/RM.html
 .. [VOTSTC] Demleitner, M., Ochsenbein, F., McDowell, J., Rots, A.:
    "Referencing STC in VOTable", Version 2.0,
    http://www.ivoa.net/Documents/Notes/VOTableSTC/20100618/NOTE-VOTableSTC-2.0-20100618.pdf
 .. _the DaCHS tutorial: http://docs.g-vo.org/DaCHS/tutorial.html
-.. [DALI] Dowler, P, et al, "Data Access Layer Interface Version 1.0", http://ivoa.net/documents/DALI/20131129/
+.. [DALI] Dowler, P, et al, "Data Access Layer Interface Version 1.0", 
+   http://ivoa.net/documents/DALI/20131129/
+.. [SODA] Bonnarel, F., et al, "IVOA Server-side Operations for Data
+   Access", http://ivoa.net/documents/SODA/
+.. [Datalink] Dowler, P., et al, "IVOA DataLink", 
+   http://ivoa.net/documents/DataLink/
+.. [IVOA Identifiers] Demleitner, M., et al, "IVOA Identifiers",
+   http://ivoa.net/Documents/IVOAIdentifiers/index.html
 .. |date| date::
