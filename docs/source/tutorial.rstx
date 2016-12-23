@@ -4089,7 +4089,7 @@ data – see above for details on how to create users and groups.
 .. _PyPDS: https://github.com/RyanBalfanz/PyPDS
 .. _//epntap#table-2_0: http://docs.g-vo.org/DaCHS/ref.html#the-epntap-table-2-0-mixin
 .. _//epntap#populate-2_0: http://docs.g-vo.org/DaCHS/ref.html#epntap-populate-2-0
-.. _EPN-TAP proposed specification: https://voparis-confluence.obspm.fr/display/VES/EPNcore+v2
+.. _EPN-TAP proposed specification: https://voparis-confluence.obspm.fr/display/VES/EPN-TAP+V2.0+parameters
 .. _Mapping data: http://docs.g-vo.org/DaCHS/tutorial.html#mapping-data
 .. _pgsphere: http://pgsphere.projects.pgfoundry.org/
 .. _authority query: http://dc.g-vo.org/WIRR/?field0=ivorn&operator0=%3D&operand0=your.authority.here&MAXREC=20&OFFSET=0
