@@ -1,4 +1,4 @@
-def setup(RSTExtensions):
+def setup(app):
     from docutils import nodes
     from docutils import utils as rstutils
 
@@ -11,5 +11,6 @@ def setup(RSTExtensions):
         return [nodes.reference(text, text, internal=False, refuri=url)
                 ], []
 
-    RSTExtensions.makeTextRole("samplerd", _samplerdRoleFunc)
-    del _samplerdRoleFunc
+    # RSTExtensions.makeTextRole("samplerd", _samplerdRoleFunc)
+    # del _samplerdRoleFunc
+    app.add_role('samplerd', _samplerdRoleFunc)
