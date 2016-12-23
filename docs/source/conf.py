@@ -32,6 +32,7 @@ sys.path.append(os.path.abspath('includes'))
 extensions = [
     'sphinx.ext.todo',
     'sphinx_role_dachsref',
+    'sphinx_role_samplerd',
     'sphinx.ext.extlinks'
 ]
 
@@ -41,6 +42,8 @@ extensions = [
 # That said, setting a value for 'dachsref_base' here applies only for
 # those running sphinx; currently, readthedocs.
 dachsref_base = 'http://dachs-doc.readthedocs.io/en/latest/refdoc.html'
+
+# 'samplerd' goes alone: the link is defined inside _role_samplerd.
 
 # Pretty much the same arguments as for 'dachsref', now for role 'dachsdoc',
 # which uses sphinx 'extlinks' extension; points to documentation root.
