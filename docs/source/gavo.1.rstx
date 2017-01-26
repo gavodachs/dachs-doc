@@ -70,6 +70,11 @@ Global options are given before the subcommand name.
 --suppress-log
        suppress logging of exceptions to the dachs-specific log files
 
+--version
+       shows the versions of the software, of the database schema
+       expected by the software and of the database schema actually
+       on disk (if the latter two disagree, run gavo upgrade).
+
 
 THE admin SUBCOMMAND
 ====================
@@ -115,9 +120,9 @@ Subsubcommands
   distribution.  The argument is a package resource path.
   (like /inputs/__system__/scs.rd); for system RDs, the special 
   //rd-id syntax is supported.
-* ``execute execId`` -- Execute the contents of an RD execute element. You
+* ``execute exec-id`` -- Execute the contents of an RD execute element. You
   must give that element an explicit id in order to make this work; then
-  execId is rd-id#exec-id
+  exec-id is rd-id#exec-id
 * ``xsdValidate path`` -- Validate a file against built-in VO schemas
   and with built-in schema validator.
 * ``suggestucds tableId`` -- Make suggestions for UCDs of the columns 
@@ -256,7 +261,7 @@ THE info SUBCOMMAND
 
 Synopsis::
 
-       info [-h] table-id
+       dachs info [-h] table-id
 
 This displays column statistics about the table referred to in the
 argument (which must be a fully qualified table name resolvable by the
@@ -275,7 +280,7 @@ THE init SUBCOMMAND
 
 Synopsis::
 
-       init [-h] [-d DSN] [--nodb]
+       dachs init [-h] [-d DSN] [--nodb]
 
 This initialises DaCHS' file system and database environment.  Calling
 ``dachs init`` on an existing site should not damage anything.  It
@@ -300,12 +305,33 @@ Options
        hierarchy)
 
 
+THE limits SUBCOMMAND
+=====================
+
+Synopsis::
+
+  dachs limits [-h] item-id
+
+This subcommand updates existing values/min or values/max items in the
+referenced table or RD from a database query (thus it may run for quite
+a while on large tables).  Note that this will rewrite the RD containing
+the definitions (but it takes great care to preserve not only the
+remaining contents but also its formatting).
+
+
+Arguments
+---------
+
+item-id
+  either an RD id or a table reference in the from rd-id#table-id
+
+
 THE mkboost SUBCOMMAND
 ======================
 
 Synopsis::
 
-       mkboost [option] <id-of-directGrammar>
+       dachs mkboost [option] <id-of-directGrammar>
 
 This writes a C source skeleton for using the direct grammar referenced
 to fill a database table.  See the *Guide to Write Booster Grammars* in
@@ -328,7 +354,7 @@ THE mkrd SUBCOMMAND
 
 Synopsis::
 
-       mkrd [option] sample
+       dachs mkrd [option] sample
 
 Rudimentary support for generating RDs from data.  This is probably not
 terribly useful in its current state.
@@ -349,7 +375,7 @@ THE publish SUBCOMMAND
 
 Synopsis:
 
-       publish [option] rd-name
+       dachs publish [option] rd-name
 
 This marks data and/or services contained in an RD as published; this
 will make them displayed in DaCHS' portal page or pushed to the VO
@@ -375,7 +401,7 @@ THE purge SUBCOMMAND
 
 Synopsis::
 
-       purge [-h] tablename [tablename...]
+       dachs purge [-h] tablename [tablename...]
 
 This will delete tables in the database and also remove their metadata
 from DaCHS' internal tables (e.g., TAP_SCHEMA, table of published
@@ -511,22 +537,49 @@ Options
   Do not warn against units not listed in VOUnits.
 
 
-THE show SUBCOMMAND
+THE upgrade SUBCOMMAND
+======================
+
+Synopsis::
+
+  gavo upgrade
+
+Each DaCHS version has an associated database schema version, encoding
+the structure of DaCHS' (and the impemented protocol versions') ideas of
+how system and user tables should look like.  ``gavo upgrade`` attempts
+to work out how to change the database to match the expectations of the
+current version and executes the respective code.  It will not touch
+anything if it decrees that the installation is up to date.
+
+Operating system packages will usually try to run ``gavo upgrade`` as
+part of their management operation.  In case ``gavo upgrade`` requires
+manual intervention, this may fail, in which case operators may need to
+call ``gavo upgrade`` manually.
+
+Operators keeping a manually installed DaCHS should run ``gavo upgrade``
+after each ``svn update`` or update from tar.
+
+
+THE adql SUBCOMMAND
 ===================
 
-(not documented; will probably vanish or change)
+Synopsis:
+
+  dachs adql query
+
+This subcommand executes ADQL queries locally and writes the resulting
+VOTable to stdout.  We consider removing it.
 
 
-THE stc SUBCOMMAND
-==================
+INTERNAL OR DEPRECATED SUBCOMMANDS
+==================================
 
-(not documented; will probably change fundamentally as STC2 is adopted)
+The subcommands ``show``, ``stc`` are deprecated and not documented
+here.  They may disappear without further notice.
 
+the subcommands ``taprun``, ``dlrun``, ``uwsrun``, ``gendoc``, ``raise``
+are used internally and should not be directly used by DaCHS operators.
 
-THE taprun SUBCOMMAND
-=====================
-
-(used internally)
 
 
 REPORTING BUGS
