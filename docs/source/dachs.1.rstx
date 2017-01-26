@@ -292,12 +292,11 @@ Options
 -------
 
 -d <DSN>, --dsn <DSN>
-       data source name (DSN) to use to  connect  to  the
-       future DaCHS database; the DSN must let DaCHS con‐
-       nect to the database as an administrator;  dbname,
-       host,  and  port  get  copied  to  the profile, if
-       given; if you followed the  installation  instruc‐
-       tions, you do not need this option
+       data source name (DSN) to use to  connect  to  the future DaCHS
+       database; the DSN must let DaCHS connect to the database as an
+       administrator;  dbname, host,  and  port  get  copied  to  the
+       profile, if given; if you followed the  installation
+       instructions, you do not need this option
 
 --nodb
        inhibit  initialization  of  the database (you may
@@ -390,10 +389,9 @@ Options
        search everything below inputsDir for publications
 
 -k, --keep-timestamps
-       preserve the time stamp of the last record modifi‐
-       cation;  this  may  sometimes  be  desirable  when
-       updating  a  schema to avoid a reharvesting of all
-       resource records
+       preserve the time stamp of the last record modification;  this
+       may  sometimes  be  desirable  with minor updates on an RD 
+       that don't justify a re-publication to the VO.
 
 
 THE purge SUBCOMMAND

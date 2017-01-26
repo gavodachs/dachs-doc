@@ -165,6 +165,9 @@ gavo --version, the two numbers behind “Schema” are different, but since
 ``gavo upgrade`` is smart enough to figure out when there's no need to
 do anything, just make it a routine to run it.
 
+**Note**: ``python setup.py install`` and friends do not install DaCHS' 
+man page.  Either do that manually (it's in docs/dachs.1) or use the
+online version at :dachsdoc:`dachs.1.html`
 
 .. _nevow: http://divmod.org/trac/wiki/DivmodNevow
 .. _setuptools documentation: http://peak.telecommunity.com/DevCenter/EasyInstall
