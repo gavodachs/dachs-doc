@@ -2682,11 +2682,11 @@ in the procApp's namespace::
         </code>
       </setup>
       <code>
-        powers = inputTable.getParam("powers")
-        if powers is None:
+        powers = inputTable.args["powers"]
+        if not powers:
           powers = [1,2]
-        op = complex(inputTable.getParam("opre"),
-          inputTable.getParam("opim"))
+        op = complex(inputTable.args["opre"],
+          inputTable.args["opim"])
 
         rows = []
         for p in powers:
