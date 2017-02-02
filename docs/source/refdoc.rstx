@@ -745,109 +745,141 @@ interpreted.  The interpretation is greedy, and only one formatter at a
 time attempts to interpret display hints.
 
 
-Building Service Interfaces
-===========================
+DaCHS' Service Interface
+========================
 
-Within DaCHS, an HTTP request is processed as follows:
+Even though normal users should rarely be confronted with too many of
+the technical details of request processing in DaCHS, it helps to have a
+rough comprehension in order to understand several user-visible details.
 
-1) The core is adapted to the renderer; this means that condDescs with
-   buildFrom are converted to inputKeys according to the rules of the
-   renderer.  The form renderer generates VizieR-like expressions,
-   protocol renderers make PQL parameters, etc.  Also, onlyForRenderer
-   and notForRenderer inputKeys are selected or deselected
-2) From the core's inputTable, the service builds an input data
-   descriptor (unless the service has an inputDD defined already, of
-   course).  Most standard cores only take input from an input table's
-   parameters (the exception being the computedCore), and hence the
-   automatic inputDD will only have a parmaker.  The automatic
-   inputDD will parse using ContextGrammar without a rowKey (i.e.,
-   no rows will be produced).  The parmaker within the automatic inputDD
-   parses the input with the default parsers and using the getHTTPPar
-   rowmaker function.
-3) The service will build the input table using its inputDD.  The input
-   must be like nevow request.args, mapping each key to a sequence of
-   strings.
-4) The input table is passed to the core, which produces either a table,
-   a data instance, or a pair of mime-type and content.
-5) From the core result, an SvcResult is built.  This is relevant when
-   the service has an outputTable defined, in which case the table
-   structure is adapted if the input actually is a table.
-6) The renderer formats the SvcResult according to its wishes.
+In DaCHS' architecture, a service is essentially a combination of a core
+and a renderer.  The core is what actually does the query or the
+computation, the renderer adapts input and outputs to what a protocol or
+interface expects.  While a service always has exactly one core (could
+be a nullCore, though), it can support more than one renderer, although
+the parameters in all renderers are, within reason, about the same,
+within reason.  
 
-There is special handling for the form renderer, which does its parsing
-using nevow formal.  For it, the input table is built by just putting
-the values of the dictionary nevow formal produces into the input table
-params.
+However, parameters on a form interface will typcially be interpreted
+differently from a VO interface on the same core.  For instance, ranges
+on the form interface are written as ``1 .. 3`` (VizieR compliance), on
+an SSA 1.x interface ``1/3`` ("PQL" prototype), and on a datalink dlget
+interface "1 2" (DALI 1.1 style).  The extreme of what probably still
+makes sense is the core search core that replaces SCS's RA, DEC, and SR
+with an entirely different set of parameters perhaps better suited for
+interactive, browser-based usage.
 
+Cores communicate their input interface by defining an input table,
+which is essentially a sequence of input keys, which in turn essentiall
+work like params: in particular, they have all the standard metadata
+like units, ucds, etc.  Input tables, contrary to what their name might
+suggest, have no rows. They can hold metadata, though, which is
+sometimes convenient to pass data between parameter parsers and the
+core.
 
-TBD: multiplicity, param values as defaults,
+When a request comes in, the service first determines the renderer
+responsible.  It then requests an inputTable for that renderer from the
+core.  The core, in turn, will map each inputKey in its inputTable
+through a renderer adaptor as returned from
+svcs.inputdef.getRendererAdaptor; this inspects the
+renderer.parameterStyle, which must be taken from the
+svcs.inputdef._RENDERER_ADAPTORS' keys (currently ``form``, ``pql``,
+``dali``).  inputKeys have to have the adaptToRenderer property set to
+True to have them adapted.  Most automatically generated inputKeys have
+that; where you manually define inputKeys, you would have to set the
+property manually if you want that behaviour (and know that you want
+it; outside of table-based cores, it is unikely that you do).
 
+The input table, together with the raw arguments coming from the client,
+is then used to build a ``svcs.CoreArgs`` instance, which in turn takes
+the set of input keys to build a context grammar.  The core args have the
+underlying input table (with the input keys for the metadata) in the
+``inputTD`` attribute, the parsed arguments in the dictionary ``args``.  
+
+For each input key ``args`` maps its name to a value; context grammars
+are case-semisensitive, meaning that case in the HTTP parameter names is
+in general ignored, but if a parameter name matching case is found, it
+is preferred.  Yes, ugly, but unfortunately the VO has started with
+case-insensitive parameter names.  Sigh.
+
+The values in ``args`` are a bit tricky:
+
+* each raw parameter given must parse with a single inputKey's parse.  For
+  instance, if an inputKey is a real[2], it will be parsed as a float
+  array.
+* if no raw parameter is given for an input key, its value will be None.
+* when an inputKey specifies multiplicity="multiple", the non-None value 
+  in the core args is a list.  Each list item is something that came out of
+  the inputKey's parser (i.e., it could be another list for array-valued
+  parameters).
+* when an inputKey specifies multiplicity="single", the value in the
+  core args is a single value of whatever inputKey parses (or None for
+  missing parameters).  This is even true when a parameter has been
+  given multiple times; while currently, the last parameter will win, we
+  don't guarantee that.
+* when an inputKey specifies multiplicity="force-single", DaCHS works as
+  in the single case, except that multiple specification will lead to an
+  error.
+* when an inputKey does not specify multiplicity, DaCHS will infer the
+  desired multiplicity from various hints; essentially, enumerated
+  parameters (values/options given in some way) have
+  multiplicity multiple, everything else multiplicity single. It is wise
+  not to rely on this behaviour.
+
+These rules are independent of the type of core and hold for pythonCores
+or whatever just as for the normal, table-based cores.  For these (and
+they are what users are mostly concerned with), special rules and
+shortcuts apply, though.
 
 Table-based cores
 '''''''''''''''''
 
+Conddescs and input keys: Defining the input parameters
+.......................................................
+
 You will usually deal with cores querying database tables – dbCore,
-ssapCore, etc.  For these, there should not be a need to define an
-inputDD; the one generated from the condDescs should work fine.
+ssapCore, etc.  For these, you will not normally define an inputTable,
+as it is being generated by the software from condDescs.
 
 To create simple constraints, just ``buildFrom`` the columns queried::
 
   <condDesc buildFrom="myColumn"/>
 
-(the names are resolved in the core's queried table).  This pattern has
-the advantage that the concrete parameter style is adapted to the
+(the names are resolved in the core's queried table).  DaCHS will
+automatically adapt the concrete parameter style is adapted to the
 renderer – in the web interface, there are vizier-like expressions, in
-protocol interfaces, you get fields understanding expressions as in
-SSAP's "PQL", plus in addition "structured parameters" (like FOO_MIN and
-FOO_MAX) where applicable.
+protocol interfaces, you get fields understanding expressions, either
+as in SSAP (for the *pql* parameter style) or as defined in DALI (the
+*dali* parameter style).
 
 This will generate query fields that work against data as stored in the
 database, with some exceptions (columns containing MJDs will, for
 example, be turned into VizieR-like date expressions for web forms).
-For protocol input, this is, in general, what you want.  In web forms,
-you may want to customize the apprearance, for example, to adapt to
-user's unit preferences.  For this latter use case, there is the
-``inputUnit`` attribute::
 
-    <condDesc>
-      <inputKey original="minDist" inputUnit="arcsec"
-        type="vexpr-float">
-        <property key="onlyForRenderer">form</property>
-      </inputKey>
-      <inputKey original="minDist" 
-        type="pql-float">
-        <property key="notForRenderer">form</property>
-      </inputKey>
-    </condDesc>
+Since in HTML forms, astronomers often ask for odd units and then want
+to input them, too, DaCHS will also honor the displayUnit display hint
+for forms.  for instance, if you wrote::
 
-Note how in this case we adapted the types of the input keys to provide
-interfaces suitable to the various renderers.  For HTML forms, we
-recommend one of
+  <table id="ex1">
+    <column name="minDist" 
+      unit="deg"
+      displayHint="displayUnit=arcsec"/>
+    ...
 
-* vexpr-float
-* vexpr-date (dates with timestamps in the database)
-* vexpr-mjd (dates with MJD in the database)
-* vexpr-string (though for those, frequently generating options is
-  preferable, see below)
+  <dbCore queriedTable="ex1">
+    <condDesc buildFrom="minDist"/>
+    ...
 
-For protocol input, the types available are
-
-* pql-int
-* pql-float
-* pql-string
-* pql-date (where timestamps are in the database; MHD works fine with
-  pql-float since date input is not really desirable for protocol input
-  anyway).
-
-Note that you can, of course, also keep the default types where that
-provides a better interface.  Flag-like integers, for example, are
-classic examples where giving the possible values is preferable to
-allowing parameter expressions.
+then the form renderer would declare the minDist column to take its
+values in arcsecs and do the necessary conversions, while minDist would
+properly work with degrees in SCS or TAP.
 
 For object lists and similar, it is frequently desirable to give the
 possible values (unless there are too many of those; these will be
 translated to option lists in forms and to metadata items for protocol
-services and hence be user visible)::
+services and hence be user visible).  In this case, you need to change
+the input key itself.  You can do this by deriving the input key from
+the column and assign it to a condDesc, like this::
 
    <condDesc>
       <inputKey original="source">
@@ -855,37 +887,108 @@ services and hence be user visible)::
       </inputKey>
     </condDesc>
 
+Use the ``showItems="n"`` attribute of input keys to determine how many
+items in the selector are shown at one time.
 
-All these generate the default SQL, which is equality (or set membership
-for multiple values for a parameter).  To generate custom SQL, give a
-phraseMaker, like this::
+If you want your service to fail if a parameter is not given, declare
+the condDesc as required::
+
+  <condDesc buildFrom="myColumn" required="True"/>
+
+(you can also declare individual an ``inputKey`` as ``required``).
+
+If, on the other hand, you want DaCHS to fill in a default if the user
+provides no value, give a default to the input key using the values
+child::
+
+  <condDesc>
+    <inputKey original="radius">
+      <values default="0.5"/>
+    </inputKey>
+  <condDesc>
+
+Sometimes a parameter shouldn't be defaulted in a protocol request
+(perhaps to satisfy an external contract), while the web interface
+should pre-fill a sensible choice.  In that case, use the
+``defaultForForm`` property::
+
+  <condDesc>
+    <inputKey original="radius"> 
+      <property key="defaultForForm">0.5</property>
+    </inputKey>
+  <condDesc>
+
+DaCHS will also interpret ``min`` and ``max`` attributes on the input
+keys (and the columns they are generated from) to generate input hints;
+that's a good way to fight the horror vacui users have when there's an
+input box and they have no idea what to put there.  The best way to deal
+with this, however, is to not change the input keys but the columns
+themselves, as in::
+
+  <table id="ex1">
+    <column name="mjd" type="double precision"
+      ...>
+      <values min="" max=""/>
+  ...
+  <dbCore queriesTable="ex1">
+    <condDesc buildFrom="mjd"/>
+
+You will typically leave min and max empty and run::
+
+  dachs limits q#ex
+
+when the table contents change; this will make DaCHS update the values
+in the RD itself.
+
+
+
+Phrasemakers: Making custom queries
+...................................
+
+CondDescs will generate SQL adapted to the type of their input keys,
+which; as you can imagine, for cases like the VizieR expressions, that's
+not done in a couple of lines.  However, there are times when you need
+custom behaviour.  You can then give your conddescs a ``phraseMaker``, a
+piece of python code generating a query and adding parameters::
 
    <condDesc>
-      <inputKey original="confirmed" multiplicity="single"/>
+      <inputKey original="confirmed" multiplicity="single">
+        <property name="adaptToRenderer">False</property>
+      </inputKey>
       <phraseMaker>
         <code>
           if inPars.get(inputKeys[0].name, False):
-            yield "confirmed"
+            yield "confirmed IS NOT NULL"
         </code>
       </phraseMaker>
     </condDesc>
 
 PhraseMakers work like other code embedded in RDs (and thus may have
 setup).  ``inPars`` gives a dictionary of the input parameters as parsed
-by the inputDD according to multiplicity (or as delivered by nevow
-formal – use the ``getHTTPPar`` rowmaker function if there can be input
-with differing multiplicities).  ``inputKeys`` contains a sequence of
-the condDesc's inputKeys.  By using their names as above, your code will
-not break if the parameters are renamed.
+by the inputDD according to multiplicity.  ``inputKeys`` contains a
+sequence of the conddesc's inputKeys.  By using their names as above,
+your code will not break if the parameters are renamed.
 
-PhraseMakers must yield zero or more SQL fragments; multiple SQL
+It is usually a good idea to set the property ``adaptToRenderer`` to
+False in such cases – you generally don't want DaCHS to use its standard
+rules for input key adaptation as discussion above because that will
+typically change what ends up in ``inPars`` and hence break your code
+for some renderers.
+
+Note again that parameters not given will have the value None
+throughout.  The will be present in inPars, though, so do *not* try
+things like ``"myName" in inPars`` – that's always true.
+
+Phrase makers must yield zero or more SQL fragments; multiple SQL
 fragments are joined in conjunctions (i.e., end up in ANDed conditions
-in the WHERE clause).
+in the WHERE clause) (i.e., if you need to OR your fragments, you'll
+have to do that yourself.  Use the ``base.joinOperatorExpr(operator,
+operands)`` for robustness.
 
-Since you are dealing with raw SQL here, *never* include material from
-inPars directly in the query strings you return – this would immediately
-let people to SQL injections at least when the inputKey's type is
-string.  Instead, use getSQLKey as in this example::
+Since you are dealing with raw SQL here, **never** include material from
+``inPars`` directly in the query strings you return – this would immediately
+let people do SQL injections at least when the input key's type is
+text or similar.  Instead, use the ``getSQLKey`` function as in this example::
 
     <condDesc>
       <inputKey original="hdwl" multiplicity="single"/>
@@ -900,12 +1003,12 @@ string.  Instead, use getSQLKey as in this example::
     </condDesc>
 
 ``getSQLKey`` takes a suggested name, a value and a dictionary, which
-within phraseMakers always is ``outPars``. It will enter value with the
-suggested name as key into outPars or change the suggested name if there
+within phrase makers always is ``outPars``. It will enter value with the
+suggested name as key into ``outPars`` or change the suggested name if there
 is a name clash.  The generated name will be returned, and that is what
 is entered in the SQL statement.
 
-The ``outPars`` dictionary is shared between all condDescs entering into
+The ``outPars`` dictionary is shared between all conddescs entering into
 a query.  Hence, if you do anything with it except passing it to
 ``base.getSQLKey``, you're voiding your entire warranty.
 
@@ -913,7 +1016,9 @@ Here's how to define a condDesc doing a full text search in a column::
 
   <condDesc>
     <inputKey original="source" description="Words from the catalog
-      description, e.g., author names or title words."/>
+      description, e.g., author names or title words.">
+      <property name="adaptToRenderer">False</property>
+    </inputKey>
     <phraseMaker>
       <code>
         yield ("to_tsvector('english', source)"
@@ -928,22 +1033,15 @@ Incidentally, this would go with an index definition like::
   <index columns="source" method="gin"
     >to_tsvector('english', source)</index>
 
-For the HTML form interface, you can influence the widgets chosen by the
-renderer to some extent.  To get an options list allowing multiple
-selections, say::
 
-    <condDesc>
-      <inputKey original="carsfield" multipliticy="multiple">
-        <values fromdb="carsfield from carsarcs.meta order by carsfield"/>
-      </inputKey>
-    </condDesc>
-
-Use the ``showItems="n"`` attribute of inputKeys to determine how many
-items in the selector are shown at one time.
+Grouping Input Keys
+...................
 
 For special effects, you can group inputKeys.  This will make them show
-up under a common label and in a single line in HTML forms.  Here's an
-example for a simple range selector::
+up under a common label and in a single line in HTML forms.  Other
+renderers currently don't do anything with the groups.  
+
+Here's an example for a simple range selector::
 
   <condDesc>
     <inputKey name="el" type="text" tablehead="Element"/>
@@ -984,14 +1082,13 @@ You will probably want to style the result of this effort using the
   </service>
 
 See also the entries on `multi-line input`_, `selecting input fields
-with a widget`_, and `customizing generated SCS conditions`_.
+with a widget`_, and `customizing generated SCS conditions`_ in DaCHS'
+howto document.
 
 .. _multi-line input: howDoI.html#get-a-multi-line-text-input-for-an-input-key
 .. _selecting input fields with a widget: howDoI.html#make-an-input-widget-to-select-which-columns-appear-in-the-output-table
 .. _customizing generated SCS conditions: howDoI.html#change-the-query-issued-on-scs-queries
 
-TBD: Say something about required.  Do we even want to mention
-widgetFactory?
 
 Formatting the output
 '''''''''''''''''''''
