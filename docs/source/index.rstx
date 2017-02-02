@@ -44,18 +44,20 @@ anything else that might yet come) until you notice you need to read
 them.
 
 
-For Data Center Operators
--------------------------
+Deployment Options
+------------------
 
 * :doc:`Installation and configuration <install>`
 
   * :download:`install.pdf <../pdf/install.pdf>`
   * :download:`install.rstx <./install.rstx>`
 
-* :doc:`Operator's guide <opguide>`
+For Data Center Operators
+-------------------------
 
-  * :download:`opguide.pdf <../pdf/opguide.pdf>`
-  * :download:`opguide.rstx <./opguide.rstx>`
+* :doc:`dachs command manpage <gavo.1>`
+
+  * :download:`gavo.1.rstx <./gavo.1.rstx>`
 
 * :doc:`Tutorial on importing data <tutorial>`
 
@@ -64,11 +66,15 @@ For Data Center Operators
 
 * :doc:`Reference <refdoc>`
 
-  * :download:`ref.pdf <http://docs.g-vo.org/DaCHS/ref.pdf>`
   * :download:`refdoc.rstx <./refdoc.rstx>` (this is a template, built
     with ``gavo gendoc``.  You're welcome to fix problems in the
     template, but the documents cannot be updated on
     github/readthedocs).
+
+* :doc:`Operator's guide <opguide>`
+
+  * :download:`opguide.pdf <../pdf/opguide.pdf>`
+  * :download:`opguide.rstx <./opguide.rstx>`
 
 * :doc:`How do I? <howDoI>`
 
@@ -79,6 +85,8 @@ For Data Center Operators
 
   * :download:`commonproblems.pdf <../pdf/commonproblems.pdf>`
   * :download:`commonproblems.rstx <./commonproblems.rstx>`
+
+* `Reference to elements and attributes in use in GAVO's data center <http://docs.g-vo.org/DaCHS/elemref.html>`_.
 
 * :doc:`Guide to writing HTML templates <templating>`
 
@@ -94,8 +102,6 @@ For Data Center Operators
 
   * :download:`processors.pdf <../pdf/processors.pdf>`
   * :download:`processors.rstx <./processors.rstx>`
-
-* `Reference to elements and attributes in use in GAVO's data center <http://docs.g-vo.org/DaCHS/elemref.html>`_.
 
 For VO Data Providers
 ---------------------
