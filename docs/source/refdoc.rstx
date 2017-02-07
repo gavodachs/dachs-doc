@@ -770,7 +770,7 @@ with an entirely different set of parameters perhaps better suited for
 interactive, browser-based usage.
 
 Cores communicate their input interface by defining an input table,
-which is essentially a sequence of input keys, which in turn essentiall
+which is essentially a sequence of input keys, which in turn essentially
 work like params: in particular, they have all the standard metadata
 like units, ucds, etc.  Input tables, contrary to what their name might
 suggest, have no rows. They can hold metadata, though, which is
@@ -789,6 +789,9 @@ True to have them adapted.  Most automatically generated inputKeys have
 that; where you manually define inputKeys, you would have to set the
 property manually if you want that behaviour (and know that you want
 it; outside of table-based cores, it is unikely that you do).
+
+Core Args
+'''''''''
 
 The input table, together with the raw arguments coming from the client,
 is then used to build a ``svcs.CoreArgs`` instance, which in turn takes
@@ -1090,10 +1093,367 @@ howto document.
 .. _customizing generated SCS conditions: howDoI.html#change-the-query-issued-on-scs-queries
 
 
-Formatting the output
-'''''''''''''''''''''
+Writing Custom Cores
+====================
 
-TBD
+While DaCHS provides cores for many common operations – in particular,
+database queries and wrapped external binaries –, there are of course
+services that need to do things not covered by what the shipped cores
+do.  A common case is wrapping external binaries.
+
+Many such cases still follow the basic premise of services: GET or POST
+parameters in, something table-like out.  You should then use custom
+cores, which then still let you use normal DaCHS renderers (in
+particular ``form`` and ``api``/``sync``).  When that doesn't cut it,
+you'll need to use a custom renderer.
+
+While a custom core is defined in a separate module – this also helps
+debugging since you can run it outside of DaCHS –, there's also the
+python core that keeps the custom code inside of the RD.  This is very
+similar; `Python Cores instead of Custom Cores`_ explains the
+differences.
+
+The following exposition is derived from the times service in the GAVO
+data center, a service wrapping some FORTRAN code wrapping SOFA (yes,
+we're aware that we would directly use SOFA through astropy; that's not
+the point here).  Check out the sources at
+http://svn.ari.uni-heidelberg.de/svn/gavo/hdinputs/apfs; the RD is
+times.rd.
+
+
+Defining a Custom Core
+''''''''''''''''''''''
+
+In an RD, a custom core is very typically just written with a reference
+to a defining module::
+
+  <customCore module="res/timescore"/>
+
+The path is relative to the resdir, and you don't include the module's
+extension (DaCHS uses normal python module resolution, except for
+temporarily extending the search path with the enclosing directory).
+You can, in principle, declare the core's interface in that element, but
+that's typically not a good idea (see below).
+
+The above declaration means you will find the core itself in
+``res/timescore.py``.
+
+Ideally, you'll just use the DaCHS API in the core, since we try
+fairly hard to keep that api constant.  The timescore doesn't quite
+follow that rule because it wants to expand VizieR expressions, which
+normal services probably won't do.
+
+DaCHS expects the custom core under the name ``Core``.  Thus, the
+centerpiece of the module is:
+
+  from gavo import api
+
+  class Core(api.Core):
+
+The core needs an InputTable and an OutputTable like all cores.  You
+*could* define it in the resource descriptor like this::
+
+  <customCore id="createCore" module="bin/create">
+    <inputTable>
+      <inputKey .../>
+    </inputTable>
+    <outputTable>
+      <column name="itemsAdded" type="integer" tablehead="Items added"/>
+    </outputTable>
+  </customCore>
+
+It's preferable to define at least the input in the code, though, since
+it's more likely to be kept in sync with the code in that case.
+Embedding the definitions is done using the class attribute
+``inputTableXML``:
+
+  class Core(core.Core):
+    inputTableXML = """
+      <inputTable>
+        <inputKey name="ut1" type="vexpr-date" multiplicity="single"
+          tablehead="UT1"
+          description="Date and time (UT1)" ucd="time.epoch;meta.main"/>
+        <inputKey name="interval" type="integer" multiplicity="single"
+          tablehead="Interval"
+          unit="s" ucd="time.interval"
+          description="Interval between two sets of computed values"
+        >3600</inputKey>
+      </inputTable>
+    """
+
+There is also ``outputTableXML``, which you should use if you were to
+compute stuff in some lines of Python, since then the fields are
+directly defined by the core core itself.
+
+However, the case of timescore is fairly typical: There is some,
+essentially external, resource that produces something that needs to be
+parsed.  In that case, it's a better idea to define the parsing logic in
+a normal RD ``data`` item.  Its table then is the output table of the
+core.  In the times example, the output of ``timescompute`` is described
+by the ``build_result`` data item in ``times.rd``::
+
+  <table id="times">
+    <column name="ut1" type="timestamp" tablehead="UT1"
+      ucd="time.epoch;meta.main" verbLevel="1" 
+      description="Time and date (UT1)" displayHint="type=humanDate"/>
+    <column name="gmst" type="time" tablehead="GMST"
+      verbLevel="1" description="Greenwich mean sidereal time"
+      xtype="adql:TIMESTAMP" displayHint="type=humanTime,sf=4"/>
+    <column name="gast" type="time" tablehead="GAST"
+      verbLevel="1" description="Greenwich apparent sidereal time"
+      xtype="adql:TIMESTAMP" displayHint="type=humanTime,sf=4"/>
+    <column name="era" type="double precision" tablehead="ERA"
+      verbLevel="1" description="Earth rotation angle"
+      displayHint="type=dms,sf=3" unit="deg"/>
+  </table>
+
+  <data id="build_result" auto="False">
+    <reGrammar>
+      <names>ut1,gmst,gast,era</names>
+    </reGrammar>
+    <make table="times">
+      <rowmaker>
+        <map dest="gmst">parseWithNull(@gmst, parseTime, "None")</map>
+        ...
+      </rowmaker>
+    </make>
+  </data>
+
+So, the core needs to say “my output table has the structure of
+#times”.  As usual with DaCHS structures, you should not override the
+constructor, as it is defined by a metaclass.  Instead, Cores call,
+immediately after the XML parse (technically, as the first thing of
+their ``completeElement`` method), a method called ``initialize``.  This
+is where you should set the output table.  For the times core, this
+looks like this::
+
+  def initialize(self):
+    self.outputTable = api.OutputTableDef.fromTableDef(
+      self.rd.getById("times"), None)
+
+Of course, you are not limited to setting the output table there; as
+``initialize`` is only called once while parsing, this is also a good
+place to perform expensive, one-time operations like reading and parsing
+larger external resources.
+
+
+Giving the Core Functionality
+'''''''''''''''''''''''''''''
+
+To have the core do something, you have to override the run method,
+which has to have the following signature::
+
+  run(service, inputTable, queryMeta) -> stuff
+
+The stuff returned will ususally be a Table or Data instance (that need
+not match the outputTable definition -- the latter is targetted at the
+registry and possibly applications like output field selection).  The
+standard renderers also accept a pair of mime type and a string
+containing some data and will deliver this as-is.  With custom
+renderers, you could return basically anything you want.
+
+Services come up with some idea of the schema of the table they want to
+return and adapt tables coming out of the core to this.  Sometimes, you
+want to suppress this behaviour, e.g., because the service's ideas are
+off.  In that case, set a noPostprocess atttribute on the table to any
+value (the TAP core does this, for instance).
+
+In ``service`` you get the service using the core; this may make a
+difference since different services can use the same core and could
+control details of its operations through properties, their output
+table, or anything else.
+
+The ``inputTable`` argument is the ``CoreArgs`` instance discussed in
+`Core Args`_.   Essentially, you'll usually use its ``args`` attribute,
+a dictionary mapping the keys defined by your input table to values or
+lists of them.
+
+The ``queryMeta`` argument is discussed in `Database Options`_.
+
+In the times example, the parameter interpretation is done in an extra
+function (which helps testability when there's a bit more complex things
+going on):
+
+  def computeDates(args):
+    """yields datetimes at which to compute times from the ut1/interval
+    inputs in coreArgs args.
+    """
+    interval = args["interval"] or 3600
+    if args["ut1"] is None:
+      yield datetime.datetime.utcnow()
+      return
+
+    try:
+      expr = vizierexprs.parseDateExpr(args["ut1"])
+      if expr.operator in set([',', '=']):
+        for c in expr.children:
+          yield c
+
+      elif expr.operator=='..':
+        for c in expandDates(expr.children[0], 
+            expr.children[1], interval):
+          yield c
+
+      elif expr.operator=="+/-":
+        d0, wiggle = expr.children[0], datetime.timedelta(
+          expr.expr.children[1])
+        for c in expandDates(d0-wiggle, d0+wiggle):
+          yield c
+
+      else:
+        raise api.ValidationError("This sort of date expression"
+          " does not make sense for this service", colName="ut1")
+    except base.ParseException, msg:
+      raise api.ValidationError(
+        "Invalid date expression (at %s)."%msg.loc,
+        colName="ut1")
+
+While the details of the parameter parsing and expansion don't really
+matter, note now exceptions are mapped to a ValidationError and give
+a ``colName`` – this lets the form renderer display error messages next
+to the inputs that caused the failure.
+
+The next thing timescore does is build some input, which in this case is
+fairly trivial::
+
+	input = "\n".join(utils.formatISODT(date) for date in dates)+"\n"
+
+If your input is more complex or you need input files or similar, you
+want to be a bit more careful.  In particular, do *not* change directory
+(or, equivalently, use the utils.sandbox context manager); this may
+confuse the server, and in particular will break the first time two
+requests are served simultaneously: The core runs within the main
+process, and that can only have one current directory.
+
+Instead, in such situations, make a temporary directory and manually
+place your inputs in there.  The spacecore
+(https://svn.ari.uni-heidelberg.de/svn/gavo/hdinputs/sp_ace/res/spacecore.py)
+shows how this could look like, including  savely tearing the stuff down
+safely when done (the runSpace function).
+
+For the timescore, that is not necessary; you just run the wrapped
+program using standard subprocess functionality::
+
+	computer = service.rd.getAbsPath("bin/timescompute")
+
+	pipe = subprocess.Popen([computer],
+			stdin=subprocess.PIPE, stdout=subprocess.PIPE, close_fds=True,
+			cwd=os.path.dirname(computer))
+	data, errmsg = pipe.communicate(input)
+	if pipe.returncode:
+		raise api.ValidationError("The backend computing program failed"
+			" (exit code %s).  Messages may be available as"
+			" hints."%pipe.returncode,
+			"ut1",
+			hint=errmsg)
+
+Note that with today's computers, you shouldn't need to worry about
+streaming input or output until they are in the dozens of megabytes (in
+which case you should probably think hard about a custom UWS and keep
+the files in the job's working directories).
+
+To turn the program's output into a table, you use the data item defined
+in the RD::
+
+	return api.makeData(
+		self.rd.getById("build_result"),
+		forceSource=StringIO(data))
+
+When the core defines the data itself, you would skip ``makeData``.
+Just directly produce the rowdicts and make the output table directly
+from the rows::
+
+  rows = [{"foo": 3*i, "bar": 8*i} for i in range(30)]
+  return rsc.TableForDef(self.outputTable, rows=rows)
+
+
+Database Options
+''''''''''''''''
+
+The standard DB cores receive a “table widget” on form generation,
+including sort and limit options.  To make the Form renderer output this
+for your core as well, define a method ``wantsTableWidget()`` and return
+``True`` from it.
+
+The ``queryMeta`` that your ``run`` method receives  has a dbLimit key.
+It contains the user selection or, as a fallback, the global
+db/defaultLimit value.  These values are integers.
+
+So, if you order a table widget, you should do something like::
+
+  cursor.execute("SELECT .... LIMIT %(queryLimit)s", 
+    {"queryLimit": queryMeta["dbLimit"],...})
+
+In general, you should warn people if the query limit was reached; a
+simple way to do that is::
+
+  if len(res)==queryLimit:
+    res.addMeta("_warning", "The query limit was reached.  Increase it"
+      " to retrieve more matches.  Note that unsorted truncated queries"
+      " are not reproducible (i.e., might return a different result set"
+      " at a later time).")
+
+where res would be your result table.  _warning metadata is displayed in
+both HTML and VOTable output, though of course VOTable tools will not
+usually display it.
+
+
+Python Cores instead of Custom Cores
+''''''''''''''''''''''''''''''''''''
+
+If you only have a couple of lines of python, you don't have to have a
+separate module.  Instead, use a python core.  In it, you essentially
+have the ``run`` method as discussed in `Giving the Core Functionality`_
+in a standard ``procApp``.  The advantage is that interface and
+implementation is nicely bundled together.  The following example should
+illustrate the use  of such python cores; note that ``rsc`` already is
+in the procApp's namespace::
+
+  <pythonCore>
+    <inputTable>
+      <inputKey name="opre" description="Operand, real part"
+        required="True"/>
+      <inputKey name="opim" description="Operand, imaginary part"
+        required="True"/>
+      <inputKey name="powers" description="Powers to compute"
+        type="integer" multiplicity="multiple"/>
+    </inputTable>
+    <outputTable>
+      <outputField name="re" description="Result, real part"/>
+      <outputField name="im" description="Result, imaginary part"/>
+      <outputField name="log"
+        description="real part of logarithm of result"/>
+    </outputTable>
+
+    <coreProc>
+      <setup>
+        <code>
+          import cmath
+        </code>
+      </setup>
+      <code>
+        powers = inputTable.args["powers"]
+        if not powers:
+          powers = [1,2]
+        op = complex(inputTable.args["opre"],
+          inputTable.args["opim"])
+
+        rows = []
+        for p in powers:
+          val = op**p
+          rows.append({
+            "re": val.real,
+            "im": val.imag,
+            "log": cmath.log(val).real})
+        
+        return rsc.TableForDef(self.outputTable, rows=rows)
+      </code>
+    </coreProc>
+  </pythonCore>
+
+As an additional service, DaCHS executes your python cores in a sandbox
+directory, so you can create temporary files to your heart's
+delight; they will be torn down once the core is finished.
 
 
 Regression Testing
@@ -1627,7 +1987,7 @@ out what parameters are mentioned somewhat like this::
     -t -m "//v:PARAM" -v "@name" -nl
 
 In the remainder of this section, we first discuss the generation of
-datalinks and processing services „by example”, which should do for a
+datalinks and processing services “by example”, which should do for a
 basic use of the facilities.  We continue with a somewhat more in-depth
 look at the processing of a SODA request, after which we look more
 closely at the various elements that make up Datalink/SODA services.
@@ -1928,39 +2288,39 @@ A slightly more interesting example is provided by datalink for SSA,
 where cutouts and similar is generated from spectra.  The actual
 definition is in ``//soda#sdm_genDesc``, but the gist of it is::
 
-	<procDef type="descriptorGenerator" id="sdm_genDesc">
-		<setup>
-			<par key="ssaTD" description="Full reference (like path/rdname#id)
-				to the SSA table the spectrum's PubDID can be found in."/>
-			<par key="descriptorClass" description="The SSA descriptor
-				class to use.  You'll need to override this if the dc.products
-				path doesn't actually lead to the file (see
-				`custom generators &lt;#custom-product-descriptor-generators&gt;`_)."
-				late="True">ssap.SSADescriptor</par>
-			<code>
-				from gavo import rscdef
-				from gavo import rsc
-				from gavo import svcs
-				from gavo.protocols import ssap
-				ssaTD = base.resolveCrossId(ssaTD, rscdef.TableDef)
-			</code>
-		</setup>
-		
-		<code>
-			with base.getTableConn() as conn:
-				ssaTable = rsc.TableForDef(ssaTD, connection=conn)
-				matchingRows = list(ssaTable.iterQuery(ssaTable.tableDef, 
-					"ssa_pubdid=%(pubdid)s", {"pubdid": pubDID}))
-				if not matchingRows:
-					return DatalinkFault.NotFoundFault(pubDID,
-						"No spectrum with this pubDID known here")
+  <procDef type="descriptorGenerator" id="sdm_genDesc">
+    <setup>
+      <par key="ssaTD" description="Full reference (like path/rdname#id)
+        to the SSA table the spectrum's PubDID can be found in."/>
+      <par key="descriptorClass" description="The SSA descriptor
+        class to use.  You'll need to override this if the dc.products
+        path doesn't actually lead to the file (see
+        `custom generators &lt;#custom-product-descriptor-generators&gt;`_)."
+        late="True">ssap.SSADescriptor</par>
+      <code>
+        from gavo import rscdef
+        from gavo import rsc
+        from gavo import svcs
+        from gavo.protocols import ssap
+        ssaTD = base.resolveCrossId(ssaTD, rscdef.TableDef)
+      </code>
+    </setup>
+    
+    <code>
+      with base.getTableConn() as conn:
+        ssaTable = rsc.TableForDef(ssaTD, connection=conn)
+        matchingRows = list(ssaTable.iterQuery(ssaTable.tableDef, 
+          "ssa_pubdid=%(pubdid)s", {"pubdid": pubDID}))
+        if not matchingRows:
+          return DatalinkFault.NotFoundFault(pubDID,
+            "No spectrum with this pubDID known here")
 
-				# the relevant metadata for all rows with the same PubDID should
-				# be identical, and hence we can blindly take the first result.
-				return descriptorClass.fromSSARow(matchingRows[0],
-					ssaTable.getParamDict())
-		</code>
-	</procDef>
+        # the relevant metadata for all rows with the same PubDID should
+        # be identical, and hence we can blindly take the first result.
+        return descriptorClass.fromSSARow(matchingRows[0],
+          ssaTable.getParamDict())
+    </code>
+  </procDef>
 
 Here, we use ``ssa.SSADescriptor``, derived from ``ProductDescriptor``,
 rather than monkeypatching the extra ``ssaRow`` attribute the former
@@ -2321,7 +2681,7 @@ Datalink services will, however, appear as capabilities of services
 they're assigned to.  You do this by setting a ``datalink`` property on
 the main service like this::
 
-		<property name="datalink">my-datalink-service</property>
+    <property name="datalink">my-datalink-service</property>
 
 as, for instance, in :samplerd:`mlqso/q`.
 
@@ -2331,11 +2691,11 @@ case so validators can pick up IDs and parameters to use when valdiating
 your service.  Here is an example, taken from :samplerd:`califa/q3`::
 
   CALIFA cubes can be cut out along RA, DEC, and spectral axes.
-	CIRCLE and POLYGON cutouts yield bounding boxes.  Also note that the
-	coverage of CALIFA cubes is hexagonal in space.  This explains
-	the empty area when cutting out :genparam:`CIRCLE(225.5202 1.8486 0.001)`
-	:genparam:`BAND(366e-9 370e-9)` on
-	:dl-id:`ivo://org.gavo.dc/~?califa/datadr3/V1200/UGC9661.V1200.rscube.fits`.
+  CIRCLE and POLYGON cutouts yield bounding boxes.  Also note that the
+  coverage of CALIFA cubes is hexagonal in space.  This explains
+  the empty area when cutting out :genparam:`CIRCLE(225.5202 1.8486 0.001)`
+  :genparam:`BAND(366e-9 370e-9)` on
+  :dl-id:`ivo://org.gavo.dc/~?califa/datadr3/V1200/UGC9661.V1200.rscube.fits`.
 
 Essentially, an identifier to use is given as the ``dl-id`` interpreted
 text role, whereas processing parameters are given as DALI genparams.
@@ -2390,16 +2750,16 @@ inputsDir-relative path to the main file, and you're dealing with FITS,
 you can use the ``DLFITSProductDescriptor`` class.  Thus, the base
 functionality of a FITS cutout service with datalink products would be::
 
- 	<service id="dl" allowed="dlget,dlmeta">
-	  <meta name="title">My Cutout Service</meta>
-	  <datalinkCore>
-		  <descriptorGenerator procDef="//soda#fits_genDesc" 
-			  name="genFITSDesc">
-			  <bind key="accrefPrefix">'mysvcs/data'</bind>
-			  <bind key="descClass">DLFITSProductDescriptor</bind>
-		  </descriptorGenerator>
-		  <FEED source="//soda#fits_standardDLFuncs"/>
-	  </datalinkCore>
+   <service id="dl" allowed="dlget,dlmeta">
+    <meta name="title">My Cutout Service</meta>
+    <datalinkCore>
+      <descriptorGenerator procDef="//soda#fits_genDesc" 
+        name="genFITSDesc">
+        <bind key="accrefPrefix">'mysvcs/data'</bind>
+        <bind key="descClass">DLFITSProductDescriptor</bind>
+      </descriptorGenerator>
+      <FEED source="//soda#fits_standardDLFuncs"/>
+    </datalinkCore>
   </service>
 
 When not using FITS, you will need to change the descriptor generator's
@@ -2562,245 +2922,6 @@ c) actually compute the previews.  This is usually not defined in the RD
 .. _precomputing previews: http://docs.g-vo.org/DaCHS/processors.html#precomputing-previews
 
 
-Writing Custom Cores
-====================
-
-While DaCHS provides cores for many common operations -- in particular,
-database queries and wrapped external binaries --, there are of course
-services needing to do things not covered by what the shipped cores do.
-Some such cases still follow the basic premise of services: GET or POST
-parameters in, something table-like out.  For these cases, use custom
-cores (if even this does not provide sufficent functionality, write a
-custom renderer).
-
-For simple cases, rather than having the code in a separate module it's
-nicer to keep everything together in the RD.  This is very similar;
-`Python Cores instead of Custom Cores`_ explains the differences.
-
-
-
-Defining a Custom Core
-''''''''''''''''''''''
-
-To do this, you need to write a python module.  The standard location
-for those is in the bin/ subdirectory of the resource directory.
-
-You will usually want to inherit from core::
-
-  from gavo import rsc
-  from gavo.svcs import core
-
-  class Core(core.Core):
-
-The framework will always look of an object named "Core" in the module
-and use this as the custom core.
-
-The core needs an InputTable and an OutputTable like all cores.  You
-*could* define it in the resource descriptor like this::
-
-  <customCore id="createCore" module="bin/create">
-    <inputTable>
-      <inputKey .../>
-    </inputTable>
-    <outputTable>
-      <column name="itemsAdded" type="integer" tablehead="Items added"/>
-    </outputTable>
-  </customCore>
-
-It's probably a better idea to define it in the code, though, since
-then it will work without further specifications.  The definitions
-in the code can still be overridden from an RD for special effects.
-Embedding the definitions is done using the class attributes
-``inputTableXML`` and ``outputTableXML``::
-
-  class Core(core.Core):
-    inputTableXML = """<inputTable>
-      <inputKey name="fileSrc" type="file" tablehead="Local file"
-        description="A local file to upload (overrides source URL if given).">
-      <inputKey name="tableName" type="text" tablehead="Target Table"
-        description="Name of the table to match against.  
-          Only tables available for ADQL (see there) can be used here.">
-        <values fromdb="tablename from dc_tables where adql=True"/>
-      </inputTable>
-      """
-    outputTableXML = """<outputTable/>"""
-
-You should not override the constructor.  If you need to perform
-"expensive" instanciations, override the completeElement method, as in
-the following template::
-
-  def completeElement(self):
-    <your code>
-    self._completeElementNext(Core)
-
-The call to _completeElementNext ensures that the remaining
-completeElement methods are executed.
-
-Giving the Core Functionality
-'''''''''''''''''''''''''''''
-
-To have the core do something, you have to override the run method,
-which has to have the following signature::
-
-  run(service, inputTable, queryMeta) -> stuff
-
-The stuff returned will ususally be a Table instance (that need not
-match the outputTable definition -- the latter is targetted at the
-registry and possibly applications like output field selection).  The
-standard renderers also accept a mime type and a string containing
-some data and will deliver this as-is.  With custom renderers, you could
-return basically anything you want.
-
-Services come up with some idea of the schema of the table they want to
-return and adapt tables coming out of the core to this.  Sometimes, you
-want to suppress this behaviour, e.g., because the service's ideas are
-off.  In that case, set a noPostprocess atttribute on the table to any
-value.
-
-service is a service instance.  In particular, you can access the RD you
-are running in through its rd attribute.  This is useful if you need to
-resolve, e.g., table references (which, in this case, could be given as
-a service property)::
-
-  pertainingTable = service.rd.getById(
-    service.getProperty("pertainingTable"))
-
-inputTable is a Table instance. Unless the service has a fancy inputDD,
-you simply find the inputKey values in the table's parameters::
-
-  val = inputTable.getParam("fileSrc")
-
-This val will be a simple value if the ``inputKey`` has multiplicity
-``single`` or ``force-single``, a list if it has multiplicity
-``multiple``.  It will be None if a non-required parameter is missing.
-
-As said above, you could return finished documents from your custom
-core.  It's usually friendlier and more flexible if you return
-tables.  To build a table matching the output table, use the core's
-``outputTable`` (which is actually a table definition).  This could
-look like this::
-
-  res = rsc.TableForDef(self.outputTable)
-  res.addRow({"foo": 3, "bar": 8})
-
-The rows are rowdicts as genrated by rowmakers (which you could
-use, too).  In many cases, it may be more convenient to collect the data
-up front and then create the output table with ready-made rows::
-
-  rows = [{"foo": 3, "bar": 8}]
-  return rsc.TableForDef(self.outputTable, rows=rows)
-
-Lastly, if there's parsing involved in coming up with the output table,
-it's probably a good idea to simply write a normal data item and arrange
-for whatever you come up with to be parsed.  For a data item
-``resparser``, this would then look like this::
-
-  with open("myFile") as src:
-    return rsc.makeData(rd.getById("resparser"), forceSource=src)
-
-
-
-Errors
-''''''
-
-To bail out from processing, raise a validation error.  Construct it
-with a message and the name of an input key.  At least for the form
-renderer, this causes a sensible error message with some hint as the
-originating input field, next to the offending input field::
-
-  raise base.ValidationError("Invalid file name", "rdsrc")
-
-
-Database Options
-''''''''''''''''
-
-The standard DB cores receive a "table widget" on form generation,
-including sort and limit options.  To make the Form renderer output this
-for your core as well, define a method wantsTableWidget() -> True.
-
-The queryMeta that you receive in run has a dbLimit key.  It contains
-the user selection or, as a fallback, the global db/defaultLimit value.
-These values are integers.
-
-So, if you order a table widget, you should do something like::
-
-  cursor.execute("SELECT .... LIMIT %(queryLimit)s", 
-    {"queryLimit": queryMeta["dbLimit"],...})
-
-In general, you should warn people if the query limit was reached; a
-simple way to do that is::
-
-  if len(res)==queryLimit:
-    res.addMeta("_warning", "The query limit was reached.  Increase it"
-      " to retrieve more matches.  Note that unsorted truncated queries"
-      " are not reproducible (i.e., might return a different result set"
-      " at a later time).")
-
-where res would be your result table.  _warning metadata is displayed in
-both HTML and VOTable output, though of course VOTable tools will not
-usually display it.
-
-Inheriting from TableBasedCore
-''''''''''''''''''''''''''''''
-
-TBD (This does not work right now; complain if you need to do it)
-
-Python Cores instead of Custom Cores
-''''''''''''''''''''''''''''''''''''
-
-If you only have a couple of lines of python, you don't have to have a
-separate module.  Instead, use a python core.  In it, you essentially
-have the ``run`` method as discussed in `Giving the Core Functionality`_
-in a standard ``procApp``.  The advantage is that interface and
-implementation is nicely bundled together.  The following example should
-illustrate the use  of such python cores; note that ``rsc`` already is
-in the procApp's namespace::
-
-  <pythonCore>
-    <inputTable>
-      <inputKey name="opre" description="Operand, real part"
-        required="True"/>
-      <inputKey name="opim" description="Operand, imaginary part"
-        required="True"/>
-      <inputKey name="powers" description="Powers to compute"
-        type="integer" multiplicity="multiple"/>
-    </inputTable>
-    <outputTable>
-      <outputField name="re" description="Result, real part"/>
-      <outputField name="im" description="Result, imaginary part"/>
-      <outputField name="log"
-        description="real part of logarithm of result"/>
-    </outputTable>
-
-    <coreProc>
-      <setup>
-        <code>
-          import cmath
-        </code>
-      </setup>
-      <code>
-        powers = inputTable.args["powers"]
-        if not powers:
-          powers = [1,2]
-        op = complex(inputTable.args["opre"],
-          inputTable.args["opim"])
-
-        rows = []
-        for p in powers:
-          val = op**p
-          rows.append({
-            "re": val.real,
-            "im": val.imag,
-            "log": cmath.log(val).real})
-        
-        return rsc.TableForDef(self.outputTable, rows=rows)
-      </code>
-    </coreProc>
-  </pythonCore>
-
-As an additional service, DaCHS executes your python cores in a sandbox
-directory, so you can create temporary files to your heart's
-delight; they will be torn down once the core is finished.
 
 
 Custom UWSes
