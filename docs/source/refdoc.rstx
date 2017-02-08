@@ -158,7 +158,7 @@ feeding the tables mixing in a given mixin.
   "//siap#pgs", "//ssap#hcd", "//obscore#publish",
   "//obscore#publishSIAP", "//slap#basic",
   "//ssap#sdm-instance", "//ssap#mixc",
-  "//obscore#publishSSAPHCD", "//epntap#table", "//epntap#table-2_0"])
+  "//obscore#publishSSAPHCD", "//epntap#table", "//epntap2#table-2_0"])
 
 
 Triggers
@@ -745,6 +745,235 @@ interpreted.  The interpretation is greedy, and only one formatter at a
 time attempts to interpret display hints.
 
 
+Data Model Annotation
+=====================
+
+In the VO, data models are used when simple, more or less linear
+annotation methods like UCDs do not provide sufficent expressive power.
+Or well, they should be used.  As of early 2017, things are, admittedly,
+still a mess.
+
+DaCHS lets you annotate your data in ``dm`` elements; the annotation
+will then be turned into standard VOTable annotation (when that's
+defined). Sometimes, the structured references provided by the DM
+annotation are useful elsewhere, too – the first actual use of this
+framework was the geojson serialisation discussed below.
+
+We first discuss SIL, then its use in actual data models.  At least
+skim over the next section – it sucks to discover the SIL grammar by
+trial and error.
+
+Old-style STC annotation is not discussed here.  If you still want to do
+it (and for now, you have to if you want any STC annotation – sigh),
+check out the `terse discussion in the tutorial
+<http://docs.g-vo.org/DaCHS/tutorial.html#stc>`_
+
+
+Annotation Using SIL
+--------------------
+
+Data model annotation in DaCHS is done using SIL, the Simple Instance
+Language.  It essentially resembles JSON, but all delimiters not really
+necessary for our use case have been dropped, and type annotation has
+been added.
+
+The elements of SIL are:
+
+* Atomic Values.  For SIL, everything is a string (it's a problem of
+  DM validation to decide otherwise).  When your string consists
+  exclusively of alphanumerics and [._-], you can just write it in SIL.
+  Otherwise, you must use double quotes.  as in SQL, write two double
+  quotes to include a literal double quote.  So, valid literals in SIL
+  are
+
+  * ``2.3e-3``
+  * ``red``
+  * ``"white and blue"``
+  * ``"""Yes,"" the computer said."
+  * ``"could write (type:foo) {bar. baz} here" (elements of SIL are
+    protected in quoted literals)
+  
+  Invalid literals include:
+
+  * ``http://www.g-vo.org`` (: and / may not occur in literals)
+  * ``red, white and blue`` (no blanks and commas)
+  * ``22"`` (no single quotes)
+
+* Plain Identifiers. These are C-like identifiers (a letter or an
+  underscore optionally followed by letters, number or underscores).
+
+* Comments. SIL comments are classical C-style comments (/*...*/).  They
+  don't nest yet, but they probably will at some point, so don't write
+  put /* within a comment.
+
+* Object annotation.  This is like a dictionary; only plain identifiers
+  are allowed as keys.  So, an object looks like this::
+
+    { foo: bar 
+      longer: "This is a value with blanks in it"
+    }
+
+  Note again that no commas or quotes around the keys are necessary (or
+  even allowed).
+
+* Sequences. This is like a list.  Members can be atomic or objects,
+  but they have to be homogenous (SIL doesn't enforce this by
+  grammatical means, though.  Here is an object with two sequences::
+
+    { seq1: [3 4 5 "You thought these were numbers? They're strings!"]
+      seq2: [
+        { seq_index: 0 value: 3.3}
+        { seq_index: 1 value: 0.3}
+      ]
+    }
+
+* References. The point of SIL is to say things about column and param
+  instances.  Both of them (and other dm instances, tables, and in
+  principle anything else in RDs) can be referenced from within SIL.
+  A reference starts with an @ and is then a normal DaCHS cross
+  identifier (columns and params within a table can be referenced by
+  name only, columns take precedence on name clashes).  If you use 
+  odd characters in your RD names or in-RD identifiers, think again: 
+  only [._/#-] are allowed in such references.  Here is an object 
+  with some valid references::
+
+    { long: @raj2000  /* a column in the enclosing table */
+      lat: @dej2000
+      system: //systems#icrs /* could be a dm instance in a
+        DaCHS-global RD;, this does *not* exist yet */
+      source: supercat/q#main /* perhaps a table in another RD */
+    }
+
+* Casting.  You can (and sometimes have to) give explicit types in the
+  SIL annotation.  Types look like C-style casts.  The root of
+  a SIL annotation must always have a cast; that allows DaCHS to
+  figure out what it is, which is essential for validation (and possibly
+  inference of defaults and such).  You can cast both single objects
+  and sequences.  Here's an example that actually
+  validates for DaCHS' SIL (which the examples above wouldn't because
+  they're missing the root annotation)::
+
+    (testdm:testclass) {  /* cast on root: mandatory */
+      attr1 {   /* no cast here; DaCHS can infer attr1's type if necessary */
+        attr2: val
+      }
+      seq: (testdm:otherclass)[  /* Sequence cast: */
+        {attr1: a}  /* all of these are now treated as testdm:otherclass */
+        {attr1: b}
+        {attr1: c}]}
+
+GeoJSON annotation
+------------------
+
+To produce GeoJSON output (as supported by DaCHS' TAP implementation),
+DaCHS needs to know what the “geometry“ in the sense of GeoJSON is.
+Furthermore, DaCHS keeps supporting declaring reference systems in the
+``crs`` attribute, as the planetology community uses it.
+
+The root class of the geojson DM is ``geojson:FeatureCollection``.  It
+has up to two attributes (*crs* and *feature*), closely following
+the GeoJSON structure itself.  The geometry is defined in *feature*'s
+*geometry* attribute.  All columns not used for geometry will end up
+in GeoJSON properties.
+
+So, a complete GeoJSON annotation, in this case for an EPN-TAP table,
+could look like this::
+
+  <table>
+ 		<dm>
+			(geojson:FeatureCollection){
+				crs: (geojson:CRS) {
+						type: name
+						properties: (geojson:CRSProperties) {
+							name: "urn:x-invented:titan"}}}}
+				feature: {
+					geometry: {
+						type: sepsimplex
+						c1min: @c1min
+						c2min: @c2min
+						c1max: @c1max
+						c2max: @c2max }}}
+		</dm>
+
+		<mixin
+			spatial_frame_type="body"/>
+  </table>
+
+Yes, the use *type* attributes is a bit of an abomination, but we wanted
+the structure to follow GeoJSON in spirit.
+
+The *crs* attribute could also be of *type* ``link``, in which case the
+*properties* would have attributes *href* and *type*; we're not aware of
+any applications of this in planetology, though.  *crs* is optional (but
+standards-compliant GeoJSON clients will interpret your coordinates as
+WGS84 on Earth if you leave it out).
+
+For *geometry*, several *type*s are defined by DaCHS, depending on how
+the GeoJSON geometry should be constructed from the table.  Currently
+defined types include (complain if you need something else, it's not
+hard to add):
+
+* ``sepcoo`` – this is for a spherical point with separate columns for the
+  two axes.  This needs *latitude* and *longitude* attributes, like
+  this::
+
+	  <dm>
+		  (geojson:FeatureCollection){
+			  feature: {
+				  geometry: {
+					  type: sepcoo
+					  latitude: @lat
+					  longitude: @long }}}
+	  </dm>
+
+* ``seppoly`` – this constructs a spherical polygon out of column references.
+  These have the form *c_n_m*, where m is 1 or 2, and n is counted from
+  1 up to the number of points.  DaCHS will stop collecting points as
+  soon as it doesn't find an expected key.  If you find yourself using 
+  this, check your data model.  An example::
+
+		<dm>
+			(geojson:FeatureCollection){
+				feature: {
+					geometry: {
+						type: seppoly /* a triangle of some kind */
+						c1_1: @rb0 
+						c1_2: @rb1
+						c2_1: @lb0
+						c2_2: @lb1 
+						c3_1: @t0
+						c3_2: @t1 }}}
+		</dm>
+
+* ``sepsimplex`` – this constructs a spherical box-like thing from minimum and
+  maximum values.  It has *c[12](min|max)* keys as in EPN-TAP.  As a
+  matter of fact, a fairly typical annotation for EPN-TAP would be::
+
+		<dm>
+			(geojson:FeatureCollection){
+			  feature: {
+			    geometry: {
+				    type: sepsimplex
+				    c1min: @c1min
+				    c2min: @c2min
+				    c1max: @c1max
+				    c2max: @c2max }}}
+		</dm>
+
+* ``geometry`` – this constructs a geometry from a pgsphere column.
+  Since GeoJSON doesn't have circles, only spoint and spoly columns can
+  be used.   They are referenced from the *value* key. For instance, 
+  obscore and friends could use::
+
+		<dm>
+			(geojson:FeatureCollection) {
+				feature:  {
+						geometry:  {
+							type: geometry
+							value: @s_region }}}
+			</dm>
+
+
 DaCHS' Service Interface
 ========================
 
@@ -1165,7 +1394,7 @@ The core needs an InputTable and an OutputTable like all cores.  You
 It's preferable to define at least the input in the code, though, since
 it's more likely to be kept in sync with the code in that case.
 Embedding the definitions is done using the class attribute
-``inputTableXML``:
+``inputTableXML``::
 
   class Core(core.Core):
     inputTableXML = """
@@ -1272,7 +1501,7 @@ The ``queryMeta`` argument is discussed in `Database Options`_.
 
 In the times example, the parameter interpretation is done in an extra
 function (which helps testability when there's a bit more complex things
-going on):
+going on)::
 
   def computeDates(args):
     """yields datetimes at which to compute times from the ut1/interval
@@ -1316,7 +1545,7 @@ to the inputs that caused the failure.
 The next thing timescore does is build some input, which in this case is
 fairly trivial::
 
-	input = "\n".join(utils.formatISODT(date) for date in dates)+"\n"
+  input = "\n".join(utils.formatISODT(date) for date in dates)+"\n"
 
 If your input is more complex or you need input files or similar, you
 want to be a bit more careful.  In particular, do *not* change directory
@@ -1334,18 +1563,18 @@ safely when done (the runSpace function).
 For the timescore, that is not necessary; you just run the wrapped
 program using standard subprocess functionality::
 
-	computer = service.rd.getAbsPath("bin/timescompute")
+  computer = service.rd.getAbsPath("bin/timescompute")
 
-	pipe = subprocess.Popen([computer],
-			stdin=subprocess.PIPE, stdout=subprocess.PIPE, close_fds=True,
-			cwd=os.path.dirname(computer))
-	data, errmsg = pipe.communicate(input)
-	if pipe.returncode:
-		raise api.ValidationError("The backend computing program failed"
-			" (exit code %s).  Messages may be available as"
-			" hints."%pipe.returncode,
-			"ut1",
-			hint=errmsg)
+  pipe = subprocess.Popen([computer],
+      stdin=subprocess.PIPE, stdout=subprocess.PIPE, close_fds=True,
+      cwd=os.path.dirname(computer))
+  data, errmsg = pipe.communicate(input)
+  if pipe.returncode:
+    raise api.ValidationError("The backend computing program failed"
+      " (exit code %s).  Messages may be available as"
+      " hints."%pipe.returncode,
+      "ut1",
+      hint=errmsg)
 
 Note that with today's computers, you shouldn't need to worry about
 streaming input or output until they are in the dozens of megabytes (in
@@ -1355,9 +1584,9 @@ the files in the job's working directories).
 To turn the program's output into a table, you use the data item defined
 in the RD::
 
-	return api.makeData(
-		self.rd.getById("build_result"),
-		forceSource=StringIO(data))
+  return api.makeData(
+    self.rd.getById("build_result"),
+    forceSource=StringIO(data))
 
 When the core defines the data itself, you would skip ``makeData``.
 Just directly produce the rowdicts and make the output table directly
