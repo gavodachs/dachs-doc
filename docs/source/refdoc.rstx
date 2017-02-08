@@ -770,7 +770,7 @@ check out the `terse discussion in the tutorial
 
 
 Annotation Using SIL
---------------------
+''''''''''''''''''''
 
 Data model annotation in DaCHS is done using SIL, the Simple Instance
 Language.  It essentially resembles JSON, but all delimiters not really
@@ -789,8 +789,8 @@ The elements of SIL are:
   * ``2.3e-3``
   * ``red``
   * ``"white and blue"``
-  * ``"""Yes,"" the computer said."
-  * ``"could write (type:foo) {bar. baz} here" (elements of SIL are
+  * ``"""Yes,"" the computer said."``
+  * ``"could write (type:foo) {bar. baz} here"`` (elements of SIL are
     protected in quoted literals)
   
   Invalid literals include:
@@ -863,7 +863,7 @@ The elements of SIL are:
         {attr1: c}]}
 
 GeoJSON annotation
-------------------
+''''''''''''''''''
 
 To produce GeoJSON output (as supported by DaCHS' TAP implementation),
 DaCHS needs to know what the “geometry“ in the sense of GeoJSON is.
@@ -908,7 +908,8 @@ any applications of this in planetology, though.  *crs* is optional (but
 standards-compliant GeoJSON clients will interpret your coordinates as
 WGS84 on Earth if you leave it out).
 
-For *geometry*, several *type*s are defined by DaCHS, depending on how
+For *geometry*, several values for *type* are defined by DaCHS, 
+depending on how
 the GeoJSON geometry should be constructed from the table.  Currently
 defined types include (complain if you need something else, it's not
 hard to add):
