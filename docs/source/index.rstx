@@ -55,9 +55,9 @@ Deployment Options
 For Data Center Operators
 -------------------------
 
-* :doc:`dachs command manpage <gavo.1>`
+* :doc:`dachs command manpage <dachs.1>`
 
-  * :download:`gavo.1.rstx <./gavo.1.rstx>`
+  * :download:`dachs.1.rstx <./dachs.1.rstx>`
 
 * :doc:`Tutorial on importing data <tutorial>`
 
