@@ -211,7 +211,7 @@ Procedures available for rowmaker apply
     "//siap#setMeta", "//ssap#setMeta",
     "//siap#getBandFromFilter", "//ssap#setMixcMeta",
     "//slap#fillBasic",
-    "//epntap#populate", "//epntap#populate-2_0",
+    "//epntap#populate", "//epntap2#populate-2_0",
     ])(docStructure)
 
 
@@ -2661,8 +2661,16 @@ should not be constructed directly but only using the ``MS`` helper
 (which is really an alias for base.makeStruct; it takes care that the
 special postprocessing of DaCHS structures takes place).
 
+You should make sure that the input keys have proper annotation as
+regards minima, maxima, or enumerated values; clients, in general, have
+to way to guess what is sensible here.
 
-Hence, a meta maker that generates an extra cutout parameter for radio
+The limits can usually be obtained from the descriptor (which, again, is
+available as ``descriptor`` in the meta maker.  For instance, the
+FITS descriptor has a ``header`` attribute describing the instance that
+the core operates on, the SSA descriptor an attribute ``ssaROW``.
+
+A meta maker that generates an extra cutout parameter for radio
 astronomers (note that this is of course a bad idea -- unit adaption
 should be done on the client side) could be::
 
@@ -2693,6 +2701,16 @@ actually prepared to handle multiply-specified parameter values, you
 should use the ``forced-single`` mulitplicity, which makes DaCHS reject
 requests that contain a parameter more than once.
 
+An extra complication occurs when SODA descriptors are generated for DAL
+responses.  Currently, this is only envisaged for SSA.  There, the
+descriptor has an extra limits attribute that gives, for each eligible
+column, minimum and maximum values or a set of values for enumerated
+columns.
+
+Similar (if possibly less useful) mechanisms are conceivable for, say,
+partial obscore results or SIAv1.  We suggest to keep the attribute name
+of this sort of collective characterisation as ``limits``.  DaCHS does
+not implement anything of this kind right now, though.
 
 
 Metadata Error Messages
