@@ -438,6 +438,23 @@ respective columns, too.  To do that, say::
   <index columns="bibref" method="gin">
     to_tsvector('english', bibref)</index>
 
+
+Relatedly, if what you want is matches *within* strings (as in ``foo
+LIKE '%bar%'), this will not help you.  The way to get these indexed is
+to use the *pg_trgm* module.  You'll have to create the extension
+manually (it's shipped with postgres since 9.1, though)::
+
+  CREATE EXTENSION pg_trgm
+
+After that, you can say::
+
+	<index columns="table_name" method="gin"
+		>LOWER(table_name) gin_trgm_ops</index>
+
+(this is to speed up searching with the ivo_nocasematch ADQL user
+defined function; drop the LOWER as you see fit.
+
+
 ...protect my TAP service against usage?
 ----------------------------------------
 

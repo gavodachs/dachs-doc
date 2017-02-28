@@ -212,8 +212,8 @@ In our current sandbox, a line like the following is to work::
 
  $ docker run -it --name server \
                   --volumes-from dataset_1 \
-                  -p 8080:8080
-                  chbrandt/dachs:latest
+                  -p 8080:80
+                  chbrandt/dachs:allinone
 
 After that, you should find yourself inside server's shell. The next
 steps are the usual ones to publish ``dataset_1``, we just have to put
