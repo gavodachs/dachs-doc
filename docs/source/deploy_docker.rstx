@@ -12,21 +12,71 @@ DaCHS on Docker
   :backlinks: entry
   :class: toc
 
-Here go some lines about encapsulating DaCHS in Docker container(s).
+
+The goal of this document is to expose how Docker can serve Dachs.
+We will explore Dachs and Docker architectures to see if/where they fit.
+
+If you just want to use the current DaCHS container, go straight to
+`the image repository <https://hub.docker.com/r/chbrandt/dachs/>`_.
+The README file there should be clear enough to put you running
+DaCHS-on-Docker (if not, complain).
+
+The first reason to port DaCHS to Docker had tests in mind: in a few
+seconds you'd have a fresh, clean DaCHS setup, do your tests -- a new,
+clean system would be available, for any other test, just by running
+a new docker instance.
+Another big reason to explore the use of Docker is because of data
+persistence, the use of docker data volumes enables data to thrive
+after containers are shutdown or even after a (docker) daemon failure.
+
 
 Rationale
 =========
 
-Dachs is composed by two living blocks: (1) the data access interface
-consulting (2) a Postgres database. Not all data is stored in the
-sql-db, but instead reside in files within Dachs directories tree.
-Typically, those files -- which we can say *connect* both running blocks
--- are placed inside Dachs's ``GAVO_ROOT/inputs``.
+DaCHS is composed by two living blocks: (1) the data access interface
+consulting and (2) a PostgreSQL database.
+The so called Dachs server is responsible for providing the interface
+between the user and datasets, Postgres stores the data tables.
+Of our particular interest here is where data is saved within the
+filesystem directories tree: one of our goals in using Docker is to
+ease data persistence when Dachs or the O.S. goes on maintenance.
 
-A very relevant point is to have a way to persist data and keep datasets
-separated.
+Dachs-server keeps its data under (``$GAVOROOT``) ``/var/gavo`` (and a
+config file at ``/etc/gavo.rc``).
+Postgres stores its data in its "data_directory", typically at
+``/var/lib/postgresql/PG_VERSION/main/``.
 
-The files structure of Dachs goes like::
+In practice, we want to have *data* and *daemons* (physically) detached
+from each other; Using Docker *jargon*, we want data to be stored in
+*data volumes* while daemons go in usual *containers*.
+
+Here goes a sketch of our current model::
+
+  +==========================================================+
+  | Dachs-on-Docker                                          |
+  |                                                          |
+  |  +-------------------+     +--------------------------+  |
+  |  | Dachs             |     | Postgres                 |  |
+  |  |                   |     |                          |  |
+  |  |  .............    |     |  ....................    |  |
+  |  |  |           |    |     |  |                  |    |  |
+  |  |  | $GAVOROOT |    |     |  | "data_directory" |    |  |
+  |  +-/             \---+     +-/                    \---+  |
+  +===/               \=========/                      \=====+
+      |               '         '                      |
+      |                                                |
+      |    HOST FILESYSTEM: persistent data volumes    |
+      |                                                |
+      |................................................|
+
+
+
+Files structure
+---------------
+
+The files under ``GAVOROOT`` are organized as follows:
+
+.. code::
 
   /var/gavo
   +---cache
@@ -48,50 +98,42 @@ The files structure of Dachs goes like::
       +---templates
           +---root.html
 
-where ``DATASET_1`` and ``DATASET_2`` are hypothetical datasets with
-files ``q.rd`` named to describe the resources. Without loosing
-generality lots of files have been omitted in this (example files) tree
-and some other have been exposed, the reason is to call attention for
-those files carrying information of interest for persistence.
+where ``DATASET_1`` and ``DATASET_2`` are hypothetical datasets.
+(Lots of files have been omitted in this example files tree, which is
+meant to highlight the basic structure.)
 
-For instance, it would be nice to have ``DATASET_1`` and ``DATASET_2``
-as "plugable" container/volumes. Also, site-dependent files like the
-ones in ``etc`` and ``web`` should compose the "main" container, but be
-editable.
 
+Dockerizing
+===========
+
+The current implementation uses docker-compose to orchestrate both
+containers and the data volumes.
+
+Take a look at:
+
+ https://hub.docker.com/r/chbrandt/dachs/
+
+for the current available images and documentation.
+
+We proceed here with a more manual procedure to emphasize the steps
+necessary, to be called *old style*.
+
+
+Old Style
+=========
 
 The server
 ----------
 
-The (main) container encapsulates the server itself, files and
+The (main) container encapsulates the Dachs server itself, files and
 directories to run the software.
 
 
-Detached config
-...............
+Ingesting data
+--------------
 
-To be able to have the settings independent from software installation
--- for maintenance purposes, for example -- we would like to have files
-in ``/var/gavo/etc`` (remember file ``/etc/gavo.rc``) and alike
-directories to be part of another docker volume.
-
-
-Mobile datasets
----------------
-
-Whenever a dataset is added to *dachs-docker*, an ``gavo import``
-command should be run. For example, mounting ``DATASET_1`` volume to
-``/var/gavo/inputs/DATASET_1``, should trigger the command::
-
-  $ gavo import /var/gavo/inputs/DATASET_1/q.rd
-
-
-About ingesting data
---------------------
-
-Before getting into the docker node, is worth it to highlight the steps
-and states of the system we need to have a dataset
-ingested-and-available through dachs.
+Before getting into the servers, it is worth highlighting the steps
+we need to have a data available to dachs so that it can then publish.
 
 First, we have to place the data and their descriptor (``RD``) in some
 directory -- for instance, ``DATASET_1/``.
@@ -108,14 +150,14 @@ Picture the components::
                      +-------------+          +------------+
                       |                        |
   +...........+       |                        |
-  | DATASET_1 |  -----+----  gavo import  -----`
-  +...........+       |      ```````````
-                      |
-                      |
-                      `===============
-                       | data access |
-                       |  interface  |
-                       ===============
+  |  DATASET  |  -----+----  gavo import  -----`.
+  +...........+              ```````````        |
+                                                |
+                                                |
+                                                `===============
+                                                 | data access |
+                                                 |  interface  |
+                                                 ===============
 
 
 It is important to have this diagram in mind to understand not only the
@@ -139,16 +181,15 @@ outside world -- take ``DATASET_1`` and ``DATASET_2`` as examples.
 Data Volumes
 ------------
 
-Attaching a volume to a container – as well as detaching and keeping it
-for persistence to another mount in the future – is a simple process,
+Attaching a volume to a container is a simple process,
 we just have to follow some rules to make good use of it.
 
 First of all, volumes can be attached to a container *only* at the
 moment the container is initialized; volumes *cannot* be mounted on
 already running containers.
-
 Second, volumes are made to persist; this means that volumes will still
-exist even after the (main) container removal.
+exist even after the container removal.
+It is up to the user to manually remove data volumes.
 
 To create a data volume, we basically initialize a container with no
 action, but a volume::
