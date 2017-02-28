@@ -592,11 +592,9 @@ Docker
 machines.**  We do, however, use Docker in our internal QC to check
 installability and upgradeability [well, this may be a lie].
 
-Still, if you want to build a Docker-able DaCHS -- and perhaps help us on our
-container's development(?) --, the section
-
-* :dachsdoc:`DaCHS on Docker <deploy_docker.html>`
-
-section may be useful.
+Still, if you want to build a Docker-able DaCHS take a look at the
+corresponding `Git <https://github.com/chbrandt/docker-dachs>`_
+or, analogously, `Docker <https://hub.docker.com/r/chbrandt/dachs/>`
+repositories.
 
 .. |date| date::
