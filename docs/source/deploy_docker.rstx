@@ -177,14 +177,13 @@ outside world -- take ``DATASET_1`` and ``DATASET_2`` as examples.
 Data Volumes
 ------------
 
-Docker provides two ways of managing `data in containers`__,
+Docker provides two ways of managing data in containers,
 called ``data volumes`` and ``data volume containers``.
 Here we will deal with ``data volume containers``, but for simplicity we
 should call them only ``data volumes``; take a look at
-`docker documentation`__ for further information.
+docker documentation on `volumes`_ for further information.
 
-.. _data volumes: https://docs.docker.com/engine/tutorials/dockervolumes
-__ data volumes_
+.. _volumes: https://docs.docker.com/engine/tutorials/dockervolumes
 
 Attaching a volume to a container is a simple process,
 we just have to follow some rules to make good use of it.
