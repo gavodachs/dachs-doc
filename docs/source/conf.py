@@ -41,13 +41,13 @@ extensions = [
 # Markus' server does not run sphinx (and so: does not run this conf.py).
 # That said, setting a value for 'dachsref_base' here applies only for
 # those running sphinx; currently, readthedocs.
-dachsref_base = 'http://dachs-doc.readthedocs.io/en/latest/refdoc.html'
+dachsref_base = 'http://dachs-doc.readthedocs.io/refdoc.html'
 
 # 'samplerd' goes alone: the link is defined inside _role_samplerd.
 
 # Pretty much the same arguments as for 'dachsref', now for role 'dachsdoc',
 # which uses sphinx 'extlinks' extension; points to documentation root.
-extlinks = {'dachsdoc':('http://dachs-doc.readthedocs.io/en/latest/%s',
+extlinks = {'dachsdoc':('http://dachs-doc.readthedocs.io/%s',
                         '')}
 
 # Add any paths that contain templates here, relative to this directory.
