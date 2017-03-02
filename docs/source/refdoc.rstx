@@ -155,7 +155,7 @@ feeding the tables mixing in a given mixin.
 
 .. replaceWithResult getMixinDocs(docStructure, [
   "//products#table", "//scs#positions", "//scs#q3cindex",
-  "//siap#pgs", "//ssap#hcd", "//obscore#publish",
+  "//siap#pgs", "//ssap#hcd", "//ssap#simpleCoverage", "//obscore#publish",
   "//obscore#publishSIAP", "//slap#basic",
   "//ssap#sdm-instance", "//ssap#mixc",
   "//obscore#publishSSAPHCD", "//epntap#table", "//epntap2#table-2_0"])

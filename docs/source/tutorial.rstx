@@ -2900,6 +2900,13 @@ astronomy as of the early 3rd millennium.
 ObsTAP
 ------
 
+*Note*: Before you can do anything with obscore, you have to run::
+
+  dachs imp //obscore
+
+This will also declare support for the obscore DM in your TAP service's
+registry record.
+
 ObsTAP is basically a single table, ivoa.ObsCore.  In DaCHS, this is a
 view generated from input tables.  To include the products within a
 table, you must use one of the mixins from the //obscore RD and fill out
