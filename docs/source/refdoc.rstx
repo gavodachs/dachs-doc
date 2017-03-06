@@ -292,6 +292,216 @@ i.e., they may consist of period-separated atoms, like
 publisher.address.email.  There may be multiple items for each meta
 key.
 
+
+Inputing Metadata
+'''''''''''''''''
+
+In RDs, there are two ways to define metadata: Meta elements and meta
+streams; the latter are also used in ``defaultmeta.txt``.
+
+Meta Elements
+.............
+
+These look like normal XML elements and have a mandatory ``name``
+attribute, a meta key relative to the element's root .  The text content
+is taken as the meta value; child meta elements are legal.
+
+An optional attribute for all meta elements is ``format`` (see `Meta
+Formats`_).
+
+Typed meta elements can have further attributes; these usually can also
+be given as meta children with the same name.
+
+Usually, metadata is additive; add a key twice and you will have a
+sequence of two meta values.  To remove previous content, prefix the
+meta name with a bang (!).  Here is an example::
+
+  <resource>
+    <!-- a simple piece of metadata -->
+    <meta name="title">A Meta example</meta>
+
+    <!-- repeat a meta thing for a sequence (caution: not everything
+      is repeatable in all output formats -->
+    <meta name="subject">Examples</meta>
+    <meta name="subject">DaCHS</meta>
+
+    <!-- Hierarchical meta can be set nested -->
+    <meta name="creator">
+      <meta name="name">Nations, U.N.</meta>
+      <meta name="logo">http://un.org/logo.png</meta>
+    </meta>
+    <meta name="creator">
+      <meta name="name">Neumann, A.E.</meta>
+    </meta>
+
+    <!-- @format lets you specify extra markup; make sure you
+    have consistent initial indentation. -->
+    <meta name=description" format="rst">
+      This resource is used in the `DaCHS reference docs`_
+
+      .. _DaCHS reference Docs: http://docs.g-vo.org/DaCHS
+    </meta>
+
+    <!-- you can contract "deeper" trees in paths -->
+    <meta name="contact.email">gavo@ari.uni-heidelberg.de</meta>
+
+    <!-- typed meta elements can have additional attributes -->
+    <meta name="uses" ivoId="ivo://org.gavo.dc/DaCHS"
+      >DaCHS server sortware</meta>
+
+    <!-- To overwrite a key set before, prefix the name with a bang. -->
+    <meta name="!title">An improved Meta example</meta>
+  </resource>
+
+The resulting meta structure is like this::
+
+  +-- title 
+  |     +---- "An improved Meta example
+  |
+  +-- subject 
+  |     +---- "Examples
+  |     +---- "DaCHS
+  |       
+  +-- creator
+  |     +----- name
+  |     |       +---- "Nations, U.N.
+  |     +----- logo
+  |     |       +---- "http://un.org/logo.png
+  +-- creator
+  |     +----- name
+  |             +---- "Neumann, A.E.
+  |
+  +-- description
+  |     +----- [formatted text, "This resource..."]
+  |
+  +-- contact
+  |      +----- email
+  |               +----- "gavo@ari.uni-heidelberg.de
+  |
+  +-- uses
+         +----- "DaCHS server software
+         +----- ivoId
+                  +----- "ivo://org.gavo.dc/DaCHS
+
+
+Stream Metadata
+...............
+
+In several places, most notably in the ``defaultmeta.txt`` file and in
+meta elements without a ``name`` attribute, you can give metadata as a
+“meta stream”.  This is just a sequence of lines containing pairs of
+<meta key> and <meta value>.
+
+In addition, there are comments, empty lines, and continuations.
+Continuation lines work by ending a line with a backslash.  The
+following line separator and all blanks and tabs following it are
+then ignored.  Thus, the following two meta keys end up having identical
+values::
+
+  meta1: A contin\
+    uation line needs \
+      a blank if you wan\
+  t one.
+  meta2: A continuation line needs a blank if you want one
+
+Note that whitespace behind a backslash prevents it from being a
+continuation character.  That is, admittedly, a bit of a trap.
+
+Other than their use as continuation characters, backslashes have no
+special meaning within meta streams as such.  Within meta elements,
+however, macros are expanded after continuation line processing if the
+meta parent knows how to expand macros.  This lets you write things
+like::
+
+  <meta>
+    creationDate: \metaString{authority.creationDate}
+    managingOrg:ivo://\getConfig{ivoa}{authority}
+  </meta>
+
+
+Comments and empty lines are easy: Empty lines are allowed, and a
+comment is a line with a hash (#) as its first non-whitespace
+character.  Both constructs are ignored, and you can even continue
+comments (though you should not).
+
+A Pitfall with Sequential Nested Meta
+......................................
+
+The creator.name meta illustrates a pitfall with our metadata
+definition.  Suppose you had more than one creator.  What you'd want is
+a metadata structure like this::
+
+  +-- creator -- name (Arthur)
+  |
+  +-- creator -- name (Berta)
+
+However, if you write::
+
+  creator.name: Arthur
+  creator.name: Berta
+
+or, equivalently::
+
+  <meta name="creator.name">Arthur</meta>
+  <meta name="creator.name">Berta</meta>
+
+by the above rules, you'll get this::
+
+  +-- creator -- name (Arthur)
+         |
+         +------ name (Berta)
+
+i.e., one creator with two names.
+
+To avoid this, make a new creator node in between, i.e., write::
+
+  creator.name: Arthur
+  creator:
+  creator.name: Berta
+
+In the creator.name case, where this is so common, DaCHS provides a
+shortcut, which you should use as a default; if you set ``creator``
+directly, DaCHS will expect a string of the form::
+
+  <author1>, <inits1> {; <authorn>, <initsn>}
+
+(i.e., Last, I.-form separated by semicolons, as in "Foo, X.; Bar, Q.;
+et al") and split it up into the proper structure.  You can mix the two
+notations, for instance if you want to set a logo on the first creator::
+
+  <meta name="creator">
+    <meta name="name">Chandrasekhar, S.</meta>
+    <meta name="logo">http://sit.in/chandra.png</meta>
+  </meta>
+  <meta name="creator">Copernicus, N.; Gallilei, G.</meta>
+
+Meta information can have a complex tree structure.  With meta streams,
+you can build trees by referencing dotted meta identifiers.  If you
+specify meta information for an item that already exists, a sibling will
+be created.  Thus, after::
+
+  creator.name: A. Author
+  creator:
+  creator.name: B. Buthor
+
+there are two creator elements, each specifying a name meta.  For the
+way creators are specified within VOResource, the following would be
+wrong::
+
+  creator.name: This is wrong.
+  creator.name: and will not work
+
+-- you would have a single creator meta with two name metas, which is
+not allowed by VOResource.
+
+If you write::
+
+  contact.address: 7 Miner's Way, Behind the Seven Mountains
+  contact.email: dwarfs@fairytale.fa
+
+you have a single contact meta giving address and email.
+
+
 Meta inheritance
 ''''''''''''''''
 
@@ -496,53 +706,6 @@ are usually set there:
 * contact.email
 * contact.telephone
 
-The creator.name meta illustrates a pitfall with our metadata
-definition.  Suppose you had more than one creator.  What you'd want is
-a metadata structure like this::
-
-  +-- creator -- name (Arthur)
-  |
-  +-- creator -- name (Berta)
-
-However, if you write::
-
-  creator.name: Arthur
-  creator.name: Berta
-
-or, equivalently::
-
-  <meta name="creator.name">Arthur</meta>
-  <meta name="creator.name">Berta</meta>
-
-by the above rules, you'll get this::
-
-  +-- creator -- name (Arthur)
-         |
-         +------ name (Berta)
-
-i.e., one creator with two names.
-
-To avoid this, make a new creator node in between, i.e., write::
-
-  creator.name: Arthur
-  creator:
-  creator.name: Berta
-
-In the creator.name case, where this is so common, DaCHS provides a
-shortcut, which you should use as a default; if you set ``creator``
-directly, DaCHS will expect a string of the form::
-
-  <author1>, <inits1> {; <authorn>, <initsn>}
-
-(i.e., Last, I.-form separated by semicolons, as in "Foo, X.; Bar, Q.;
-et al") and split it up into the proper structure.  You can mix the two
-notations, for instance if you want to set a logo on the first creator::
-
-  <meta name="creator">
-    <meta name="name">Chandrasekhar, S.</meta>
-    <meta name="logo">http://sit.in/chandra.png</meta>
-  </meta>
-  <meta name="creator">Copernicus, N.; Gallilei, G.</meta>
 
 
 Coverage Metadata
@@ -588,71 +751,6 @@ clouds::
 
 .. _Documentation for GAVO STC: http://docs.g-vo.org/DaCHS/stc.html
 
-Meta Stream Format
-''''''''''''''''''
-
-In serveral places, most notably in the ``defaultmeta.txt`` file and in
-meta elements without a ``name`` attribute, you can give metadata as a
-"meta stream".  This is just a sequence of lines containing pairs of
-<meta key> and <meta value>.
-
-In addition, there are comments, empty lines, and continuations.
-Continuation lines work by ending a line with a backslash.  The
-following line separator and all blanks and tabs following it are
-then ignored.  Thus, the following two meta keys end up having identical
-values::
-
-  meta1: A contin\
-    uation line needs \
-      a blank if you wan\
-  t one.
-  meta2: A continuation line needs a blank if you want one
-
-Note that whitespace behind a backslash prevents it from being a
-continuation character.  That is, admittedly, a bit of a trap.
-
-Other than their use as continuation characters, backslashes have no
-special meaning within meta streams as such.  Within meta elements,
-however, macros are expanded after continuation line processing if the
-meta parent knows how to expand macros.  This lets you write things
-like::
-
-  <meta>
-    creationDate: \metaString{authority.creationDate}
-    managingOrg:ivo://\getConfig{ivoa}{authority}
-  </meta>
-
-
-Comments and empty lines are easy: Empty lines are allowed, and a
-comment is a line with a hash (#) as its first non-whitespace
-character.  Both constructs are ignored, and you can even continue
-comments (though you should not).
-
-Meta information can have a complex tree structure.  With meta streams,
-you can build trees by referencing dotted meta identifiers.  If you
-specify meta information for an item that already exists, a sibling will
-be created.  Thus, after::
-
-  creator.name: A. Author
-  creator:
-  creator.name: B. Buthor
-
-there are two creator elements, each specifying a name meta.  For the
-way creators are specified within VOResource, the following would be
-wrong::
-
-  creator.name: This is wrong.
-  creator.name: and will not work
-
--- you would have a single creator meta with two name metas, which is
-not allowed by VOResource.
-
-If you write::
-
-  contact.address: 7 Miner's Way, Behind the Seven Mountains
-  contact.email: dwarfs@fairytale.fa
-
-you have a single contact meta giving address and email.
 
 
 Display Hints
