@@ -73,7 +73,7 @@ Global options are given before the subcommand name.
 --version
        shows the versions of the software, of the database schema
        expected by the software and of the database schema actually
-       on disk (if the latter two disagree, run gavo upgrade).
+       on disk (if the latter two disagree, run dachs upgrade).
 
 
 THE admin SUBCOMMAND
@@ -88,7 +88,7 @@ administering a data center.  In particular, this is where you create
 and edit accounts.
 
 subsubcommands can be abbreviated as long as the abbreviation is
-unique.  For instance ``gavo adm xsd`` will do an XSD validation.
+unique.  For instance ``dachs adm xsd`` will do an XSD validation.
 
 For more information on the subsubfunctions, pass a ``-h`` flag.
 
@@ -403,7 +403,7 @@ Synopsis::
 
 This will delete tables in the database and also remove their metadata
 from DaCHS' internal tables (e.g., TAP_SCHEMA, table of published
-records).  Use this if ``gavo drop`` fails for to remove some table for
+records).  Use this if ``dachs drop`` fails for to remove some table for
 one reason or another.
 
 Argument
@@ -540,11 +540,11 @@ THE upgrade SUBCOMMAND
 
 Synopsis::
 
-  gavo upgrade
+  dachs upgrade
 
 Each DaCHS version has an associated database schema version, encoding
 the structure of DaCHS' (and the impemented protocol versions') ideas of
-how system and user tables should look like.  ``gavo upgrade`` attempts
+how system and user tables should look like.  ``dachs upgrade`` attempts
 to work out how to change the database to match the expectations of the
 current version and executes the respective code.  It will not touch
 its data structures if it decrees that the installation is up to date.
@@ -555,12 +555,12 @@ pgsphere) are at the latest installed version and will run the necessary
 to DaCHS itself, you may want to run ``dachs upgrade`` after an upgrade
 to database extensions.
 
-Operating system packages will usually try to run ``gavo upgrade`` as
-part of their management operation.  In case ``gavo upgrade`` requires
+Operating system packages will usually try to run ``dachs upgrade`` as
+part of their management operation.  In case ``dachs upgrade`` requires
 manual intervention, this may fail, in which case operators may need to
-call ``gavo upgrade`` manually.
+call ``dachs upgrade`` manually.
 
-Operators keeping a manually installed DaCHS should run ``gavo upgrade``
+Operators keeping a manually installed DaCHS should run ``dachs upgrade``
 after each ``svn update`` or update from tar.
 
 
