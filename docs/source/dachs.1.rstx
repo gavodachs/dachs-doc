@@ -547,7 +547,13 @@ the structure of DaCHS' (and the impemented protocol versions') ideas of
 how system and user tables should look like.  ``gavo upgrade`` attempts
 to work out how to change the database to match the expectations of the
 current version and executes the respective code.  It will not touch
-anything if it decrees that the installation is up to date.
+its data structures if it decrees that the installation is up to date.
+
+``dachs upgrade`` also ensures that new-style postgres extensions (e.g.,
+pgsphere) are at the latest installed version and will run the necessary
+``ALTER EXTENSION`` statements if not.  Thus, independently of updates
+to DaCHS itself, you may want to run ``dachs upgrade`` after an upgrade
+to database extensions.
 
 Operating system packages will usually try to run ``gavo upgrade`` as
 part of their management operation.  In case ``gavo upgrade`` requires
