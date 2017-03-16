@@ -557,6 +557,26 @@ call ``dachs upgrade`` manually.
 Operators keeping a manually installed DaCHS should run ``dachs upgrade``
 after each ``svn update`` or update from tar.
 
+``dachs upgrade`` cannot perform actions requiring superuser privileges,
+since none of its roles have those.  Currently, this is mainly updating
+postgres extensions DaCHS uses (if you use extra ones, you can configure
+DaCHS' watch list in [db]managedExtensions).  ``dachs upgrade -e`` will
+attempt to figure out the instructions necessary to update extensions
+and write them to stdout.  Hence, operators should execute something
+like ``dachs upgrade -e | psql gavo`` from a database superuser account
+after upgrading postgres extensions.
+
+Options
+-------
+
+  --force-dbversion FORCEDBVERSION
+                        assume this as the database's schema version. If you
+                        don't develop DaCHS, you almost certainly should stay
+                        clear of this flag
+  -e, --get-extension-script
+                        Dump a script to update DaCHS-managed extensions (will
+                        print nothing if no extensions need updating). This
+                        will return 0 if material was written, 1 otherwise.
 
 THE adql SUBCOMMAND
 ===================
