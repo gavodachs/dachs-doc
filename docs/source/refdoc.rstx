@@ -981,23 +981,23 @@ So, a complete GeoJSON annotation, in this case for an EPN-TAP table,
 could look like this::
 
   <table>
- 		<dm>
-			(geojson:FeatureCollection){
-				crs: (geojson:CRS) {
-						type: name
-						properties: (geojson:CRSProperties) {
-							name: "urn:x-invented:titan"}}}}
-				feature: {
-					geometry: {
-						type: sepsimplex
-						c1min: @c1min
-						c2min: @c2min
-						c1max: @c1max
-						c2max: @c2max }}}
-		</dm>
+     <dm>
+      (geojson:FeatureCollection){
+        crs: (geojson:CRS) {
+            type: name
+            properties: (geojson:CRSProperties) {
+              name: "urn:x-invented:titan"}}}}
+        feature: {
+          geometry: {
+            type: sepsimplex
+            c1min: @c1min
+            c2min: @c2min
+            c1max: @c1max
+            c2max: @c2max }}}
+    </dm>
 
-		<mixin
-			spatial_frame_type="body"/>
+    <mixin
+      spatial_frame_type="body"/>
   </table>
 
 Yes, the use *type* attributes is a bit of an abomination, but we wanted
@@ -1019,14 +1019,14 @@ hard to add):
   two axes.  This needs *latitude* and *longitude* attributes, like
   this::
 
-	  <dm>
-		  (geojson:FeatureCollection){
-			  feature: {
-				  geometry: {
-					  type: sepcoo
-					  latitude: @lat
-					  longitude: @long }}}
-	  </dm>
+    <dm>
+      (geojson:FeatureCollection){
+        feature: {
+          geometry: {
+            type: sepcoo
+            latitude: @lat
+            longitude: @long }}}
+    </dm>
 
 * ``seppoly`` – this constructs a spherical polygon out of column references.
   These have the form *c_n_m*, where m is 1 or 2, and n is counted from
@@ -1034,46 +1034,46 @@ hard to add):
   soon as it doesn't find an expected key.  If you find yourself using 
   this, check your data model.  An example::
 
-		<dm>
-			(geojson:FeatureCollection){
-				feature: {
-					geometry: {
-						type: seppoly /* a triangle of some kind */
-						c1_1: @rb0 
-						c1_2: @rb1
-						c2_1: @lb0
-						c2_2: @lb1 
-						c3_1: @t0
-						c3_2: @t1 }}}
-		</dm>
+    <dm>
+      (geojson:FeatureCollection){
+        feature: {
+          geometry: {
+            type: seppoly /* a triangle of some kind */
+            c1_1: @rb0 
+            c1_2: @rb1
+            c2_1: @lb0
+            c2_2: @lb1 
+            c3_1: @t0
+            c3_2: @t1 }}}
+    </dm>
 
 * ``sepsimplex`` – this constructs a spherical box-like thing from minimum and
   maximum values.  It has *c[12](min|max)* keys as in EPN-TAP.  As a
   matter of fact, a fairly typical annotation for EPN-TAP would be::
 
-		<dm>
-			(geojson:FeatureCollection){
-			  feature: {
-			    geometry: {
-				    type: sepsimplex
-				    c1min: @c1min
-				    c2min: @c2min
-				    c1max: @c1max
-				    c2max: @c2max }}}
-		</dm>
+    <dm>
+      (geojson:FeatureCollection){
+        feature: {
+          geometry: {
+            type: sepsimplex
+            c1min: @c1min
+            c2min: @c2min
+            c1max: @c1max
+            c2max: @c2max }}}
+    </dm>
 
 * ``geometry`` – this constructs a geometry from a pgsphere column.
   Since GeoJSON doesn't have circles, only spoint and spoly columns can
   be used.   They are referenced from the *value* key. For instance, 
   obscore and friends could use::
 
-		<dm>
-			(geojson:FeatureCollection) {
-				feature:  {
-						geometry:  {
-							type: geometry
-							value: @s_region }}}
-			</dm>
+    <dm>
+      (geojson:FeatureCollection) {
+        feature:  {
+            geometry:  {
+              type: geometry
+              value: @s_region }}}
+      </dm>
 
 
 DaCHS' Service Interface
@@ -2034,7 +2034,7 @@ unittest TestCases (e.g., assertEqual and friends).  This is provided in
 particular for use to check values in VOTables coming back from services
 together with the ``getFirstVOTableRow`` method.
 
-When writing tests, please note that, like all procDef's bodies, the test
+Also please note that, like all procDef's bodies, the test
 code is macro-expanded by DaCHS.  This means that every backslash that
 should be seen by python needs to be escaped itself (i.e., doubled).  An
 escaped backslash in python thus is four backslashes in the RD.
@@ -3770,8 +3770,16 @@ So, a custom grammar module could look like this::
 
   class RowIterator(CustomRowIterator):
     def _iterRows(self):
-      for i in xrange(10000):
+      for i in xrange(int(self.sourceToken)):
         yield {'index': i, 'square': i**2}
+
+This would be used with a ``data`` material like::
+
+  <sources><item>4</item><item>40</item></sources>
+  <customGrammar module="res/sillygrammar"/>
+
+– ``self.sourceToken`` simply contains whatever the ``sources`` produce,
+one item after the other.
 
 Do not override magic methods, since you may lose row filters, sourceFields,
 and the like if you do.  An exception is the constructor.  If you must,
@@ -3783,16 +3791,35 @@ this::
       CustomRowIterator.__init__(self, grammar, sourceToken, sourceRow)
       <your code>
 
-The sourceToken, in general, will be a file name, unless you call
-makeData manually and forceSource something else.
+In practice (i.e., with ``<sources pattern="*"/>) ``self.sourceToken``
+will be a file name.  When you call ``makeData`` manually and pass a
+``forceSource`` argument, its value will show up in ``self.sourceToken``
+instead.
+
+For development, it may be convenient to execute your custom grammar as
+a python module.  To enable that, just append a::
+
+  if __name__=="__main__":
+    import sys
+
+    from gavo.grammars.customgrammar import CustomGrammar
+    ri = RowIterator(CustomGrammar(None), sys.argv[1])
+    for row in ri:
+      print row
+
+to your module.  You can then run things like::
+
+  python res/mygrammar.py data/inhabitedplanet.fits
+
+and see the rows as they're generated.
 
 A row iterator will be instanciated for each source processed.  Thus,
 you should usually not perform expensive operations in the constructor
 unless they depend on sourceToken.  In general, you should rather define
-a function makeDataPack in the module.  Whatever is returned by this
-function is available as self.grammar.dataPack in the row iterator.
+a function ``makeDataPack`` in the module.  Whatever is returned by this
+function is available as ``self.grammar.dataPack`` in the row iterator.
 
-The function receives an instance of the customGrammar as an
+The function receives an instance of the ``customGrammar`` as an
 argument.  This means you can access the resource descriptor and
 properties of the grammar.  As an example of how this could be used,
 consider this RD fragment::
@@ -3805,14 +3832,14 @@ consider this RD fragment::
     <property name="targetTable">defTable</property>
   </customGrammar>
 
-Then you could have the following in res/grammar.py::
+Then you could have the following in ``res/grammar.py``::
 
   def makeDataPack(grammar):
     return grammar.rd.getById(grammar.getProperty("targetTable"))
 
 and access the table in the row iterator.
 
-Also look into EmbeddedGrammar, which may be a more convenient way to
+Also look into ``EmbeddedGrammar``, which may be a more convenient way to
 achieve the same thing.
 
 A fairly complex example for a custom grammar is a provisional 
