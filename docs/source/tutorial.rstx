@@ -3330,16 +3330,30 @@ to make DaCHS actually publish the table.
 EPN-TAP
 -------
 
-EPN-TAP will be a standard for publishing planetary data via TAP; it is
-still somewhat in development, but we will try to keep DaCHS' interface
-as stable as reasonable while EPN-TAP evolves.  If you want to publish
-data via EPN-TAP, you will probably want to have a quick look at the
-`EPN-TAP proposed specification`_ (check if there are newer ones).
+EPN-TAP is a standard for publishing planetary data via TAP.  DaCHS
+has had support for version 0.37, which is in the //epntap RD.  Do not
+use that for new projects.
 
-Data in planetary sciences often comes in "PDS format", which
+The `EPN-TAP proposed specification`_ is now in version 2.0, and support
+for that is provided by //epntap2.  There's an official web-based client
+for EPN-TAP at http://vespa.obspm.fr.
+
+There are two basic ingestion options:
+
+* local files; you let DaCHS find the sources, parse them, and infer
+  metadata from this; DaCHS will then serve them.  That's what's shown 
+  in the quick start example below.
+* ingest from pre-destilled metadata; this is when you don't have the
+  files locally or at least DaCHS should not serve them.  Instead,
+  you'll get the metadata from dumps from other databases, metadata
+  stores, or whatever.  The :samplerd:`titan/q.rd` RD shows an example
+  for that. 
+
+Data in planetary sciences often comes in PDS format, which
 superficially resembles FITS but is quite a bit more sophisticated.
 Unfortunately, python support for PDS is underwhelming.  At least there
-is PyPDS_, which needs to be installed for DaCHS' pdsGrammar to work.
+is PyPDS_, which needs to be installed for DaCHS' :dachsref:`Element
+pdsGrammar` to work.
 
 
 Quick Start
@@ -3355,84 +3369,156 @@ Install PyPDS if you don't have it anyway::
 
 Get the sample data::
 
-  cd `gavo config inputsDir`
+  cd `dachs config inputsDir`
   curl -O http://docs.g-vo.org/epntap-example.tar.gz
   tar -xvzf epntap-example.tar.gz
   cd lutetia
 
 Import it and build the previews from the PDS images::
 
-  gavo imp q
+  dachs imp q
   python bin/makePreview.py
 
 Start the server as necessary.  If you go to your local ADQL endpoint
-(something like http://localhost:8080/__system__/adql/query/form) and
-execute queries like::
+(something like http://localhost:8080/adql) and execute queries like::
 
   SELECT * FROM lutetia.epn_core
 
-there.  Note how you get previews when hovering over the links in
-"Product Key".  This is, incidentally, a local extension to EPN-TAP,
-which is why futher right there's still the EPN-TAP access_reference
-column that also lets users retrieve the data.
+there.
 
-For access through a standard protocol, start TOPCAT_, select "VO/TAP
-Query", and at the bottom of the dialog enter http://localhost:8080/tap
-(or whatever you configured) in "TAP URL".  Hit "Use Service", wait
+For access through a standard protocol, start TOPCAT_, select VO/TAP
+Query, and at the bottom of the dialog enter http://localhost:8080/tap
+(or whatever you configured) in “TAP URL”.  Hit “Use Service”, wait
 until the table metadata is in and then again query something like::
 
   SELECT * FROM lutetia.epn_core
 
 Hit "Run Query",open the table and play with it.  As a little visual treat,
 in TOPCAT's main window hit "Activation Action", and configure the
-``preview_url`` column under "View URL as Image".  Then click on the table rows.
+``preview_url`` column under “View URL as Image”.  Then click on the table rows.
+
+To get into Vespa's query interface, you will have to register your
+table.  **Do not** do this with the sample data.
 
 
 Tables
 ''''''
 
-In essence, EPN-TAP is just a set of columns.  In DaCHS, these are in
-the `//epntap2#table-2_0`_ mixin.  See the reference documentation of
-details.  If your data are images calibrated in some sort of spherical
-coordinates, you'll likely not have to change anything here.  The mixin
-will already open the table for ADQL querying, and to make that work, it
-is also declared onDisk.  What's not declared is the table name,
-although it's fixed at epn_core. Hence, the minimal definition of an
-EPN-TAP table is::
+In essence, EPN-TAP is just a set of columns, some mandatory, some
+optional.  The mandatory ones are pulled into a table by using the
+`//epntap2#table-2_0`_ mixin, which needs  the ``spatial_frame_type``
+parameter (see reference for what's supported there) since that
+determines the metadata on the spatial columns.
 
-  <table id="epn_core" mixin="//epntap2#table-2_0"//>
+This treatment distinguishes the two cases mentioned above: Files served
+by someone else first, files served by DaCHS next.
 
-You can of course add further columns as necessary.
+Externally Served Products
+'''''''''''''''''''''''''''
 
-The real work is populating the table.  Let's first assume you have the
-data products and use DaCHS to publish them.  You will then use a
-grammar, and as EPN-TAP deals with data products, the grammar must
-use the rowfilter `products#define`_ rowfilter as discussed above in
-`SIAP`_; the example shows how this can be done while also providing for
-DaCHS-generated previews.
+The mixin will already open the table for ADQL querying, and to make
+that work, it is also declared onDisk.  What's not declared is the table
+name, although it's fixed at epn_core. Hence, the minimal definition of
+an EPN-TAP table is::
 
-Filling the table from what comes from the grammar happens through and
-``idmaps="*"`` (which you want as the ``apply`` doesn't actually map
+  <table id="epn_core">
+    <mixin
+      spatial_frame_type="body"
+    >//epntap2#table-2_0</mixin>
+  </table>
+
+If you want to use optional columns from the EPN-TAP specification,
+give them in ``optional_columns``.  In the typcial case that you publish
+data products, you'll at least want the access columns, which would
+translate into this::
+
+  <table id="epn_core">
+    <mixin
+      optional_columns="access_url access_format access_estsize"
+      spatial_frame_type="body"
+    >//epntap2#table-2_0</mixin>
+  </table>
+
+You can of course add further custom columns as necessary using the normal
+:dachsref:`Element column`.
+
+Filling the table from what comes from the grammar happens through 
+``idmaps="*"`` on the rowmaker (which you want as the ``apply`` 
+doesn't actually map
 anything into the results and there's too many columns to make
-enumerating fun) and an application of `//epntap2#populate-2_0`_ .  There's
-little to add to the description of the parameters.  You will probably
+enumerating fun) and an application of `//epntap2#populate-2_0`_ .  The
+mixin's documentation is intended as a checklist; go through the
+parameters one by one and see which ones correspond to something in your
+input and then say::
+
+  <par key="param-name">@source-key</par>,
+
+possibly using python functions and expressions to adapt your inputs to
+what should end up in the database.
+
+You may
 need to refer to the `EPN-TAP proposed specification`_ now and then
-while filling things out.  Note again that as always when binding apply
-parameters, what you're entering are python expressions, so don't forget
-the quotes where appropriate.
+while filling things out.  Note again that these are python expressions, 
+and so you have to use
+quotes when specifying literal strings.
 
 More complex operations should probably go to ``var`` declarations
-rather than the ``bind`` bodies; again, see the example to see how.
+rather than the ``bind`` bodies; again, see the examples to see how.
 
-If, on the other hand, you already have a database table containing the
-data as well as a network service pushing out the data products, you can
-still use the mixin and just create a view as described in `Services
-Over Views`_ .  To see what columns you can map, you should still
-consult the documentation of ``epntap2#populate-2_0`` (the parameter names
-are simply the column names).  In addition there are the columns from
-the product mixin (accref, mime, embargo, and owner, which in this case
-probably should all be NULL). [TODO: example; if you have data like
-this, talk to us so we can get an example here]
+The real work is populating the table.  Let's first assume you 
+data products and use DaCHS to publish them.  You will then use a
+grammar, and as EPN-TAP then deals with data products, the grammar must
+use the rowfilter `products#define`_ rowfilter as discussed above in
+`SIAP`_; the lutetia example shows how this can be done while also
+providing for DaCHS-generated previews.
+
+Externally Served Products
+'''''''''''''''''''''''''''
+
+When you can store the data products you describe locally and have DaCHS
+hand them out, that's usually preferable.  It also lets you do things
+like enforcing embargoes, make previews, etc.
+
+To be able to manage the products, you need to add the
+:dachsref:`//epntap2#localfile-2_0` mixin, as well as the optional columns
+starting with ``access_`` in the table definition, so minimally::
+
+	<table id="epn_core">
+		<mixin
+			spatial_frame_type="celestial"
+			optional_columns="access_url access_format access_estsize"
+			>//epntap2#table-2_0</mixin>
+		<mixin>//epntap2#localfile-2_0</mixin>
+	</table>
+
+To let DaCHS manage the files, you need the
+:dachsref:`//products#define` rowfilter in your grammar.  You will
+minimally have to tell it the table you're writing to (this is so DaCHS
+can remove the entries when you drop the table); since it by default
+assumes you're serving FITS files, which in planetary sciences is
+probably untrue, you should also give the media type explicitly, for
+instance::
+
+    <sources pattern="data/*.pds" recurse="True"/>
+		<pdsGrammar>
+			<rowfilter procDef="//products#define">
+				<bind name="table">"\schema.epn_core"</bind>
+				<bind name="mime">"image/x-pds"</bind>
+			</rowfilter>
+		</pdsGrammar>
+
+(the ``\schema`` will just put in the current schema name defined at the
+top of your RD).  This is also where you'd configure previews, embargos,
+etc.
+
+Finally, in the rowmaker you need to make sure that the new columns are
+filled.  That's done using a paramterless apply::
+
+  <rowmaker>
+    ...
+		<apply procDef="//epntap2#populate-localfile-2_0"/>
+  </rowmaker>
+
 
 About ``s_region``
 ''''''''''''''''''
@@ -3468,6 +3554,27 @@ data`_)::
         pgsphere.SPoint.fromDegrees(float(@c1_max),float(@c2_max)))
     </map>
   </rowmaker>
+
+
+If you want an “aperture” (point and radius), you'd write something
+like::
+
+  <table id ="epn_core">
+  ...
+    <mixin ... regiontype="scircle">//epntap2#table-2_0</mixin>
+  </table>
+
+  <rowmaker idmaps="*">
+    <map key = "s_region">
+      pgsphere.SCircle(
+        pgsphere.SPoint.fromDegrees(float(@c1_min),float(@c2_min)),
+        float(@aperture)*DEG)
+    </map>
+  </rowmaker>
+
+The radius of the circle must be given in radians here; if it's in
+degrees, just multiply with DaCHS' internal DEG symbol (which is
+pi/180).
 
 
 Service
