@@ -28,12 +28,12 @@ be called as ``gavo``.  While this will still be possible during the 1.0
 series for DaCHS, we recommend using ``dachs`` as the entry point.  This
 tutorial and other examples are migrating towards the new command name,
 so: If you're running DaCHS <1.0, you'll have to write ``gavo`` when
-theres either “gavo” or “dachs” in DaCHS documentation, newer
+there's either “gavo” or “dachs” in DaCHS documentation, newer
 installations should just use ``dachs``.
 
 All DaCHS functionality is invoked through a
 program called ``dachs``.  Multiple functions are integrated and selected
-through the first argument; run ``gavo help`` to see what's available;
+through the first argument; run ``dachs help`` to see what's available;
 realistically, the functions most operators will be confronted with are
 ``import``, ``serve``, ``publish``, and ``test``.  Also make sure you at
 least once skim the man page.
@@ -45,15 +45,15 @@ after the subcommand name.
 Most of DaCHS's global options have to do with debugging_; it is
 sometimes useful go say::
 
-  gavo --ui stingy ...
+  dachs --ui stingy ...
 
-do reduce the program's chattiness.
+to reduce the program's chattiness.
 
 For a brief overview what the individual functions are, see the man
 page or use the built-in help, as in::
 
-  $ gavo limits --help
-  usage: gavo limits [-h] itemId
+  $ dachs limits --help
+  usage: dachs limits [-h] itemId
 
   Updates existing values min/max items in a referenced table or RD.
 
@@ -2688,7 +2688,8 @@ to use an extra mixin where constant metadata was given in PARAMs.  This
 was //ssap#hcd, which you still may find in use in several example
 datasets.  Do *not* use that any more; we found that space savings are
 nowhere near proportional to the extra implementation effort.  Only use
-:dachsref:`//ssap#mixc` in new RDs.  If you have really large number of
+:dachsref:`the //ssap#mixc mixin` in new RDs.  
+If you have really large number of
 spectra (I'd say upwards of order 1e6), consider using `SSAP with
 views`_.
 
@@ -2731,9 +2732,9 @@ of this tutorial.
 From here on, you can point your favourite spectral client (fallback:
 TOPCAT's SSA client; note that TOPCAT itself cannot open this service's
 native format and you'd have to go through datalink, which TOPCAT can't
-yet do) to http://localhost:8080/zcosmos/q/ssa/ssap.xml and retrieve the
-spectrum (it's at 149.734, 2.28216 in case your client wants a
-position).
+yet do) to http://localhost:8080/zcosmos/q/ssa/ssap.xml and do your
+queries (if you don't know anything else, do a positional query for
+149.734, 2.28216).
 
 Please drop the dataset again when you're done playing::
 
@@ -2748,8 +2749,8 @@ probably a good idea to have it open while reading this.
 SSAP Tables
 '''''''''''
 
-Tables open for SSAP querying need a certain structure.  Mix in :
-:dachsref:`//ssap#mixc` to have DaCHS fill it in::
+Tables open for SSAP querying need a certain structure.  Use
+:dachsref:`the //ssap#mixc mixin` to have DaCHS fill it in::
 
   <table id="data" onDisk="true">
     <mixin 			
@@ -2759,28 +2760,31 @@ Tables open for SSAP querying need a certain structure.  Mix in :
     <mixin>//ssap#simpleCoverage</mixin>
   </table>
 
-As usual, you can define extra columns manually if necessary.  The extra
-mixin in the actual RD is discussed in `SSAP Obscore Publication`_
+As usual, you can define extra columns manually if necessary; the one
+you'll find in the actual RD is discussed below in `SSAP and Datalink`_.  
+There's also another mixin in what you checked out, which is discussed
+in `SSAP Obscore Publication`_
 
-This mixin has lots of parameters that define the instrument lots of
-things.  Simply use the parameter list in :dachsref:`//ssap#mixc` as a
+This mixin has lots of parameters that define lots of
+things.  Simply use the parameter list in the reference documentation
+(see the link above) as a
 checklist and leave out what you don't have.  You must give a
-``fluxUnit``, ``fluxUCD`` and a ``spectralUnit``, as they are used in
+``fluxUnit``, ``fluxUCD`` and a ``spectralUnit``, though, as they are used in
 the metadata of some of the columns.  When your spectra are not flux
 calibrated, use a single blank as the unit.
 
 Note that despite their name, the timeSI, fluxSI, and spectralSI 
 mixin parameters do *not* contain actual unit strings.  Instead, they are
 intended to contain conversion factors in a custom syntax called
-"Osuna-Salgado convention".  We recommend to not set these fields and
+“Osuna-Salgado convention”.  We recommend to not set these fields and
 instead provide useful VOUnit-compliant units where appropriate.
 
 Building SSA Tables
 '''''''''''''''''''
 
 SSAP tables contain products, so you'll (realistically) have to have a
-:dachsref:`products#define` rowfilter in your grammar.  Unless you're very
-sure you don't want that, also use the :dachsref:`\\ssap#setMeta` and 
+:dachsref:`//products#define` rowfilter in your grammar.  Unless you're very
+sure you don't want that, also use the :dachsref:`//ssap#setMeta` and 
 :dachsref:`//ssap#setMixcMeta` applys.
 
 Unfortunately, there's no real standard for spectra that is widely used.
@@ -2789,10 +2793,12 @@ write such spectra; declare those with a media type of image/fits, since
 that's what they really are) or FITS tables with spectral/flux pairs
 (use a media type of application/fits for them).
 
-Our example data set indeed comes as FITS, so we're using a
-:dachsref:fitsProdGrammar.  This already prepares for making and serving
+Our example data set indeed comes as FITS, so we're using an
+:dachsref:`Element fitsProdGrammar`.  The following bindings already prepare
+for making and serving
 previews, which is discussed in more detail in :dachsref:`Product
-Previews`; see there for everything mentioning “preview”
+Previews` in the DaCHS reference; see there for everything 
+mentioning “preview”::
 
   <data id="import">
     <property key="previewDir">previews</property>
@@ -2809,7 +2815,8 @@ Previews`; see there for everything mentioning “preview”
 The rowmaker uses the two applys mentioned above.  Here, the spectral
 axis is along a WCS-described array axis.  There's a nifty class
 handling the calculations with a factory function ``getWCSAxis``.
-Otherwise,  writing the essentially means using the parameter lists of
+Otherwise,  writing the rowmaker essentially means using 
+the parameter lists of
 the applys as checklists.  Here, this works out to::
 
   <make table="data">
@@ -2859,8 +2866,8 @@ In contrast to images where delivering FITS is likely all you need,
 there's a plethora of formats spectra are delivered in.  To help a bit,
 you should make sure one of the formats you offer are VOTables
 conforming to the spectral data model (see :dachsref:`Making SDM
-Tables`_ in the reference documentation and `SDM Datalink`_ below).  
-If you want to deliver the "native" format as
+Tables` in the reference documentation and `SSAP and Datalink`_ below).  
+If you want to deliver the “native” format as
 well, you'll have to have two rows for each spectrum.  The standard way
 to achieve that is through a rowmaker in the grammar importing the
 spectra, like this::
@@ -2897,10 +2904,10 @@ SSAP Services
 Use the :dachsref:`element ssapCore` for SSAP services.  
 You must manually feed in
 the condition descriptors for the SSAP parameters; the simplest way to
-do that is to ``FEED`` the :dachsdoc:`//ssap#hdc_condDescs`_ stream.
-Otherwise, the only special thing is set of SSA-specific metadata that
+do that is to ``FEED`` the :dachsdoc:`//ssap#hcd_condDescs` stream.
+Additionally, there is a set of SSA-specific metadata that
 is discussed with :dachsdoc:`the ssap.xml renderer`.  The result for 
-our example is
+our example is::
 
   <service id="ssa" allowed="form,ssap.xml">
     <meta name="shortName">zCosmos SSAP</meta>
@@ -2921,7 +2928,7 @@ our example is
   </service>
 
 
-The ``hcd_condDescs`` includes condition descriptors for all mandatory
+The ``hcd_condDescs`` STREAM includes condition descriptors for all mandatory
 and optional parameters that we can remotely see in use.
 
 Some of them may not be relevant to your service because your table
@@ -2939,7 +2946,7 @@ active tag.  This looks like this::
     </FEED>
   </ssapCore>
 
-Do not do this just because you don't have position information -- this
+Do not do this just because you don't have position information – this
 would mean that you would dump your complete archive for (typical)
 queries with a position, and that is neither required by the spec (even
 if you might think so at first reading) nor desirable.
@@ -2971,7 +2978,7 @@ that users can post arguments like ``20000/30000,35000`` to ``t_eff``.
 This is in keeping with the general SSAP parameter style, while 
 more modern VO services use 2-arrays for intervals.
 
-To expose SSAP cores, use :dachsref:`the ssap.xml renderer.  Using the
+To expose SSAP cores, use :dachsref:`the ssap.xml renderer`.  Using the
 form renderer on SSAP cores is not terribly useful, because the core
 returns XML directly, and there are far too many parameters no human
 will ever be interested in anyway.
@@ -2980,12 +2987,13 @@ services.  The example RD shows a compact way to do that.
 
 
 SSAP Obscore Publication
-------------------------
+''''''''''''''''''''''''
 
 SSA tables are not terribly far from obscore tables, and so it's fairly
 easy to also publish the spectra through ObsTAP_.  Therefore, just do
 it by mixing in :dachsref:`//obscore#publishSSAPMIXC`.  This just needs a
-``calibLevel`` parameters, everything else is optional.  Thus, the
+``calibLevel`` parameter, everything else is pre-set from SSAP or
+optional.  Thus, the
 complete table definition for our example RD is::
 
   <table id="data" onDisk="true">
@@ -3005,11 +3013,11 @@ want to publish “repaired” spectra, using Datalink to provide both
 native and SDM (“Spectral Data Model”) compliant spectra without having
 to resort to SSAP's ill-thought-out FORMAT feature is a fairly natural
 thing to do.   In DaCHS, that's not too hard; essentially, you have to
-write an embedded grammar (or custom) grammar to parse the spectra.
-Due to some technicalities, it's not quite as simple as that.
+write an embedded (or custom) grammar to parse the spectra.
+Other than that, it's just a few formalities.
 
 So, you first define the table that will later hold your spectrum.
-Use :refdoc:`the //ssap#sdm-instance` mixin for that (all examples are
+Use :dachsref:`the //ssap#sdm-instance` mixin for that (all examples are
 still from :samplerd:`zcosmos/q`)::
 
   <table id="spectrum">
@@ -3021,7 +3029,7 @@ still from :samplerd:`zcosmos/q`)::
 
 If your spectrum has additional columns (e.g., errors, noise estimates,
 bin widths), just put more columns in here.  The mixin, in particular,
-pulls in all the various params the SDM wants to see.
+pulls in all the various params that SDM wants to see.
 
 Note that the table does not have ``onDisk="True"``; these tables are
 only made for the brief moment it takes to serialise them into what the
@@ -3063,31 +3071,33 @@ Starting with the rowmaker: it's missing.  DaCHS will then fill in the
 default one, which essentially is ``idmaps="*"``.  Since you're writing
 the grammar from scratch, just use the names of the columns defined in
 the instance table and be done with it.  The predefined column names are
-``spectral`` and ``flux``, so make sure you always yield those from your
-grammars.
+``spectral`` and ``flux``, so make sure you always have keys for them in
+the dictionaries you yield those from your grammars.
 
-Then there's a :dachsdoc:`Element parmaker`_; this is stereotypical,
+Then there's a :dachsdoc:`Element parmaker`; this is stereotypical,
 just always use the ``procDef`` as here.  It copies values from the SSA
 input row to the params in the instance table.
 
 The thing you have to vary is the code in the embedded grammar.  It
-must, from its input (self.sourcetoken, which here is the SSA row)
+must, from its input (``self.sourceToken``, which here is the SSA row)
 figure out where the data file is (in this case, we can get it from the
-products table, which is the code ``products.RAccref``.  More typically,
+products table, which is the code with ``products.RAccref``.  More typically,
 just make a convention how to get from accref to the local file and use
 that.  An example for that is in :samplerd:`feros/q` (the complication
 there is that the datalink products actually have accrefs themselves,
-and for those the path is the datalink URL.
+and for those the path in the product table is the datalink URL; that,
+of course, wouldn't bring the grammar any closer to finding the file.
 
 But you can do arbitrary things here; see the :samplerd:`califa/q3` RD
-for an example how you can decode the accref to database rows.
+for an example for how you can decode the accref to database rows.
 
 Once you have that just build dictionaries with at least ``spectral``
 and ``flux`` keys; at least with the default rowmaker you need to make
 sure that the values match the units you define in the instance table.
 
 Finally, write the service; you should at least have skimmed the endless
-chapter on :dachsdoc:`Datalink and SODA` to get an idea of how
+chapter on :dachsdoc:`Datalink and SODA` in the reference documentation
+to get an idea of how
 descriptor generators, data functions, and meta makers play together::
 
   <service id="sdl" allowed="dlget,dlmeta">
@@ -3107,10 +3117,10 @@ descriptor generators, data functions, and meta makers play together::
   </service>
 
 Datalink services (almost) always need to be enabled for both ``dlget``
-and ``dlmeta``.  The :dachsref:`//soda#sdm_genData`_ data function needs
+and ``dlmeta``.  The :dachsref:`//soda#sdm_genData` data function needs
 a reference to the data element filling the instance table.  The actual
 operations you can simply pull from the soda RD; sdm_plainfluxcalib offers a
-maxiumum-1 calibration of the spectral values (which probably is not
+maximuum=1 calibration of the spectral values (which probably is not
 terribly useful for you), sdm_cutout does cutouts, which may come handy
 when you have long spectra, and sdm_format finally is the format
 translation that's frequently useful with spectra.
@@ -3129,14 +3139,59 @@ column definition in the data table::
 
 (we're cheating a bit with the UCD; it's actually not legal right now,
 but we're trying).  To compute the datalink URL, there's again a helpful
-macro taking the datalink service id:
+macro taking the datalink service id::
 
   <map name="datalink">\dlMetaURI{sdl}</map>
 
 DaCHS for now delivers XSLT with datalink (or does the XSLT translation
 itself if it suspects its client is actually a web brower), so there's
-no harm (but potentially quite a bit benefit) to feed this URL to web
-browsers.
+no harm (but potentially quite a bit benefit) to feed this URL to tables
+displayed by web browsers, as we do here in the ``web`` service.
+
+SSAP with Views
+'''''''''''''''
+
+In a typical SSA table, most data will be constant.  We don't consider
+this a large problem, as most collections are rather small, and so the
+memory overhead is negligible.  However, in particular considering I/O bandwidth
+(Postgres is not a column store), you may still want to keep constant
+things out of the rows as your collections grow larger.  We no longer
+support the old //ssap#hcd mixin that did something pretty much like
+this (albeit somewhat unflexibly).  Instead, we recommend going through
+(non-materialised, or there'd be no benefit) views.
+
+This works by importing your metadata into a custom table and then have the
+mixin-ed table be a view.  
+
+Here's a sketch::
+
+  <table id="mymeta" onDisk="True" adql="hidden">
+    ... your columns ... (adql=hidden so it'll work within obscore)
+  </table>
+
+  <data id="import" recreateAfter="makeView">
+    (normal, custom importing rules)
+  </data>
+
+  <table id="data" onDisk="True">
+    <mixin...>//ssap#mixc</mixin>
+    (perhaps the obscore mixin if you want; use DaCHS' web-based
+    introspection to figure out which columns you need to fill)
+    <viewStatement>
+      CREATE VIEW \curtable AS (
+        SELECT \colNames FROM (
+          SELECT 
+            ... as ssa_target_position,
+            ... as ssa_whatever,))
+    </viewStatement>
+  </table>
+
+  <data id="makeView">
+    <make table="data"/>
+  </data>
+
+Holler if you want this fleshed out.
+
 
 ObsTAP
 ------
@@ -4116,7 +4171,7 @@ Here's "best practice" recommendations:
   register the SSAP service and tell DaCHS to put the browser service
   down as a separate capability of that resource.  For this, use the
   ``service`` attribute of ``publish``; this example is again taken from
-  `feros/q`_:
+  :samplerd:`feros/q`:
 
     <publish render="ssap.xml" sets="ivo_managed"/>
     <publish render="form" sets="ivo_managed" service="web"/>
