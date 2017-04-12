@@ -3161,36 +3161,84 @@ this (albeit somewhat unflexibly).  Instead, we recommend going through
 (non-materialised, or there'd be no benefit) views.
 
 This works by importing your metadata into a custom table and then have the
-mixin-ed table be a view.  
+mixin-ed table be a view.  The tricky part is to figure out how to write
+the view given that the columns are implict.  Here's how to get around
+this.  You can see the result in context in :samplerd:`k2c9vst/q`.
 
-Here's a sketch::
+First, write a table definition and a null data item::
+
+	<table id="timeseries" onDisk="True">
+		<mixin
+			fluxUnit="adu"
+			spectralUCD=" "
+			spectralUnit=" "
+			>//ssap#mixc</mixin>
+	</table>
+
+	<data id="make_ts">
+		<make table="timeseries"/>
+	</data>
+
+Do a metadata import of this – you need to import the table, or DaCHS
+will not find its metadata, and you should only import the metadata, or
+DaCHS will now create a table and later try to drop a view, which will
+give you an error (that you can fix by running ``dachs purge
+<tablename>``)::
+
+  $ dachs imp -m k2c9vst/q make_ts
+
+Now make sure the server is running and open the metadata inspection
+page for your RD.  In this case, the URL would be
+http://localhost:8080/browse/k2c9vst/q (it's always ``browse`` and the
+RD id).  You'll see a link to the table, and you can see the columns.
+
+Then, in the table, write a view statment.  Always follow this pattern::
+
+	<table id="timeseries" onDisk="True">
+		<mixin
+			fluxUnit="adu"
+			spectralUCD=" "
+			spectralUnit=" "
+			>//ssap#mixc</mixin>
+		<viewStatement>
+			CREATE VIEW \curtable AS (
+				SELECT \colNames FROM (
+					SELECT 
+					  'http://foo.bar.baz/'||dataid as accref,
+					  ...
+				) AS q
+			)
+		</viewStatment>
+	</table>
+
+This makes sure you're actually creating the view DaCHS is expecting
+(the ``\curtable`` macro), and the view has the structure declared in
+the RD (the ``\colNames`` macro).  In the innermost select, you can then
+simply fill the columns one by one, in any order convenient to you as
+long as you get the names right.
+
+Unless one of the joined tables mixes in ``products#table``, you'll have
+to directly give complete URLs here rather than DaCHS accrefs (which
+always are resolved through the products table).
+
+If you want the result to be ADQL-searchable, tables used in the view
+must be accessible to an unprivileged database user.  To do that, use
+``adql="hidden"`` in the respective tables::
 
   <table id="mymeta" onDisk="True" adql="hidden">
-    ... your columns ... (adql=hidden so it'll work within obscore)
+    ... your columns ...
   </table>
 
-  <data id="import" recreateAfter="makeView">
+Typcially, you'll still be importing source tables from somewhere.  When
+you do this, the view will be torn down.  You should make sure that
+DaCHS recreates the view when one of the tables making up the view is
+re-made.  Simply declare the view-making data item in the importing data
+item as ``recreateAfter``::
+
+  <data id="import" recreateAfter="make_ts">
     (normal, custom importing rules)
   </data>
 
-  <table id="data" onDisk="True">
-    <mixin...>//ssap#mixc</mixin>
-    (perhaps the obscore mixin if you want; use DaCHS' web-based
-    introspection to figure out which columns you need to fill)
-    <viewStatement>
-      CREATE VIEW \curtable AS (
-        SELECT \colNames FROM (
-          SELECT 
-            ... as ssa_target_position,
-            ... as ssa_whatever,))
-    </viewStatement>
-  </table>
-
-  <data id="makeView">
-    <make table="data"/>
-  </data>
-
-Holler if you want this fleshed out.
 
 
 ObsTAP

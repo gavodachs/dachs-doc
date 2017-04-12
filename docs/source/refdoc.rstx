@@ -793,8 +793,8 @@ type
 
   humanDate
     display a timestamp value or a real number in either yr (julian
-    year), d (JD, or MJD if xtype is mjd), or s (unix timestamp) as 
-    an ISO string.
+    year), d (JD, or MJD if DaCHS guesses it's mjd; that's unfortunately
+    arcane still), or s (unix timestamp) as an ISO string.
 
   humanDay
     display a timestamp or date value as an ISO string without time.
@@ -903,9 +903,9 @@ The elements of SIL are:
 * Plain Identifiers. These are C-like identifiers (a letter or an
   underscore optionally followed by letters, number or underscores).
 
-* Comments. SIL comments are classical C-style comments (/*...*/).  They
+* Comments. SIL comments are classical C-style comments (``/*...*/``).  They
   don't nest yet, but they probably will at some point, so don't write
-  put /* within a comment.
+  ``/*`` within a comment.
 
 * Object annotation.  This is like a dictionary; only plain identifiers
   are allowed as keys.  So, an object looks like this::
@@ -3241,9 +3241,11 @@ a) define where the preview files are.  This happens via a
       ...
 b) say that the previews are standard DaCHS generated in the
    ``//products#define`` rowfilter.  The main thing you have to
-   decide here is the MIME type of the previews you're generating
-   (i.e., use the ``standardPreviewPath`` macro unless you know what
-   you are doing)::
+   decide here is the MIME type of the previews you're generating.
+   You will usually use either the `macro standardPreviewPath`_
+   (preferable when you have less than a couple of thousand products) 
+   or the `macro splitPreviewPath`_ to fill the preview path, but you
+   can really enter whatever paths are convenient for you here::
 
       <rowfilter procDef="//products#define">
         <bind name="table">"\schema.data"</bind>
