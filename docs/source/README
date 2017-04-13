@@ -11,3 +11,6 @@ Extra interpreted text roles for writing such documents:
   the RD (or, really, anything else in the VCS), e.g.,
   :samplerd:`ppmxl/q.rd`.
 
+
+Please *do not* edit ref.rstx, it is generated (externally, using 
+dachs gendoc) from refdoc.rstx and the DaCHS source code.

@@ -393,7 +393,7 @@ If you already have a datalink service defined for making SDM-compliant
 spectra, you can easily re-use that to generate spectral previews.  For
 that, there's ``api.SpectralPreviewMaker``.  All it needs is the
 id of data element making the SDM instances in the ``sdmId`` class
-attribute.  The following would do::
+attribute.  The following would do in a typical case::
 
 
   from gavo import api
@@ -408,6 +408,9 @@ attribute.  The following would do::
 By default, this produces spectra that are logscaled on the flux axis.
 You can set the class attribute ``linearFluxes = True`` to have linear
 scaling instead if that works better for your data.
+
+On noisy spectra, presentation might be improved by setting a class
+attribute ``connectPoints = False``.
 
 
 Basic FITS Manipulation
