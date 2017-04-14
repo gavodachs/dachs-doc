@@ -64,12 +64,9 @@ For Data Center Operators
   * :download:`tutorial.pdf <../pdf/tutorial.pdf>`
   * :download:`tutorial.rstx <./tutorial.rstx>`
 
-* :doc:`Reference <refdoc>`
+* :doc:`Reference <ref>`
 
-  * :download:`refdoc.rstx <./refdoc.rstx>` (this is a template, built
-    with ``gavo gendoc``.  You're welcome to fix problems in the
-    template, but the documents cannot be updated on
-    github/readthedocs).
+  * :download:`ref.rstx <./ref.rstx>`
 
 * :doc:`Operator's guide <opguide>`
 
