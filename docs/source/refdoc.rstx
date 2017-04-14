@@ -155,10 +155,11 @@ feeding the tables mixing in a given mixin.
 
 .. replaceWithResult getMixinDocs(docStructure, [
   "//products#table", "//scs#positions", "//scs#q3cindex",
-  "//siap#pgs", "//ssap#hcd", "//obscore#publish",
+  "//siap#pgs", "//ssap#hcd", "//ssap#simpleCoverage", "//obscore#publish",
   "//obscore#publishSIAP", "//slap#basic",
   "//ssap#sdm-instance", "//ssap#mixc",
-  "//obscore#publishSSAPHCD", "//epntap#table", "//epntap#table-2_0"])
+  "//obscore#publishSSAPHCD", "//epntap#table", "//epntap2#table-2_0",
+  "//epntap2#localfile-2_0"])
 
 
 Triggers
@@ -211,7 +212,8 @@ Procedures available for rowmaker apply
     "//siap#setMeta", "//ssap#setMeta",
     "//siap#getBandFromFilter", "//ssap#setMixcMeta",
     "//slap#fillBasic",
-    "//epntap#populate", "//epntap#populate-2_0",
+    "//epntap#populate", "//epntap2#populate-2_0",
+    "//epntap2#populate-localfile-2_0",
     ])(docStructure)
 
 
@@ -265,7 +267,8 @@ Other Streams
 '''''''''''''
 
 .. replaceWithResult getStreamsDoc(
-    ['//obscore#obscore-columns']
+    ["//procs#license-cc0", "//procs#license-cc-by"]
+    +['//obscore#obscore-columns']
     +['//ssap#'+id for id in ["hcd_condDescs", "atomicCoords"]]
     +['//echelle#'+id for id in ["ssacols"]]
     +['//scs#'+id for id in ["coreDescs", ]])
@@ -290,6 +293,216 @@ So, metadata is a key-value mapping.  Keys may be compound like in RMI,
 i.e., they may consist of period-separated atoms, like
 publisher.address.email.  There may be multiple items for each meta
 key.
+
+
+Inputing Metadata
+'''''''''''''''''
+
+In RDs, there are two ways to define metadata: Meta elements and meta
+streams; the latter are also used in ``defaultmeta.txt``.
+
+Meta Elements
+.............
+
+These look like normal XML elements and have a mandatory ``name``
+attribute, a meta key relative to the element's root .  The text content
+is taken as the meta value; child meta elements are legal.
+
+An optional attribute for all meta elements is ``format`` (see `Meta
+Formats`_).
+
+Typed meta elements can have further attributes; these usually can also
+be given as meta children with the same name.
+
+Usually, metadata is additive; add a key twice and you will have a
+sequence of two meta values.  To remove previous content, prefix the
+meta name with a bang (!).  Here is an example::
+
+  <resource>
+    <!-- a simple piece of metadata -->
+    <meta name="title">A Meta example</meta>
+
+    <!-- repeat a meta thing for a sequence (caution: not everything
+      is repeatable in all output formats -->
+    <meta name="subject">Examples</meta>
+    <meta name="subject">DaCHS</meta>
+
+    <!-- Hierarchical meta can be set nested -->
+    <meta name="creator">
+      <meta name="name">Nations, U.N.</meta>
+      <meta name="logo">http://un.org/logo.png</meta>
+    </meta>
+    <meta name="creator">
+      <meta name="name">Neumann, A.E.</meta>
+    </meta>
+
+    <!-- @format lets you specify extra markup; make sure you
+    have consistent initial indentation. -->
+    <meta name=description" format="rst">
+      This resource is used in the `DaCHS reference docs`_
+
+      .. _DaCHS reference Docs: http://docs.g-vo.org/DaCHS
+    </meta>
+
+    <!-- you can contract "deeper" trees in paths -->
+    <meta name="contact.email">gavo@ari.uni-heidelberg.de</meta>
+
+    <!-- typed meta elements can have additional attributes -->
+    <meta name="uses" ivoId="ivo://org.gavo.dc/DaCHS"
+      >DaCHS server sortware</meta>
+
+    <!-- To overwrite a key set before, prefix the name with a bang. -->
+    <meta name="!title">An improved Meta example</meta>
+  </resource>
+
+The resulting meta structure is like this::
+
+  +-- title 
+  |     +---- "An improved Meta example
+  |
+  +-- subject 
+  |     +---- "Examples
+  |     +---- "DaCHS
+  |       
+  +-- creator
+  |     +----- name
+  |     |       +---- "Nations, U.N.
+  |     +----- logo
+  |     |       +---- "http://un.org/logo.png
+  +-- creator
+  |     +----- name
+  |             +---- "Neumann, A.E.
+  |
+  +-- description
+  |     +----- [formatted text, "This resource..."]
+  |
+  +-- contact
+  |      +----- email
+  |               +----- "gavo@ari.uni-heidelberg.de
+  |
+  +-- uses
+         +----- "DaCHS server software
+         +----- ivoId
+                  +----- "ivo://org.gavo.dc/DaCHS
+
+
+Stream Metadata
+...............
+
+In several places, most notably in the ``defaultmeta.txt`` file and in
+meta elements without a ``name`` attribute, you can give metadata as a
+“meta stream”.  This is just a sequence of lines containing pairs of
+<meta key> and <meta value>.
+
+In addition, there are comments, empty lines, and continuations.
+Continuation lines work by ending a line with a backslash.  The
+following line separator and all blanks and tabs following it are
+then ignored.  Thus, the following two meta keys end up having identical
+values::
+
+  meta1: A contin\
+    uation line needs \
+      a blank if you wan\
+  t one.
+  meta2: A continuation line needs a blank if you want one
+
+Note that whitespace behind a backslash prevents it from being a
+continuation character.  That is, admittedly, a bit of a trap.
+
+Other than their use as continuation characters, backslashes have no
+special meaning within meta streams as such.  Within meta elements,
+however, macros are expanded after continuation line processing if the
+meta parent knows how to expand macros.  This lets you write things
+like::
+
+  <meta>
+    creationDate: \metaString{authority.creationDate}
+    managingOrg:ivo://\getConfig{ivoa}{authority}
+  </meta>
+
+
+Comments and empty lines are easy: Empty lines are allowed, and a
+comment is a line with a hash (#) as its first non-whitespace
+character.  Both constructs are ignored, and you can even continue
+comments (though you should not).
+
+A Pitfall with Sequential Nested Meta
+......................................
+
+The creator.name meta illustrates a pitfall with our metadata
+definition.  Suppose you had more than one creator.  What you'd want is
+a metadata structure like this::
+
+  +-- creator -- name (Arthur)
+  |
+  +-- creator -- name (Berta)
+
+However, if you write::
+
+  creator.name: Arthur
+  creator.name: Berta
+
+or, equivalently::
+
+  <meta name="creator.name">Arthur</meta>
+  <meta name="creator.name">Berta</meta>
+
+by the above rules, you'll get this::
+
+  +-- creator -- name (Arthur)
+         |
+         +------ name (Berta)
+
+i.e., one creator with two names.
+
+To avoid this, make a new creator node in between, i.e., write::
+
+  creator.name: Arthur
+  creator:
+  creator.name: Berta
+
+In the creator.name case, where this is so common, DaCHS provides a
+shortcut, which you should use as a default; if you set ``creator``
+directly, DaCHS will expect a string of the form::
+
+  <author1>, <inits1> {; <authorn>, <initsn>}
+
+(i.e., Last, I.-form separated by semicolons, as in "Foo, X.; Bar, Q.;
+et al") and split it up into the proper structure.  You can mix the two
+notations, for instance if you want to set a logo on the first creator::
+
+  <meta name="creator">
+    <meta name="name">Chandrasekhar, S.</meta>
+    <meta name="logo">http://sit.in/chandra.png</meta>
+  </meta>
+  <meta name="creator">Copernicus, N.; Gallilei, G.</meta>
+
+Meta information can have a complex tree structure.  With meta streams,
+you can build trees by referencing dotted meta identifiers.  If you
+specify meta information for an item that already exists, a sibling will
+be created.  Thus, after::
+
+  creator.name: A. Author
+  creator:
+  creator.name: B. Buthor
+
+there are two creator elements, each specifying a name meta.  For the
+way creators are specified within VOResource, the following would be
+wrong::
+
+  creator.name: This is wrong.
+  creator.name: and will not work
+
+-- you would have a single creator meta with two name metas, which is
+not allowed by VOResource.
+
+If you write::
+
+  contact.address: 7 Miner's Way, Behind the Seven Mountains
+  contact.email: dwarfs@fairytale.fa
+
+you have a single contact meta giving address and email.
+
 
 Meta inheritance
 ''''''''''''''''
@@ -495,53 +708,6 @@ are usually set there:
 * contact.email
 * contact.telephone
 
-The creator.name meta illustrates a pitfall with our metadata
-definition.  Suppose you had more than one creator.  What you'd want is
-a metadata structure like this::
-
-  +-- creator -- name (Arthur)
-  |
-  +-- creator -- name (Berta)
-
-However, if you write::
-
-  creator.name: Arthur
-  creator.name: Berta
-
-or, equivalently::
-
-  <meta name="creator.name">Arthur</meta>
-  <meta name="creator.name">Berta</meta>
-
-by the above rules, you'll get this::
-
-  +-- creator -- name (Arthur)
-         |
-         +------ name (Berta)
-
-i.e., one creator with two names.
-
-To avoid this, make a new creator node in between, i.e., write::
-
-  creator.name: Arthur
-  creator:
-  creator.name: Berta
-
-In the creator.name case, where this is so common, DaCHS provides a
-shortcut, which you should use as a default; if you set ``creator``
-directly, DaCHS will expect a string of the form::
-
-  <author1>, <inits1> {; <authorn>, <initsn>}
-
-(i.e., Last, I.-form separated by semicolons, as in "Foo, X.; Bar, Q.;
-et al") and split it up into the proper structure.  You can mix the two
-notations, for instance if you want to set a logo on the first creator::
-
-  <meta name="creator">
-    <meta name="name">Chandrasekhar, S.</meta>
-    <meta name="logo">http://sit.in/chandra.png</meta>
-  </meta>
-  <meta name="creator">Copernicus, N.; Gallilei, G.</meta>
 
 
 Coverage Metadata
@@ -587,71 +753,6 @@ clouds::
 
 .. _Documentation for GAVO STC: http://docs.g-vo.org/DaCHS/stc.html
 
-Meta Stream Format
-''''''''''''''''''
-
-In serveral places, most notably in the ``defaultmeta.txt`` file and in
-meta elements without a ``name`` attribute, you can give metadata as a
-"meta stream".  This is just a sequence of lines containing pairs of
-<meta key> and <meta value>.
-
-In addition, there are comments, empty lines, and continuations.
-Continuation lines work by ending a line with a backslash.  The
-following line separator and all blanks and tabs following it are
-then ignored.  Thus, the following two meta keys end up having identical
-values::
-
-  meta1: A contin\
-    uation line needs \
-      a blank if you wan\
-  t one.
-  meta2: A continuation line needs a blank if you want one
-
-Note that whitespace behind a backslash prevents it from being a
-continuation character.  That is, admittedly, a bit of a trap.
-
-Other than their use as continuation characters, backslashes have no
-special meaning within meta streams as such.  Within meta elements,
-however, macros are expanded after continuation line processing if the
-meta parent knows how to expand macros.  This lets you write things
-like::
-
-  <meta>
-    creationDate: \metaString{authority.creationDate}
-    managingOrg:ivo://\getConfig{ivoa}{authority}
-  </meta>
-
-
-Comments and empty lines are easy: Empty lines are allowed, and a
-comment is a line with a hash (#) as its first non-whitespace
-character.  Both constructs are ignored, and you can even continue
-comments (though you should not).
-
-Meta information can have a complex tree structure.  With meta streams,
-you can build trees by referencing dotted meta identifiers.  If you
-specify meta information for an item that already exists, a sibling will
-be created.  Thus, after::
-
-  creator.name: A. Author
-  creator:
-  creator.name: B. Buthor
-
-there are two creator elements, each specifying a name meta.  For the
-way creators are specified within VOResource, the following would be
-wrong::
-
-  creator.name: This is wrong.
-  creator.name: and will not work
-
--- you would have a single creator meta with two name metas, which is
-not allowed by VOResource.
-
-If you write::
-
-  contact.address: 7 Miner's Way, Behind the Seven Mountains
-  contact.email: dwarfs@fairytale.fa
-
-you have a single contact meta giving address and email.
 
 
 Display Hints
@@ -692,8 +793,8 @@ type
 
   humanDate
     display a timestamp value or a real number in either yr (julian
-    year), d (JD, or MJD if xtype is mjd), or s (unix timestamp) as 
-    an ISO string.
+    year), d (JD, or MJD if DaCHS guesses it's mjd; that's unfortunately
+    arcane still), or s (unix timestamp) as an ISO string.
 
   humanDay
     display a timestamp or date value as an ISO string without time.
@@ -745,109 +846,374 @@ interpreted.  The interpretation is greedy, and only one formatter at a
 time attempts to interpret display hints.
 
 
-Building Service Interfaces
-===========================
+Data Model Annotation
+=====================
 
-Within DaCHS, an HTTP request is processed as follows:
+In the VO, data models are used when simple, more or less linear
+annotation methods like UCDs do not provide sufficent expressive power.
+Or well, they should be used.  As of early 2017, things are, admittedly,
+still a mess.
 
-1) The core is adapted to the renderer; this means that condDescs with
-   buildFrom are converted to inputKeys according to the rules of the
-   renderer.  The form renderer generates VizieR-like expressions,
-   protocol renderers make PQL parameters, etc.  Also, onlyForRenderer
-   and notForRenderer inputKeys are selected or deselected
-2) From the core's inputTable, the service builds an input data
-   descriptor (unless the service has an inputDD defined already, of
-   course).  Most standard cores only take input from an input table's
-   parameters (the exception being the computedCore), and hence the
-   automatic inputDD will only have a parmaker.  The automatic
-   inputDD will parse using ContextGrammar without a rowKey (i.e.,
-   no rows will be produced).  The parmaker within the automatic inputDD
-   parses the input with the default parsers and using the getHTTPPar
-   rowmaker function.
-3) The service will build the input table using its inputDD.  The input
-   must be like nevow request.args, mapping each key to a sequence of
-   strings.
-4) The input table is passed to the core, which produces either a table,
-   a data instance, or a pair of mime-type and content.
-5) From the core result, an SvcResult is built.  This is relevant when
-   the service has an outputTable defined, in which case the table
-   structure is adapted if the input actually is a table.
-6) The renderer formats the SvcResult according to its wishes.
+DaCHS lets you annotate your data in ``dm`` elements; the annotation
+will then be turned into standard VOTable annotation (when that's
+defined). Sometimes, the structured references provided by the DM
+annotation are useful elsewhere, too – the first actual use of this
+framework was the geojson serialisation discussed below.
 
-There is special handling for the form renderer, which does its parsing
-using nevow formal.  For it, the input table is built by just putting
-the values of the dictionary nevow formal produces into the input table
-params.
+We first discuss SIL, then its use in actual data models.  At least
+skim over the next section – it sucks to discover the SIL grammar by
+trial and error.
+
+Old-style STC annotation is not discussed here.  If you still want to do
+it (and for now, you have to if you want any STC annotation – sigh),
+check out the `terse discussion in the tutorial
+<http://docs.g-vo.org/DaCHS/tutorial.html#stc>`_
 
 
-TBD: multiplicity, param values as defaults,
+Annotation Using SIL
+''''''''''''''''''''
 
+Data model annotation in DaCHS is done using SIL, the Simple Instance
+Language.  It essentially resembles JSON, but all delimiters not really
+necessary for our use case have been dropped, and type annotation has
+been added.
+
+The elements of SIL are:
+
+* Atomic Values.  For SIL, everything is a string (it's a problem of
+  DM validation to decide otherwise).  When your string consists
+  exclusively of alphanumerics and [._-], you can just write it in SIL.
+  Otherwise, you must use double quotes.  as in SQL, write two double
+  quotes to include a literal double quote.  So, valid literals in SIL
+  are
+
+  * ``2.3e-3``
+  * ``red``
+  * ``"white and blue"``
+  * ``"""Yes,"" the computer said."``
+  * ``"could write (type:foo) {bar. baz} here"`` (elements of SIL are
+    protected in quoted literals)
+  
+  Invalid literals include:
+
+  * ``http://www.g-vo.org`` (: and / may not occur in literals)
+  * ``red, white and blue`` (no blanks and commas)
+  * ``22"`` (no single quotes)
+
+* Plain Identifiers. These are C-like identifiers (a letter or an
+  underscore optionally followed by letters, number or underscores).
+
+* Comments. SIL comments are classical C-style comments (``/*...*/``).  They
+  don't nest yet, but they probably will at some point, so don't write
+  ``/*`` within a comment.
+
+* Object annotation.  This is like a dictionary; only plain identifiers
+  are allowed as keys.  So, an object looks like this::
+
+    { foo: bar 
+      longer: "This is a value with blanks in it"
+    }
+
+  Note again that no commas or quotes around the keys are necessary (or
+  even allowed).
+
+* Sequences. This is like a list.  Members can be atomic or objects,
+  but they have to be homogenous (SIL doesn't enforce this by
+  grammatical means, though.  Here is an object with two sequences::
+
+    { seq1: [3 4 5 "You thought these were numbers? They're strings!"]
+      seq2: [
+        { seq_index: 0 value: 3.3}
+        { seq_index: 1 value: 0.3}
+      ]
+    }
+
+* References. The point of SIL is to say things about column and param
+  instances.  Both of them (and other dm instances, tables, and in
+  principle anything else in RDs) can be referenced from within SIL.
+  A reference starts with an @ and is then a normal DaCHS cross
+  identifier (columns and params within a table can be referenced by
+  name only, columns take precedence on name clashes).  If you use 
+  odd characters in your RD names or in-RD identifiers, think again: 
+  only [._/#-] are allowed in such references.  Here is an object 
+  with some valid references::
+
+    { long: @raj2000  /* a column in the enclosing table */
+      lat: @dej2000
+      system: //systems#icrs /* could be a dm instance in a
+        DaCHS-global RD;, this does *not* exist yet */
+      source: supercat/q#main /* perhaps a table in another RD */
+    }
+
+* Casting.  You can (and sometimes have to) give explicit types in the
+  SIL annotation.  Types look like C-style casts.  The root of
+  a SIL annotation must always have a cast; that allows DaCHS to
+  figure out what it is, which is essential for validation (and possibly
+  inference of defaults and such).  You can cast both single objects
+  and sequences.  Here's an example that actually
+  validates for DaCHS' SIL (which the examples above wouldn't because
+  they're missing the root annotation)::
+
+    (testdm:testclass) {  /* cast on root: mandatory */
+      attr1 {   /* no cast here; DaCHS can infer attr1's type if necessary */
+        attr2: val
+      }
+      seq: (testdm:otherclass)[  /* Sequence cast: */
+        {attr1: a}  /* all of these are now treated as testdm:otherclass */
+        {attr1: b}
+        {attr1: c}]}
+
+GeoJSON annotation
+''''''''''''''''''
+
+To produce GeoJSON output (as supported by DaCHS' TAP implementation),
+DaCHS needs to know what the “geometry“ in the sense of GeoJSON is.
+Furthermore, DaCHS keeps supporting declaring reference systems in the
+``crs`` attribute, as the planetology community uses it.
+
+The root class of the geojson DM is ``geojson:FeatureCollection``.  It
+has up to two attributes (*crs* and *feature*), closely following
+the GeoJSON structure itself.  The geometry is defined in *feature*'s
+*geometry* attribute.  All columns not used for geometry will end up
+in GeoJSON properties.
+
+So, a complete GeoJSON annotation, in this case for an EPN-TAP table,
+could look like this::
+
+  <table>
+     <dm>
+      (geojson:FeatureCollection){
+        crs: (geojson:CRS) {
+            type: name
+            properties: (geojson:CRSProperties) {
+              name: "urn:x-invented:titan"}}}}
+        feature: {
+          geometry: {
+            type: sepsimplex
+            c1min: @c1min
+            c2min: @c2min
+            c1max: @c1max
+            c2max: @c2max }}}
+    </dm>
+
+    <mixin
+      spatial_frame_type="body"/>
+  </table>
+
+Yes, the use *type* attributes is a bit of an abomination, but we wanted
+the structure to follow GeoJSON in spirit.
+
+The *crs* attribute could also be of *type* ``link``, in which case the
+*properties* would have attributes *href* and *type*; we're not aware of
+any applications of this in planetology, though.  *crs* is optional (but
+standards-compliant GeoJSON clients will interpret your coordinates as
+WGS84 on Earth if you leave it out).
+
+For *geometry*, several values for *type* are defined by DaCHS, 
+depending on how
+the GeoJSON geometry should be constructed from the table.  Currently
+defined types include (complain if you need something else, it's not
+hard to add):
+
+* ``sepcoo`` – this is for a spherical point with separate columns for the
+  two axes.  This needs *latitude* and *longitude* attributes, like
+  this::
+
+    <dm>
+      (geojson:FeatureCollection){
+        feature: {
+          geometry: {
+            type: sepcoo
+            latitude: @lat
+            longitude: @long }}}
+    </dm>
+
+* ``seppoly`` – this constructs a spherical polygon out of column references.
+  These have the form *c_n_m*, where m is 1 or 2, and n is counted from
+  1 up to the number of points.  DaCHS will stop collecting points as
+  soon as it doesn't find an expected key.  If you find yourself using 
+  this, check your data model.  An example::
+
+    <dm>
+      (geojson:FeatureCollection){
+        feature: {
+          geometry: {
+            type: seppoly /* a triangle of some kind */
+            c1_1: @rb0 
+            c1_2: @rb1
+            c2_1: @lb0
+            c2_2: @lb1 
+            c3_1: @t0
+            c3_2: @t1 }}}
+    </dm>
+
+* ``sepsimplex`` – this constructs a spherical box-like thing from minimum and
+  maximum values.  It has *c[12](min|max)* keys as in EPN-TAP.  As a
+  matter of fact, a fairly typical annotation for EPN-TAP would be::
+
+    <dm>
+      (geojson:FeatureCollection){
+        feature: {
+          geometry: {
+            type: sepsimplex
+            c1min: @c1min
+            c2min: @c2min
+            c1max: @c1max
+            c2max: @c2max }}}
+    </dm>
+
+* ``geometry`` – this constructs a geometry from a pgsphere column.
+  Since GeoJSON doesn't have circles, only spoint and spoly columns can
+  be used.   They are referenced from the *value* key. For instance, 
+  obscore and friends could use::
+
+    <dm>
+      (geojson:FeatureCollection) {
+        feature:  {
+            geometry:  {
+              type: geometry
+              value: @s_region }}}
+      </dm>
+
+
+DaCHS' Service Interface
+========================
+
+Even though normal users should rarely be confronted with too many of
+the technical details of request processing in DaCHS, it helps to have a
+rough comprehension in order to understand several user-visible details.
+
+In DaCHS' architecture, a service is essentially a combination of a core
+and a renderer.  The core is what actually does the query or the
+computation, the renderer adapts input and outputs to what a protocol or
+interface expects.  While a service always has exactly one core (could
+be a nullCore, though), it can support more than one renderer, although
+the parameters in all renderers are, within reason, about the same,
+within reason.  
+
+However, parameters on a form interface will typcially be interpreted
+differently from a VO interface on the same core.  For instance, ranges
+on the form interface are written as ``1 .. 3`` (VizieR compliance), on
+an SSA 1.x interface ``1/3`` ("PQL" prototype), and on a datalink dlget
+interface "1 2" (DALI 1.1 style).  The extreme of what probably still
+makes sense is the core search core that replaces SCS's RA, DEC, and SR
+with an entirely different set of parameters perhaps better suited for
+interactive, browser-based usage.
+
+Cores communicate their input interface by defining an input table,
+which is essentially a sequence of input keys, which in turn essentially
+work like params: in particular, they have all the standard metadata
+like units, ucds, etc.  Input tables, contrary to what their name might
+suggest, have no rows. They can hold metadata, though, which is
+sometimes convenient to pass data between parameter parsers and the
+core.
+
+When a request comes in, the service first determines the renderer
+responsible.  It then requests an inputTable for that renderer from the
+core.  The core, in turn, will map each inputKey in its inputTable
+through a renderer adaptor as returned from
+svcs.inputdef.getRendererAdaptor; this inspects the
+renderer.parameterStyle, which must be taken from the
+svcs.inputdef._RENDERER_ADAPTORS' keys (currently ``form``, ``pql``,
+``dali``).  inputKeys have to have the adaptToRenderer property set to
+True to have them adapted.  Most automatically generated inputKeys have
+that; where you manually define inputKeys, you would have to set the
+property manually if you want that behaviour (and know that you want
+it; outside of table-based cores, it is unikely that you do).
+
+Core Args
+'''''''''
+
+The input table, together with the raw arguments coming from the client,
+is then used to build a ``svcs.CoreArgs`` instance, which in turn takes
+the set of input keys to build a context grammar.  The core args have the
+underlying input table (with the input keys for the metadata) in the
+``inputTD`` attribute, the parsed arguments in the dictionary ``args``.  
+
+For each input key ``args`` maps its name to a value; context grammars
+are case-semisensitive, meaning that case in the HTTP parameter names is
+in general ignored, but if a parameter name matching case is found, it
+is preferred.  Yes, ugly, but unfortunately the VO has started with
+case-insensitive parameter names.  Sigh.
+
+The values in ``args`` are a bit tricky:
+
+* each raw parameter given must parse with a single inputKey's parse.  For
+  instance, if an inputKey is a real[2], it will be parsed as a float
+  array.
+* if no raw parameter is given for an input key, its value will be None.
+* when an inputKey specifies multiplicity="multiple", the non-None value 
+  in the core args is a list.  Each list item is something that came out of
+  the inputKey's parser (i.e., it could be another list for array-valued
+  parameters).
+* when an inputKey specifies multiplicity="single", the value in the
+  core args is a single value of whatever inputKey parses (or None for
+  missing parameters).  This is even true when a parameter has been
+  given multiple times; while currently, the last parameter will win, we
+  don't guarantee that.
+* when an inputKey specifies multiplicity="force-single", DaCHS works as
+  in the single case, except that multiple specification will lead to an
+  error.
+* when an inputKey does not specify multiplicity, DaCHS will infer the
+  desired multiplicity from various hints; essentially, enumerated
+  parameters (values/options given in some way) have
+  multiplicity multiple, everything else multiplicity single. It is wise
+  not to rely on this behaviour.
+
+These rules are independent of the type of core and hold for pythonCores
+or whatever just as for the normal, table-based cores.  For these (and
+they are what users are mostly concerned with), special rules and
+shortcuts apply, though.
 
 Table-based cores
 '''''''''''''''''
 
+Conddescs and input keys: Defining the input parameters
+.......................................................
+
 You will usually deal with cores querying database tables – dbCore,
-ssapCore, etc.  For these, there should not be a need to define an
-inputDD; the one generated from the condDescs should work fine.
+ssapCore, etc.  For these, you will not normally define an inputTable,
+as it is being generated by the software from condDescs.
 
 To create simple constraints, just ``buildFrom`` the columns queried::
 
   <condDesc buildFrom="myColumn"/>
 
-(the names are resolved in the core's queried table).  This pattern has
-the advantage that the concrete parameter style is adapted to the
+(the names are resolved in the core's queried table).  DaCHS will
+automatically adapt the concrete parameter style is adapted to the
 renderer – in the web interface, there are vizier-like expressions, in
-protocol interfaces, you get fields understanding expressions as in
-SSAP's "PQL", plus in addition "structured parameters" (like FOO_MIN and
-FOO_MAX) where applicable.
+protocol interfaces, you get fields understanding expressions, either
+as in SSAP (for the *pql* parameter style) or as defined in DALI (the
+*dali* parameter style).
 
 This will generate query fields that work against data as stored in the
 database, with some exceptions (columns containing MJDs will, for
 example, be turned into VizieR-like date expressions for web forms).
-For protocol input, this is, in general, what you want.  In web forms,
-you may want to customize the apprearance, for example, to adapt to
-user's unit preferences.  For this latter use case, there is the
-``inputUnit`` attribute::
 
-    <condDesc>
-      <inputKey original="minDist" inputUnit="arcsec"
-        type="vexpr-float">
-        <property key="onlyForRenderer">form</property>
-      </inputKey>
-      <inputKey original="minDist" 
-        type="pql-float">
-        <property key="notForRenderer">form</property>
-      </inputKey>
-    </condDesc>
+Since in HTML forms, astronomers often ask for odd units and then want
+to input them, too, DaCHS will also honor the displayUnit display hint
+for forms.  for instance, if you wrote::
 
-Note how in this case we adapted the types of the input keys to provide
-interfaces suitable to the various renderers.  For HTML forms, we
-recommend one of
+  <table id="ex1">
+    <column name="minDist" 
+      unit="deg"
+      displayHint="displayUnit=arcsec"/>
+    ...
 
-* vexpr-float
-* vexpr-date (dates with timestamps in the database)
-* vexpr-mjd (dates with MJD in the database)
-* vexpr-string (though for those, frequently generating options is
-  preferable, see below)
+  <dbCore queriedTable="ex1">
+    <condDesc buildFrom="minDist"/>
+    ...
 
-For protocol input, the types available are
-
-* pql-int
-* pql-float
-* pql-string
-* pql-date (where timestamps are in the database; MHD works fine with
-  pql-float since date input is not really desirable for protocol input
-  anyway).
-
-Note that you can, of course, also keep the default types where that
-provides a better interface.  Flag-like integers, for example, are
-classic examples where giving the possible values is preferable to
-allowing parameter expressions.
+then the form renderer would declare the minDist column to take its
+values in arcsecs and do the necessary conversions, while minDist would
+properly work with degrees in SCS or TAP.
 
 For object lists and similar, it is frequently desirable to give the
 possible values (unless there are too many of those; these will be
 translated to option lists in forms and to metadata items for protocol
-services and hence be user visible)::
+services and hence be user visible).  In this case, you need to change
+the input key itself.  You can do this by deriving the input key from
+the column and assign it to a condDesc, like this::
 
    <condDesc>
       <inputKey original="source">
@@ -855,37 +1221,108 @@ services and hence be user visible)::
       </inputKey>
     </condDesc>
 
+Use the ``showItems="n"`` attribute of input keys to determine how many
+items in the selector are shown at one time.
 
-All these generate the default SQL, which is equality (or set membership
-for multiple values for a parameter).  To generate custom SQL, give a
-phraseMaker, like this::
+If you want your service to fail if a parameter is not given, declare
+the condDesc as required::
+
+  <condDesc buildFrom="myColumn" required="True"/>
+
+(you can also declare individual an ``inputKey`` as ``required``).
+
+If, on the other hand, you want DaCHS to fill in a default if the user
+provides no value, give a default to the input key using the values
+child::
+
+  <condDesc>
+    <inputKey original="radius">
+      <values default="0.5"/>
+    </inputKey>
+  <condDesc>
+
+Sometimes a parameter shouldn't be defaulted in a protocol request
+(perhaps to satisfy an external contract), while the web interface
+should pre-fill a sensible choice.  In that case, use the
+``defaultForForm`` property::
+
+  <condDesc>
+    <inputKey original="radius"> 
+      <property key="defaultForForm">0.5</property>
+    </inputKey>
+  <condDesc>
+
+DaCHS will also interpret ``min`` and ``max`` attributes on the input
+keys (and the columns they are generated from) to generate input hints;
+that's a good way to fight the horror vacui users have when there's an
+input box and they have no idea what to put there.  The best way to deal
+with this, however, is to not change the input keys but the columns
+themselves, as in::
+
+  <table id="ex1">
+    <column name="mjd" type="double precision"
+      ...>
+      <values min="" max=""/>
+  ...
+  <dbCore queriesTable="ex1">
+    <condDesc buildFrom="mjd"/>
+
+You will typically leave min and max empty and run::
+
+  dachs limits q#ex
+
+when the table contents change; this will make DaCHS update the values
+in the RD itself.
+
+
+
+Phrasemakers: Making custom queries
+...................................
+
+CondDescs will generate SQL adapted to the type of their input keys,
+which; as you can imagine, for cases like the VizieR expressions, that's
+not done in a couple of lines.  However, there are times when you need
+custom behaviour.  You can then give your conddescs a ``phraseMaker``, a
+piece of python code generating a query and adding parameters::
 
    <condDesc>
-      <inputKey original="confirmed" multiplicity="single"/>
+      <inputKey original="confirmed" multiplicity="single">
+        <property name="adaptToRenderer">False</property>
+      </inputKey>
       <phraseMaker>
         <code>
           if inPars.get(inputKeys[0].name, False):
-            yield "confirmed"
+            yield "confirmed IS NOT NULL"
         </code>
       </phraseMaker>
     </condDesc>
 
 PhraseMakers work like other code embedded in RDs (and thus may have
 setup).  ``inPars`` gives a dictionary of the input parameters as parsed
-by the inputDD according to multiplicity (or as delivered by nevow
-formal – use the ``getHTTPPar`` rowmaker function if there can be input
-with differing multiplicities).  ``inputKeys`` contains a sequence of
-the condDesc's inputKeys.  By using their names as above, your code will
-not break if the parameters are renamed.
+by the inputDD according to multiplicity.  ``inputKeys`` contains a
+sequence of the conddesc's inputKeys.  By using their names as above,
+your code will not break if the parameters are renamed.
 
-PhraseMakers must yield zero or more SQL fragments; multiple SQL
+It is usually a good idea to set the property ``adaptToRenderer`` to
+False in such cases – you generally don't want DaCHS to use its standard
+rules for input key adaptation as discussion above because that will
+typically change what ends up in ``inPars`` and hence break your code
+for some renderers.
+
+Note again that parameters not given will have the value None
+throughout.  The will be present in inPars, though, so do *not* try
+things like ``"myName" in inPars`` – that's always true.
+
+Phrase makers must yield zero or more SQL fragments; multiple SQL
 fragments are joined in conjunctions (i.e., end up in ANDed conditions
-in the WHERE clause).
+in the WHERE clause) (i.e., if you need to OR your fragments, you'll
+have to do that yourself.  Use the ``base.joinOperatorExpr(operator,
+operands)`` for robustness.
 
-Since you are dealing with raw SQL here, *never* include material from
-inPars directly in the query strings you return – this would immediately
-let people to SQL injections at least when the inputKey's type is
-string.  Instead, use getSQLKey as in this example::
+Since you are dealing with raw SQL here, **never** include material from
+``inPars`` directly in the query strings you return – this would immediately
+let people do SQL injections at least when the input key's type is
+text or similar.  Instead, use the ``getSQLKey`` function as in this example::
 
     <condDesc>
       <inputKey original="hdwl" multiplicity="single"/>
@@ -900,12 +1337,12 @@ string.  Instead, use getSQLKey as in this example::
     </condDesc>
 
 ``getSQLKey`` takes a suggested name, a value and a dictionary, which
-within phraseMakers always is ``outPars``. It will enter value with the
-suggested name as key into outPars or change the suggested name if there
+within phrase makers always is ``outPars``. It will enter value with the
+suggested name as key into ``outPars`` or change the suggested name if there
 is a name clash.  The generated name will be returned, and that is what
 is entered in the SQL statement.
 
-The ``outPars`` dictionary is shared between all condDescs entering into
+The ``outPars`` dictionary is shared between all conddescs entering into
 a query.  Hence, if you do anything with it except passing it to
 ``base.getSQLKey``, you're voiding your entire warranty.
 
@@ -913,7 +1350,9 @@ Here's how to define a condDesc doing a full text search in a column::
 
   <condDesc>
     <inputKey original="source" description="Words from the catalog
-      description, e.g., author names or title words."/>
+      description, e.g., author names or title words.">
+      <property name="adaptToRenderer">False</property>
+    </inputKey>
     <phraseMaker>
       <code>
         yield ("to_tsvector('english', source)"
@@ -928,22 +1367,15 @@ Incidentally, this would go with an index definition like::
   <index columns="source" method="gin"
     >to_tsvector('english', source)</index>
 
-For the HTML form interface, you can influence the widgets chosen by the
-renderer to some extent.  To get an options list allowing multiple
-selections, say::
 
-    <condDesc>
-      <inputKey original="carsfield" multipliticy="multiple">
-        <values fromdb="carsfield from carsarcs.meta order by carsfield"/>
-      </inputKey>
-    </condDesc>
-
-Use the ``showItems="n"`` attribute of inputKeys to determine how many
-items in the selector are shown at one time.
+Grouping Input Keys
+...................
 
 For special effects, you can group inputKeys.  This will make them show
-up under a common label and in a single line in HTML forms.  Here's an
-example for a simple range selector::
+up under a common label and in a single line in HTML forms.  Other
+renderers currently don't do anything with the groups.  
+
+Here's an example for a simple range selector::
 
   <condDesc>
     <inputKey name="el" type="text" tablehead="Element"/>
@@ -984,19 +1416,375 @@ You will probably want to style the result of this effort using the
   </service>
 
 See also the entries on `multi-line input`_, `selecting input fields
-with a widget`_, and `customizing generated SCS conditions`_.
+with a widget`_, and `customizing generated SCS conditions`_ in DaCHS'
+howto document.
 
 .. _multi-line input: howDoI.html#get-a-multi-line-text-input-for-an-input-key
 .. _selecting input fields with a widget: howDoI.html#make-an-input-widget-to-select-which-columns-appear-in-the-output-table
 .. _customizing generated SCS conditions: howDoI.html#change-the-query-issued-on-scs-queries
 
-TBD: Say something about required.  Do we even want to mention
-widgetFactory?
 
-Formatting the output
-'''''''''''''''''''''
+Writing Custom Cores
+====================
 
-TBD
+While DaCHS provides cores for many common operations – in particular,
+database queries and wrapped external binaries –, there are of course
+services that need to do things not covered by what the shipped cores
+do.  A common case is wrapping external binaries.
+
+Many such cases still follow the basic premise of services: GET or POST
+parameters in, something table-like out.  You should then use custom
+cores, which then still let you use normal DaCHS renderers (in
+particular ``form`` and ``api``/``sync``).  When that doesn't cut it,
+you'll need to use a custom renderer.
+
+While a custom core is defined in a separate module – this also helps
+debugging since you can run it outside of DaCHS –, there's also the
+python core that keeps the custom code inside of the RD.  This is very
+similar; `Python Cores instead of Custom Cores`_ explains the
+differences.
+
+The following exposition is derived from the times service in the GAVO
+data center, a service wrapping some FORTRAN code wrapping SOFA (yes,
+we're aware that we would directly use SOFA through astropy; that's not
+the point here).  Check out the sources at
+http://svn.ari.uni-heidelberg.de/svn/gavo/hdinputs/apfs; the RD is
+times.rd.
+
+
+Defining a Custom Core
+''''''''''''''''''''''
+
+In an RD, a custom core is very typically just written with a reference
+to a defining module::
+
+  <customCore module="res/timescore"/>
+
+The path is relative to the resdir, and you don't include the module's
+extension (DaCHS uses normal python module resolution, except for
+temporarily extending the search path with the enclosing directory).
+You can, in principle, declare the core's interface in that element, but
+that's typically not a good idea (see below).
+
+The above declaration means you will find the core itself in
+``res/timescore.py``.
+
+Ideally, you'll just use the DaCHS API in the core, since we try
+fairly hard to keep that api constant.  The timescore doesn't quite
+follow that rule because it wants to expand VizieR expressions, which
+normal services probably won't do.
+
+DaCHS expects the custom core under the name ``Core``.  Thus, the
+centerpiece of the module is:
+
+  from gavo import api
+
+  class Core(api.Core):
+
+The core needs an InputTable and an OutputTable like all cores.  You
+*could* define it in the resource descriptor like this::
+
+  <customCore id="createCore" module="bin/create">
+    <inputTable>
+      <inputKey .../>
+    </inputTable>
+    <outputTable>
+      <column name="itemsAdded" type="integer" tablehead="Items added"/>
+    </outputTable>
+  </customCore>
+
+It's preferable to define at least the input in the code, though, since
+it's more likely to be kept in sync with the code in that case.
+Embedding the definitions is done using the class attribute
+``inputTableXML``::
+
+  class Core(core.Core):
+    inputTableXML = """
+      <inputTable>
+        <inputKey name="ut1" type="vexpr-date" multiplicity="single"
+          tablehead="UT1"
+          description="Date and time (UT1)" ucd="time.epoch;meta.main"/>
+        <inputKey name="interval" type="integer" multiplicity="single"
+          tablehead="Interval"
+          unit="s" ucd="time.interval"
+          description="Interval between two sets of computed values"
+        >3600</inputKey>
+      </inputTable>
+    """
+
+There is also ``outputTableXML``, which you should use if you were to
+compute stuff in some lines of Python, since then the fields are
+directly defined by the core core itself.
+
+However, the case of timescore is fairly typical: There is some,
+essentially external, resource that produces something that needs to be
+parsed.  In that case, it's a better idea to define the parsing logic in
+a normal RD ``data`` item.  Its table then is the output table of the
+core.  In the times example, the output of ``timescompute`` is described
+by the ``build_result`` data item in ``times.rd``::
+
+  <table id="times">
+    <column name="ut1" type="timestamp" tablehead="UT1"
+      ucd="time.epoch;meta.main" verbLevel="1" 
+      description="Time and date (UT1)" displayHint="type=humanDate"/>
+    <column name="gmst" type="time" tablehead="GMST"
+      verbLevel="1" description="Greenwich mean sidereal time"
+      xtype="adql:TIMESTAMP" displayHint="type=humanTime,sf=4"/>
+    <column name="gast" type="time" tablehead="GAST"
+      verbLevel="1" description="Greenwich apparent sidereal time"
+      xtype="adql:TIMESTAMP" displayHint="type=humanTime,sf=4"/>
+    <column name="era" type="double precision" tablehead="ERA"
+      verbLevel="1" description="Earth rotation angle"
+      displayHint="type=dms,sf=3" unit="deg"/>
+  </table>
+
+  <data id="build_result" auto="False">
+    <reGrammar>
+      <names>ut1,gmst,gast,era</names>
+    </reGrammar>
+    <make table="times">
+      <rowmaker>
+        <map dest="gmst">parseWithNull(@gmst, parseTime, "None")</map>
+        ...
+      </rowmaker>
+    </make>
+  </data>
+
+So, the core needs to say “my output table has the structure of
+#times”.  As usual with DaCHS structures, you should not override the
+constructor, as it is defined by a metaclass.  Instead, Cores call,
+immediately after the XML parse (technically, as the first thing of
+their ``completeElement`` method), a method called ``initialize``.  This
+is where you should set the output table.  For the times core, this
+looks like this::
+
+  def initialize(self):
+    self.outputTable = api.OutputTableDef.fromTableDef(
+      self.rd.getById("times"), None)
+
+Of course, you are not limited to setting the output table there; as
+``initialize`` is only called once while parsing, this is also a good
+place to perform expensive, one-time operations like reading and parsing
+larger external resources.
+
+
+Giving the Core Functionality
+'''''''''''''''''''''''''''''
+
+To have the core do something, you have to override the run method,
+which has to have the following signature::
+
+  run(service, inputTable, queryMeta) -> stuff
+
+The stuff returned will ususally be a Table or Data instance (that need
+not match the outputTable definition -- the latter is targetted at the
+registry and possibly applications like output field selection).  The
+standard renderers also accept a pair of mime type and a string
+containing some data and will deliver this as-is.  With custom
+renderers, you could return basically anything you want.
+
+Services come up with some idea of the schema of the table they want to
+return and adapt tables coming out of the core to this.  Sometimes, you
+want to suppress this behaviour, e.g., because the service's ideas are
+off.  In that case, set a noPostprocess atttribute on the table to any
+value (the TAP core does this, for instance).
+
+In ``service`` you get the service using the core; this may make a
+difference since different services can use the same core and could
+control details of its operations through properties, their output
+table, or anything else.
+
+The ``inputTable`` argument is the ``CoreArgs`` instance discussed in
+`Core Args`_.   Essentially, you'll usually use its ``args`` attribute,
+a dictionary mapping the keys defined by your input table to values or
+lists of them.
+
+The ``queryMeta`` argument is discussed in `Database Options`_.
+
+In the times example, the parameter interpretation is done in an extra
+function (which helps testability when there's a bit more complex things
+going on)::
+
+  def computeDates(args):
+    """yields datetimes at which to compute times from the ut1/interval
+    inputs in coreArgs args.
+    """
+    interval = args["interval"] or 3600
+    if args["ut1"] is None:
+      yield datetime.datetime.utcnow()
+      return
+
+    try:
+      expr = vizierexprs.parseDateExpr(args["ut1"])
+      if expr.operator in set([',', '=']):
+        for c in expr.children:
+          yield c
+
+      elif expr.operator=='..':
+        for c in expandDates(expr.children[0], 
+            expr.children[1], interval):
+          yield c
+
+      elif expr.operator=="+/-":
+        d0, wiggle = expr.children[0], datetime.timedelta(
+          expr.expr.children[1])
+        for c in expandDates(d0-wiggle, d0+wiggle):
+          yield c
+
+      else:
+        raise api.ValidationError("This sort of date expression"
+          " does not make sense for this service", colName="ut1")
+    except base.ParseException, msg:
+      raise api.ValidationError(
+        "Invalid date expression (at %s)."%msg.loc,
+        colName="ut1")
+
+While the details of the parameter parsing and expansion don't really
+matter, note now exceptions are mapped to a ValidationError and give
+a ``colName`` – this lets the form renderer display error messages next
+to the inputs that caused the failure.
+
+The next thing timescore does is build some input, which in this case is
+fairly trivial::
+
+  input = "\n".join(utils.formatISODT(date) for date in dates)+"\n"
+
+If your input is more complex or you need input files or similar, you
+want to be a bit more careful.  In particular, do *not* change directory
+(or, equivalently, use the utils.sandbox context manager); this may
+confuse the server, and in particular will break the first time two
+requests are served simultaneously: The core runs within the main
+process, and that can only have one current directory.
+
+Instead, in such situations, make a temporary directory and manually
+place your inputs in there.  The spacecore
+(https://svn.ari.uni-heidelberg.de/svn/gavo/hdinputs/sp_ace/res/spacecore.py)
+shows how this could look like, including  savely tearing the stuff down
+safely when done (the runSpace function).
+
+For the timescore, that is not necessary; you just run the wrapped
+program using standard subprocess functionality::
+
+  computer = service.rd.getAbsPath("bin/timescompute")
+
+  pipe = subprocess.Popen([computer],
+      stdin=subprocess.PIPE, stdout=subprocess.PIPE, close_fds=True,
+      cwd=os.path.dirname(computer))
+  data, errmsg = pipe.communicate(input)
+  if pipe.returncode:
+    raise api.ValidationError("The backend computing program failed"
+      " (exit code %s).  Messages may be available as"
+      " hints."%pipe.returncode,
+      "ut1",
+      hint=errmsg)
+
+Note that with today's computers, you shouldn't need to worry about
+streaming input or output until they are in the dozens of megabytes (in
+which case you should probably think hard about a custom UWS and keep
+the files in the job's working directories).
+
+To turn the program's output into a table, you use the data item defined
+in the RD::
+
+  return api.makeData(
+    self.rd.getById("build_result"),
+    forceSource=StringIO(data))
+
+When the core defines the data itself, you would skip ``makeData``.
+Just directly produce the rowdicts and make the output table directly
+from the rows::
+
+  rows = [{"foo": 3*i, "bar": 8*i} for i in range(30)]
+  return rsc.TableForDef(self.outputTable, rows=rows)
+
+
+Database Options
+''''''''''''''''
+
+The standard DB cores receive a “table widget” on form generation,
+including sort and limit options.  To make the Form renderer output this
+for your core as well, define a method ``wantsTableWidget()`` and return
+``True`` from it.
+
+The ``queryMeta`` that your ``run`` method receives  has a dbLimit key.
+It contains the user selection or, as a fallback, the global
+db/defaultLimit value.  These values are integers.
+
+So, if you order a table widget, you should do something like::
+
+  cursor.execute("SELECT .... LIMIT %(queryLimit)s", 
+    {"queryLimit": queryMeta["dbLimit"],...})
+
+In general, you should warn people if the query limit was reached; a
+simple way to do that is::
+
+  if len(res)==queryLimit:
+    res.addMeta("_warning", "The query limit was reached.  Increase it"
+      " to retrieve more matches.  Note that unsorted truncated queries"
+      " are not reproducible (i.e., might return a different result set"
+      " at a later time).")
+
+where res would be your result table.  _warning metadata is displayed in
+both HTML and VOTable output, though of course VOTable tools will not
+usually display it.
+
+
+Python Cores instead of Custom Cores
+''''''''''''''''''''''''''''''''''''
+
+If you only have a couple of lines of python, you don't have to have a
+separate module.  Instead, use a python core.  In it, you essentially
+have the ``run`` method as discussed in `Giving the Core Functionality`_
+in a standard ``procApp``.  The advantage is that interface and
+implementation is nicely bundled together.  The following example should
+illustrate the use  of such python cores; note that ``rsc`` already is
+in the procApp's namespace::
+
+  <pythonCore>
+    <inputTable>
+      <inputKey name="opre" description="Operand, real part"
+        required="True"/>
+      <inputKey name="opim" description="Operand, imaginary part"
+        required="True"/>
+      <inputKey name="powers" description="Powers to compute"
+        type="integer" multiplicity="multiple"/>
+    </inputTable>
+    <outputTable>
+      <outputField name="re" description="Result, real part"/>
+      <outputField name="im" description="Result, imaginary part"/>
+      <outputField name="log"
+        description="real part of logarithm of result"/>
+    </outputTable>
+
+    <coreProc>
+      <setup>
+        <code>
+          import cmath
+        </code>
+      </setup>
+      <code>
+        powers = inputTable.args["powers"]
+        if not powers:
+          powers = [1,2]
+        op = complex(inputTable.args["opre"],
+          inputTable.args["opim"])
+
+        rows = []
+        for p in powers:
+          val = op**p
+          rows.append({
+            "re": val.real,
+            "im": val.imag,
+            "log": cmath.log(val).real})
+        
+        return rsc.TableForDef(self.outputTable, rows=rows)
+      </code>
+    </coreProc>
+  </pythonCore>
+
+As an additional service, DaCHS executes your python cores in a sandbox
+directory, so you can create temporary files to your heart's
+delight; they will be torn down once the core is finished.
 
 
 Regression Testing
@@ -1246,7 +2034,7 @@ unittest TestCases (e.g., assertEqual and friends).  This is provided in
 particular for use to check values in VOTables coming back from services
 together with the ``getFirstVOTableRow`` method.
 
-When writing tests, please note that, like all procDef's bodies, the test
+Also please note that, like all procDef's bodies, the test
 code is macro-expanded by DaCHS.  This means that every backslash that
 should be seen by python needs to be escaped itself (i.e., doubled).  An
 escaped backslash in python thus is four backslashes in the RD.
@@ -1530,7 +2318,7 @@ out what parameters are mentioned somewhat like this::
     -t -m "//v:PARAM" -v "@name" -nl
 
 In the remainder of this section, we first discuss the generation of
-datalinks and processing services „by example”, which should do for a
+datalinks and processing services “by example”, which should do for a
 basic use of the facilities.  We continue with a somewhat more in-depth
 look at the processing of a SODA request, after which we look more
 closely at the various elements that make up Datalink/SODA services.
@@ -1831,39 +2619,39 @@ A slightly more interesting example is provided by datalink for SSA,
 where cutouts and similar is generated from spectra.  The actual
 definition is in ``//soda#sdm_genDesc``, but the gist of it is::
 
-	<procDef type="descriptorGenerator" id="sdm_genDesc">
-		<setup>
-			<par key="ssaTD" description="Full reference (like path/rdname#id)
-				to the SSA table the spectrum's PubDID can be found in."/>
-			<par key="descriptorClass" description="The SSA descriptor
-				class to use.  You'll need to override this if the dc.products
-				path doesn't actually lead to the file (see
-				`custom generators &lt;#custom-product-descriptor-generators&gt;`_)."
-				late="True">ssap.SSADescriptor</par>
-			<code>
-				from gavo import rscdef
-				from gavo import rsc
-				from gavo import svcs
-				from gavo.protocols import ssap
-				ssaTD = base.resolveCrossId(ssaTD, rscdef.TableDef)
-			</code>
-		</setup>
-		
-		<code>
-			with base.getTableConn() as conn:
-				ssaTable = rsc.TableForDef(ssaTD, connection=conn)
-				matchingRows = list(ssaTable.iterQuery(ssaTable.tableDef, 
-					"ssa_pubdid=%(pubdid)s", {"pubdid": pubDID}))
-				if not matchingRows:
-					return DatalinkFault.NotFoundFault(pubDID,
-						"No spectrum with this pubDID known here")
+  <procDef type="descriptorGenerator" id="sdm_genDesc">
+    <setup>
+      <par key="ssaTD" description="Full reference (like path/rdname#id)
+        to the SSA table the spectrum's PubDID can be found in."/>
+      <par key="descriptorClass" description="The SSA descriptor
+        class to use.  You'll need to override this if the dc.products
+        path doesn't actually lead to the file (see
+        `custom generators &lt;#custom-product-descriptor-generators&gt;`_)."
+        late="True">ssap.SSADescriptor</par>
+      <code>
+        from gavo import rscdef
+        from gavo import rsc
+        from gavo import svcs
+        from gavo.protocols import ssap
+        ssaTD = base.resolveCrossId(ssaTD, rscdef.TableDef)
+      </code>
+    </setup>
+    
+    <code>
+      with base.getTableConn() as conn:
+        ssaTable = rsc.TableForDef(ssaTD, connection=conn)
+        matchingRows = list(ssaTable.iterQuery(ssaTable.tableDef, 
+          "ssa_pubdid=%(pubdid)s", {"pubdid": pubDID}))
+        if not matchingRows:
+          return DatalinkFault.NotFoundFault(pubDID,
+            "No spectrum with this pubDID known here")
 
-				# the relevant metadata for all rows with the same PubDID should
-				# be identical, and hence we can blindly take the first result.
-				return descriptorClass.fromSSARow(matchingRows[0],
-					ssaTable.getParamDict())
-		</code>
-	</procDef>
+        # the relevant metadata for all rows with the same PubDID should
+        # be identical, and hence we can blindly take the first result.
+        return descriptorClass.fromSSARow(matchingRows[0],
+          ssaTable.getParamDict())
+    </code>
+  </procDef>
 
 Here, we use ``ssa.SSADescriptor``, derived from ``ProductDescriptor``,
 rather than monkeypatching the extra ``ssaRow`` attribute the former
@@ -1974,8 +2762,16 @@ should not be constructed directly but only using the ``MS`` helper
 (which is really an alias for base.makeStruct; it takes care that the
 special postprocessing of DaCHS structures takes place).
 
+You should make sure that the input keys have proper annotation as
+regards minima, maxima, or enumerated values; clients, in general, have
+to way to guess what is sensible here.
 
-Hence, a meta maker that generates an extra cutout parameter for radio
+The limits can usually be obtained from the descriptor (which, again, is
+available as ``descriptor`` in the meta maker.  For instance, the
+FITS descriptor has a ``header`` attribute describing the instance that
+the core operates on, the SSA descriptor an attribute ``ssaROW``.
+
+A meta maker that generates an extra cutout parameter for radio
 astronomers (note that this is of course a bad idea -- unit adaption
 should be done on the client side) could be::
 
@@ -2006,6 +2802,16 @@ actually prepared to handle multiply-specified parameter values, you
 should use the ``forced-single`` mulitplicity, which makes DaCHS reject
 requests that contain a parameter more than once.
 
+An extra complication occurs when SODA descriptors are generated for DAL
+responses.  Currently, this is only envisaged for SSA.  There, the
+descriptor has an extra limits attribute that gives, for each eligible
+column, minimum and maximum values or a set of values for enumerated
+columns.
+
+Similar (if possibly less useful) mechanisms are conceivable for, say,
+partial obscore results or SIAv1.  We suggest to keep the attribute name
+of this sort of collective characterisation as ``limits``.  DaCHS does
+not implement anything of this kind right now, though.
 
 
 Metadata Error Messages
@@ -2224,7 +3030,7 @@ Datalink services will, however, appear as capabilities of services
 they're assigned to.  You do this by setting a ``datalink`` property on
 the main service like this::
 
-		<property name="datalink">my-datalink-service</property>
+    <property name="datalink">my-datalink-service</property>
 
 as, for instance, in :samplerd:`mlqso/q`.
 
@@ -2234,11 +3040,11 @@ case so validators can pick up IDs and parameters to use when valdiating
 your service.  Here is an example, taken from :samplerd:`califa/q3`::
 
   CALIFA cubes can be cut out along RA, DEC, and spectral axes.
-	CIRCLE and POLYGON cutouts yield bounding boxes.  Also note that the
-	coverage of CALIFA cubes is hexagonal in space.  This explains
-	the empty area when cutting out :genparam:`CIRCLE(225.5202 1.8486 0.001)`
-	:genparam:`BAND(366e-9 370e-9)` on
-	:dl-id:`ivo://org.gavo.dc/~?califa/datadr3/V1200/UGC9661.V1200.rscube.fits`.
+  CIRCLE and POLYGON cutouts yield bounding boxes.  Also note that the
+  coverage of CALIFA cubes is hexagonal in space.  This explains
+  the empty area when cutting out :genparam:`CIRCLE(225.5202 1.8486 0.001)`
+  :genparam:`BAND(366e-9 370e-9)` on
+  :dl-id:`ivo://org.gavo.dc/~?califa/datadr3/V1200/UGC9661.V1200.rscube.fits`.
 
 Essentially, an identifier to use is given as the ``dl-id`` interpreted
 text role, whereas processing parameters are given as DALI genparams.
@@ -2293,16 +3099,16 @@ inputsDir-relative path to the main file, and you're dealing with FITS,
 you can use the ``DLFITSProductDescriptor`` class.  Thus, the base
 functionality of a FITS cutout service with datalink products would be::
 
- 	<service id="dl" allowed="dlget,dlmeta">
-	  <meta name="title">My Cutout Service</meta>
-	  <datalinkCore>
-		  <descriptorGenerator procDef="//soda#fits_genDesc" 
-			  name="genFITSDesc">
-			  <bind key="accrefPrefix">'mysvcs/data'</bind>
-			  <bind key="descClass">DLFITSProductDescriptor</bind>
-		  </descriptorGenerator>
-		  <FEED source="//soda#fits_standardDLFuncs"/>
-	  </datalinkCore>
+   <service id="dl" allowed="dlget,dlmeta">
+    <meta name="title">My Cutout Service</meta>
+    <datalinkCore>
+      <descriptorGenerator procDef="//soda#fits_genDesc" 
+        name="genFITSDesc">
+        <bind key="accrefPrefix">'mysvcs/data'</bind>
+        <bind key="descClass">DLFITSProductDescriptor</bind>
+      </descriptorGenerator>
+      <FEED source="//soda#fits_standardDLFuncs"/>
+    </datalinkCore>
   </service>
 
 When not using FITS, you will need to change the descriptor generator's
@@ -2435,9 +3241,11 @@ a) define where the preview files are.  This happens via a
       ...
 b) say that the previews are standard DaCHS generated in the
    ``//products#define`` rowfilter.  The main thing you have to
-   decide here is the MIME type of the previews you're generating
-   (i.e., use the ``standardPreviewPath`` macro unless you know what
-   you are doing)::
+   decide here is the MIME type of the previews you're generating.
+   You will usually use either the `macro standardPreviewPath`_
+   (preferable when you have less than a couple of thousand products) 
+   or the `macro splitPreviewPath`_ to fill the preview path, but you
+   can really enter whatever paths are convenient for you here::
 
       <rowfilter procDef="//products#define">
         <bind name="table">"\schema.data"</bind>
@@ -2465,245 +3273,6 @@ c) actually compute the previews.  This is usually not defined in the RD
 .. _precomputing previews: http://docs.g-vo.org/DaCHS/processors.html#precomputing-previews
 
 
-Writing Custom Cores
-====================
-
-While DaCHS provides cores for many common operations -- in particular,
-database queries and wrapped external binaries --, there are of course
-services needing to do things not covered by what the shipped cores do.
-Some such cases still follow the basic premise of services: GET or POST
-parameters in, something table-like out.  For these cases, use custom
-cores (if even this does not provide sufficent functionality, write a
-custom renderer).
-
-For simple cases, rather than having the code in a separate module it's
-nicer to keep everything together in the RD.  This is very similar;
-`Python Cores instead of Custom Cores`_ explains the differences.
-
-
-
-Defining a Custom Core
-''''''''''''''''''''''
-
-To do this, you need to write a python module.  The standard location
-for those is in the bin/ subdirectory of the resource directory.
-
-You will usually want to inherit from core::
-
-  from gavo import rsc
-  from gavo.svcs import core
-
-  class Core(core.Core):
-
-The framework will always look of an object named "Core" in the module
-and use this as the custom core.
-
-The core needs an InputTable and an OutputTable like all cores.  You
-*could* define it in the resource descriptor like this::
-
-  <customCore id="createCore" module="bin/create">
-    <inputTable>
-      <inputKey .../>
-    </inputTable>
-    <outputTable>
-      <column name="itemsAdded" type="integer" tablehead="Items added"/>
-    </outputTable>
-  </customCore>
-
-It's probably a better idea to define it in the code, though, since
-then it will work without further specifications.  The definitions
-in the code can still be overridden from an RD for special effects.
-Embedding the definitions is done using the class attributes
-``inputTableXML`` and ``outputTableXML``::
-
-  class Core(core.Core):
-    inputTableXML = """<inputTable>
-      <inputKey name="fileSrc" type="file" tablehead="Local file"
-        description="A local file to upload (overrides source URL if given).">
-      <inputKey name="tableName" type="text" tablehead="Target Table"
-        description="Name of the table to match against.  
-          Only tables available for ADQL (see there) can be used here.">
-        <values fromdb="tablename from dc_tables where adql=True"/>
-      </inputTable>
-      """
-    outputTableXML = """<outputTable/>"""
-
-You should not override the constructor.  If you need to perform
-"expensive" instanciations, override the completeElement method, as in
-the following template::
-
-  def completeElement(self):
-    <your code>
-    self._completeElementNext(Core)
-
-The call to _completeElementNext ensures that the remaining
-completeElement methods are executed.
-
-Giving the Core Functionality
-'''''''''''''''''''''''''''''
-
-To have the core do something, you have to override the run method,
-which has to have the following signature::
-
-  run(service, inputTable, queryMeta) -> stuff
-
-The stuff returned will ususally be a Table instance (that need not
-match the outputTable definition -- the latter is targetted at the
-registry and possibly applications like output field selection).  The
-standard renderers also accept a mime type and a string containing
-some data and will deliver this as-is.  With custom renderers, you could
-return basically anything you want.
-
-Services come up with some idea of the schema of the table they want to
-return and adapt tables coming out of the core to this.  Sometimes, you
-want to suppress this behaviour, e.g., because the service's ideas are
-off.  In that case, set a noPostprocess atttribute on the table to any
-value.
-
-service is a service instance.  In particular, you can access the RD you
-are running in through its rd attribute.  This is useful if you need to
-resolve, e.g., table references (which, in this case, could be given as
-a service property)::
-
-  pertainingTable = service.rd.getById(
-    service.getProperty("pertainingTable"))
-
-inputTable is a Table instance. Unless the service has a fancy inputDD,
-you simply find the inputKey values in the table's parameters::
-
-  val = inputTable.getParam("fileSrc")
-
-This val will be a simple value if the ``inputKey`` has multiplicity
-``single`` or ``force-single``, a list if it has multiplicity
-``multiple``.  It will be None if a non-required parameter is missing.
-
-As said above, you could return finished documents from your custom
-core.  It's usually friendlier and more flexible if you return
-tables.  To build a table matching the output table, use the core's
-``outputTable`` (which is actually a table definition).  This could
-look like this::
-
-  res = rsc.TableForDef(self.outputTable)
-  res.addRow({"foo": 3, "bar": 8})
-
-The rows are rowdicts as genrated by rowmakers (which you could
-use, too).  In many cases, it may be more convenient to collect the data
-up front and then create the output table with ready-made rows::
-
-  rows = [{"foo": 3, "bar": 8}]
-  return rsc.TableForDef(self.outputTable, rows=rows)
-
-Lastly, if there's parsing involved in coming up with the output table,
-it's probably a good idea to simply write a normal data item and arrange
-for whatever you come up with to be parsed.  For a data item
-``resparser``, this would then look like this::
-
-  with open("myFile") as src:
-    return rsc.makeData(rd.getById("resparser"), forceSource=src)
-
-
-
-Errors
-''''''
-
-To bail out from processing, raise a validation error.  Construct it
-with a message and the name of an input key.  At least for the form
-renderer, this causes a sensible error message with some hint as the
-originating input field, next to the offending input field::
-
-  raise base.ValidationError("Invalid file name", "rdsrc")
-
-
-Database Options
-''''''''''''''''
-
-The standard DB cores receive a "table widget" on form generation,
-including sort and limit options.  To make the Form renderer output this
-for your core as well, define a method wantsTableWidget() -> True.
-
-The queryMeta that you receive in run has a dbLimit key.  It contains
-the user selection or, as a fallback, the global db/defaultLimit value.
-These values are integers.
-
-So, if you order a table widget, you should do something like::
-
-  cursor.execute("SELECT .... LIMIT %(queryLimit)s", 
-    {"queryLimit": queryMeta["dbLimit"],...})
-
-In general, you should warn people if the query limit was reached; a
-simple way to do that is::
-
-  if len(res)==queryLimit:
-    res.addMeta("_warning", "The query limit was reached.  Increase it"
-      " to retrieve more matches.  Note that unsorted truncated queries"
-      " are not reproducible (i.e., might return a different result set"
-      " at a later time).")
-
-where res would be your result table.  _warning metadata is displayed in
-both HTML and VOTable output, though of course VOTable tools will not
-usually display it.
-
-Inheriting from TableBasedCore
-''''''''''''''''''''''''''''''
-
-TBD (This does not work right now; complain if you need to do it)
-
-Python Cores instead of Custom Cores
-''''''''''''''''''''''''''''''''''''
-
-If you only have a couple of lines of python, you don't have to have a
-separate module.  Instead, use a python core.  In it, you essentially
-have the ``run`` method as discussed in `Giving the Core Functionality`_
-in a standard ``procApp``.  The advantage is that interface and
-implementation is nicely bundled together.  The following example should
-illustrate the use  of such python cores; note that ``rsc`` already is
-in the procApp's namespace::
-
-  <pythonCore>
-    <inputTable>
-      <inputKey name="opre" description="Operand, real part"
-        required="True"/>
-      <inputKey name="opim" description="Operand, imaginary part"
-        required="True"/>
-      <inputKey name="powers" description="Powers to compute"
-        type="integer" multiplicity="multiple"/>
-    </inputTable>
-    <outputTable>
-      <outputField name="re" description="Result, real part"/>
-      <outputField name="im" description="Result, imaginary part"/>
-      <outputField name="log"
-        description="real part of logarithm of result"/>
-    </outputTable>
-
-    <coreProc>
-      <setup>
-        <code>
-          import cmath
-        </code>
-      </setup>
-      <code>
-        powers = inputTable.getParam("powers")
-        if powers is None:
-          powers = [1,2]
-        op = complex(inputTable.getParam("opre"),
-          inputTable.getParam("opim"))
-
-        rows = []
-        for p in powers:
-          val = op**p
-          rows.append({
-            "re": val.real,
-            "im": val.imag,
-            "log": cmath.log(val).real})
-        
-        return rsc.TableForDef(self.outputTable, rows=rows)
-      </code>
-    </coreProc>
-  </pythonCore>
-
-As an additional service, DaCHS executes your python cores in a sandbox
-directory, so you can create temporary files to your heart's
-delight; they will be torn down once the core is finished.
 
 
 Custom UWSes
@@ -3203,8 +3772,16 @@ So, a custom grammar module could look like this::
 
   class RowIterator(CustomRowIterator):
     def _iterRows(self):
-      for i in xrange(10000):
+      for i in xrange(int(self.sourceToken)):
         yield {'index': i, 'square': i**2}
+
+This would be used with a ``data`` material like::
+
+  <sources><item>4</item><item>40</item></sources>
+  <customGrammar module="res/sillygrammar"/>
+
+– ``self.sourceToken`` simply contains whatever the ``sources`` produce,
+one item after the other.
 
 Do not override magic methods, since you may lose row filters, sourceFields,
 and the like if you do.  An exception is the constructor.  If you must,
@@ -3216,16 +3793,35 @@ this::
       CustomRowIterator.__init__(self, grammar, sourceToken, sourceRow)
       <your code>
 
-The sourceToken, in general, will be a file name, unless you call
-makeData manually and forceSource something else.
+In practice (i.e., with ``<sources pattern="*"/>) ``self.sourceToken``
+will be a file name.  When you call ``makeData`` manually and pass a
+``forceSource`` argument, its value will show up in ``self.sourceToken``
+instead.
+
+For development, it may be convenient to execute your custom grammar as
+a python module.  To enable that, just append a::
+
+  if __name__=="__main__":
+    import sys
+
+    from gavo.grammars.customgrammar import CustomGrammar
+    ri = RowIterator(CustomGrammar(None), sys.argv[1])
+    for row in ri:
+      print row
+
+to your module.  You can then run things like::
+
+  python res/mygrammar.py data/inhabitedplanet.fits
+
+and see the rows as they're generated.
 
 A row iterator will be instanciated for each source processed.  Thus,
 you should usually not perform expensive operations in the constructor
 unless they depend on sourceToken.  In general, you should rather define
-a function makeDataPack in the module.  Whatever is returned by this
-function is available as self.grammar.dataPack in the row iterator.
+a function ``makeDataPack`` in the module.  Whatever is returned by this
+function is available as ``self.grammar.dataPack`` in the row iterator.
 
-The function receives an instance of the customGrammar as an
+The function receives an instance of the ``customGrammar`` as an
 argument.  This means you can access the resource descriptor and
 properties of the grammar.  As an example of how this could be used,
 consider this RD fragment::
@@ -3238,14 +3834,14 @@ consider this RD fragment::
     <property name="targetTable">defTable</property>
   </customGrammar>
 
-Then you could have the following in res/grammar.py::
+Then you could have the following in ``res/grammar.py``::
 
   def makeDataPack(grammar):
     return grammar.rd.getById(grammar.getProperty("targetTable"))
 
 and access the table in the row iterator.
 
-Also look into EmbeddedGrammar, which may be a more convenient way to
+Also look into ``EmbeddedGrammar``, which may be a more convenient way to
 achieve the same thing.
 
 A fairly complex example for a custom grammar is a provisional 

@@ -19,55 +19,41 @@ central concept, the resource descriptor (RD), recommended directory
 layouts, the basics of metadata and services, and debugging.
 
 
+
 Invoking DaCHS
 ==============
 
-For historical reasons, all DaCHS functionality is invoked through a
-program called ``gavo``.  Multiple functions are integrated and selected
-through the first argument; run ``gavo help`` to see what's available;
+**Note**: Before version 1.0 (planned release July 2017), dachs had to
+be called as ``gavo``.  While this will still be possible during the 1.0
+series for DaCHS, we recommend using ``dachs`` as the entry point.  This
+tutorial and other examples are migrating towards the new command name,
+so: If you're running DaCHS <1.0, you'll have to write ``gavo`` when
+there's either “gavo” or “dachs” in DaCHS documentation, newer
+installations should just use ``dachs``.
+
+All DaCHS functionality is invoked through a
+program called ``dachs``.  Multiple functions are integrated and selected
+through the first argument; run ``dachs help`` to see what's available;
 realistically, the functions most operators will be confronted with are
-``import``, ``serve``, ``publish``, and ``test``.
+``import``, ``serve``, ``publish``, and ``test``.  Also make sure you at
+least once skim the man page.
 
-There is a man page on ``gavo``, but it's less well maintained then we
-would like, so the best way to discover subcommands and options
-available is to use the built-in help, as in::
-
-  $ gavo --help
-  Usage: gavo {<global option>} <func> {<func option>} {<func argument>}
-  <func> is a unique prefix into {admin, adql, config, dlrun, drop,
-    gendoc, import, info, init, limits, mkboost, mkrd, publish, purge,
-    raise, serve, show, stc, taprun, test, totesturl, upgrade, uwsrun,
-    validate}
-
-  Try gavo <func> --help for function-specific help
-
-  Options:
-    -h, --help            show this help message and exit
-    --traceback           print a traceback on all errors.
-    --hints               if there are hints on an error, display them
-    --enable-pdb          run pdb on all errors.
-    --disable-spew        Ignored.
-    --profile-to=PROFILEPATH
-                          enable profiling and write a profile to PROFILEPATH
-    --suppress-log        Do not log exceptions and such to the gavo-specific
-                          log files
-    --debug               Produce debug info as appropirate.
-    --version             Write software version to stdout and exit
-    -U UI, --ui=UI        use UI to show what is going on; try --ui=help to see
-                          available interfaces.
+DaCHS has some global options (that go in front of the subcommand name).
+Most subcommands take options and/or arguments, which then have to be
+after the subcommand name.
 
 Most of DaCHS's global options have to do with debugging_; it is
 sometimes useful go say::
 
-  gavo --ui stingy ...
+  dachs --ui stingy ...
 
-do reduce the program's chattiness.
+to reduce the program's chattiness.
 
 For a brief overview what the individual functions are, see the man
 page or use the built-in help, as in::
 
-  $ gavo limits --help
-  usage: gavo limits [-h] itemId
+  $ dachs limits --help
+  usage: dachs limits [-h] itemId
 
   Updates existing values min/max items in a referenced table or RD.
 
@@ -294,6 +280,8 @@ The RD goes on to give metadata applying to everything within the RD::
     <meta name="waveband">Optical</meta>
   </meta>
 
+  <STREAM source="//procs#license-cc-by" what="ARIHIP"/>
+
   <meta name="_longdoc" format="rst">
     The ARIHIP Catalogue is a suitable combination of the results of the
     HIPPARCOS astrometry satellite with ground-based data.
@@ -330,6 +318,16 @@ consistent indenation in this case.  There are some other, more obscure,
 formats, too, that you do not need to worry about right now.
 
 See `More on Metadata`_ for more information on what is what here.
+
+A special thing in two respects is the STREAM in the above fragment.
+For one, it's an example of DaCHS metaprogramming, which we'll later
+look into.  For now, suffice it to say that this element sets a number
+of metadata items (actually, rights, rights.rightsURI, and copyright)
+and thus puts your data under a definite license.  This may seem a bit
+legalistic, but see `Licensing`_ on why it's nevertheless a good idea to
+include, if you can, either license-cc-by or license-cc0 in the above
+pattern.  Just adapt the value of the ``what`` attribute to a few-word
+phrase making it clear what the object of the license is.
 
 
 Defining Tables
@@ -2004,38 +2002,65 @@ element as often as you need to.
 If you are unsure what these mean, see `Resource Metadata for the
 Virtual Observatory`_, section 3.3.
 
-Copyright
+Licensing
 ---------
 
 Within the astronomical community, licensing issues have traditionally
 played a minor role – if you referenced properly, using data from other
 people was not only ok, it was encouraged.  We should keep it that way,
 even in the days of easy reproducability.  Still, formal statements
-about how your data may be used may be useful.  These statements are
+about how your data may be used are required if, for instance, the data
+or parts thereof are re-used in Free software.  Such statements are
 called licenses.
 
-RMI has the copyright meta for this purpose.  Right now, DaCHS doesn't do much
-with this information; it includes it in VOResource records, and the
-default response template shows it below the query form.  We recommend
-either specifying something like "The data is in the public domain" or,
-if you want to use something that's more in line with scientific habits,
-the `Creative Commons Attribution`_ ("CC-BY").  To support this, DaCHS
-includes a macro that can be used in meta elements that are direct
-children of the resource element.  Use it like this::
+In DaCHS, three meta items are used for licensing:
 
-  <resource...
-    <meta name="copyright" format="rst">
-      \RSTccby{Image metadata}
+* copyright – this is free text displayed on web pages, including the
+  service info.  This can be verbose and state acknowledgements,
+  funding information, and the like.
+* rights – this is transmitted to the registry and should be a very
+  terse phrase specifying the absolute minimum necessary to assess
+  usage conditions (something like “Free to use”, “CC-BY”, etc).  This
+  should not contain funding info, acknowledgements, and the like.
+* rightsURI – a URI of a common license; this is so machines can figure
+  out conditions if necessary.  We'll link a list of such URIs if we
+  find one.
 
-      Usage conditions for individual images could differ.  See the
-      COPYING FITS header.
-    </meta>
-  </resource>
+In practice, you should stick to a well-known license.  DaCHS comes with
+support of CC-0 (essentially, no restrictions) and CC-BY (state where
+you got the data from if re-publishing).  Let us know if you want other
+licenses supported, and we'll do something about it.  To apply them,
+replay one of the streams
 
-The advantage of using the macro is that you get a nice image, and in
-the future we may expand this to a formal, machine-readable declaration.
+* :dachsref:`//procs#license-cc0` (public domain)
+* :dachsref:`//procs#license-cc-by` (attribution)
 
-.. _Creative Commons Attribution: http://creativecommons.org/licenses/by/3.0/
+into the RD and give a ``what`` attribute saying what is licensed
+(usually, the data).  For instance::
+
+  <STREAM source="//procs#license-cc-by" what="ARIHIP"/>
+
+Sometimes you want an additional acknowleding clause.  In that case,
+just add another copyright meta item::
+
+  <meta name="copyright" format="rst">If you use this data, please
+    acknowledge: "This work made use of the HDAP which was produced at
+    Landessternwarte Heidelberg-Königstuhl under grant No. 00.071.2005
+    of the Klaus-Tschira-Foundation."
+    
+    The data in this service was calibrated using Astrometry.net,
+    :bibcode:`2010AJ....139.1782L`.
+  
+  </meta>
+  <FEED source="//procs#license-cc0" what="the HDAP scans"/>
+
+In case your data providers are nervous: Licensing has **nothing**
+whatsoever to do with requiring people to properly cite and/or
+acknowledge.  That is part of good scientific practice and is unrelated
+to legal issues.  Licensing is necessary for hassle-free re-use of the
+data in situations where it needs to be re-distributed; the classic
+example would be a star catalog within a planetarium software.
+
 .. _Reference Manual on RMI-style metadata: ./ref.html#rmi-style-metadata
 .. _STC library documentation: ./stc.html
 .. _STC-S Note: http://www.ivoa.net/Documents/Notes/STC-S/
@@ -2358,6 +2383,7 @@ Quick Start
 
 Check out a sample resource directory::
 
+  cd `dachs config inputsDir`
   svn co http://svn.ari.uni-heidelberg.de/svn/gavo/hdinputs/emi
   cd emi
   mkdir data
@@ -2657,58 +2683,181 @@ services.  If you want them, talk to us.
 SSAP
 ----
 
-Tables
-''''''
+Since SSAP metadata is relatively large, in the past we have recommended
+to use an extra mixin where constant metadata was given in PARAMs.  This
+was //ssap#hcd, which you still may find in use in several example
+datasets.  Do *not* use that any more; we found that space savings are
+nowhere near proportional to the extra implementation effort.  Only use
+:dachsref:`the //ssap#mixc mixin` in new RDs.  
+If you have really large number of
+spectra (I'd say upwards of order 1e6), consider using `SSAP with
+views`_.
 
-SSAP tables come in essentially two flavours: they can be "homogeneous"
-data collections, i.e., tables for which every data set was generated by
-the same instrument, code, or similar.  Those mix in ``//ssap#hcd``.
-Alternatively, the datasets can come from different sources, in which
-case the table would have to mix in ``//ssap#mixc``.  The following text
-mainly talks about hcd, but mixc isn't much different from an operator
-point of view.
+SSAP Quick Start
+''''''''''''''''
 
-This mixin has lots of parameters that define the instrument; see `the
-SSAP HCD mixin in the ref doc <./ref.html#the-ssap-hcd-mixin>`_.
+Check out a sample resource directory into your inputs directory::
 
-For example, you could say::
+  cd `dachs config inputsDir`
+  svn co http://svn.ari.uni-heidelberg.de/svn/gavo/hdinputs/zcosmos
+  cd zcosmos
+  mkdir data
+
+The checkout does not contain actual data, so let's fetch a file::
+
+  cd data
+  curl -O \
+    http://dc.g-vo.org/getproduct/zcosmos/data/1D/zCOSMOS_BRIGHT_DR2_000826802_ZCMRa26_M1_Q4_13_1.fits
+  cd ..
+
+This dataset needs obscore, and you should obscore-publish your spectra
+as well.  So, make sure you have the obscore table::
+
+  dachs imp //obscore
+
+Run the input and the regression tests::
+
+  dachs imp q
+  dachs test q
+
+One regression test should fail since you've not yet pre-generated the
+previews (which are optional but recommended for your datasets, too)::
+
+  python bin/makepreviews.py
+  dachs test q
+
+If the regressions tests don't pass now, please complain to the authors
+of this tutorial.
+
+From here on, you can point your favourite spectral client (fallback:
+TOPCAT's SSA client; note that TOPCAT itself cannot open this service's
+native format and you'd have to go through datalink, which TOPCAT can't
+yet do) to http://localhost:8080/zcosmos/q/ssa/ssap.xml and do your
+queries (if you don't know anything else, do a positional query for
+149.734, 2.28216).
+
+Please drop the dataset again when you're done playing::
+
+  dachs drop zcosmos/q
+  
+Since the dataset is in the obscore table, it would otherwise be
+globally discoverable, and that'd be bad.
+
+The remainder of this chapter discusses what's in the RD.  It is
+probably a good idea to have it open while reading this.
+
+SSAP Tables
+'''''''''''
+
+Tables open for SSAP querying need a certain structure.  Use
+:dachsref:`the //ssap#mixc mixin` to have DaCHS fill it in::
 
   <table id="data" onDisk="true">
-    <mixin
-      instrument="HLT Coude"
-      fluxCalibration="RELATIVE"
-    >//ssap#hcd</mixin>
+    <mixin 			
+      fluxUnit=" "
+      fluxUCD="phot.flux.density"
+      spectralUnit="Angstrom">//ssap#mixc</mixin>
+    <mixin>//ssap#simpleCoverage</mixin>
   </table>
 
-Note that despite their name, the timeSI, fluxSI, and spectralSI items
-in the mixin do *not* contain actual unit strings.  Instead, they are
+As usual, you can define extra columns manually if necessary; the one
+you'll find in the actual RD is discussed below in `SSAP and Datalink`_.  
+There's also another mixin in what you checked out, which is discussed
+in `SSAP Obscore Publication`_
+
+This mixin has lots of parameters that define lots of
+things.  Simply use the parameter list in the reference documentation
+(see the link above) as a
+checklist and leave out what you don't have.  You must give a
+``fluxUnit``, ``fluxUCD`` and a ``spectralUnit``, though, as they are used in
+the metadata of some of the columns.  When your spectra are not flux
+calibrated, use a single blank as the unit.
+
+Note that despite their name, the timeSI, fluxSI, and spectralSI 
+mixin parameters do *not* contain actual unit strings.  Instead, they are
 intended to contain conversion factors in a custom syntax called
-"Osuna-Salgado convention".  We recommend to not set these fields and
+“Osuna-Salgado convention”.  We recommend to not set these fields and
 instead provide useful VOUnit-compliant units where appropriate.
 
-To fill such a table, it is recommended to use the `products#define`_
-rowfilter and the `ssap#setMeta`_ rowmaker apply.  This could look
-like this::
+Building SSA Tables
+'''''''''''''''''''
 
-  <data id="content">
+SSAP tables contain products, so you'll (realistically) have to have a
+:dachsref:`//products#define` rowfilter in your grammar.  Unless you're very
+sure you don't want that, also use the :dachsref:`//ssap#setMeta` and 
+:dachsref:`//ssap#setMixcMeta` applys.
 
-    <fitsProdGrammar>
+Unfortunately, there's no real standard for spectra that is widely used.
+If you're lucky, you'll get 1-D arrays in FITS format (IRAF liked to
+write such spectra; declare those with a media type of image/fits, since
+that's what they really are) or FITS tables with spectral/flux pairs
+(use a media type of application/fits for them).
+
+Our example data set indeed comes as FITS, so we're using an
+:dachsref:`Element fitsProdGrammar`.  The following bindings already prepare
+for making and serving
+previews, which is discussed in more detail in :dachsref:`Product
+Previews` in the DaCHS reference; see there for everything 
+mentioning “preview”::
+
+  <data id="import">
+    <property key="previewDir">previews</property>
+    <sources pattern="data/1D/zCOSMOS_BRIGHT_DR2_*.fits"/>
+    <fitsProdGrammar qnd="True">
       <rowfilter procDef="//products#define">
         <bind name="table">"\schema.data"</bind>
+        <bind name="mime">"image/fits"</bind>
+        <bind name="preview">\standardPreviewPath</bind>
+        <bind name="preview_mime">"image/png"</bind>
       </rowfilter>
     </fitsProdGrammar>
 
-    <make table="data">
-      <rowmaker idmaps="ssa_*">
-        <apply procDef="//ssap#setMeta">
-          <bind name="dstitle">@FILENAME</bind>
-          <bind name="pubDID">"ivo://org.gavo.dc/ccd700/q#"+@FILENAME</bind>
-         </apply>
-      </rowmaker>
-    </make>
-  </data>
+The rowmaker uses the two applys mentioned above.  Here, the spectral
+axis is along a WCS-described array axis.  There's a nifty class
+handling the calculations with a factory function ``getWCSAxis``.
+Otherwise,  writing the rowmaker essentially means using 
+the parameter lists of
+the applys as checklists.  Here, this works out to::
 
-Caution: In the ssa table, we force the spectral axis to be a wavelength
+  <make table="data">
+    <rowmaker idmaps="ssa_*">
+      
+      <var name="specAx">getWCSAxis(@header_, 1)</var>
+      <var name="specLen">int(@NAXIS1)</var>
+
+      <apply procDef="//ssap#setMeta">
+        <bind name="dstitle">"%s %s"%(@TELESCOP, vars["ESO OBS ID"])</bind>
+        <bind name="pubDID">\standardPubDID</bind>
+        <bind name="targname">"ICRS %s %s"%(@RA, @DEC)</bind>
+        <bind name="alpha">@RA</bind>
+        <bind name="delta">@DEC</bind>
+        <bind name="aperture">vars["ESO INS ADF SKYREG"]/3600.</bind>
+        <bind name="cdate">@DATE</bind>
+        <bind name="bandpass">"IR, Optical, UV"</bind>
+        <bind name="targclass">"X"</bind>
+        <bind name="dateObs">@DATE_OBS</bind>
+        <bind name="timeExt">@EXPTIME</bind>
+        <bind name="length">@specLen</bind>
+        <bind name="specstart">@specAx.pixToPhys(1)*1e-10</bind>
+        <bind name="specend">@specAx.pixToPhys(@specLen)*1e-10</bind>
+      </apply>
+
+      <apply procDef="//ssap#setMixcMeta">
+        <bind name="collection">"zcosmos"</bind>
+        <bind name="creationType">"archival"</bind>
+        <bind name="dataSource">"survey"</bind>
+        <bind name="fluxCalib">"RELATIVE"</bind>
+        <bind name="specCalib">"ABSOLUTE"</bind>
+        <bind name="binSize">2.5e-10</bind>
+      </apply>
+    </rowmaker>
+  </make>
+
+Just make sure you do not forget the ``idmaps="ssa_*"`` at the top
+(you'll see rather opaque “key (something) not found in a mapping”
+messages if you do).
+
+Caution: In the ssa table, the spectral axis must be a wavelength
 in meters.  You must convert all values manually if necessary.  For the
 spectra themselves you could use different units, but in our experience
 that's more confusing than helpful.
@@ -2716,8 +2865,9 @@ that's more confusing than helpful.
 In contrast to images where delivering FITS is likely all you need,
 there's a plethora of formats spectra are delivered in.  To help a bit,
 you should make sure one of the formats you offer are VOTables
-conforming to the spectral data model (see Making SDM Tables in the
-reference documentation).  If you want to deliver the "native" format as
+conforming to the spectral data model (see :dachsref:`Making SDM
+Tables` in the reference documentation and `SSAP and Datalink`_ below).  
+If you want to deliver the “native” format as
 well, you'll have to have two rows for each spectrum.  The standard way
 to achieve that is through a rowmaker in the grammar importing the
 spectra, like this::
@@ -2725,43 +2875,61 @@ spectra, like this::
    <rowfilter name="generateFormatLinks">
      <code>
        baseAccref = os.path.splitext(row["prodtblPath"])[0]
-       row["prodtblAccref"] = baseAccref+".txt"
-       row["prodtblMime"] = "text/plain"
+       row["prodtblAccref"] = baseAccref
+       row["prodtblMime"] = "image/fits"
        # this is the file as delivered from upstream
        yield row
        row["prodtblAccref"] = baseAccref+".vot"
-       row["prodtblPath"] = "dcc://\rdIdDotted/mksdm?"+baseAccref+".txt"
+       row["prodtblPath"] = \fullDLURL{sdl}
        row["prodtblMime"] = "application/x-votable+xml"
        # this is our processed SDM VOTable
        yield row
      </code>
    </rowfilter>
 
+(we don't do that here; if we did, you could have used a spectrum
+immediately in TOPCAT in the quick test above).  For this to work, you
+will of course need a datalink service spitting out an appropriate
+VOTable with an id of ``sdl`` (the argument to the ``fullDLURL`` macro)
+in your RD – we will discuss this below.
+
 SSAP's FORMAT parameter lets clients select what they want.  The way
 the default FORMAT argument works, only application/x-votable+xml
 records are considered compliant.
 
-FITS files with spectra are a nasty chapter.  Most of the FITS spectra
-out there currently are basically 1D images.  Use an image/fits MIME
-type for those; application/fits is reserved for FITS binary tables
-conforming to the spectral data model; chances are you'll have to build
-those yourself.
+
+SSAP Services
+'''''''''''''
+
+Use the :dachsref:`element ssapCore` for SSAP services.  
+You must manually feed in
+the condition descriptors for the SSAP parameters; the simplest way to
+do that is to ``FEED`` the :dachsdoc:`//ssap#hcd_condDescs` stream.
+Additionally, there is a set of SSA-specific metadata that
+is discussed with :dachsdoc:`the ssap.xml renderer`.  The result for 
+our example is::
+
+  <service id="ssa" allowed="form,ssap.xml">
+    <meta name="shortName">zCosmos SSAP</meta>
+    <meta name="title">zCosmos Bright 
+      Spectroscopic Observations DR2</meta>
+    <meta name="ssap.dataSource">pointed</meta>
+    <meta name="ssap.testQuery">MAXREC=1</meta>
+    <meta name="ssap.creationType">archival</meta>
+    <meta name="ssap.complianceLevel">query</meta>
+    <publish render="ssap.xml" sets="ivo_managed"/>
+    <publish render="form" sets="ivo_managed,local" service="web"/>
+
+    <property name="datalink">sdl</property>
+
+    <ssapCore queriedTable="data">
+      <FEED source="//ssap#hcd_condDescs"/>
+    </ssapCore>
+  </service>
 
 
-Cores
-'''''
-
-Use the ssapCore for SSAP services.  You must manually feed in
-the condition descriptors for the SSAP parameters.  For homogeneous data
-collections, this is::
-
-  <ssapCore queriedTable="newdata">
-    <FEED source="//ssap#hcd_condDescs"/>
-  </ssapCore>
-
-The ``hcd_condDescs`` includes condition descriptors for all mandatory
-and optional parameters meaningful in the case of homogeneous data
-collections (i.e., excluding those that match against constant values).
+The ``hcd_condDescs`` STREAM includes condition descriptors for all mandatory
+and optional parameters that we can remotely see in use.
 
 Some of them may not be relevant to your service because your table
 never has values for them.  For example, theoretical spectra will
@@ -2778,13 +2946,13 @@ active tag.  This looks like this::
     </FEED>
   </ssapCore>
 
-Do not do this just because you don't have position information -- this
+Do not do this just because you don't have position information – this
 would mean that you would dump your complete archive for (typical)
 queries with a position, and that is neither required by the spec (even
 if you might think so at first reading) nor desirable.
 
 Here is a table of parameter names and ids; you can always check them
-in ``$gavo_installed/resources/inputs/__system__/ssap.rd``.
+by inspecting the output of ``dachs adm dumpDF //ssap``:
 
 ============== ===========
 Parameter name condDesc id
@@ -2798,7 +2966,6 @@ For APERTURE,  SNR, REDSHIFT, TARGETNAME, TARGETCLASS, PUBDID,
 CREATORDID, and MTIME, the condDesc id simply is ``<keyname>_cond``,
 e.g., ``APERTURE_cond``.
 
-
 To have custom parameters, simply add condDesc elements as usual::
 
     <ssapCore queriedTable="newdata">
@@ -2806,99 +2973,283 @@ To have custom parameters, simply add condDesc elements as usual::
       <condDesc buildFrom="t_eff"/>
     </ssapCore>
 
-For SSAP cores, ``buildFrom`` will enable "PQL"-like query syntax such
+For SSAP cores, ``buildFrom`` will enable “PQL”-like query syntax such
 that users can post arguments like ``20000/30000,35000`` to ``t_eff``.
+This is in keeping with the general SSAP parameter style, while 
+more modern VO services use 2-arrays for intervals.
+
+To expose SSAP cores, use :dachsref:`the ssap.xml renderer`.  Using the
+form renderer on SSAP cores is not terribly useful, because the core
+returns XML directly, and there are far too many parameters no human
+will ever be interested in anyway.
+So, you'll typically define extra browser-based
+services.  The example RD shows a compact way to do that.
 
 
-Service
-'''''''
+SSAP Obscore Publication
+''''''''''''''''''''''''
 
-To expose SSAP services, use the `ssap.xml renderer`_.  The metadata
-keys required for registration of these are documented in the reference
-manual.  A complete declaration of a published SSAP service would then
-look like this::
+SSA tables are not terribly far from obscore tables, and so it's fairly
+easy to also publish the spectra through ObsTAP_.  Therefore, just do
+it by mixing in :dachsref:`//obscore#publishSSAPMIXC`.  This just needs a
+``calibLevel`` parameter, everything else is pre-set from SSAP or
+optional.  Thus, the
+complete table definition for our example RD is::
 
-  <service id="ssa" allowed="form,ssap.xml">
-    <meta name="shortName">mydata SSAP</meta>
-    <meta name="ssap.dataSource">theory</meta>
-    <meta name="ssap.creationType">archival</meta>
-    <meta name="ssap.testQuery">MAXREC=1</meta>
+  <table id="data" onDisk="true">
+    <mixin 			
+      fluxUnit=" "
+      fluxUCD="phot.flux.density"
+      spectralUnit="Angstrom">//ssap#mixc</mixin>
+    <mixin>//ssap#simpleCoverage</mixin>
+  </table>
 
-    <publish render="ssap.xml" sets="ivo_managed"/>
 
-    <ssapCore queriedTable="data">
-      <FEED source="//ssap#hcd_condDescs"/>
-      <condDesc buildFrom="t_eff"/>
-      <condDesc buildFrom="log_g"/>
-    </ssapCore>
+SSAP and Datalink
+'''''''''''''''''
+
+Given that you'll usually get fairly bizarre inputs and will probably
+want to publish “repaired” spectra, using Datalink to provide both
+native and SDM (“Spectral Data Model”) compliant spectra without having
+to resort to SSAP's ill-thought-out FORMAT feature is a fairly natural
+thing to do.   In DaCHS, that's not too hard; essentially, you have to
+write an embedded (or custom) grammar to parse the spectra.
+Other than that, it's just a few formalities.
+
+So, you first define the table that will later hold your spectrum.
+Use :dachsref:`the //ssap#sdm-instance` mixin for that (all examples are
+still from :samplerd:`zcosmos/q`)::
+
+  <table id="spectrum">
+    <mixin ssaTable="data"
+      fluxDescription="Relative Flux"
+      spectralDescription="Wavelength"
+      >//ssap#sdm-instance</mixin>
+  </table>
+
+If your spectrum has additional columns (e.g., errors, noise estimates,
+bin widths), just put more columns in here.  The mixin, in particular,
+pulls in all the various params that SDM wants to see.
+
+Note that the table does not have ``onDisk="True"``; these tables are
+only made for the brief moment it takes to serialise them into what the
+user receives.
+
+As usual, to fill tables, you want a data element.  In our example, this
+is::
+
+  <data id="build_sdm_data" auto="False">
+    <embeddedGrammar>
+      <iterator>
+        <setup>
+          <code>
+            from gavo.protocols import products
+            from gavo.utils import pyfits
+          </code>
+        </setup>
+        <code>
+
+        fitsPath = products.RAccref.fromString(
+            self.sourceToken["accref"]).localpath
+        hdus = pyfits.open(fitsPath)
+        ax = utils.getWCSAxis(hdus[0].header, 1)
+
+        for spec, flux in enumerate(hdus[0].data[0]):
+          yield {"spectral": ax.pix0ToPhys(spec), "flux": flux}
+        hdus.close()
+        </code>
+      </iterator>
+    </embeddedGrammar>
+    <make table="spectrum">
+      <parmaker>
+        <apply procDef="//ssap#feedSSAToSDM"/>
+      </parmaker>
+    </make>
+  </data>
+
+Starting with the rowmaker: it's missing.  DaCHS will then fill in the
+default one, which essentially is ``idmaps="*"``.  Since you're writing
+the grammar from scratch, just use the names of the columns defined in
+the instance table and be done with it.  The predefined column names are
+``spectral`` and ``flux``, so make sure you always have keys for them in
+the dictionaries you yield those from your grammars.
+
+Then there's a :dachsdoc:`Element parmaker`; this is stereotypical,
+just always use the ``procDef`` as here.  It copies values from the SSA
+input row to the params in the instance table.
+
+The thing you have to vary is the code in the embedded grammar.  It
+must, from its input (``self.sourceToken``, which here is the SSA row)
+figure out where the data file is (in this case, we can get it from the
+products table, which is the code with ``products.RAccref``.  More typically,
+just make a convention how to get from accref to the local file and use
+that.  An example for that is in :samplerd:`feros/q` (the complication
+there is that the datalink products actually have accrefs themselves,
+and for those the path in the product table is the datalink URL; that,
+of course, wouldn't bring the grammar any closer to finding the file.
+
+But you can do arbitrary things here; see the :samplerd:`califa/q3` RD
+for an example for how you can decode the accref to database rows.
+
+Once you have that just build dictionaries with at least ``spectral``
+and ``flux`` keys; at least with the default rowmaker you need to make
+sure that the values match the units you define in the instance table.
+
+Finally, write the service; you should at least have skimmed the endless
+chapter on :dachsdoc:`Datalink and SODA` in the reference documentation
+to get an idea of how
+descriptor generators, data functions, and meta makers play together::
+
+  <service id="sdl" allowed="dlget,dlmeta">
+    <meta name="title">zCosmos Datalink Service</meta>
+
+    <datalinkCore>
+      <descriptorGenerator procDef="//soda#sdm_genDesc">
+        <bind name="ssaTD">"\rdId#data"</bind>
+      </descriptorGenerator>
+      <dataFunction procDef="//soda#sdm_genData">
+        <bind name="builder">"\rdId#build_sdm_data"</bind>
+      </dataFunction>
+      <FEED source="//soda#sdm_plainfluxcalib"/>
+      <FEED source="//soda#sdm_cutout"/>
+      <FEED source="//soda#sdm_format"/>
+    </datalinkCore>
   </service>
 
-This service will expose all standard SSAP query parameters, and
-additionally condDescs built from the ``t_eff`` and ``log_g`` columns in
-the source table (see above).
+Datalink services (almost) always need to be enabled for both ``dlget``
+and ``dlmeta``.  The :dachsref:`//soda#sdm_genData` data function needs
+a reference to the data element filling the instance table.  The actual
+operations you can simply pull from the soda RD; sdm_plainfluxcalib offers a
+maximuum=1 calibration of the spectral values (which probably is not
+terribly useful for you), sdm_cutout does cutouts, which may come handy
+when you have long spectra, and sdm_format finally is the format
+translation that's frequently useful with spectra.
 
-The web interfaces the form renderer builds from SSAP services are
-essentially unusable, and it's hard to fix that in DaCHS' current
-architecture.  So, you'll typically define extra browser-based
-services; this one here is taken from `flashheros/q`_::
+In particular as long as only few, if any, clients evaluate datalink
+blocks in DAL responses, it may be a good idea to include a custom
+column with a datalink URL in the SSAP table.  If you've been following
+this exposition in the example RD, you will have noticed the custom
+column definition in the data table::
 
-  <service id="web" defaultRenderer="form">
-    <meta name="shortName">FEROS Web</meta>
-    <meta name="title">FEROS Public Spectra Web Interface</meta>
-    <meta name="_related" title="FEROS SSAP"
-      >\internallink{feros/q/ssa/info}</meta>
-    <publish render="form" sets="local"/>
-    
-    <dbCore queriedTable="data">
-      <condDesc>
-        <inputKey original="ssa_targname" showItems="10">
-          <values fromdb=
-            "ssa_targname from feros.data order by ssa_targname"
-            multiOk="True"/>
-          <description>
-          Somewhat cleaned name of the target object as
-          given in the file.  The names should either be SIMBAD-resolvable
-          or give a reference for the source.  Some names we could not make
-          sense of are marked with a tilda (~); any help figuring out what
-          they are is appreciated.
-          </description>
-        </inputKey>
-      </condDesc>
-      <condDesc buildFrom="ssa_location"/>
-      <condDesc buildFrom="ssa_dateObs"/>
-      <condDesc>
-        <inputKey original="mime">
-          <property name="defaultForForm">application/x-votable+xml</property>
-          <values>
-            <option title="SDM VOTable">application/x-votable+xml</option>
-            <option title="1D FITS image">image/fits</option>
-          </values>
-        </inputKey>
-      </condDesc>
-    </dbCore>
+  <column name="datalink" type="text"
+    ucd="meta.ref.url;meta.data.datalink"
+    tablehead="Datalink"
+    description="A link to a datalink document for this spectrum."
+    verbLevel="15" displayHint="type=url"/>
 
-    <outputTable>
-      <autoCols>accref, mime, ssa_targname, 
-        ssa_aperture, ssa_dateObs</autoCols>
-      <FEED source="//ssap#atomicCoords"/>
-      <outputField original="ssa_specstart" displayHint="displayUnit=Angstrom"/>
-      <outputField original="ssa_specend" displayHint="displayUnit=Angstrom"/>
-    </outputTable>
-  </service>
+(we're cheating a bit with the UCD; it's actually not legal right now,
+but we're trying).  To compute the datalink URL, there's again a helpful
+macro taking the datalink service id::
 
-As you can see, this adds a proper selector for object names and
-restricts the query parameters to what can reasonably be expected to be
-of interest in interactive work.  It also fixes the output table to only
-display a couple of columns astronomers immediately care about, and
-it makes some allowances for the preferred spectral units in optical
-astronomy as of the early 3rd millennium.
+  <map name="datalink">\dlMetaURI{sdl}</map>
 
-.. _ssap.xml renderer: ./ref.html#the-ssap-xml-renderer
-.. _feros/q: http://svn.ari.uni-heidelberg.de/svn/gavo/hdinputs/feros/
+DaCHS for now delivers XSLT with datalink (or does the XSLT translation
+itself if it suspects its client is actually a web brower), so there's
+no harm (but potentially quite a bit benefit) to feed this URL to tables
+displayed by web browsers, as we do here in the ``web`` service.
+
+SSAP with Views
+'''''''''''''''
+
+In a typical SSA table, most data will be constant.  We don't consider
+this a large problem, as most collections are rather small, and so the
+memory overhead is negligible.  However, in particular considering I/O bandwidth
+(Postgres is not a column store), you may still want to keep constant
+things out of the rows as your collections grow larger.  We no longer
+support the old //ssap#hcd mixin that did something pretty much like
+this (albeit somewhat unflexibly).  Instead, we recommend going through
+(non-materialised, or there'd be no benefit) views.
+
+This works by importing your metadata into a custom table and then have the
+mixin-ed table be a view.  The tricky part is to figure out how to write
+the view given that the columns are implict.  Here's how to get around
+this.  You can see the result in context in :samplerd:`k2c9vst/q`.
+
+First, write a table definition and a null data item::
+
+	<table id="timeseries" onDisk="True">
+		<mixin
+			fluxUnit="adu"
+			spectralUCD=" "
+			spectralUnit=" "
+			>//ssap#mixc</mixin>
+	</table>
+
+	<data id="make_ts">
+		<make table="timeseries"/>
+	</data>
+
+Do a metadata import of this – you need to import the table, or DaCHS
+will not find its metadata, and you should only import the metadata, or
+DaCHS will now create a table and later try to drop a view, which will
+give you an error (that you can fix by running ``dachs purge
+<tablename>``)::
+
+  $ dachs imp -m k2c9vst/q make_ts
+
+Now make sure the server is running and open the metadata inspection
+page for your RD.  In this case, the URL would be
+http://localhost:8080/browse/k2c9vst/q (it's always ``browse`` and the
+RD id).  You'll see a link to the table, and you can see the columns.
+
+Then, in the table, write a view statment.  Always follow this pattern::
+
+	<table id="timeseries" onDisk="True">
+		<mixin
+			fluxUnit="adu"
+			spectralUCD=" "
+			spectralUnit=" "
+			>//ssap#mixc</mixin>
+		<viewStatement>
+			CREATE VIEW \curtable AS (
+				SELECT \colNames FROM (
+					SELECT 
+					  'http://foo.bar.baz/'||dataid as accref,
+					  ...
+				) AS q
+			)
+		</viewStatment>
+	</table>
+
+This makes sure you're actually creating the view DaCHS is expecting
+(the ``\curtable`` macro), and the view has the structure declared in
+the RD (the ``\colNames`` macro).  In the innermost select, you can then
+simply fill the columns one by one, in any order convenient to you as
+long as you get the names right.
+
+Unless one of the joined tables mixes in ``products#table``, you'll have
+to directly give complete URLs here rather than DaCHS accrefs (which
+always are resolved through the products table).
+
+If you want the result to be ADQL-searchable, tables used in the view
+must be accessible to an unprivileged database user.  To do that, use
+``adql="hidden"`` in the respective tables::
+
+  <table id="mymeta" onDisk="True" adql="hidden">
+    ... your columns ...
+  </table>
+
+Typcially, you'll still be importing source tables from somewhere.  When
+you do this, the view will be torn down.  You should make sure that
+DaCHS recreates the view when one of the tables making up the view is
+re-made.  Simply declare the view-making data item in the importing data
+item as ``recreateAfter``::
+
+  <data id="import" recreateAfter="make_ts">
+    (normal, custom importing rules)
+  </data>
+
 
 
 ObsTAP
 ------
+
+*Note*: Before you can do anything with obscore, you have to run::
+
+  dachs imp //obscore
+
+This will also declare support for the obscore DM in your TAP service's
+registry record.
 
 ObsTAP is basically a single table, ivoa.ObsCore.  In DaCHS, this is a
 view generated from input tables.  To include the products within a
@@ -3120,18 +3471,18 @@ inputsDir-relative path to the main file, and you're dealing with FITS,
 you can use the ``DLFITSProductDescriptor`` class (in other cases, its
 implementation (in gavo.protocols.datalink) will show you how to handle
 these cases).   Thus, the base functionality of a FITS cutout service
-with datalink products would be:
+with datalink products would be::
 
- 	<service id="dl" allowed="dlget,dlmeta">
-	  <meta name="title">My Cutout Service</meta>
-	  <datalinkCore>
-		  <descriptorGenerator procDef="//soda#fits_genDesc" 
-			  name="genFITSDesc">
-			  <bind key="accrefPrefix">'mysvcs/data'</bind>
-			  <bind key="descClass">DLFITSProductDescriptor</bind>
-		  </descriptorGenerator>
-		  <FEED source="//soda#fits_standardDLFuncs"/>
-	  </datalinkCore>
+   <service id="dl" allowed="dlget,dlmeta">
+    <meta name="title">My Cutout Service</meta>
+    <datalinkCore>
+      <descriptorGenerator procDef="//soda#fits_genDesc" 
+        name="genFITSDesc">
+        <bind key="accrefPrefix">'mysvcs/data'</bind>
+        <bind key="descClass">DLFITSProductDescriptor</bind>
+      </descriptorGenerator>
+      <FEED source="//soda#fits_standardDLFuncs"/>
+    </datalinkCore>
   </service>
 
 Simple FITS Datalink Services
@@ -3284,16 +3635,30 @@ to make DaCHS actually publish the table.
 EPN-TAP
 -------
 
-EPN-TAP will be a standard for publishing planetary data via TAP; it is
-still somewhat in development, but we will try to keep DaCHS' interface
-as stable as reasonable while EPN-TAP evolves.  If you want to publish
-data via EPN-TAP, you will probably want to have a quick look at the
-`EPN-TAP proposed specification`_ (check if there are newer ones).
+EPN-TAP is a standard for publishing planetary data via TAP.  DaCHS
+has had support for version 0.37, which is in the //epntap RD.  Do not
+use that for new projects.
 
-Data in planetary sciences often comes in "PDS format", which
+The `EPN-TAP proposed specification`_ is now in version 2.0, and support
+for that is provided by //epntap2.  There's an official web-based client
+for EPN-TAP at http://vespa.obspm.fr.
+
+There are two basic ingestion options:
+
+* local files; you let DaCHS find the sources, parse them, and infer
+  metadata from this; DaCHS will then serve them.  That's what's shown 
+  in the quick start example below.
+* ingest from pre-destilled metadata; this is when you don't have the
+  files locally or at least DaCHS should not serve them.  Instead,
+  you'll get the metadata from dumps from other databases, metadata
+  stores, or whatever.  The :samplerd:`titan/q.rd` RD shows an example
+  for that. 
+
+Data in planetary sciences often comes in PDS format, which
 superficially resembles FITS but is quite a bit more sophisticated.
 Unfortunately, python support for PDS is underwhelming.  At least there
-is PyPDS_, which needs to be installed for DaCHS' pdsGrammar to work.
+is PyPDS_, which needs to be installed for DaCHS' :dachsref:`Element
+pdsGrammar` to work.
 
 
 Quick Start
@@ -3309,95 +3674,167 @@ Install PyPDS if you don't have it anyway::
 
 Get the sample data::
 
-  cd `gavo config inputsDir`
+  cd `dachs config inputsDir`
   curl -O http://docs.g-vo.org/epntap-example.tar.gz
   tar -xvzf epntap-example.tar.gz
   cd lutetia
 
 Import it and build the previews from the PDS images::
 
-  gavo imp q
+  dachs imp q
   python bin/makePreview.py
 
 Start the server as necessary.  If you go to your local ADQL endpoint
-(something like http://localhost:8080/__system__/adql/query/form) and
-execute queries like::
+(something like http://localhost:8080/adql) and execute queries like::
 
   SELECT * FROM lutetia.epn_core
 
-there.  Note how you get previews when hovering over the links in
-"Product Key".  This is, incidentally, a local extension to EPN-TAP,
-which is why futher right there's still the EPN-TAP access_reference
-column that also lets users retrieve the data.
+there.
 
-For access through a standard protocol, start TOPCAT_, select "VO/TAP
-Query", and at the bottom of the dialog enter http://localhost:8080/tap
-(or whatever you configured) in "TAP URL".  Hit "Use Service", wait
+For access through a standard protocol, start TOPCAT_, select VO/TAP
+Query, and at the bottom of the dialog enter http://localhost:8080/tap
+(or whatever you configured) in “TAP URL”.  Hit “Use Service”, wait
 until the table metadata is in and then again query something like::
 
   SELECT * FROM lutetia.epn_core
 
 Hit "Run Query",open the table and play with it.  As a little visual treat,
 in TOPCAT's main window hit "Activation Action", and configure the
-``preview_url`` column under "View URL as Image".  Then click on the table rows.
+``preview_url`` column under “View URL as Image”.  Then click on the table rows.
+
+To get into Vespa's query interface, you will have to register your
+table.  **Do not** do this with the sample data.
 
 
 Tables
 ''''''
 
-In essence, EPN-TAP is just a set of columns.  In DaCHS, these are in
-the `//epntap#table-2_0`_ mixin.  See the reference documentation of
-details.  If your data are images calibrated in some sort of spherical
-coordinates, you'll likely not have to change anything here.  The mixin
-will already open the table for ADQL querying, and to make that work, it
-is also declared onDisk.  What's not declared is the table name,
-although it's fixed at epn_core. Hence, the minimal definition of an
-EPN-TAP table is::
+In essence, EPN-TAP is just a set of columns, some mandatory, some
+optional.  The mandatory ones are pulled into a table by using the
+`//epntap2#table-2_0`_ mixin, which needs  the ``spatial_frame_type``
+parameter (see reference for what's supported there) since that
+determines the metadata on the spatial columns.
 
-  <table id="epn_core" mixin="//epntap#table-2_0"//>
+This treatment distinguishes the two cases mentioned above: Files served
+by someone else first, files served by DaCHS next.
 
-You can of course add further columns as necessary.
+Externally Served Products
+'''''''''''''''''''''''''''
 
-The real work is populating the table.  Let's first assume you have the
-data products and use DaCHS to publish them.  You will then use a
-grammar, and as EPN-TAP deals with data products, the grammar must
-use the rowfilter `products#define`_ rowfilter as discussed above in
-`SIAP`_; the example shows how this can be done while also providing for
-DaCHS-generated previews.
+The mixin will already open the table for ADQL querying, and to make
+that work, it is also declared onDisk.  What's not declared is the table
+name, although it's fixed at epn_core. Hence, the minimal definition of
+an EPN-TAP table is::
 
-Filling the table from what comes from the grammar happens through and
-``idmaps="*"`` (which you want as the ``apply`` doesn't actually map
+  <table id="epn_core">
+    <mixin
+      spatial_frame_type="body"
+    >//epntap2#table-2_0</mixin>
+  </table>
+
+If you want to use optional columns from the EPN-TAP specification,
+give them in ``optional_columns``.  In the typcial case that you publish
+data products, you'll at least want the access columns, which would
+translate into this::
+
+  <table id="epn_core">
+    <mixin
+      optional_columns="access_url access_format access_estsize"
+      spatial_frame_type="body"
+    >//epntap2#table-2_0</mixin>
+  </table>
+
+You can of course add further custom columns as necessary using the normal
+:dachsref:`Element column`.
+
+Filling the table from what comes from the grammar happens through 
+``idmaps="*"`` on the rowmaker (which you want as the ``apply`` 
+doesn't actually map
 anything into the results and there's too many columns to make
-enumerating fun) and an application of `//epntap#populate-2_0`_ .  There's
-little to add to the description of the parameters.  You will probably
+enumerating fun) and an application of `//epntap2#populate-2_0`_ .  The
+mixin's documentation is intended as a checklist; go through the
+parameters one by one and see which ones correspond to something in your
+input and then say::
+
+  <par key="param-name">@source-key</par>,
+
+possibly using python functions and expressions to adapt your inputs to
+what should end up in the database.
+
+You may
 need to refer to the `EPN-TAP proposed specification`_ now and then
-while filling things out.  Note again that as always when binding apply
-parameters, what you're entering are python expressions, so don't forget
-the quotes where appropriate.
+while filling things out.  Note again that these are python expressions, 
+and so you have to use
+quotes when specifying literal strings.
 
 More complex operations should probably go to ``var`` declarations
-rather than the ``bind`` bodies; again, see the example to see how.
+rather than the ``bind`` bodies; again, see the examples to see how.
 
-If, on the other hand, you already have a database table containing the
-data as well as a network service pushing out the data products, you can
-still use the mixin and just create a view as described in `Services
-Over Views`_ .  To see what columns you can map, you should still
-consult the documentation of ``epntap#populate-2_0`` (the parameter names
-are simply the column names).  In addition there are the columns from
-the product mixin (accref, mime, embargo, and owner, which in this case
-probably should all be NULL). [TODO: example; if you have data like
-this, talk to us so we can get an example here]
+The real work is populating the table.  Let's first assume you 
+data products and use DaCHS to publish them.  You will then use a
+grammar, and as EPN-TAP then deals with data products, the grammar must
+use the rowfilter `products#define`_ rowfilter as discussed above in
+`SIAP`_; the lutetia example shows how this can be done while also
+providing for DaCHS-generated previews.
+
+Externally Served Products
+'''''''''''''''''''''''''''
+
+When you can store the data products you describe locally and have DaCHS
+hand them out, that's usually preferable.  It also lets you do things
+like enforcing embargoes, make previews, etc.
+
+To be able to manage the products, you need to add the
+:dachsref:`//epntap2#localfile-2_0` mixin, as well as the optional columns
+starting with ``access_`` in the table definition, so minimally::
+
+  <table id="epn_core">
+    <mixin
+      spatial_frame_type="celestial"
+      optional_columns="access_url access_format access_estsize"
+      >//epntap2#table-2_0</mixin>
+    <mixin>//epntap2#localfile-2_0</mixin>
+  </table>
+
+To let DaCHS manage the files, you need the
+:dachsref:`//products#define` rowfilter in your grammar.  You will
+minimally have to tell it the table you're writing to (this is so DaCHS
+can remove the entries when you drop the table); since it by default
+assumes you're serving FITS files, which in planetary sciences is
+probably untrue, you should also give the media type explicitly, for
+instance::
+
+    <sources pattern="data/*.pds" recurse="True"/>
+    <pdsGrammar>
+      <rowfilter procDef="//products#define">
+        <bind name="table">"\schema.epn_core"</bind>
+        <bind name="mime">"image/x-pds"</bind>
+      </rowfilter>
+    </pdsGrammar>
+
+(the ``\schema`` will just put in the current schema name defined at the
+top of your RD).  This is also where you'd configure previews, embargos,
+etc.
+
+Finally, in the rowmaker you need to make sure that the new columns are
+filled.  That's done using a paramterless apply::
+
+  <rowmaker>
+    ...
+    <apply procDef="//epntap2#populate-localfile-2_0"/>
+  </rowmaker>
+
 
 About ``s_region``
 ''''''''''''''''''
 
-The ``s_region`` parameter (see :dachsref:`//epntap#populate-2_0`) is essentially
+The ``s_region`` parameter (see :dachsref:`//epntap2#populate-2_0`) is essentially
 a footprint describing the area covered by 2D spatially extended data products.
 It uses pgshpere types such as ``spoly``, ``scircle``, ``sbox`` or ``spoint``
 (We advise against the use of ``spoint`` as a ``s_region`` type: only spatially
 extended types should be used). The default type is ``spoly``, the others
 must be specified using the ``regiontype`` mixin parameter (Please refer to
-:dachsref:`//epntap#table-2_0`).
+:dachsref:`//epntap2#table-2_0`).
 
 Please note that the ``spoly`` type has some limitations that can trigger
 unclear errors when not respected: the segments can not be crossed and, more
@@ -3409,7 +3846,7 @@ First the ``regiontype``::
 
   <table id ="epn_core">
   ...
-    <mixin ... regiontype="sbox">//epntap#table-2_0</mixin>
+    <mixin ... regiontype="sbox">//epntap2#table-2_0</mixin>
   </table>
 
 Then the ``s_region`` parameter, defined in the rowmaker (see `Mapping
@@ -3422,6 +3859,27 @@ data`_)::
         pgsphere.SPoint.fromDegrees(float(@c1_max),float(@c2_max)))
     </map>
   </rowmaker>
+
+
+If you want an “aperture” (point and radius), you'd write something
+like::
+
+  <table id ="epn_core">
+  ...
+    <mixin ... regiontype="scircle">//epntap2#table-2_0</mixin>
+  </table>
+
+  <rowmaker idmaps="*">
+    <map key = "s_region">
+      pgsphere.SCircle(
+        pgsphere.SPoint.fromDegrees(float(@c1_min),float(@c2_min)),
+        float(@aperture)*DEG)
+    </map>
+  </rowmaker>
+
+The radius of the circle must be given in radians here; if it's in
+degrees, just multiply with DaCHS' internal DEG symbol (which is
+pi/180).
 
 
 Service
@@ -3761,10 +4219,10 @@ Here's "best practice" recommendations:
   register the SSAP service and tell DaCHS to put the browser service
   down as a separate capability of that resource.  For this, use the
   ``service`` attribute of ``publish``; this example is again taken from
-  `feros/q`_:
+  :samplerd:`feros/q`:
 
-  	<publish render="ssap.xml" sets="ivo_managed"/>
-		<publish render="form" sets="ivo_managed" service="web"/>
+    <publish render="ssap.xml" sets="ivo_managed"/>
+    <publish render="form" sets="ivo_managed" service="web"/>
 * for SIAP services, that might work, too; usually, however, you'll want
   to trim the interface and in particular the response a bit (using
   outputTable).  If you do, you'll have to use the ``service=`` trick as
@@ -3786,34 +4244,34 @@ consists of several tables, do not individually publish them.  Instead,
 publish the data item that creates them, as in this example taken from
 `rr/q`_::
 
-	<data id="create" auto="false">
-	
-		<publish sets="ivo_managed" services="//tap#run"/>
+  <data id="create" auto="false">
+  
+    <publish sets="ivo_managed" services="//tap#run"/>
 
-		<make table="resource" role="resource">
-	    [...]
-		<LOOP listItems="capability res_schema res_table 
-				table_column res_detail interface intf_param
-				relationship res_role 
-				validation res_date oairecs res_subject
-				stc_spatial stc_temporal stc_spectral stc_redshift">
-			<events>
-				<make table="\item" role="\item"/>
-			</events>
-		</LOOP>
-		[...]
-	</data>
+    <make table="resource" role="resource">
+      [...]
+    <LOOP listItems="capability res_schema res_table 
+        table_column res_detail interface intf_param
+        relationship res_role 
+        validation res_date oairecs res_subject
+        stc_spatial stc_temporal stc_spectral stc_redshift">
+      <events>
+        <make table="\item" role="\item"/>
+      </events>
+    </LOOP>
+    [...]
+  </data>
 
 If such a data item doesn't exist, perhaps because the various tables
 are built in different data elements, just make a non-importable
 artificial collection of the tables, as in this example taken from
 `arigfh/q`_::
 
-	<data id="gfhtables" auto="False">
-		<publish/>
-		<make table="id"/>
-		<make table="nid"/>
-	</data>
+  <data id="gfhtables" auto="False">
+    <publish/>
+    <make table="id"/>
+    <make table="nid"/>
+  </data>
 
 .. _rr/q: http://svn.ari.uni-heidelberg.de/svn/gavo/hdinputs/rr/
 .. _arigfh/q: http://svn.ari.uni-heidelberg.de/svn/gavo/hdinputs/arigfh/
@@ -4087,8 +4545,8 @@ data – see above for details on how to create users and groups.
 .. _aladin: http://aladin.u-strasbg.fr/aladin.gml
 .. _splat: http://star-www.dur.ac.uk/~pdraper/splat/splat-vo
 .. _PyPDS: https://github.com/RyanBalfanz/PyPDS
-.. _//epntap#table-2_0: http://docs.g-vo.org/DaCHS/ref.html#the-epntap-table-2-0-mixin
-.. _//epntap#populate-2_0: http://docs.g-vo.org/DaCHS/ref.html#epntap-populate-2-0
+.. _//epntap2#table-2_0: http://docs.g-vo.org/DaCHS/ref.html#the-epntap2-table-2-0-mixin
+.. _//epntap2#populate-2_0: http://docs.g-vo.org/DaCHS/ref.html#epntap2-populate-2-0
 .. _EPN-TAP proposed specification: https://voparis-confluence.obspm.fr/display/VES/EPN-TAP+V2.0+parameters
 .. _Mapping data: http://docs.g-vo.org/DaCHS/tutorial.html#mapping-data
 .. _pgsphere: http://pgsphere.projects.pgfoundry.org/

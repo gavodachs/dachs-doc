@@ -165,6 +165,9 @@ gavo --version, the two numbers behind “Schema” are different, but since
 ``gavo upgrade`` is smart enough to figure out when there's no need to
 do anything, just make it a routine to run it.
 
+**Note**: ``python setup.py install`` and friends do not install DaCHS'
+man page.  Either do that manually (it's in docs/dachs.1) or use the
+online version at :dachsdoc:`dachs.1.html`
 
 .. _nevow: http://divmod.org/trac/wiki/DivmodNevow
 .. _setuptools documentation: http://peak.telecommunity.com/DevCenter/EasyInstall
@@ -585,18 +588,13 @@ You should now be able to run the examples in the tutorial.
 Docker
 ======
 
-We do not really recommend using Docker containers on production
-machines.  We do, however, use Docker in our internal QC to check
-installability and upgradeability [well, this may be a lie].  Because of
-this rather special use case, we are ignoring several best practices
-Docker gives; in particular, we are running DaCHS and Docker in one
-container, and we're recklessly playing with uids.
+**We do not really recommend using Docker containers on production
+machines.**  We do, however, use Docker in our internal QC to check
+installability and upgradeability [well, this may be a lie].
 
-Still, if you want to build a Docker-able DaCHS -- and perhaps help us on our
-container's development(?) --, the section
-
-* :dachsdoc:`DaCHS on Docker <deploy_docker.html>`
-
-section may be useful.
+Still, if you want to build a Docker-able DaCHS take a look at the
+corresponding `Git <https://github.com/chbrandt/docker-dachs>`_
+or, analogously, `Docker <https://hub.docker.com/r/chbrandt/dachs/>`
+repositories.
 
 .. |date| date::

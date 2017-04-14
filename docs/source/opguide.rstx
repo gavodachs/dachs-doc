@@ -399,6 +399,12 @@ embargo feature together with user authorisation, you must also set
 name here; some user agents use it to display a prompt like "Credentials
 for <realm>" or similar.
 
+Unless you plan to publish a sizeable number of services, you may want
+to override the root page.  Essentially, you can just dump an XHTML page
+to ``web/templates/root.html``, and DaCHS will use it as its root page.
+However, you may still want to consult the guide on
+:dachsdoc:`HTML templating in DaCHS <templating.html>`.
+
 If you want, you can set ``[web]favicon`` to either a webDir-relative
 path or a full URL to a `favicon`_.
 
