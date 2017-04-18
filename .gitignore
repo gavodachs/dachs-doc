@@ -1,4 +1,4 @@
 svn
 docs/build
-docs/source/includes/sphinx_role_dachsref.pyc
+*.pyc
 .*.swp
