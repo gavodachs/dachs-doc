@@ -158,7 +158,8 @@ feeding the tables mixing in a given mixin.
   "//siap#pgs", "//ssap#hcd", "//ssap#simpleCoverage", "//obscore#publish",
   "//obscore#publishSIAP", "//slap#basic",
   "//ssap#sdm-instance", "//ssap#mixc",
-  "//obscore#publishSSAPHCD", "//epntap#table", "//epntap2#table-2_0",
+  "//obscore#publishSSAPHCD", "//obscore#publishSSAPMIXC", 
+  "//epntap#table", "//epntap2#table-2_0",
   "//epntap2#localfile-2_0"])
 
 
@@ -3691,7 +3692,7 @@ The way this is used in an actual mixin would be like this::
     <mixin ...>//ssap#hcd</mixin>
     <mixin
       ... (all the usual parameters)
-      fillFactor="0.3">//obscore#publishSSAPHCD</mixin>
+      fillFactor="0.3">//obscore#publishSSAPMIXC</mixin>
   </table>
 
 What's going on here?  Well, ``obscore-extracolumns`` is easy – this

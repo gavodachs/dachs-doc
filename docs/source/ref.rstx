@@ -6332,6 +6332,144 @@ Parameter *title*
   defaults to ``ssa_dstitle``;
    UNDOCUMENTED
 
+The //obscore#publishSSAPMIXC Mixin
+'''''''''''''''''''''''''''''''''''
+
+
+Publish a table mixing in //ssap#mixc to ObsTAP.
+
+This works like //obscore#publish except some defaults apply
+that copy fields that work analoguously in SSAP and in ObsTAP.
+
+For special situations, you can, of course, override any
+of the parameters, but most of them should already be all right.
+To find out what the parameters described as "preset for SSAP"
+mean, refer to //obscore#publish.  You'll usually want to fix
+calibLevel, though (typically to 2).
+
+Note that this mixin does *not* set coverage (obscore: s_region).
+This is because although we could make a circle from ssa_location
+and ssa_aperture, circles are not allowed in DaCHS' s_region (which
+has a fixed type of spoly).  The recommended solution to still
+have s_region is to add (and index) a custom field; the
+//ssap#simpleCoverage will do this.
+
+Note: you must say ``dachs imp //obscore`` before anything 
+obscore-related will work.
+
+
+This mixin has the following parameters:
+
+
+Parameter *accessURL*
+  defaults to ``$COMPUTE``;
+  URL at which the product can be obtained. Leave at $COMPUTE for tables mixing in products.
+Parameter *calibLevel*
+  defaults to ``0``;
+  Calibration level of data, a number between 0 and 3; for details, see http://dc.g-vo.org/tableinfo/ivoa.obscore#note-calib
+Parameter *collectionName*
+  defaults to ``ssa_collection``;
+   UNDOCUMENTED
+Parameter *coverage*
+  defaults to ``NULL``;
+   UNDOCUMENTED
+Parameter *creatorDID*
+  defaults to ``ssa_creatorDID``;
+   UNDOCUMENTED
+Parameter *dec*
+  defaults to ``degrees(lat(ssa_location))``;
+   UNDOCUMENTED
+Parameter *did*
+  defaults to ``$COMPUTE``;
+  Global identifier of the data set. Leave $COMPUTE for tables mixing in products.
+Parameter *emMax*
+  defaults to ``ssa_specend``;
+   UNDOCUMENTED
+Parameter *emMin*
+  defaults to ``ssa_specstart``;
+   UNDOCUMENTED
+Parameter *emResPower*
+  defaults to ``ssa_specstart/ssa_specres``;
+   UNDOCUMENTED
+Parameter *emUCD*
+  defaults to ``\sqlquote{\getParam{ssa_spectralucd}}``;
+   UNDOCUMENTED
+Parameter *emXel*
+  defaults to ``ssa_length``;
+   UNDOCUMENTED
+Parameter *expTime*
+  defaults to ``ssa_timeExt``;
+   UNDOCUMENTED
+Parameter *facilityName*
+  defaults to ``\sqlquote{\metaString{facility}}``;
+   UNDOCUMENTED
+Parameter *fov*
+  defaults to ``ssa_aperture``;
+   UNDOCUMENTED
+Parameter *instrumentName*
+  defaults to ``ssa_instrument``;
+   UNDOCUMENTED
+Parameter *mime*
+  defaults to ``mime``;
+  The MIME type of the product file. Only touch if you do not mix in products.
+Parameter *oUCD*
+  defaults to ``\sqlquote{\getParam{ssa_fluxucd}}``;
+   UNDOCUMENTED
+Parameter *obsId*
+  defaults to ``accref``;
+  Identifier of the data set. Only change this when you do not mix in products.
+Parameter *polStates*
+  defaults to ``NULL``;
+  List of polarization states present in the data; if you give something, use the convention of choosing the appropriate from {I Q U V RR LL RL LR XX YY XY YX POLI POLA} and write them *in alphabetical order* with / separators, e.g. /I/Q/XX/.
+Parameter *polXel*
+  defaults to ``NULL``;
+  Number of polarisation states in this product
+Parameter *productSubtype*
+  defaults to ``NULL``;
+  File subtype. Details pending
+Parameter *productType*
+  defaults to ``'spectrum'``;
+   UNDOCUMENTED
+Parameter *ra*
+  defaults to ``degrees(long(ssa_location))``;
+   UNDOCUMENTED
+Parameter *sPixelScale*
+  defaults to ``NULL``;
+  Size of a spatial pixel (in arcsec)
+Parameter *sResolution*
+  defaults to ``\getParam{ssa_spaceRes}{NULL}/3600.``;
+   UNDOCUMENTED
+Parameter *sXel1*
+  defaults to ``NULL``;
+  Number of pixels along the first spatial axis
+Parameter *sXel2*
+  defaults to ``NULL``;
+  Number of pixels along the second spatial axis
+Parameter *size*
+  defaults to ``accsize/1024``;
+  The estimated size of the product in kilobytes. Only touch when you do not mix in products#table.
+Parameter *tMax*
+  defaults to ``ssa_dateObs+ssa_timeExt/2``;
+   UNDOCUMENTED
+Parameter *tMin*
+  defaults to ``ssa_dateObs-ssa_timeExt/2``;
+   UNDOCUMENTED
+Parameter *tResolution*
+  defaults to ``NULL``;
+  Temporal resolution
+Parameter *tXel*
+  defaults to ``NULL``;
+  Number of samples along the time axis
+Parameter *targetClass*
+  defaults to ``ssa_targclass``;
+   UNDOCUMENTED
+Parameter *targetName*
+  defaults to ``ssa_targname``;
+   UNDOCUMENTED
+Parameter *title*
+  defaults to ``ssa_dstitle``;
+   UNDOCUMENTED
+
 The //products#table Mixin
 ''''''''''''''''''''''''''
 
@@ -12713,7 +12851,7 @@ The way this is used in an actual mixin would be like this::
     <mixin ...>//ssap#hcd</mixin>
     <mixin
       ... (all the usual parameters)
-      fillFactor="0.3">//obscore#publishSSAPHCD</mixin>
+      fillFactor="0.3">//obscore#publishSSAPMIXC</mixin>
   </table>
 
 What's going on here?  Well, ``obscore-extracolumns`` is easy – this
