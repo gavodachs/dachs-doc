@@ -427,6 +427,11 @@ valid SQL datatypes.  The DC software knows how to handle
   postgres (or much anything else within the DC), but it hurts insofar
   as DaCHS cannot produce NULLs for such constructs in most VOTable
   serialisations.
+* ``char`` – a character, typically used in arrays.  If using single
+  flags, these might make sense (though you'll usually have to manually
+  give a null literal then).  Don't do ``char(*)``, ``varchar(*)``, or any
+  mogrification with actual lengths, though.  It doesn't help postgres
+  but might give headache later.
 * ``real``  – a real number.
 * ``double precision`` – a floating point number.  You should use
   in doubles if you need to keep more than about 7 digits of mantissa.
@@ -3165,6 +3170,12 @@ mixin-ed table be a view.  The tricky part is to figure out how to write
 the view given that the columns are implict.  Here's how to get around
 this.  You can see the result in context in :samplerd:`k2c9vst/q`.
 
+**Warning**: This introduces a fairly complex dependency scheme, and
+when dropping, DaCHS doesn't take into account dependencies yet.  Thus,
+dropping the tables belonging to a service discribed here essentially
+needs to happen manually (``gavo purge`` on the tables).  We intend to
+fix this; complaints will make us do that quicker.
+
 First, write a table definition and a null data item::
 
 	<table id="timeseries" onDisk="True">
@@ -3205,6 +3216,7 @@ Then, in the table, write a view statment.  Always follow this pattern::
 				SELECT \colNames FROM (
 					SELECT 
 					  'http://foo.bar.baz/'||dataid as accref,
+					  'application/x-votable+xml'::text as mime,
 					  ...
 				) AS q
 			)
@@ -3220,6 +3232,15 @@ long as you get the names right.
 Unless one of the joined tables mixes in ``products#table``, you'll have
 to directly give complete URLs here rather than DaCHS accrefs (which
 always are resolved through the products table).
+
+Note that you must give all types of literals explicitly in the view
+definition, either using ``CAST`` or the shortcut notation ``::`` (when
+writing the view by hand, it doesn't really matter which one you use)::
+
+  ...
+  'LensingEv'::text as ssa_targclass,
+  CAST (NULL as real) as ssa_redshift,
+  ...
 
 If you want the result to be ADQL-searchable, tables used in the view
 must be accessible to an unprivileged database user.  To do that, use

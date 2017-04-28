@@ -698,6 +698,11 @@ renderers -- include:
   after the ``gavo pub`` on the resource, or the registries will have
   two copies of your record, one of which will not be updated any more;
   and that would suck for Registry users.
+* mirrorURL – add these on publication to declare mirrors for a service.
+  Only do so if you actually manage the other service.  If you list
+  the service's own accessURL here, it will be filtered from this
+  registry record; this is so you can use the same RD on the primary
+  site and the mirror.
 
 While you can set any of these in etc/defaultmeta.txt, the following items
 are usually set there:
@@ -3954,6 +3959,7 @@ The following types are defined right now:
 
 * preImport -- before anything is written to the table
 * preIndex -- before the indices on the table are built
+* preCreation -- immediately before the table DDL is executed
 * postCreation -- after the table (incl. indices) is finished
 * beforeDrop -- when the table is about to be dropped
 * newSource -- every time a new source is started

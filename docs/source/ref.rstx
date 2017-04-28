@@ -6201,13 +6201,13 @@ Publish a table mixing in //ssap#hcd to ObsTAP.  Since //ssap#hcd
 is deprecated, this should not be used in new RDs, either.  For
 //ssap#mixc tables, use publishSSAPMIXC.
 
-This works like //obscore#publish except some defaults apply
+This works like `the //obscore#publish mixin`_ except some defaults apply
 that copy fields that work analoguously in SSAP and in ObsTAP.
 
-For special situations, you can, of course, override any
-of the parameters, but most of them should already be all right.
-To find out what the parameters described as "preset for SSAP"
-mean, refer to //obscore#publish.
+The columns already set in SSAP are marked as UNDOCUMENTED in the
+parameter list below.  For special situations, you can, of course,
+override any of the parameters.  To find out what they actually mean,
+mean, refer to `the //obscore#publish mixin`_.
 
 Note that this mixin does *not* set coverage (obscore: s_region).
 This is because although we could make a circle from ssa_location
@@ -6234,7 +6234,7 @@ Parameter *collectionName*
    UNDOCUMENTED
 Parameter *coverage*
   defaults to ``NULL``;
-   UNDOCUMENTED
+  Use ssa_region when the table also mixes in //ssap#simpleCoverage
 Parameter *creatorDID*
   defaults to ``ssa_creatorDID``;
    UNDOCUMENTED
@@ -6338,14 +6338,13 @@ The //obscore#publishSSAPMIXC Mixin
 
 Publish a table mixing in //ssap#mixc to ObsTAP.
 
-This works like //obscore#publish except some defaults apply
+This works like `the //obscore#publish mixin`_ except some defaults apply
 that copy fields that work analoguously in SSAP and in ObsTAP.
 
-For special situations, you can, of course, override any
-of the parameters, but most of them should already be all right.
-To find out what the parameters described as "preset for SSAP"
-mean, refer to //obscore#publish.  You'll usually want to fix
-calibLevel, though (typically to 2).
+The columns already set in SSAP are marked as UNDOCUMENTED in the
+parameter list below.  For special situations, you can, of course,
+override any of the parameters.  To find out what they actually mean,
+mean, refer to `the //obscore#publish mixin`_.
 
 Note that this mixin does *not* set coverage (obscore: s_region).
 This is because although we could make a circle from ssa_location
@@ -6372,7 +6371,7 @@ Parameter *collectionName*
    UNDOCUMENTED
 Parameter *coverage*
   defaults to ``NULL``;
-   UNDOCUMENTED
+  Use ssa_region when the table also mixes in //ssap#simpleCoverage
 Parameter *creatorDID*
   defaults to ``ssa_creatorDID``;
    UNDOCUMENTED
