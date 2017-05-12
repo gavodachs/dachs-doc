@@ -31,7 +31,7 @@ detaches from the terminal.
 
 Analoguosly, ``gavo serve stop`` stops the server.  To reload some of
 the server configuration (e.g., the resource descriptors, the vanity
-map, and the /etc/gavo.rc and ~/.gavorc files), run ``gavo
+map, and the /etc/gavo.rc and ~/.gavo.rc files), run ``gavo
 serve reload``.  This does not reload database profiles, and not all
 configuration items are applied (e.g., changes to the bind address and
 port only take effect after a restart).  If you remove a configuration
@@ -685,8 +685,8 @@ could put::
   rootDir: /home/user/gavo
 
 into the personal configuration file (which DaCHS searches in
-``~/.gavorc``) by default; this would then override the analogous
-specification in ``/etc/gavorc``.
+``~/.gavo.rc``) by default; this would then override the analogous
+specification in ``/etc/gavo.rc``.
 
 The other paths in this section are interpreted relative to rootDir
 unless they start with a slash.
