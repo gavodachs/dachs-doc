@@ -946,9 +946,9 @@ The elements of SIL are:
 
     { long: @raj2000  /* a column in the enclosing table */
       lat: @dej2000
-      system: //systems#icrs /* could be a dm instance in a
+      system: @//systems#icrs /* could be a dm instance in a
         DaCHS-global RD;, this does *not* exist yet */
-      source: supercat/q#main /* perhaps a table in another RD */
+      source: @supercat/q#main /* perhaps a table in another RD */
     }
 
 * Casting.  You can (and sometimes have to) give explicit types in the

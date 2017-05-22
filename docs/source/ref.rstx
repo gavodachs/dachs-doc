@@ -1849,6 +1849,12 @@ Atomic Children
   ivo_managed here.  Other sets probably don't make much sense right
   now.  ivo_managed also is the default.
 
+Other Children
+..............
+
+* **meta** -- a piece of meta information, giving at least a name and
+  some content.  See Metadata_ on what is permitted here.
+
 Element publish
 '''''''''''''''
 
@@ -2165,8 +2171,8 @@ Atomic Children
   to base the current one on.  This provides a simple inheritance
   method.  The general rules for advanced referencing in RDs apply.
 * **type** (One of: postCreation, newSource, beforeDrop, sourceDone,
-  preImport, preIndex; defaults to <Undefined>) -- Point of time at
-  which script is to run.
+  preCreation, preImport, preIndex; defaults to <Undefined>) -- Point
+  of time at which script is to run.
 
 Element service
 '''''''''''''''
@@ -5218,7 +5224,10 @@ A core handling uploads of files to the database.
 
 It allows users to upload individual files into a special staging
 area (taken from the stagingDir property of the destination data descriptor)
-and causes these files to be parsed using destDD.
+and causes these files to be parsed using destDD.  Note that destDD
+*must* have ``updating="True"` for this to work properly (it will otherwise
+drop the table on each update).  If uploads are the only way updates
+into the table occur, source management is not necessary for these, though.
 
 You can tell UploadCores to either insert or update the incoming data using
 the "mode" input key.
@@ -5228,7 +5237,8 @@ Atomic Children
 ...............
 
 * **destDD** (id reference; defaults to <Undefined>) -- Reference to
-  the data we are uploading into.
+  the data we are uploading into. The destination must be an updating
+  data descriptor.
 * **original** (id reference; defaults to None) -- An id of an element
   to base the current one on.  This provides a simple inheritance
   method.  The general rules for advanced referencing in RDs apply.
@@ -6427,7 +6437,7 @@ Parameter *productSubtype*
   defaults to ``NULL``;
   File subtype. Details pending
 Parameter *productType*
-  defaults to ``'spectrum'``;
+  defaults to ``ssa_dstype``;
    UNDOCUMENTED
 Parameter *ra*
   defaults to ``degrees(long(ssa_location))``;
@@ -6747,6 +6757,9 @@ This mixin in action could look like this::
       >//ssap#sdm-instance</mixin>
   </table>
 
+The mixin thus defines a gazillion of params.  This will almost 
+always be filled using `//ssap#feedSSAToSDM`_ as explaned in
+`SDM compliant tables`_
 
 
 This mixin has the following parameters:
@@ -9783,6 +9796,11 @@ renderers -- include:
   after the ``gavo pub`` on the resource, or the registries will have
   two copies of your record, one of which will not be updated any more;
   and that would suck for Registry users.
+* mirrorURL – add these on publication to declare mirrors for a service.
+  Only do so if you actually manage the other service.  If you list
+  the service's own accessURL here, it will be filtered from this
+  registry record; this is so you can use the same RD on the primary
+  site and the mirror.
 
 While you can set any of these in etc/defaultmeta.txt, the following items
 are usually set there:
@@ -10026,9 +10044,9 @@ The elements of SIL are:
 
     { long: @raj2000  /* a column in the enclosing table */
       lat: @dej2000
-      system: //systems#icrs /* could be a dm instance in a
+      system: @//systems#icrs /* could be a dm instance in a
         DaCHS-global RD;, this does *not* exist yet */
-      source: supercat/q#main /* perhaps a table in another RD */
+      source: @supercat/q#main /* perhaps a table in another RD */
     }
 
 * Casting.  You can (and sometimes have to) give explicit types in the
@@ -13478,6 +13496,7 @@ The following types are defined right now:
 
 * preImport -- before anything is written to the table
 * preIndex -- before the indices on the table are built
+* preCreation -- immediately before the table DDL is executed
 * postCreation -- after the table (incl. indices) is finished
 * beforeDrop -- when the table is about to be dropped
 * newSource -- every time a new source is started
