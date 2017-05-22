@@ -12970,7 +12970,7 @@ this::
       CustomRowIterator.__init__(self, grammar, sourceToken, sourceRow)
       <your code>
 
-In practice (i.e., with ``<sources pattern="*"/>) ``self.sourceToken``
+In practice (i.e., with ``<sources pattern="*"/>``) ``self.sourceToken``
 will be a file name.  When you call ``makeData`` manually and pass a
 ``forceSource`` argument, its value will show up in ``self.sourceToken``
 instead.
