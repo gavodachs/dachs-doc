@@ -482,8 +482,8 @@ Structure Children
 * registration (contains `Element publish (data)`_) -- A registration
   (to the VO registry) of this table or data collection.
 * rowmakers (contains `Element rowmaker`_ and may be repeated zero or
-  more times) -- Embedded build rules (usually rowmakers are defined
-  toplevel)
+  more times) -- Embedded build rules (preferably put rowmakers
+  directly into make elements)
 * sources (contains `Element sources`_) -- Specification of sources
   that should be fed to the grammar.
 * tables (contains `Element table`_ and may be repeated zero or more
