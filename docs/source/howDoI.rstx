@@ -1180,7 +1180,7 @@ Then say::
 
   pg_upgradecluster -m upgrade -v $NEWVER $OLDVER main /var/lib/postgresql/$NEWVER
 
-*Note*: You can increase the process by a huge amount if you
+*Note*: You can speed up the process (usually by a huge amount) if you
 additionally pass a ``-k`` (“link”) flag.  This will share the files
 between the old and the new cluster, which in turn means that you'll
 probably make a hash of everything if you start the old server ever
@@ -1261,7 +1261,7 @@ Still assuming you're on a Debian-derived apache, run::
   $ sudo a2ensite voproxy
   $ sudo service apache reload
 
-For many purposes, DaCHS has to know which external IP it is visible
+For many purposes, DaCHS has to know which external Name it is visible
 under.  You need to configure that in ``/etc/gavo.rc``, [web]serverURL.
 In the example, you'd write::
 

@@ -642,7 +642,7 @@ this::
         originalHeader=hdr, **vals)
 
 
-The class attributes starting with ``sp\_`` are parameters for the solver.
+The class attributes starting with ``sp_`` are parameters for the solver.
 The `anet module docstring`_ explains what is available.  The endob
 parameter is important on larger images because it instructs anet to
 give up when no identification has been possible within the first endob

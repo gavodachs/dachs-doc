@@ -1968,11 +1968,13 @@ Structure Children
 Element resource
 ''''''''''''''''
 
-A resource descriptor (RD); the root for all elements described here.
+A resource descriptor.
 
 RDs collect all information about how to parse a particular source (like a
 collection of FITS images, a catalogue, or whatever), about the database
 tables the data ends up in, and the services used to access them.
+
+In DaCHS' RD XML serialisation, they correspond to the root element.
 
 
 Atomic Children
@@ -5225,7 +5227,7 @@ A core handling uploads of files to the database.
 It allows users to upload individual files into a special staging
 area (taken from the stagingDir property of the destination data descriptor)
 and causes these files to be parsed using destDD.  Note that destDD
-*must* have ``updating="True"` for this to work properly (it will otherwise
+*must* have ``updating="True"`` for this to work properly (it will otherwise
 drop the table on each update).  If uploads are the only way updates
 into the table occur, source management is not necessary for these, though.
 
@@ -7530,8 +7532,8 @@ This is like the fixed renderer, except that the results are not cached.
 Predefined Procedures
 =====================
 
-Procedures available for rowmaker apply
-'''''''''''''''''''''''''''''''''''''''
+Procedures available for rowmaker/parmaker apply
+''''''''''''''''''''''''''''''''''''''''''''''''
 
 //epntap#populate
 .................
@@ -8157,6 +8159,20 @@ Late parameter *pub*
 Late parameter *wavelength*
   defaults to ``@wavelength``;
   Wavelength of the transition in meters; this will typically be an expression like int(@wavelength)*1e-10
+
+//ssap#feedSSAToSDM
+...................
+
+
+feedSSAToSDM takes the current rowIterator's sourceToken and
+feeds it to the params of the current target.  sourceTokens must
+be an SSA rowdict (as provided by the sdmCore).  Futher, it takes
+the params from the sourceTable argument and feeds them to the
+params, too.
+
+All this probably only makes sense in parmakers when making tables 
+mixing in //ssap#sdm-instance in data children of sdmCores.
+
 
 //ssap#setMeta
 ..............
@@ -12970,7 +12986,7 @@ this::
       CustomRowIterator.__init__(self, grammar, sourceToken, sourceRow)
       <your code>
 
-In practice (i.e., with ``<sources pattern="*"/>``) ``self.sourceToken``
+In practice (i.e., with ``<sources pattern="*"/>) ``self.sourceToken``
 will be a file name.  When you call ``makeData`` manually and pass a
 ``forceSource`` argument, its value will show up in ``self.sourceToken``
 instead.
@@ -13128,14 +13144,6 @@ that are immediately accessible in the namespace:
   ValueError: Invalid dms value with sepChar None: 'junk'
   
 
-*genLimitKeys(inputKey)*
-  yields _MAX and _MIN inputKeys from a single input key.
-  
-  This also tries to sensibly fix descriptions and ucds.
-  This is mainly for datalink metaMakers; condDescs may use a 
-  similar thing, but that's not exposed to RDs.
-  
-
 *getAccrefFromStandardPubDID(pubdid, authBase=u'ivo://org.gavo.dc/~?')*
   returns an accref from a standard DaCHS PubDID.
   
@@ -13144,6 +13152,9 @@ that are immediately accessible in the namespace:
   
   The function does not check if the remaining characters are a valid
   accref, much less whether it can be resolved.
+  
+  authBase's default will reflect you system's settings on your installation,
+  which probably is not what's given in this documentation.
   
 
 *getFileStem(fPath)*
@@ -13172,11 +13183,11 @@ that are immediately accessible in the namespace:
 *getInputsRelativePath(absPath, liberalChars=True)*
   returns absath relative to the DaCHS inputsDir.
   
-  If absPath is not below inputsDir, a ValueError results.  On liberalChars,
-  see getRelativePath.
+  If ``absPath`` is not below ``inputsDir``, a ``ValueError`` results.  On 
+  ``liberalChars``, wee see the `function getRelativePath`_.
   
   In rowmakers and rowfilters, you'll usually use the macro
-  \inputRelativePath that inserts the appropriate code.
+  ``\inputRelativePath`` that inserts the appropriate code.
   
 
 *getQueryMeta()*
@@ -13186,16 +13197,25 @@ that are immediately accessible in the namespace:
   to, e.g., enforce match limits by writing getQueryMeta()["dbLimit"].
   
 
+*getRelativePath(fullPath, rootPath, liberalChars=True)*
+  returns rest if fullPath has the form rootPath/rest and raises an
+  exception otherwise.
+  
+  Pass ``liberalChars=False`` to make this raise a ValueError when
+  URL-dangerous characters (blanks, amperands, pluses, non-ASCII, and 
+  similar) are present in the result.  This is mainly for products.
+  
+
 *getStandardPubDID(path)*
-  returns the standard DaCHS PubDID for path.
+  returns the standard DaCHS PubDID for ``path``.
   
   The publisher dataset identifier (PubDID) is important in protocols like
   SSAP and obscore.  If you use this function, the PubDID will be your
   authority, the path compontent ~, and the inputs-relative path of 
   the input file as the parameter.
   
-  path can be relative, in which case it is interpreted relative to
-  the DaCHS inputsDir.
+  ``path`` can be relative, in which case it is interpreted relative to
+  the DaCHS ``inputsDir.``
   
   You *can* define your PubDIDs in a different way, but you'd then need
   to provide a custom descriptorGenerator to datalink services (and
@@ -13209,13 +13229,16 @@ that are immediately accessible in the namespace:
   returns a WCSAxis instance from an axis index and a FITS header.
   
   If the axis is mentioned in a transformation matrix (CD or PC),
-  a ValueError is raised (use forceSeparable to override).
+  a ``ValueError`` is raised (use ``forceSeparable`` to override).
   
-  The axisIndex is 1-based; to get a transform for the axis described
+  The ``axisIndex`` is 1-based; to get a transform for the axis described
   by CTYPE1, pass 1 here.
   
-  The object returned has methods like pixToPhys, physToPix (and their
-  pix0 brethren) and getLimits.
+  The object returned has methods like ``pixToPhys``, ``physToPix`` (and their
+  ``pix0`` brethren), and ``getLimits``.
+  
+  Note that at this point WCSAxis only supports linear transforms (it's
+  a DaCHS-specific implementation).  We'll extend it on request.
   
 
 *hmsToDeg(hms, sepChar=None)*
@@ -13233,7 +13256,7 @@ that are immediately accessible in the namespace:
   
 
 *iterSimpleText(f)*
-  iterates over physLineNumber, line in f with some usual 
+  iterates over ``(physLineNumber, line)`` in f with some usual 
   conventions for simple data files.
   
   You should use this function to read from simple configuration and/or
@@ -13257,7 +13280,7 @@ that are immediately accessible in the namespace:
   
 
 *jdnToDateTime(jd)*
-  returns a datetime.datetime instance for a julian day number.
+  returns a ``datetime.datetime`` instance for a julian day number.
   
 
 *killBlanks(literal)*
@@ -13269,7 +13292,7 @@ that are immediately accessible in the namespace:
   
 
 *lastSourceElements(path, numElements)*
-  returns a path made up from the last numElements items in path.
+  returns a path made up from the last ``numElements`` items in ``path``.
   
 
 *makeAbsoluteURL(path)*
@@ -13294,7 +13317,7 @@ that are immediately accessible in the namespace:
   
 
 *mjdToDateTime(mjd)*
-  returns a datetime.datetime instance for a modified julian day number.
+  returns a ``datetime.datetime`` instance for a modified julian day number.
   
   Beware: This loses a couple of significant digits due to transformation
   to jd.
@@ -13323,10 +13346,10 @@ that are immediately accessible in the namespace:
   
 
 *parseDate(literal, format='%Y-%m-%d')*
-  returns a datetime.date object of literal parsed according to the
+  returns a ``datetime.date`` object of literal parsed according to the
   strptime-similar format.
   
-  The function understands the special dateFormat !!julianEp 
+  The function understands the special ``dateFormat`` ``!!jYear``
   (stuff like 1980.89).
   
 
@@ -13379,11 +13402,11 @@ that are immediately accessible in the namespace:
   
 
 *parseTime(literal, format='%H:%M:%S')*
-  returns a datetime.timedelta object for literal parsed according
+  returns a ``datetime.timedelta`` object for literal parsed according
   to format.
   
-  For format, you can the magic values !!secondsSinceMidnight,
-  !!decimalHours or a strptime-like spec using the H, M, and S codes.
+  For format, you can the magic values ``!!secondsSinceMidnight``,
+  ``!!decimalHours`` or a strptime-like spec using the H, M, and S codes.
   
   >>> parseTime("89930", "!!secondsSinceMidnight")
   datetime.timedelta(1, 3530)
@@ -13396,32 +13419,45 @@ that are immediately accessible in the namespace:
   
 
 *parseTimestamp(literal, format='%Y-%m-%dT%H:%M:%S')*
-  returns a datetime.datetime object of literal parsed according to the
-  strptime-similar format.
+  returns a ``datetime.datetime`` object from a literal parsed according 
+  to the strptime-similar format.
   
-  A ValueError is raised if literal doesn't match format (actually,
+  A ``ValueError`` is raised if literal doesn't match format (actually,
   a parse with essentially DALI-standard ISO representation is always tried)
   
 
 *parseWithNull(literal, baseParser, nullLiteral=<Undefined>, default=None, checker=None)*
-  returns default if literal is nullLiteral, else baseParser(literal).
+  returns default if literal is ``nullLiteral``, else 
+  ``baseParser(literal)``.
   
-  If checker is non-None, it must be a callable returning True if its
+  If ``checker`` is non-None, it must be a callable returning ``True`` if its
   argument is a null value.
+  
+  ``nullLiteral`` is compared against the unprocessed literal (usually, a
+  string).  The intended use is like this (but note that often, a
+  ``nullExcs`` attribute on a rowmaker ``map`` element is the more
+  elegant way:
+  
+  >>> parseWithNull("8888.0", float, "8888")
+  8888.0
+  >>> print(parseWithNull("8888", float, "8888"))
+  None
+  >>> print(parseWithNull("N/A", int, "N/A"))
+  None
   
 
 *quoteProductKey(key)*
   returns key as getproduct URL-part.
   
-  if key is a string, it is quoted as a naked accref so it's usable
-  as the path part of an URL.  If it's an RAccref, it is just stringified.
+  If ``key`` is a string, it is quoted as a naked accref so it's usable
+  as the path part of an URL.  If it's an ``RAccref``, it is just stringified.
   The result is something that can be used after getproduct in URLs
   in any case.
   
 
 *requireValue(val, fieldName)*
-  returns val unless it is None, in which case a ValidationError
-  for fieldName will be raised.
+  returns ``val`` unless it is ``None``, in which case a ``ValidationError``
+  for ``fieldName`` will be raised.
   
 
 *scale(val, factor, offset=0)*
@@ -13606,6 +13642,1435 @@ Examples Endpoints
 ''''''''''''''''''
 
 TBD
+
+
+The DaCHS API
+=============
+
+User extension code (e.g., custom cores, custom grammars, processors)
+for DaCHS should only use DaCHS functions from its api as described
+below.  We will try to keep it stable and at any rate warn in the
+release notes if we change it.  For various reasons, the module also
+contains a few modules.  These, and in particular their content, are
+*not* part of the API.
+
+Note that at this point this is *not* what is in the namespace of
+rowmakers, rowfilters, and similar in-RD procedures.  We do not, at this
+point, recommend importing the api.  If you do it anyway, we'd
+appreciate if you told us.
+
+Before using non-API DaCHS functions, please inquire on the
+dachs-support mailing list (cf. http://docs.g-vo.org/DaCHS).
+
+To access DaCHS API functions, say::
+
+  from gavo import api
+
+(perhaps adding an ``as dachsapi`` if there is a risk of confusion) and
+reference symbols with the explicit module name (i.e., ``api.makeData``
+rather than picking individual names) in order to help others understand
+what you've written.
+
+Here is an alphabetical list of the documented API functions:
+
+Class ADQLTAPJob
+''''''''''''''''
+
+A facade for an ADQL-based async TAP job.
+
+Construct it with the URL of the async endpoint and a query.
+
+Alternatively, you can give the endpoint URL and a jobId as a
+keyword parameter.  This only makes sense if the service has
+handed out the jobId before (e.g., when a different program takes
+up handling of a job started before).
+
+See :dachsdoc:`adql.html` for details.
+
+
+Class AnetHeaderProcessor
+'''''''''''''''''''''''''
+
+A file processor for calibrating FITS frames using astrometry.net.
+
+It might provide calibration for "simple" cases out of the box.  You
+will usually want to override some solver parameters.  To do that,
+define class attributes sp_<parameter name>, where the parameters
+available are discussed in helpers.anet's docstring.  sp_indices is
+one thing you will typically need to override.
+
+To use SExtractor rather than anet's source extractor, override
+sexControl, to use an object filter (see anet.getWCSFieldsFor), override
+the objectFilter attribute.
+
+To add additional fields, override _getHeader and call the parent
+class' _getHeader method.  To change the way astrometry.net is
+called, override the _solveAnet method (it needs to return some
+result anet.of getWCSFieldsFor) and call _runAnet with your
+custom arguments for getWCSFieldsFor.
+
+See :dachsdoc:`processors#astrometry-net` for details.
+
+
+Class Authenticate
+''''''''''''''''''
+
+raised to initiate an authentication request.
+
+Authenticates are optionally constructed with the realm the user 
+shall authenticate in.  If you leave the realm out, the DC-wide default
+will be used.
+
+
+Class BadCode
+'''''''''''''
+
+is raised when some code could not be compiled.
+
+BadCodes are constructed with the offending code, a code type,
+the original exception, and optionally a hint and a position.
+
+
+Class CannotComputeHeader
+'''''''''''''''''''''''''
+
+is raised when no FITS header was generated by a HeaderProcessor.
+
+Specifically, this is what gets raised when ``_getHeader`` returns ``None``.
+
+
+Core
+''''
+
+A definition of the "active" part of a service.
+
+A core will receive input from a renderer in the form of a ``svcs.CoreArgs``
+(see `Core Args`_).  A core will return a table or perhaps directly
+data as discussed in `DaCHS' Service Interface`_ .
+
+The abstract core element will never occur in resource descriptors.  See 
+`Cores Available`_ for concrete cores.  Use the names of the concrete
+cores in RDs.
+
+
+Class DBError
+'''''''''''''
+
+Base class for error exceptions.
+
+Class DBTable
+'''''''''''''
+
+An interface to a table in the database.
+
+These are usually created using ``api.TableForDef(tableDef)`` with a
+table definition obtained, e.g., from an RD, saying ``onDisk=True``.
+
+When constructing a DBTable, it will be created if necessary (unless
+``create=False`` is passed), but indices or primary keys keys will only be
+created on a call to ``importFinished``.
+
+The constructor does not check if the schema of the table on disk matches the
+tableDef.  If you changed ``tableDef``, you will need to call the recreate
+method.
+
+You can pass a ``nometa`` boolean kw argument to suppress entering the table
+into the ``dc_tables`` table.
+
+You can pass an exclusive boolean kw argument; if you do, the
+``iterQuery`` (and possibly similar methods in the future) method
+will block concurrent writes to the selected rows ("FOR UPDATE")
+as long as the transaction is active.
+
+The main attributes (with API guarantees) include:
+
+* tableDef -- the defining tableDef
+* getFeeder() -- returns a function you can call with rowdicts to 
+  insert them into the table.
+* importFinished() -- must be called after you've fed all rows when
+  importing data.
+* drop() -- drops the table in the database
+* recreate() -- drops the table and generates a new empty one.
+* getTableForQuery(...) -- returns a Table instance built from a query
+  over this table (you probably to use ``conn.query*`` and 
+  ``td.getSimpleQuery`` instead).
+
+
+Constant DEG
+''''''''''''
+
+A constant, valued 0.0174532925199
+
+Constant DEG_ARCSEC
+'''''''''''''''''''
+
+A constant, valued 0.000277777777778
+
+Constant DEG_MAS
+''''''''''''''''
+
+A constant, valued 2.77777777778e-07
+
+Class Data
+''''''''''
+
+A collection of tables.
+
+``Data``, in essence, is the instanciation of a ``DataDescriptor``.
+
+It is what ``makeData`` returns.  In typical one-table situations, 
+you just want to call the ``getPrimaryTable()`` method to obtain the
+table built.
+
+
+Class DataError
+'''''''''''''''
+
+is raised when something is wrong with a data set.
+
+When facing the web, these yield HTTP status 406.
+
+
+Class Error
+'''''''''''
+
+The base class for all exceptions that can be expected to escape
+a module.
+
+Apart from the normal message, you can give a ``hint`` constructor argument.
+
+
+Class FileProcessor
+'''''''''''''''''''
+
+An abstract base for a source file processor.
+
+In concrete classes, you need to define a ``process(fName)`` method 
+receiving a source as returned by the dd (i.e., usually a file name).
+
+You can override the method ``_createAuxiliaries(dataDesc)`` to compute
+things like source catalogues, etc.  Thus, you should not need to
+override the constructor.
+
+These objects are usually constructed thorough ``api.procmain`` as
+discussed in :dachsdoc:`processing.html`.
+
+
+Class ForbiddenURI
+''''''''''''''''''
+
+raised to generate an HTTP 403 response.
+
+
+Class HeaderProcessor
+'''''''''''''''''''''
+
+A base for processors doing FITS header manipulations.
+
+The processor builds naked FITS headers alongside the actual files, with an
+added extension .hdr (or whatever is in the headerExt attribute).  The
+presence of a FITS header indicates that a file has been processed.  The
+headers on the actual FITS files are only replaced if necessary.
+
+The basic flow is: Check if there is a header.  If not, call
+_getNewHeader(srcFile) -> hdr.  Store hdr to cache.  Insert cached
+header in the new FITS if it's not there yet.
+
+You have to implement the _getHeader(srcName) -> pyfits header object
+function.  It must raise an exception if it cannot come up with a
+header.  You also have to implement _isProcessed(srcName) -> boolean
+returning True if you think srcName already has a processed header.
+
+This basic flow is influenced by the following opts attributes:
+
+  - reProcess -- even if a cache is present, recompute header values
+  - applyHeaders -- actually replace old headers with new headers
+  - reHeader -- even if _isProcessed returns True, write a new header
+  - compute -- perform computations
+
+The idea is that you can:
+
+  - generate headers without touching the original files: proc
+  - write all cached headers to files that don't have them
+    proc --apply --nocompute
+  - after a bugfix force all headers to be regenerated:
+    proc --reprocess --apply --reheader
+
+All this leads to the messy logic.  Sorry 'bout this.
+
+
+Class IgnoreThisRow
+'''''''''''''''''''
+
+can be raised by user code to indicate that a row should be
+skipped when building a table.
+
+
+Class ImmediateHeaderProcessor
+''''''''''''''''''''''''''''''
+
+An base for processors doing simple FITS manipulations to the primary
+FITS header.
+
+To define these, override ``_isProcessed(self, srcName, hdr)`` and 
+``_changeHeader(self, hdr)``.
+
+``_changeHeader`` can change the pyfits header ``hdr`` in place.  It 
+will then be replaced on the actual file.
+
+For complex operations, it is probably advisable to use ``HeaderProcessor``
+which gives you a two-step process of first having the detached headers 
+that you can check before applying them.
+
+
+Constant LIGHT_C
+''''''''''''''''
+
+A constant, valued 299792458.0
+
+Class LiteralParseError
+'''''''''''''''''''''''
+
+is raised if an attribute literal is somehow bad.
+
+LiteralParseErrors are constructed with the name of the attribute
+that was being parsed, the offending literal, and optionally a 
+parse position and a hint.
+
+
+Function MS
+'''''''''''
+
+Signature: ``MS(structClass, **kwargs)``
+
+creates a parentless instance of structClass with ``**kwargs``.
+
+You can pass in a ``parent_`` kwarg to force a parent.
+
+This is the preferred way to create struct instances in DaCHS, as it
+will cause the sequence of completers and validators run.  Use it like
+this::
+
+  MS(rscdef.Column, name="ra", type="double precision)
+
+
+Class NoMetaKey
+'''''''''''''''
+
+is raised when a meta key does not exist (and raiseOnFail is True).
+
+
+Class NotFoundError
+'''''''''''''''''''
+
+is raised when something is asked for something that does not exist.
+
+lookedFor can be an arbitrary object, so be careful when your repr it --
+that may be long.
+
+
+OutputTableDef
+''''''''''''''
+
+A table that has outputFields for columns.
+
+
+Constant PLANCK_H
+'''''''''''''''''
+
+A constant, valued 6.62607004e-34
+
+Class PlainUI
+'''''''''''''
+
+An Observer spitting out most info to the screen.
+
+This is to configure the UI.  Enable it by calling ``api.PlainUI(api.ui)``.
+
+
+Class PreviewMaker
+''''''''''''''''''
+
+A file processor for generating previews.
+
+For these, define a method getPreviewData(accref) -> string returning
+the raw preview data.
+
+
+RD
+''
+
+A resource descriptor.
+
+RDs collect all information about how to parse a particular source (like a
+collection of FITS images, a catalogue, or whatever), about the database
+tables the data ends up in, and the services used to access them.
+
+In DaCHS' RD XML serialisation, they correspond to the root element.
+
+
+Class RDNotFound
+''''''''''''''''
+
+is raised when an RD cannot be located.
+
+
+Class ReportableError
+'''''''''''''''''''''
+
+is raised when something decides it can come up with an error message
+that should be presented to the user as-is.
+
+UIs should, consequently, just dump the payload and not try adornments.
+The content should be treated as a unicode string.
+
+
+Class SeeOther
+''''''''''''''
+
+raised to redirect a user agent to a different resource (HTTP 303).
+
+SeeOthers are constructed with the destination URL that can be
+relative (to webRoot) or absolute (starting with http).
+
+They are essentially like WebRedirect, except they put out a 303 
+instead of a 301.
+
+
+Class SourceParseError
+''''''''''''''''''''''
+
+is raised when some syntax error occurs during a source parse.
+
+They are constructed with the offending input construct (a source line
+or similar, None in a pinch) and the result of the row iterator's getLocator
+call.
+
+
+Class StingyPlainUI
+'''''''''''''''''''
+
+An Observer swallowing infos, warnings, and the like.
+
+This is to configure the UI.  Enable it by calling 
+``api.StingyPlainUI(api.ui)``.
+
+
+Class StructureError
+''''''''''''''''''''
+
+is raised if an error occurs during the construction of
+structures.
+
+You can construct these with pos; this is an opaque object that, when
+stringified, should expand to something that gives the user a rough idea
+of where something went wrong.
+
+Since you will usually not know where you are in the source document
+when you want to raise a StructureError, xmlstruct will try
+to fill pos in when it's still None when it sees a StructureError.
+Thus, you're probably well advised to leave it blank.
+
+
+Function TAItoTT
+''''''''''''''''
+
+Signature: ``TAItoTT(tai)``
+
+returns TDT for a (datetime.datetime) TAI.
+
+
+Function TTtoTAI
+''''''''''''''''
+
+Signature: ``TTtoTAI(tdt)``
+
+returns TAI for a (datetime.datetime) TDT.
+
+
+TableDef
+''''''''
+
+A definition of a table, both on-disk and internal.
+
+Some attributes are ignored for in-memory tables, e.g., roles or adql.
+
+Properties for tables:
+
+* supportsModel -- a short name of a data model supported through this 
+  table (for TAPRegExt dataModel); you can give multiple names separated
+  by commas.
+* supportsModelURI -- a URI of a data model supported through this table.
+  You can give multiple URIs separated by blanks.
+
+If you give multiple data model names or URIs, the sequences of names and 
+URIs must be identical (in particular, each name needs a URI).
+
+
+Function TableForDef
+''''''''''''''''''''
+
+Signature: ``TableForDef(tableDef, suppressIndex=False, parseOptions=<ParseOptions validateRows=False maxRows=None keepGoing=False>, **kwargs)``
+
+returns a table instance suitable for holding data described by
+tableDef.
+
+This is the main interface to table instancation.
+
+suppressIndex=True can be used to suppress index generation on 
+in-memory tables with primary keys.  Use it when you are sure
+you will not need the index (e.g., if staging an on-disk table).
+
+See the `function getParseOptions`_ for what you can pass in as 
+``parseOptions``; arguments there can also be used here.
+
+
+Class UnknownURI
+''''''''''''''''
+
+raised to generate an HTTP 404 response.
+
+
+Class UnmanagedQuerier
+''''''''''''''''''''''
+
+A simple interface to querying the database through a connection
+managed by someone else.
+
+This is typically used as in::
+
+  with base.getTableConn() as conn:
+    q = UnmanagedQuerier(conn)
+    ...
+
+This contains numerous methods abstracting DB functionality a bit.
+Documented ones include:
+
+* schemaExissts(schema)
+* getColumnsFromDB(tableName)
+* getTableType(tableName) -- this will return None for non-existing tables,
+  which is DaCHS' official way to determine table existence.
+* getTimeout() -- returns the current query timeout in seconds
+* setTimeout(timeout) -- sets a timeout in seconds.
+
+
+Class VOTableContext
+''''''''''''''''''''
+
+A context object for writing VOTables.
+
+The constructor arguments work as keyword arguments to ``getAsVOTable``.
+Some other high-level functions accept finished contexts.
+
+This class provides management for unique ID attributes, the value mapper
+registry, and possibly additional services for writing VOTables.
+
+VOTableContexts optionally take
+
+  - a value mapper registry (by default, valuemappers.defaultMFRegistry)
+  - the tablecoding (currently, td, binary, or binary2)
+  - version=(1,1) to order a 1.1-version VOTable, (1,2) for 1.2.
+    (default is now 1.3).
+  - acquireSamples=False to suppress reading some rows to get
+    samples for each column
+  - suppressNamespace=False to leave out a namespace declaration
+    (mostly convenient for debugging)
+  - overflowElement (see votable.tablewriter.OverflowElement)
+
+There's also an attribute produceVODML that will automatically be
+set for VOTable 1.4; you can set it to true manually, but the
+resulting VOTables will probably be invalid.
+
+If VO-DML processing is enabled, the context also manages models declared;
+that's the modelsUsed dictionary, mapping prefix -> dm.Model instances
+
+
+Class VOTableError
+''''''''''''''''''
+
+The base class of VOTable-related errors.
+
+
+Class ValidationError
+'''''''''''''''''''''
+
+is raised when the validation of a field fails.  
+
+ValidationErrors are constructed with a message, a column name,
+and optionally a row (i.e., a dict) and a hint.
+
+
+Class WebRedirect
+'''''''''''''''''
+
+raised to redirect a user agent to a different resource (HTTP 301).
+
+WebRedirectes are constructed with the destination URL that can be
+relative (to webRoot) or absolute (starting with http).
+
+
+Function bYearToDateTime
+''''''''''''''''''''''''
+
+Signature: ``bYearToDateTime(bYear)``
+
+returns a datetime.datetime instance for a fractional Besselian year.
+
+This uses the formula given by Lieske, J.H., A&A 73, 282 (1979).
+
+
+Function computeMean
+''''''''''''''''''''
+
+Signature: ``computeMean(val1, val2)``
+
+returns the mean value between two values.
+
+Beware: Integer division done here for the benefit of datetime calculations.
+
+>>> computeMean(1.,3)
+2.0
+>>> computeMean(datetime.datetime(2000, 10, 13), 
+...   datetime.datetime(2000, 10, 12))
+datetime.datetime(2000, 10, 12, 12, 0)
+
+
+Function dateTimeToJYear
+''''''''''''''''''''''''
+
+Signature: ``dateTimeToJYear(dt)``
+
+returns a fractional (julian) year for a datetime.datetime instance.
+
+
+Function dateTimeToJdn
+''''''''''''''''''''''
+
+Signature: ``dateTimeToJdn(dt)``
+
+returns a julian day number (including fractionals) from a datetime
+instance.
+
+
+Function dateTimeToMJD
+''''''''''''''''''''''
+
+Signature: ``dateTimeToMJD(dt)``
+
+returns a modified julian date for a datetime instance.
+
+
+Function dmsToDeg
+'''''''''''''''''
+
+Signature: ``dmsToDeg(dmsAngle, sepChar=None)``
+
+returns the degree minutes seconds-specified dmsAngle as a 
+float in degrees.
+
+>>> "%3.8f"%dmsToDeg("45 30.6")
+'45.51000000'
+>>> "%3.8f"%dmsToDeg("45:30.6", ":")
+'45.51000000'
+>>> "%3.8f"%dmsToDeg("-45 30 7.6")
+'-45.50211111'
+>>> dmsToDeg("junk")
+Traceback (most recent call last):
+ValueError: Invalid dms value with sepChar None: 'junk'
+
+
+Function formatData
+'''''''''''''''''''
+
+Signature: ``formatData(formatName, table, outputFile, acquireSamples=True)``
+
+writes a table to outputFile in the format given by key.
+
+Table may be a table or a ``Data`` instance.   ``formatName`` is a format 
+shortcut (``formats.iterFormats()`` gives keys available) or a media type.
+If you pass None, the default VOTable format will be selected.
+
+This raises a ``CannotSerializeIn`` exception if ``formatName`` is 
+not recognized.  Note that you have to import the serialising modules
+from the format package to make the formats available (fitstable,
+csvtable, geojson, jsontable, texttable, votable; api itself already
+imports the more popular of these).
+
+
+Function genLimitKeys
+'''''''''''''''''''''
+
+Signature: ``genLimitKeys(inputKey)``
+
+yields _MAX and _MIN inputKeys from a single input key.
+
+This also tries to sensibly fix descriptions and ucds.
+This is mainly for datalink metaMakers; condDescs may use a 
+similar thing, but that's not exposed to RDs.
+
+Don't use this function any more.  It will go away soon.
+
+
+Function getAccrefFromStandardPubDID
+''''''''''''''''''''''''''''''''''''
+
+Signature: ``getAccrefFromStandardPubDID(pubdid, authBase=u'ivo://org.gavo.dc/~?')``
+
+returns an accref from a standard DaCHS PubDID.
+
+This is basically the inverse of getStandardPubDID.  It will raise
+ValueErrors if pubdid doesn't start with ivo://<authority>/~?.
+
+The function does not check if the remaining characters are a valid
+accref, much less whether it can be resolved.
+
+authBase's default will reflect you system's settings on your installation,
+which probably is not what's given in this documentation.
+
+
+Function getAsVOTable
+'''''''''''''''''''''
+
+Signature: ``getAsVOTable(data, ctx=None, **kwargs)``
+
+returns a string containing a VOTable representation of data.
+
+``kwargs`` can be constructor arguments for VOTableContext.
+
+
+Function getDBConnection
+''''''''''''''''''''''''
+
+Signature: ``getDBConnection(profile, debug=False, autocommitted=False)``
+
+returns an enhanced database connection through profile.
+
+You will typically rather use the context managers for the standard
+profiles (``getTableConnection`` and friends).  Use this function if
+you want to keep your connection out of connection pools or if you want
+to use non-standard profiles.
+
+profile will usually be a string naming a profile defined in
+``GAVO_ROOT/etc``.
+
+
+Function getFileStem
+''''''''''''''''''''
+
+Signature: ``getFileStem(fPath)``
+
+returns the file stem of a file path.
+
+The base name is what remains if you take the base name and split off
+extensions.  The extension here starts with the last dot in the file name,
+except up to one of some common compression extensions (.gz, .xz, .bz2, 
+.Z, .z) is stripped off the end if present before determining the extension.
+
+>>> getFileStem("/foo/bar/baz.x.y")
+'baz.x'
+>>> getFileStem("/foo/bar/baz.x.gz")
+'baz'
+>>> getFileStem("/foo/bar/baz")
+'baz'
+
+
+Function getFlatName
+''''''''''''''''''''
+
+Signature: ``getFlatName(accref)``
+
+returns a unix-compatible file name for an access reference.
+
+The file name will not contain terrible characters, let alone
+slashes.  This is used to, e.g., keep all previews in one directory.
+
+
+Function getFormatted
+'''''''''''''''''''''
+
+Signature: ``getFormatted(formatName, table, acquireSamples=False)``
+
+returns a string containing a representation of table in the
+format given by formatName.
+
+This is just wrapping the `function formatData`_; se there for formatName.
+This function will use large amounts of memory for large data.
+
+
+Function getInputsRelativePath
+''''''''''''''''''''''''''''''
+
+Signature: ``getInputsRelativePath(absPath, liberalChars=True)``
+
+returns absath relative to the DaCHS inputsDir.
+
+If ``absPath`` is not below ``inputsDir``, a ``ValueError`` results.  On 
+``liberalChars``, wee see the `function getRelativePath`_.
+
+In rowmakers and rowfilters, you'll usually use the macro
+``\inputRelativePath`` that inserts the appropriate code.
+
+
+Function getMetaText
+''''''''''''''''''''
+
+Signature: ``getMetaText(ob, key, default=None, **kwargs)``
+
+returns the meta item key form ob in text form if present, default 
+otherwise.
+
+You can pass getMeta keyword arguments (except default).
+
+Additionally, there's acceptSequence; if set to true, this will 
+return the first item of a sequence-valued meta item rather than
+raising an error.
+
+ob will be used as a macro package if it has an expand method; to
+use something else as the macro package, pass a macroPackage keyword
+argument.
+
+
+Function getParseOptions
+''''''''''''''''''''''''
+
+Signature: ``getParseOptions(validateRows=True, doTableUpdates=False, batchSize=1024, maxRows=None, keepGoing=False, dropIndices=False, dumpRows=False, metaOnly=False, buildDependencies=True, systemImport=False, commitAfterMeta=False, dumpIngestees=False)``
+
+returns an object with some attributes set.
+
+This object is used in the parsing code in dddef.  It's a standin
+for the the command line options for tables created internally and
+should have all attributes that the parsing infrastructure might want
+from the optparse object.
+
+So, just configure what you want via keyword arguments or use the
+prebuilt objects parseValidating and and parseNonValidating below.
+
+See commandline.py for the meaning of the attributes.
+
+The exception is buildDependencies.  This is true for most internal
+builds of data (and thus here), but false when we need to manually
+control when dependencies are built, as in user.importing and
+while building the dependencies themselves.
+
+
+Function getQueryMeta
+'''''''''''''''''''''
+
+Signature: ``getQueryMeta()``
+
+returns a query meta object from somewhere up the stack.
+
+This is for row makers running within a service.  This can be used
+to, e.g., enforce match limits by writing getQueryMeta()["dbLimit"].
+
+
+Function getReferencedElement
+'''''''''''''''''''''''''''''
+
+Signature: ``getReferencedElement(refString, forceType=None, **kwargs)``
+
+returns the element for the DaCHS reference ``refString``.
+
+``refString`` has the form ``rdId[#subRef]``; ``rdId`` can be 
+filesystem-relative, but the RD referenced must be below ``inputsDir`` 
+anyway.
+
+You can pass a structure class into ``forceType``, and a ``StructureError``
+will be raised if what's pointed to by the id isn't of that type.
+
+You should usually use ``base.resolveCrossId`` instead of this from *within*
+DaCHS.  This is intended for code handling RD ids from users.
+
+This supports further keyword arguments to getRD.
+
+
+Function getRelativePath
+''''''''''''''''''''''''
+
+Signature: ``getRelativePath(fullPath, rootPath, liberalChars=True)``
+
+returns rest if fullPath has the form rootPath/rest and raises an
+exception otherwise.
+
+Pass ``liberalChars=False`` to make this raise a ValueError when
+URL-dangerous characters (blanks, amperands, pluses, non-ASCII, and 
+similar) are present in the result.  This is mainly for products.
+
+
+Function getStandardPubDID
+''''''''''''''''''''''''''
+
+Signature: ``getStandardPubDID(path)``
+
+returns the standard DaCHS PubDID for ``path``.
+
+The publisher dataset identifier (PubDID) is important in protocols like
+SSAP and obscore.  If you use this function, the PubDID will be your
+authority, the path compontent ~, and the inputs-relative path of 
+the input file as the parameter.
+
+``path`` can be relative, in which case it is interpreted relative to
+the DaCHS ``inputsDir.``
+
+You *can* define your PubDIDs in a different way, but you'd then need
+to provide a custom descriptorGenerator to datalink services (and
+might need other tricks).  If your data comes from plain files, use 
+this function.
+
+In a rowmaker, you'll usually use the \standardPubDID macro.
+
+
+Function getWCSAxis
+'''''''''''''''''''
+
+Signature: ``getWCSAxis(header, axisIndex, forceSeparable=False)``
+
+returns a WCSAxis instance from an axis index and a FITS header.
+
+If the axis is mentioned in a transformation matrix (CD or PC),
+a ``ValueError`` is raised (use ``forceSeparable`` to override).
+
+The ``axisIndex`` is 1-based; to get a transform for the axis described
+by CTYPE1, pass 1 here.
+
+The object returned has methods like ``pixToPhys``, ``physToPix`` (and their
+``pix0`` brethren), and ``getLimits``.
+
+Note that at this point WCSAxis only supports linear transforms (it's
+a DaCHS-specific implementation).  We'll extend it on request.
+
+
+Function getXMLTree
+'''''''''''''''''''
+
+Signature: ``getXMLTree(xmlString, debug=False)``
+
+returns an ``libxml2`` etree for ``xmlString``, where, for convenience,
+all namespaces on elements are nuked.
+
+The libxml2 etree lets you do xpath searching using the ``xpath`` method.
+
+Nuking namespaces is of course not a good idea in general, so you
+might want to think again before you use this in production code.
+
+
+Function hmsToDeg
+'''''''''''''''''
+
+Signature: ``hmsToDeg(hms, sepChar=None)``
+
+returns the time angle (h m s.decimals) as a float in degrees.
+
+>>> "%3.8f"%hmsToDeg("22 23 23.3")
+'335.84708333'
+>>> "%3.8f"%hmsToDeg("22:23:23.3", ":")
+'335.84708333'
+>>> "%3.8f"%hmsToDeg("222323.3", "")
+'335.84708333'
+>>> hmsToDeg("junk")
+Traceback (most recent call last):
+ValueError: Invalid time with sepChar None: 'junk'
+
+
+Function iterSimpleText
+'''''''''''''''''''''''
+
+Signature: ``iterSimpleText(f)``
+
+iterates over ``(physLineNumber, line)`` in f with some usual 
+conventions for simple data files.
+
+You should use this function to read from simple configuration and/or
+table files that don't warrant a full-blown grammar/rowmaker combo.
+The intended use is somewhat like this::
+
+  with open(rd.getAbsPath("res/mymeta")) as f:
+    for lineNumber, content in iterSimpleText(f):
+      try:
+        ...
+      except Exception, exc:
+        sys.stderr.write("Bad input line %s: %s"%(lineNumber, exc))
+
+The grammar rules are, specifically:
+
+* leading and trailing whitespace is stripped
+* empty lines are ignored
+* lines beginning with a hash are ignored
+* lines ending with a backslash are joined with the following line;
+  to have intervening whitespace, have a blank in front of the backslash.
+
+
+Function jYearToDateTime
+''''''''''''''''''''''''
+
+Signature: ``jYearToDateTime(jYear)``
+
+returns a datetime.datetime instance for a fractional (julian) year.
+
+This refers to time specifications like J2001.32.
+
+
+Function jdnToDateTime
+''''''''''''''''''''''
+
+Signature: ``jdnToDateTime(jd)``
+
+returns a ``datetime.datetime`` instance for a julian day number.
+
+
+Function killBlanks
+'''''''''''''''''''
+
+Signature: ``killBlanks(literal)``
+
+returns the string literal with all blanks removed.
+
+This is useful when numbers are formatted with blanks thrown in.
+
+Nones are passed through.
+
+
+Function lastSourceElements
+'''''''''''''''''''''''''''
+
+Signature: ``lastSourceElements(path, numElements)``
+
+returns a path made up from the last ``numElements`` items in ``path``.
+
+
+Function makeAbsoluteURL
+''''''''''''''''''''''''
+
+Signature: ``makeAbsoluteURL(path)``
+
+returns a fully qualified URL for a rooted local part.
+
+
+Function makeData
+'''''''''''''''''
+
+Signature: ``makeData(dd, parseOptions=<ParseOptions validateRows=False maxRows=None keepGoing=False>, forceSource=None, connection=None, data=None, runCommit=True)``
+
+returns a data instance built from ``dd``.
+
+It will arrange for the parsing of all tables generated from dd's grammar.
+If connection is passed in, the the entire operation will run within a 
+single transaction within this connection.  The connection will be
+rolled back or committed depending on the success of the operation
+(unless you pass ``runCommit=False``, in which case even a successful
+import will not be committed)..
+
+You can pass in a data instance created by yourself in data.  This
+makes sense if you want to, e.g., add some meta information up front.
+
+
+Function makeDependentsFor
+''''''''''''''''''''''''''
+
+Signature: ``makeDependentsFor(dds, parseOptions, connection)``
+
+rebuilds all data dependent on one of the DDs in the dds sequence.
+
+
+Function makeProductLink
+''''''''''''''''''''''''
+
+Signature: ``makeProductLink(key, withHost=True)``
+
+returns the URL at which a product can be retrieved.
+
+key can be an accref string or an RAccref
+
+
+Function makeSitePath
+'''''''''''''''''''''
+
+Signature: ``makeSitePath(path)``
+
+returns a rooted local part for a server-internal URL.
+
+uri itself needs to be server-absolute; a leading slash is recommended
+for clarity but not mandatory.
+
+
+Function makeStruct
+'''''''''''''''''''
+
+Signature: ``makeStruct(structClass, **kwargs)``
+
+creates a parentless instance of structClass with ``**kwargs``.
+
+You can pass in a ``parent_`` kwarg to force a parent.
+
+This is the preferred way to create struct instances in DaCHS, as it
+will cause the sequence of completers and validators run.  Use it like
+this::
+
+  MS(rscdef.Column, name="ra", type="double precision)
+
+
+Function makeTimestamp
+''''''''''''''''''''''
+
+Signature: ``makeTimestamp(date, time)``
+
+makes a datetime instance from a date and a time.
+
+
+Function mjdToDateTime
+''''''''''''''''''''''
+
+Signature: ``mjdToDateTime(mjd)``
+
+returns a ``datetime.datetime`` instance for a modified julian day number.
+
+Beware: This loses a couple of significant digits due to transformation
+to jd.
+
+
+Function parseAngle
+'''''''''''''''''''
+
+Signature: ``parseAngle(literal, format, sepChar=None)``
+
+converts the various forms angles might be encountered to degrees.
+
+format is one of hms, dms, fracHour.  For sexagesimal/time angles, 
+you can pass a sepChar (default: split at blanks) that lets you
+specify what separates hours/degrees, minutes, and seconds.
+
+>>> str(parseAngle("23 59 59.95", "hms"))
+'359.999791667'
+>>> "%10.5f"%parseAngle("-20:31:05.12", "dms", sepChar=":")
+' -20.51809'
+>>> "%010.6f"%parseAngle("21.0209556", "fracHour")
+'315.314334'
+
+
+Function parseBooleanLiteral
+''''''''''''''''''''''''''''
+
+Signature: ``parseBooleanLiteral(literal)``
+
+returns a python boolean from some string.
+
+Boolean literals are strings like True, false, on, Off, yes, No in
+some capitalization.
+
+
+Function parseCooPair
+'''''''''''''''''''''
+
+Signature: ``parseCooPair(soup)``
+
+returns a pair of RA, DEC floats if they can be made out in soup
+or raises a value error.
+
+No range checking is done (yet), i.e., as long as two numbers can be
+made out, the function is happy.
+
+>>> parseCooPair("23 12")
+(23.0, 12.0)
+>>> parseCooPair("23.5,-12.25")
+(23.5, -12.25)
+>>> parseCooPair("3.75 -12.125")
+(3.75, -12.125)
+>>> parseCooPair("3 25,-12 30")
+(51.25, -12.5)
+>>> map(str, parseCooPair("12 15 30.5 +52 18 27.5"))
+['183.877083333', '52.3076388889']
+>>> parseCooPair("3.39 -12 39")
+Traceback (most recent call last):
+ValueError: Invalid time with sepChar None: '3.39'
+>>> parseCooPair("12 15 30.5 +52 18 27.5e")
+Traceback (most recent call last):
+ValueError: 12 15 30.5 +52 18 27.5e has no discernible position in it
+>>> parseCooPair("QSO2230+44.3")
+Traceback (most recent call last):
+ValueError: QSO2230+44.3 has no discernible position in it
+
+
+Function parseDate
+''''''''''''''''''
+
+Signature: ``parseDate(literal, format='%Y-%m-%d')``
+
+returns a ``datetime.date`` object of literal parsed according to the
+strptime-similar format.
+
+The function understands the special ``dateFormat`` ``!!jYear``
+(stuff like 1980.89).
+
+
+Function parseFloat
+'''''''''''''''''''
+
+Signature: ``parseFloat(literal)``
+
+returns a float from a literal, or None if literal is None or an empty
+string.
+
+Temporarily, this includes a hack to work around a bug in psycopg2.
+
+>>> parseFloat("   5e9 ")
+5000000000.0
+>>> parseFloat(None)
+>>> parseFloat("  ")
+>>> parseFloat("wobbadobba")
+Traceback (most recent call last):
+ValueError: could not convert string to float: wobbadobba
+
+
+Function parseFromString
+''''''''''''''''''''''''
+
+Signature: ``parseFromString(rootStruct, inputString, context=None)``
+
+parses a DaCHS RD tree rooted in ``rootStruct`` from a string.
+
+It returns the root element of the resulting tree.  You would use this like
+this::
+
+  parseFromString(rscdef.Column, "<column name='foo'/>")
+
+
+Function parseISODT
+'''''''''''''''''''
+
+Signature: ``parseISODT(literal)``
+
+returns a datetime object for a ISO time literal.
+
+There's no real timezone support yet, but we accept and ignore various
+ways of specifying UTC.
+
+>>> parseISODT("1998-12-14")
+datetime.datetime(1998, 12, 14, 0, 0)
+>>> parseISODT("1998-12-14T13:30:12")
+datetime.datetime(1998, 12, 14, 13, 30, 12)
+>>> parseISODT("1998-12-14T13:30:12Z")
+datetime.datetime(1998, 12, 14, 13, 30, 12)
+>>> parseISODT("1998-12-14T13:30:12.224Z")
+datetime.datetime(1998, 12, 14, 13, 30, 12, 224000)
+>>> parseISODT("19981214T133012Z")
+datetime.datetime(1998, 12, 14, 13, 30, 12)
+>>> parseISODT("19981214T133012+00:00")
+datetime.datetime(1998, 12, 14, 13, 30, 12)
+>>> parseISODT("junk")
+Traceback (most recent call last):
+ValueError: Bad ISO datetime literal: junk (required format: yyyy-mm-ddThh:mm:ssZ)
+
+
+Function parseInt
+'''''''''''''''''
+
+Signature: ``parseInt(literal)``
+
+returns an int from a literal, or None if literal is None or an empty
+string.
+
+>>> parseInt("32")
+32
+>>> parseInt("")
+>>> parseInt(None)
+
+
+parseNonValidating
+''''''''''''''''''
+
+see `function getParseOptions`_ .
+
+
+Function parseSPoint
+''''''''''''''''''''
+
+Signature: ``parseSPoint(soup)``
+
+returns an ``SPoint`` for a coordinate pair.
+
+The coordinate pair can be formatted in a variety of ways; see the
+`function parseCooPair`_.  Input is always in degrees.
+
+
+Function parseTime
+''''''''''''''''''
+
+Signature: ``parseTime(literal, format='%H:%M:%S')``
+
+returns a ``datetime.timedelta`` object for literal parsed according
+to format.
+
+For format, you can the magic values ``!!secondsSinceMidnight``,
+``!!decimalHours`` or a strptime-like spec using the H, M, and S codes.
+
+>>> parseTime("89930", "!!secondsSinceMidnight")
+datetime.timedelta(1, 3530)
+>>> parseTime("23.4", "!!decimalHours")
+datetime.timedelta(0, 84240)
+>>> parseTime("3.4:5", "%H.%M:%S")
+datetime.timedelta(0, 11045)
+>>> parseTime("20:04", "%H:%M")
+datetime.timedelta(0, 72240)
+
+
+Function parseTimestamp
+'''''''''''''''''''''''
+
+Signature: ``parseTimestamp(literal, format='%Y-%m-%dT%H:%M:%S')``
+
+returns a ``datetime.datetime`` object from a literal parsed according 
+to the strptime-similar format.
+
+A ``ValueError`` is raised if literal doesn't match format (actually,
+a parse with essentially DALI-standard ISO representation is always tried)
+
+
+parseValidating
+'''''''''''''''
+
+see `function getParseOptions`_ .
+
+
+Function parseWithNull
+''''''''''''''''''''''
+
+Signature: ``parseWithNull(literal, baseParser, nullLiteral=<Undefined>, default=None, checker=None)``
+
+returns default if literal is ``nullLiteral``, else 
+``baseParser(literal)``.
+
+If ``checker`` is non-None, it must be a callable returning ``True`` if its
+argument is a null value.
+
+``nullLiteral`` is compared against the unprocessed literal (usually, a
+string).  The intended use is like this (but note that often, a
+``nullExcs`` attribute on a rowmaker ``map`` element is the more
+elegant way:
+
+>>> parseWithNull("8888.0", float, "8888")
+8888.0
+>>> print(parseWithNull("8888", float, "8888"))
+None
+>>> print(parseWithNull("N/A", int, "N/A"))
+None
+
+
+Function procmain
+'''''''''''''''''
+
+Signature: ``procmain(processorClass, rdId, ddId)``
+
+The "standard" main function for processor scripts.
+
+The function returns the instanciated processor so you can communicate
+from your processor back to your own main.
+
+See :dachsdoc:`processors.html` for details.
+
+
+Function quoteProductKey
+''''''''''''''''''''''''
+
+Signature: ``quoteProductKey(key)``
+
+returns key as getproduct URL-part.
+
+If ``key`` is a string, it is quoted as a naked accref so it's usable
+as the path part of an URL.  If it's an ``RAccref``, it is just stringified.
+The result is something that can be used after getproduct in URLs
+in any case.
+
+
+Function requireValue
+'''''''''''''''''''''
+
+Signature: ``requireValue(val, fieldName)``
+
+returns ``val`` unless it is ``None``, in which case a ``ValidationError``
+for ``fieldName`` will be raised.
+
+
+Function resolveCrossId
+'''''''''''''''''''''''
+
+Signature: ``resolveCrossId(id, forceType=None, **kwargs)``
+
+resolves ``id``, where id is of the form ``rdId#id``.
+
+``forceType``, if non-None must be a DaCHS struct type (e.g.,
+rscdef.Table); a ``StructureError`` will be raised if the reference
+resolves to something else than an instance of that type.
+
+``id`` can also be a simple rd id.
+
+
+``kwargs`` lets you pass additional keyword arguments to the ``getRD``
+calls that may be triggered by this.
+
+
+Function scale
+''''''''''''''
+
+Signature: ``scale(val, factor, offset=0)``
+
+returns val*factor+offset if val is not None, None otherwise.
+
+This is when you want to manipulate a numeric value that may be NULL.
+It is a somewhat safer alternative to using nullExcs with scaled values.
+
+
+setConfig
+'''''''''
+
+sets a configuration item to a value.
+
+arg1 can be a section, in which case arg2 is a key and arg3 is a
+value; alternatively, if arg3 is not given, arg1 is a key in
+the defaultSection, and arg2 is the value.
+
+All arguments are strings that must be parseable by the referenced
+item's _parse method.
+
+Origin is a tag you can use to, e.g., determine what to save.
+
+
+Function toMJD
+''''''''''''''
+
+Signature: ``toMJD(literal)``
+
+returns a modified julian date made from some datetime representation.
+
+Valid representations include:
+
+* MJD (a float smaller than 1e6)
+* JD (a float larger than 1e6)
+* datetime.datetime instances
+* ISO time strings.
+
+
+ui
+''
+
+is the central event dispatcher.
+
+Events are posted by using notify* methods.  Various handlers can
+then attach to them.
+
+
+Function writeAsVOTable
+'''''''''''''''''''''''
+
+Signature: ``writeAsVOTable(data, outputFile, ctx=None, **kwargs)``
+
+writes ``data`` to the ``outputFile``.
+
+data can be a table or ``Data`` item.
+
+``ctx`` can be a ``VOTableContext`` instance; alternatively,
+``VOTableContext`` constructor arguments can be passed in as
+``kwargs``.
+
 
 
 System Tables

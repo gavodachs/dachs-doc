@@ -203,15 +203,16 @@ explicitly allowed by the service.
 Predefined Procedures
 =====================
 
-Procedures available for rowmaker apply
-'''''''''''''''''''''''''''''''''''''''
+Procedures available for rowmaker/parmaker apply
+''''''''''''''''''''''''''''''''''''''''''''''''
 
 .. replaceWithResult _makeProcsDocumenter([
     "//procs#simpleSelect", "//procs#resolveObject",
     "//procs#mapValue", "//procs#fullQuery", "//procs#dictMap", 
     "//siap#computePGS",
     "//siap#setMeta", "//ssap#setMeta",
-    "//siap#getBandFromFilter", "//ssap#setMixcMeta",
+    "//siap#getBandFromFilter", 
+    "//ssap#setMixcMeta", "//ssap#feedSSAToSDM",
     "//slap#fillBasic",
     "//epntap#populate", "//epntap2#populate-2_0",
     "//epntap2#populate-localfile-2_0",
@@ -4069,6 +4070,38 @@ Examples Endpoints
 ''''''''''''''''''
 
 TBD
+
+
+The DaCHS API
+=============
+
+User extension code (e.g., custom cores, custom grammars, processors)
+for DaCHS should only use DaCHS functions from its api as described
+below.  We will try to keep it stable and at any rate warn in the
+release notes if we change it.  For various reasons, the module also
+contains a few modules.  These, and in particular their content, are
+*not* part of the API.
+
+Note that at this point this is *not* what is in the namespace of
+rowmakers, rowfilters, and similar in-RD procedures.  We do not, at this
+point, recommend importing the api.  If you do it anyway, we'd
+appreciate if you told us.
+
+Before using non-API DaCHS functions, please inquire on the
+dachs-support mailing list (cf. http://docs.g-vo.org/DaCHS).
+
+To access DaCHS API functions, say::
+
+  from gavo import api
+
+(perhaps adding an ``as dachsapi`` if there is a risk of confusion) and
+reference symbols with the explicit module name (i.e., ``api.makeData``
+rather than picking individual names) in order to help others understand
+what you've written.
+
+Here is an alphabetical list of the documented API functions:
+
+.. replaceWithResult getAPIDocs(docStructure)
 
 
 System Tables
