@@ -13613,19 +13613,19 @@ beforeImport would work as well here)::
     </script>
 
 
-Embedded Documentation
-======================
-
-ReStructuredText
-''''''''''''''''
+ReStructuredText in DaCHS
+=========================
 
 Text needing some amount of markup within DaCHS is almost always
 input as ReStructuredText (RST).  The source versions of the 
 `DaCHS documentation`_ give examples for such markup, and DaCHS users
 should at least briefly skim the `ReStructuredText primer`_.
 
-DaCHS contains some RST extensions.  Some of them are discussed in
-`Examples Endpoints`_.  Generally useful extensions include:
+DaCHS contains some RST extensions.  Those specifically targeted at
+writing DALI-compliant examples of them are discussed with
+`the examples renderer`_
+
+Generally useful extensions include:
 
 bibcode
   This text role formats the argument as a link into ADS when rendered
@@ -13635,13 +13635,30 @@ bibcode
     
     See also :bibcode:`2011AJ....142....3H`.
 
+Extensions for writing DaCHS-related documentation include:
+
+dachsdoc 
+  A text role generating a link into the current DaCHS documentation.
+  The argument is the relative path, e.g., 
+  ``:dachsdoc:`opguide.html#userconfig-rd```.
+
+dachsref 
+  A text role generating a link into the reference documentation.  The 
+  argument is a section header within the reference documentation, e.g.,
+  ``:dachsref:`//epntap#populate-2_0``` or 
+  ``:dachsref:`the form renderer```.
+samplerd 
+  A text role generating a link to an RD used by the GAVO data center
+  (exhibiting some feature).  The argument is the relative path to
+  the RD (or, really, anything else in the VCS), e.g.,
+  ``:samplerd:`ppmxl/q.rd```.
+
+(if you add anything here, please also amend the document source's
+README).
+
 .. _DaCHS documentation: http://docs.g-vo.org/DaCHS/
 .. _ReStructuredText primer: http://docutils.sourceforge.net/docs/user/rst/quickstart.html
 
-Examples Endpoints
-''''''''''''''''''
-
-TBD
 
 
 The DaCHS API
