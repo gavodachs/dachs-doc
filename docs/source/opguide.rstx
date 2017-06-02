@@ -148,8 +148,8 @@ It is a file in the `meta stream format`_; basically it's lines
 of ``<key>: <value>``.
 
 * publisher – A short, human-readable name for you
-* publisherID – An IVOA id for yourself;  set this to
-  ivo://<authority>/org unless you know what you are doing
+* publisherID – An IVOA id for yourself;  leave this empty, or create
+  an ivo://<authority>/org resource in your userconfig.rd [#orgres]
 * contact.name – A human-readable name for some entity people should
   write to.  This is not necessarily different from publisher, but
   ideally people can write "Dear <contact.name>" in their mails.
@@ -284,7 +284,7 @@ you do, just add authority record(s) as before in the
 ``registry-interfacerecords`` STREAM in your `userconfig RD`_.  And
 do not forget to add lines like::
 
-	<meta name="managedAuthority">edu.euro-vo.org</meta>
+  <meta name="managedAuthority">edu.euro-vo.org</meta>
 
 within the ``<service id="registry"`` in the user config.
 
@@ -468,7 +468,7 @@ Having said that, if you really think you want window-filling text
 lines, just put::
 
   p, li {
-	  max-width: none;
+    max-width: none;
   }
 
 into your operator CSS.
@@ -1294,3 +1294,32 @@ There's a howto over at :dachsdoc:`howDoI <howDoI.html#upgrade-the-database-engi
 .. _DaCHS-users: http://lists.g-vo.org/cgi-bin/mailman/listinfo/dachs-users
 .. |date| date::
 .. _Mark Taylor's TOPCAT page: http://www.star.bris.ac.uk/~mbt/topcat/
+
+
+.. [#orgres] To do that, put something like::
+
+     <resRec id="manager"> 
+      <meta>
+        resType: organization
+        creationDate: 2007-12-19T12:00:00
+        title: GAVO Heidelberg Data Center
+        subject: Organization
+        referenceURL: http://www.ari.uni-heidelberg.de
+        identifier: ivo://org.gavo.dc/org
+        sets: ivo_managed
+      </meta>
+      <meta name="description">
+        Operating at the Astronomisches Rechen-Institut (ARI) (part of 
+        Centre for Astronomy of Heidelberg University) on behalf of
+        the German VO organisation GAVO, the GAVO Heidelberg Data Center
+        is a one-stop shop for astronomical data publication projects
+        of (almost) any description.  We are also active within the
+        IVOA in standards development and Registry operations.
+      </meta>
+    </resRec>
+
+  into your userconfig.rd's ``registry-interfacerecords`` (of course,
+  change things to match your situation; in particular, if you don't
+  change ``identifier``, we'll be angry with you) and then say
+  ``dachs pub //services``
+
