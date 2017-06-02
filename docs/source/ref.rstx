@@ -13613,8 +13613,8 @@ beforeImport would work as well here)::
     </script>
 
 
-ReStructuredText in DaCHS
-=========================
+ReStructuredText
+================
 
 Text needing some amount of markup within DaCHS is almost always
 input as ReStructuredText (RST).  The source versions of the 

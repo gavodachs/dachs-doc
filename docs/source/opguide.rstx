@@ -163,7 +163,8 @@ of ``<key>: <value>``.
   give credit, please complain") or just contact.name if you produce
   resources yourself.
 * creator.logo – A URL for a logo to use when none is given in the
-  resource metadata. Use a small PNG here.
+  resource metadata. Use a small PNG here.  DaCHS has a scaled version
+  of your logo that might be suitable at <your-DaCHS-url>/favicon.png.
 * site.description – A description of your site (i.e., "data center")
   Example: ``The GAVO data center provides VO publication services to
   all interested parties on behalf of the German Astrophysical Virtual
@@ -544,7 +545,8 @@ For items coming from ``static`` (e.g., images, css, javascript), this
 overriding works by dropping same-named files in ``$GAVO_ROOT/web/nv_static``.
 
 Thus, you should put a PNG of your logo into
-``$GAVO_ROOT/web/nv_static/img/logo_medium.png``.
+``$GAVO_ROOT/web/nv_static/img/logo_medium.png``; scale it to about 250
+pixels width or so (it will typically be used at 100 pt in the CSS).
 
 Other files you may want to override in this way include
 
@@ -556,9 +558,6 @@ Other files you may want to override in this way include
 * ``help.shtml`` – the help file.  Unfortunately, we blurb quite
   a lot about GAVO in there right now.  We'll think of something
   more parametrisable, but meanwhile you may want to have your own version
-* ``img/logo_big.png``, ``img/logo_tiny.png`` –
-  scaled versions of your logo; logo_big should be 200 pixels wide or
-  more, logo_tiny of order 50 pixels wide.
 * ``js/gavo.js`` – could be the place for additional javascript;
   but frankly, if you want custom javascript, write to us and we'll
   think of a sane mechanism.

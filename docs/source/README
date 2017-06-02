@@ -12,7 +12,7 @@ Extra interpreted text roles for writing such documents:
   :samplerd:`ppmxl/q.rd`.
 
 (if you add anything here, please also amend the :dachsref:`ReStructedText in
-DaCHS` section).
+DaCHS` section). section).
 
 Please *do not* edit ref.rstx, it is generated (externally, using 
 dachs gendoc) from refdoc.rstx and the DaCHS source code.
