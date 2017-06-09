@@ -139,7 +139,7 @@ don't repeat our (the GAVO DC's) mistake and invert the sequence of
 particles in your DNS name.  Also, this is just the name, there is no
 ivo:// or other decoration.
 
-Then, add metadata about yourself in ``GAVO_ROOT/etc/defaultmeta.txt``;
+Then, add metadata about yourself in ``$GAVO_ROOT/etc/defaultmeta.txt``;
 these provide some values that stand in in registry records you generate
 whenever their values are not overridden in actual records, which
 obviously is particularly pertinent to things like the publisher, which
@@ -226,7 +226,7 @@ external to DaCHS; actually, you're already doing this when you're
 claiming an authority.
 
 To register a non-service "resource", you can fill out a resRec_ RD
-element.  You could reserve an RD (say, ``GAVOROOT/inputs/ext.rd`` to
+element.  You could reserve an RD (say, ``$GAVO_ROOT/inputs/ext.rd`` to
 collect such external registrations, or you could put them alongside
 internal services into their respective RDs.  You will then usually just
 use the resRec's id attribute to determine the IVORN of resource record.
@@ -443,7 +443,7 @@ Operator CSS
 To override css rules we distribute or add new rules, avoid changing
 gavo_dc.css as described in `Simple Web Resources`_, as that will be
 a liability when upgrading.  Instead, drop a CSS file somewhere
-(recommended location: GAVO_ROOT/web/nv_static/user.css) and add a
+(recommended location: ``$GAVO_ROOT/web/nv_static/user.css``) and add a
 configuration item in ``[web]operatorCSS``.  With the recommended
 location, this would work out to be::
 
@@ -608,7 +608,7 @@ registry, it is possibly unwelcome when publishing URLs outside of the
 VO.  To overcome it, you can define "vanity names", single path elements
 that are mapped to paths.
 
-These mappings are read from the file ``GAVO_ROOT/etc/vanitynames.txt``.
+These mappings are read from the file ``$GAVO_ROOT/etc/vanitynames.txt``.
 The file contains lines of the format::
 
     <target> <key> [<option>]
