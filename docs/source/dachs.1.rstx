@@ -441,9 +441,11 @@ THE test SUBCOMMAND
 
 Synopsis::
 
-  dachs test [-h] [-v] [-d] [-t TAG] [-R N] [-T SECONDS] [-D FILE]
-                 [-w SECONDS] [-u SERVERURL] [-n NTHREADS]
-                 id
+      dachs test [-h] [-v] [-V] [-d] [-t TAG] [-R N] [-T SECONDS] [-D FILE]
+                  [-w SECONDS] [-u SERVERURL] [-n NTHREADS]
+                  [--seed RANDOMSEED] [-k KEYWORDS]
+                  id
+
 
 This runs regression tests embedded in the whatever is reference by id
 (can be an RD, a regression suite, or a single regression test).  For
@@ -488,6 +490,12 @@ Options
 
 -n NTHREADS, --number-par NTHREADS
   Number of requests to be run in parallel
+
+-k KEYWORDS, --keywords KEYWORDS
+  Only run tests with descriptions containing all
+  (whitespace-separated) keywords. Sequential tests will
+  be run in full, nevertheless, if their head test
+  matches.
 
 
 THE validate SUBCOMMAND
