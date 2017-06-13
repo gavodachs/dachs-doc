@@ -51,6 +51,42 @@ factoring out libraries).
   utils.fitstools) won't work if the base libraries are not present.
 
 
+Getting Table Metadata and Querying Tables
+==========================================
+
+The preferred way to do simple queries against tables in DaCHS these
+days is:
+
+(a) get the table metadata::
+
+      td = base.resolveCrossId("resdir/q#mytable")
+
+(b) use the td's ``doSimpleQuery(selectClause, fragments, params)``
+    method to get dicts of rows; all arguments are optional and
+    default to pulling all;  ``selectClause`` is just a list of column
+    names::
+    
+      for row in td.doSimpleQuery(["col1", "col2"],
+          "col1<%(lim1)s AND col2=%(foo)s",
+          {'lim1': 23, 'foo': 42}):
+        print row
+
+When you need explicit connection management or want to do more complex
+operations, use the context managers (typically ``getTableConn`` when
+querying, ``getWritableAdminConn`` when writing) using a context manager::
+
+  with base.getTableConn() as conn:
+    for row in conn.queryToDicts(myComplexQuery, 
+        {'arg1': 23, 'pat': 'M32'}):
+      ...
+
+In contrast to ``doSimpleQuery``, this will do case folding of the
+select list items.
+
+In ”user” code, get these symbols from ``api`` instead of from
+``base``.
+
+
 Error handling, logging
 =======================
 
