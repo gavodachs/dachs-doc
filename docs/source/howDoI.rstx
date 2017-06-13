@@ -1193,8 +1193,18 @@ old cluster manually (``service postgresql restart`` should work).
 
 When all is done, pg_upgradecluster configures the old cluster to no
 longer start automatically and the new cluster to listen where the old
-one was.   So, just remove MAINT in the stateDir, restart the DaCHS
-server and run your regression tests (you wrote some, didn't you?).
+one was.   
+
+You can now probably run your services again, so, remove MAINT in the
+stateDir, restart the DaCHS server and run your regression tests (you
+wrote some, didn't you?).  However, quite typically the table stats are
+wrong or ununderstandable to the new version.  It is therefore highly
+recommended to run::
+
+  psql gavo -c "VACUUM ANALYZE"
+
+(which can run in parallel to normal operations; you could use the
+opportunity of a downtime to run a VACUUM FULL ANALYZE, too).
 
 If all looks well, drop the old cluster.  pg_upgradecluster prints the
 respective command last thing it does.  And deinstall the old binaries
