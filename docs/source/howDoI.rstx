@@ -1109,6 +1109,26 @@ hierarchy.  These you can get rid of with something like this::
 We may be swayed into doing this by users; for now, we are reluctant to
 have a script blindly initiate a devastation of this scope.
 
+...update my code?
+------------------
+
+Code fragments are more or less inevitable when publishing non-trivial
+data.  Unfortunately, sometimes APIs changes, those of DaCHS not
+excluded.  This section tries to collect cases with simple recipes,
+starting shortly before the 1.0 release.
+
+* 1.0: pyfits header ``.update`` is now ``.set``
+* 1.0: pyfits header ``.ascardlist`` is now ``.cards``
+* 1.0: pyfits card ``.ascard`` is now ``.ascardimage()``
+* 1.0: onDisk tables no longer do automatic connections.  So, instead of
+  ``t = rsc.TableForDef(onDiskTD)``, you'll have to say::
+
+    with base.getTableConn() as conn:
+      t = rsc.TableForDef(onDiskTD, connection=conn)
+
+  (use ``WritableAdminConn`` if you want to write)
+
+
 ...upgrade the database engine?
 -------------------------------
 

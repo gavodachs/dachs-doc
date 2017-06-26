@@ -306,21 +306,6 @@ Atomic Children
 * **utype** (unicode string; defaults to None) -- A utype for the
   group
 
-Element columnRef (view)
-''''''''''''''''''''''''
-
-A reference to a table column for building simple views.
-
-May occur in `Element simpleView`_.
-
-Atomic Children
-...............
-
-* **key** (unicode string; defaults to <Undefined>) -- Column name
-  within the referenced table.
-* **table** (id reference; defaults to <Undefined>) -- Reference to
-  the table the field comes from.
-
 Element condDesc
 ''''''''''''''''
 
@@ -329,7 +314,7 @@ A query specification for cores talking to the database.
 CondDescs define inputs as a sequence of InputKeys (see `Element InputKey`_).
 Internally, the values in the InputKeys can be translated to SQL.
 
-May occur in `Element scsCore`_, `Element siapCutoutCore`_, `Element resource`_, `Element productCore`_, `Element dbCore`_, `Element fancyQueryCore`_, `Element editCore`_, `Element ssapCore`_.
+May occur in `Element scsCore`_, `Element siapCutoutCore`_, `Element resource`_, `Element productCore`_, `Element dbCore`_, `Element fancyQueryCore`_, `Element ssapCore`_.
 
 Atomic Children
 ...............
@@ -447,7 +432,7 @@ grammar output.
 They are the "executable" parts of a resource descriptor.  Their ids
 are used as arguments to gavoimp for partial imports.
 
-May occur in `Element resource`_, `Element computedCore`_.
+May occur in `Element resource`_.
 
 Atomic Children
 ...............
@@ -2005,9 +1990,9 @@ Structure Children
   more times) -- Global condition descriptors for later reference
 * cores (contains any of siapCutoutCore,scsCore,pythonCore,registryCor
   e,dbCore,fancyQueryCore,fixedQueryCore,adqlCore,debugCore,datalinkCo
-  re,uploadCore,productCore,computedCore,editCore,customCore,ssapCore,
-  nullCore,tapCore and may be repeated zero or more times) -- Cores
-  available in this resource.
+  re,uploadCore,productCore,tapCore,customCore,ssapCore,nullCore and
+  may be repeated zero or more times) -- Cores available in this
+  resource.
 * dds (contains `Element data`_ and may be repeated zero or more
   times) -- Descriptors for the data generated and/or published within
   this resource.
@@ -2032,8 +2017,6 @@ Structure Children
   times) -- Code snippets attached to this object.  See Scripting_ .
 * services (contains `Element service`_ and may be repeated zero or
   more times) -- Services exposing data from this resource.
-* simpleView (contains `Element simpleView`_) -- Definitions of views
-  created from natural joins
 * tables (contains `Element table`_ and may be repeated zero or more
   times) -- A table used or created by this resource
 * tests (contains `Element regSuite`_ and may be repeated zero or more
@@ -2293,35 +2276,6 @@ Structure Children
 
 * pars (contains `Element par`_ and may be repeated zero or more
   times) -- Names to add to the procedure's global namespace.
-
-Element simpleView
-''''''''''''''''''
-
-A simple way to define a view over some tables.
-
-To define a view in this way, you add fieldRef elements, giving
-table ids and column names.  The view will be a natural join of
-all tables involved.
-
-For more complex views, use a normal table with a viewStatement.
-
-These elements can be referred to like normal tables (internally, they
-are replaced by TableDefs when they are complete).
-
-May occur in `Element resource`_.
-
-Structure Children
-..................
-
-* colRefs (contains `Element columnRef`_ and may be repeated zero or
-  more times) -- References to the fields making up the natural join
-  of the simple view.
-
-Other Children
-..............
-
-* **meta** -- a piece of meta information, giving at least a name and
-  some content.  See Metadata_ on what is permitted here.
 
 Element sources
 '''''''''''''''
@@ -4135,53 +4089,6 @@ Other Children
   to string values) -- Properties (i.e., user-defined key-value pairs)
   for the element.
 
-Element computedCore
-''''''''''''''''''''
-
-A core wrapping external applications.
-
-ComputedCores wrap command line tools taking command line arguments,
-reading from stdin, and outputting to stdout.
-
-The command line arguments are taken from the inputTable's parameters,
-stdin is created by serializing the inputTable's rows like they are 
-serialized for with the TSV output, except only whitespace is entered 
-between the values.
-
-The output is the primary table of parsing the program's output with
-the data child.
-
-While in principle more declarative than PythonCores, these days I'd
-say rather use one of those.
-
-
-Atomic Children
-...............
-
-* **computer** (unicode string; defaults to <Undefined>) -- Resdir-
-  relative basename of the binary doing the computation.  The standard
-  rules for cross-platform binary name determination apply.
-* **original** (id reference; defaults to None) -- An id of an element
-  to base the current one on.  This provides a simple inheritance
-  method.  The general rules for advanced referencing in RDs apply.
-
-Structure Children
-..................
-
-* inputTable (contains `Element inputTable`_) -- Description of the
-  input data
-* outputTable (contains `Element outputTable`_) -- Table describing
-  what fields are available from this core
-* resultParse (contains `Element data`_) -- Data descriptor to parse
-  the computer's output.
-
-Other Children
-..............
-
-* **property** (mapping of user-defined keywords in the name attribute
-  to string values) -- Properties (i.e., user-defined key-value pairs)
-  for the element.
-
 Element coreProc
 ''''''''''''''''
 
@@ -4613,43 +4520,6 @@ Structure Children
 * setups (contains `Element setup`_ and may be repeated zero or more
   times) -- Setup of the namespace the function will run in
 
-Element editCore
-''''''''''''''''
-
-A core that allows POSTing records into database tables.
-
-
-Atomic Children
-...............
-
-* **namePath** (id reference; defaults to None) -- Id of an element
-  that will be used to located names in id references.  Defaults to
-  the queriedTable's id.
-* **original** (id reference; defaults to None) -- An id of an element
-  to base the current one on.  This provides a simple inheritance
-  method.  The general rules for advanced referencing in RDs apply.
-* **queriedTable** (id reference; defaults to <Undefined>) --
-  Reference to the table to be edited
-
-Structure Children
-..................
-
-* condDescs (contains `Element condDesc`_ and may be repeated zero or
-  more times) -- Descriptions of the SQL and input generating entities
-  for this core; if not given, they will be generated from the table
-  columns.
-* inputTable (contains `Element inputTable`_) -- Description of the
-  input data
-* outputTable (contains `Element outputTable`_) -- Table describing
-  what fields are available from this core
-
-Other Children
-..............
-
-* **property** (mapping of user-defined keywords in the name attribute
-  to string values) -- Properties (i.e., user-defined key-value pairs)
-  for the element.
-
 Element fancyQueryCore
 ''''''''''''''''''''''
 
@@ -4758,7 +4628,7 @@ give you one value when a parameter has been given multiple times.
 Instead, use the output of the contextGrammar (inputParams in condDescs).
 Only there you will have the correct multiplicities.
 
-May occur in `Element scsCore`_, `Element siapCutoutCore`_, `Element customCore`_, `Element nullCore`_, `Element tapCore`_, `Element productCore`_, `Element adqlCore`_, `Element pythonCore`_, `Element registryCore`_, `Element dbCore`_, `Element fancyQueryCore`_, `Element editCore`_, `Element computedCore`_, `Element debugCore`_, `Element datalinkCore`_, `Element fixedQueryCore`_, `Element uploadCore`_, `Element ssapCore`_.
+May occur in `Element scsCore`_, `Element siapCutoutCore`_, `Element customCore`_, `Element nullCore`_, `Element tapCore`_, `Element productCore`_, `Element adqlCore`_, `Element pythonCore`_, `Element registryCore`_, `Element dbCore`_, `Element fancyQueryCore`_, `Element debugCore`_, `Element datalinkCore`_, `Element fixedQueryCore`_, `Element uploadCore`_, `Element ssapCore`_.
 
 Atomic Children
 ...............
@@ -7748,9 +7618,6 @@ Late parameter *creation_date*
 Late parameter *dataproduct_type*
   defaults to ``None``;
   The high-level organization of the data product, from enumerated list (e.g., 'im' for image, sp for spectrum)
-Late parameter *dataset_id*
-  defaults to ``"1"``;
-  Unless you understand the implications, leave this at the default. In particular, note that this is *not* a dataset id in the VO sense, so this should normally not be whatever standardPubDID generates.
 Late parameter *emergence_max*
   defaults to ``None``;
   Emergence angle during data acquisition, upper limit
@@ -8280,7 +8147,7 @@ Late parameter *dataSource*
   defaults to ``None``;
   Generation type (typically, one survey, pointed, theory, custom, artificial); ssa:DataID.DataSource
 Late parameter *dstype*
-  defaults to ``"Spectrum"``;
+  defaults to ``"spectrum"``;
   Type of data. The only defined value currently is Spectrum, but you may get away with TimeSeries; ssa:Dataset.Type
 Late parameter *fluxCalib*
   defaults to ``None``;
@@ -14671,11 +14538,15 @@ Signature: ``makeData(dd, parseOptions=<ParseOptions validateRows=False maxRows=
 returns a data instance built from ``dd``.
 
 It will arrange for the parsing of all tables generated from dd's grammar.
-If connection is passed in, the the entire operation will run within a 
-single transaction within this connection.  The connection will be
-rolled back or committed depending on the success of the operation
-(unless you pass ``runCommit=False``, in which case even a successful
-import will not be committed)..
+
+If database tables are being made, you *must* pass in a connection.
+The entire operation will then run within a single transaction within
+this connection (except for building dependents; they will be built
+in separate transactions).
+
+The connection will be rolled back or committed depending on the
+success of the operation (unless you pass ``runCommit=False``, in
+which case even a successful import will not be committed)..
 
 You can pass in a data instance created by yourself in data.  This
 makes sense if you want to, e.g., add some meta information up front.
