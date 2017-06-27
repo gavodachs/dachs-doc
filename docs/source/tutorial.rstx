@@ -2172,7 +2172,7 @@ metadata on them, including time scales and reference positions.
 With DaCHS, we recommend one of the following ways of storing dates and
 times (written as attributes of column):
 
-* ``type="double precision" xtype="mjd" unit="d"`` – a modified julian date
+* ``name="x_mjd" type="double precision" unit="d"`` – a modified julian date
 * ``type="double precision" unit="d"`` – a julian date
 * ``type="double precision" unit="s"`` – a unix timestamp
 * ``type="double precision" unit="yr"`` – a Julian year with fractions
@@ -2183,6 +2183,13 @@ models and protocols employ them, and they are fairly easy to query
 against.  In HTML forms, they are easily displayed as human-readable
 datetimes by using an ``displayHint="type=humanDate"`` (which you can do
 for the others, too, of course).
+
+And yes, unfortunately DaCHS currently has to use the column name to
+tell MJDs from JDs.  We used to use the xtype for that (and that still
+works), but that's incompatible with the SODA/SIAv2 use of xtype.
+Eventually, some saner mechanism will be defined by the VO, but until
+then just name columns having MJDs something with ``mjd`` in it.  And
+don't have ``mjd`` in your column names unless there's MJD in there.
 
 The Julian years are a good choice, too, and they are immediately
 human-readable to some extent.  They are certainly the representation of
@@ -2221,15 +2228,21 @@ of true times in Greenwich), and TT (Terrestial Time, a time scale
 linked to the TAI and used quite a bit in Astronomy).  More of that on
 the fairly readable http://stjarnhimlen.se/comp/time.html.
 
-The reference positions are currently relevant on a level of
+The reference positions impact arrival times by simple geometry; common
+reference positions include “roughly earth” and “roughly sun”, which
+leads to differences on the order of ten minutes.  Additionally, there
+are relativistic effects at a level of
 milliseconds or below; they need to be declared for high precision work
 since a clock in the barycenter of the solar system will (evaporate but
 before that) run slower than
-one on Pluto due to relativistic effects of various sorts.  Common reference
+one on Pluto due to relativistic effects of various sorts.  
+
+In STC-S parlance, the reference positions available include
 positions would be TOPOCENTER (the observatory), GEOCENTER (the center
 of the Earth), BARYCENTER (the barycenter of the solar system) and
-UNKNOWN (the default, which you should keep unless you are sure; it
-doesn't matter anyhow for most applications).
+UNKNOWN (the default, which you should keep unless you are sure; clients
+can then at least employ some sane fallback rather than make wrong
+assumptions).
 
 To declare those, you must include a time phrase in your STC_ declaration in your table.
 Typically, this could look like this::
