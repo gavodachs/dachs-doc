@@ -149,7 +149,8 @@ of ``<key>: <value>``.
 
 * publisher – A short, human-readable name for you
 * publisherID – An IVOA id for yourself;  leave this empty, or create
-  an ivo://<authority>/org resource in your userconfig.rd [#orgres]
+  an ivo://<authority>/org resource in your userconfig.rd (see
+  `Creating an organisation record`_).
 * contact.name – A human-readable name for some entity people should
   write to.  This is not necessarily different from publisher, but
   ideally people can write "Dear <contact.name>" in their mails.
@@ -216,6 +217,44 @@ organisation that's managing it.  These are predefined using the data
 you just filled in in the //services RD.  To publish them, you say::
 
   gavo pub //services
+
+Creating an Organisation Record
+-------------------------------
+
+If you want to fill out the publisherID meta item – and there's no
+strong reason to do so at this point, you have to create a registry
+record for you, i.e., the organisation that runs the data center and
+hence the registry.
+
+To do that, put something like::
+
+   <resRec id="manager"> 
+    <meta>
+      resType: organization
+      creationDate: 2007-12-19T12:00:00
+      title: GAVO Heidelberg Data Center
+      subject: Organization
+      referenceURL: http://www.ari.uni-heidelberg.de
+      identifier: ivo://org.gavo.dc/org
+      sets: ivo_managed
+    </meta>
+    <meta name="description">
+      Operating at the Astronomisches Rechen-Institut (ARI) (part of 
+      Centre for Astronomy of Heidelberg University) on behalf of
+      the German VO organisation GAVO, the GAVO Heidelberg Data Center
+      is a one-stop shop for astronomical data publication projects
+      of (almost) any description.  We are also active within the
+      IVOA in standards development and Registry operations.
+    </meta>
+  </resRec>
+
+into your userconfig.rd's ``registry-interfacerecords``  and then say
+``dachs pub //services``.  
+
+Of course, you'll have to change things to match your situation; in
+particular, make sure identifier simply is
+``ivo://<your-authority>/org`` – and that is what you'll use as
+publisherID.
 
 
 Registering DaCHS-external Services
@@ -1223,7 +1262,7 @@ Upgrading DaCHS
 ---------------
 
 In general, we try to make upgrades painless, but with a system allowing
-people to play tricks with intenstines like DaCHS guarantees are hard.
+people to play tricks with intestines like DaCHS guarantees are hard.
 Be sure to subscribe to `DaCHS-users`_.  We'll announce new releases
 there, together with brief release notes pointing to possible spots of
 trouble.  Ideally, you'll have a development system and regression tests
@@ -1252,6 +1291,16 @@ or clever things we've done in the software (in the latter case, the
 Changes file should tell you about it).   In any case, you should fix
 the problem, usually by re-importing the respective table.
 
+When we change dependencies, individual DaCHS packages may be held back.
+``apt-get`` will tell you this much, and you'll get DistributionNotFound
+errors from pkg_resources when starting DaCHS.
+
+If it's only our packages that are held back, it should be safe to fix
+the problem by just running ``apt-get dist-upgrade`` (which will pull in
+the new dependencies).  We can't give a generally recommendable recipe
+for how to deal with holdbacks for other packages.
+
+
 Upgrading Installations from SVN
 ''''''''''''''''''''''''''''''''
 
@@ -1267,7 +1316,7 @@ ingestion privileges, the restart sequence::
 In principle, gavo upgrade can run while the server is active, and with
 most updates, users won't even see errors, but since you need to restart
 anyway, why bother.  On possible failures of the gavo val command, see
-the last paragraph of the previous section.
+the text in the packaged upgrade case.
 
 The steps to update depend on what you did to install out of the
 subversion checkout.  If you initially said ``setup.py develop`` (which
@@ -1294,32 +1343,3 @@ There's a howto over at :dachsdoc:`howDoI <howDoI.html#upgrade-the-database-engi
 .. _DaCHS-users: http://lists.g-vo.org/cgi-bin/mailman/listinfo/dachs-users
 .. |date| date::
 .. _Mark Taylor's TOPCAT page: http://www.star.bris.ac.uk/~mbt/topcat/
-
-
-.. [#orgres] To do that, put something like::
-
-     <resRec id="manager"> 
-      <meta>
-        resType: organization
-        creationDate: 2007-12-19T12:00:00
-        title: GAVO Heidelberg Data Center
-        subject: Organization
-        referenceURL: http://www.ari.uni-heidelberg.de
-        identifier: ivo://org.gavo.dc/org
-        sets: ivo_managed
-      </meta>
-      <meta name="description">
-        Operating at the Astronomisches Rechen-Institut (ARI) (part of 
-        Centre for Astronomy of Heidelberg University) on behalf of
-        the German VO organisation GAVO, the GAVO Heidelberg Data Center
-        is a one-stop shop for astronomical data publication projects
-        of (almost) any description.  We are also active within the
-        IVOA in standards development and Registry operations.
-      </meta>
-    </resRec>
-
-  into your userconfig.rd's ``registry-interfacerecords`` (of course,
-  change things to match your situation; in particular, if you don't
-  change ``identifier``, we'll be angry with you) and then say
-  ``dachs pub //services``
-

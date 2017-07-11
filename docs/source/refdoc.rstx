@@ -1322,9 +1322,9 @@ things like ``"myName" in inPars`` – that's always true.
 
 Phrase makers must yield zero or more SQL fragments; multiple SQL
 fragments are joined in conjunctions (i.e., end up in ANDed conditions
-in the WHERE clause) (i.e., if you need to OR your fragments, you'll
+in the WHERE clause).  If you need to OR your fragments, you'll
 have to do that yourself.  Use the ``base.joinOperatorExpr(operator,
-operands)`` for robustness.
+operands)`` for robustness to construct ORs.
 
 Since you are dealing with raw SQL here, **never** include material from
 ``inPars`` directly in the query strings you return – this would immediately

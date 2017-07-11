@@ -1109,6 +1109,12 @@ hierarchy.  These you can get rid of with something like this::
 We may be swayed into doing this by users; for now, we are reluctant to
 have a script blindly initiate a devastation of this scope.
 
+...upgrade DaCHS?
+-----------------
+
+See :dachsdoc:`opguide.html#upgrading`.
+
+
 ...update my code?
 ------------------
 
