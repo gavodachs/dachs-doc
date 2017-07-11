@@ -1281,20 +1281,29 @@ Upgrading Installations from Debian Package
       gavo val -c ALL
 
     Warnings you can usually ignore, but try to understand messages you
-    get.  You can hide known-broken RDs 
-  apt-get update
-  apt-get upgrade
+    get.  You can hide known-broken RDs from DaCHS by dropping a file
+    named DACHS_PRUNE into their directories.
 
+    Broken RDs are very likely to break upgrades.  Fix them or remove
+    them.
 
-After the upgrade, be sure to run your regression tests (if you have
-defined any)::
+(3) Do the actual upgrade::
 
-  gavo test ALL
+      apt-get update
+      apt-get upgrade
+
+(4) Run::
+
+      gavo val -tc ALL
+
+    This will complain if any of our changes break your services.  If
+    that is true and the Changelog did not alert you to the issue,
+    please complain immediately.  We may still be able to fix things for
+    other people.
 
 This last command might complain about mismatches between RD and on-disk
 metadata; there are several reasons why that may happen, including dumb
-or clever things we've done in the software (in the latter case, the
-Changes file should tell you about it).   In any case, you should fix
+or clever things we've done in the software.  In any case, you should fix
 the problem, usually by re-importing the respective table.
 
 When we change dependencies, individual DaCHS packages may be held back.
