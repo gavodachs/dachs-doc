@@ -863,7 +863,7 @@ The ``//scs#q3cindex`` mixin referenced here arranges for spatial
 indexing of tables having some sort of spherical coordinates.
 To identify which columns to index, DaCHS inspects the UCDs of the
 columns; what it looks for here are columns with UCDs of
-``pos.eq.(ra|dec);meta.main``` as index columns [#othercone]_.  Contrary
+``pos.eq.(ra|dec);meta.main``` as index columns.  Contrary
 to mixins for other standard protocols, it does not automatically insert
 these columns (and neither the only other required column in SCS, the
 main row identifier with the UCD ``meta.id;meta.main``).
@@ -879,6 +879,39 @@ for advanced usage, please refer to the `reference documentation`_.  If
 you decide to add an index to a table later on, or to initiate
 re-indexing after a lot of data changed, see the ``-I`` option of ``gavo
 imp``.
+
+The ``pos.eq`` UCDs in the SCS ``condDescs`` are hardcoded; this is
+because the standard simple cone search protocol specifies that the
+coordinates passed in are ICRS, and hence other systems – galactic, say
+– make little sense here.  Also, the web form-variants of the protocols
+let users enter Simbad-resolvable identifiers rather than positions.  In
+sum, making these things generic for other systems would be an
+unreasonable implementation effort.
+
+If you want to allow queryies in other systems, just write the index
+statement inline, e.g., for galactic coordinates in the columns
+``lambda``, ``beta``::
+
+  <index name="q3c_gal" cluster="True" columns="lambda,beta"
+    >q3c_ang2ipix(lambda,beta)</index>
+
+A simple condDesc that searches using this index could be::
+
+  <condDesc>
+    <inputKey original="lambda" required="True"/>
+    <inputKey original="beta" required="True"/>
+    <inputKey name="sr" tablehead="Search Radius">
+      <values default="0.001"/>
+    </inputKey>
+    <phraseMaker>
+      yield q3c_radial_query(lambda, beta, %%(%s)s, "
+        "%%(%s)s, %%(%s)s)")%(
+        base.getSQLKey("lambda", inPars["lambda"], outPars),
+        base.getSQLKey("beta", inPars["beta"], outPars),
+        base.getSQLKey("sr", inPars["sr"], outPars))
+    </phraseMaker>
+  </condDesc>
+
 
 Cores and Services
 ''''''''''''''''''
@@ -3191,17 +3224,17 @@ fix this; complaints will make us do that quicker.
 
 First, write a table definition and a null data item::
 
-	<table id="timeseries" onDisk="True">
-		<mixin
-			fluxUnit="adu"
-			spectralUCD=" "
-			spectralUnit=" "
-			>//ssap#mixc</mixin>
-	</table>
+  <table id="timeseries" onDisk="True">
+    <mixin
+      fluxUnit="adu"
+      spectralUCD=" "
+      spectralUnit=" "
+      >//ssap#mixc</mixin>
+  </table>
 
-	<data id="make_ts">
-		<make table="timeseries"/>
-	</data>
+  <data id="make_ts">
+    <make table="timeseries"/>
+  </data>
 
 Do a metadata import of this – you need to import the table, or DaCHS
 will not find its metadata, and you should only import the metadata, or
@@ -3218,23 +3251,23 @@ RD id).  You'll see a link to the table, and you can see the columns.
 
 Then, in the table, write a view statment.  Always follow this pattern::
 
-	<table id="timeseries" onDisk="True">
-		<mixin
-			fluxUnit="adu"
-			spectralUCD=" "
-			spectralUnit=" "
-			>//ssap#mixc</mixin>
-		<viewStatement>
-			CREATE VIEW \curtable AS (
-				SELECT \colNames FROM (
-					SELECT 
-					  'http://foo.bar.baz/'||dataid as accref,
-					  'application/x-votable+xml'::text as mime,
-					  ...
-				) AS q
-			)
-		</viewStatment>
-	</table>
+  <table id="timeseries" onDisk="True">
+    <mixin
+      fluxUnit="adu"
+      spectralUCD=" "
+      spectralUnit=" "
+      >//ssap#mixc</mixin>
+    <viewStatement>
+      CREATE VIEW \curtable AS (
+        SELECT \colNames FROM (
+          SELECT 
+            'http://foo.bar.baz/'||dataid as accref,
+            'application/x-votable+xml'::text as mime,
+            ...
+        ) AS q
+      )
+    </viewStatment>
+  </table>
 
 This makes sure you're actually creating the view DaCHS is expecting
 (the ``\curtable`` macro), and the view has the structure declared in
@@ -4494,8 +4527,8 @@ the observation::
 
     <fitsProdGrammar qnd="True">
       <rowfilter procDef="//products#define">
-        <bind key="embargo">parseTimestamp(row["DATE_OBS"])+datetime.timedelta(
-          days=365)</bind>
+        <bind key="embargo">parseTimestamp(row["DATE_OBS"]
+          )+datetime.timedelta(days=365)</bind>
         <bind key="owner">"danish"</bind>
         <bind key="table">"danish.data"</bind>
       </rowfilter>
@@ -4599,38 +4632,6 @@ data – see above for details on how to create users and groups.
    (yes, there's nothing behind "bindAddress:").  Restart the server and
    you should see the output.
 
-.. [#othercone] The ``pos.eq`` UCDs are hardcoded; this is because the
-   standard simple cone search protocol specifies that the coordinates
-   passed in are ICRS, and hence other systems – galactic, say – make
-   little sense here.  Also, the web form-variants of the protocols let
-   users enter Simbad-resolvable identifiers rather than positions.  In
-   sum, making these things generic for other systems would be an
-   unreasonable implementation effort.
-
-   If you want to allow queryies in other systems, just write the index
-   statement inline, e.g., for galactic coordinates in the columns
-   ``lambda``, ``beta``::
-
-    <index name="q3c_gal" cluster="True" columns="lambda,beta"
-      >q3c_ang2ipix(lambda,beta)</index>
-
-   A simple condDesc that searches using this index could be::
-
-    <condDesc>
-      <inputKey original="lambda" required="True"/>
-      <inputKey original="beta" required="True"/>
-      <inputKey name="sr" tablehead="Search Radius">
-        <values default="0.001"/>
-      </inputKey>
-      <phraseMaker>
-        yield q3c_radial_query(lambda, beta, %%(%s)s, "
-          "%%(%s)s, %%(%s)s)")%(
-          base.getSQLKey("lambda", inPars["lambda"], outPars),
-          base.getSQLKey("beta", inPars["beta"], outPars),
-          base.getSQLKey("sr", inPars["sr"], outPars))
-      </phraseMaker>
-    </condDesc>
-
 .. [#rr] If you are running DaCHS on a reasonably stable platform,
    you're most welcome to join it.  You would have to check out the
    resdir at http://svn.ari.uni-heidelberg.de/svn/gavo/hdinputs/rr/,
@@ -4639,6 +4640,6 @@ data – see above for details on how to create users and groups.
    provide fallbacks in case of failures, please contact the Heidelberg
    maintainers.  Incidentally, you can also run a mirror of the web
    interface to the registry then; you'd have to check out
-   http://svn.ari.uni-heidelberg.de/svn/gavo/hdinputs/wirr/ then.
+   http://svn.ari.uni-heidelberg.de/svn/gavo/hdinputs/wirr/.
 
 .. |date| date::

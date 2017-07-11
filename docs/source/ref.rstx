@@ -3302,7 +3302,7 @@ set qnd="False".  This means that you will essentially get the readers
 from the second extension for those even if you left hdu="0".
 
 The original header is preserved as the value of the header\_ key.  This
-is mainly intended for use WCS use, as in ``pywcs.WCS(@header_)``.
+is mainly intended for use WCS use, as in ``wcs.WCS(@header_)``.
 
 If you have more complex structures in your FITS files, you can get access
 to the pyfits HDU using the hdusField attribute.  With
@@ -8320,7 +8320,7 @@ metaMaker(s) creating the parameters.
 
 This is axisNames, a dictionary mapping parameter names to
 the FITS axis numbers or the special names WCSLAT or WCSLONG. 
-It also expects a skyWCS attribute, a pywcs.WCS instance for spatial
+It also expects a skyWCS attribute, a wcs.WCS instance for spatial
 cutouts.
 
 Finally, descriptor must have a list attribute slices, containing
@@ -8427,7 +8427,7 @@ Parameter *crop*
 A metaMaker that generates parameters allowing cutouts along
 the various WCS axes in physical coordinates.
 
-This uses pywcs for the spatial coordinates and tries to figure out 
+This uses astropy.wcs for the spatial coordinates and tries to figure out 
 what these are with some heuristics.  For the remaining coordinates,
 it assumes all are basically 1D, and it sets up separate, manual
 transformations for them.

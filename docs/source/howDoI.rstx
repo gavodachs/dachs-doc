@@ -1126,7 +1126,14 @@ starting shortly before the 1.0 release.
     with base.getTableConn() as conn:
       t = rsc.TableForDef(onDiskTD, connection=conn)
 
-  (use ``WritableAdminConn`` if you want to write)
+  (use ``WritableAdminConn`` if you want to write data)
+* 1.0: The processing of input parameters has been sanitised.  In
+  particular, there is no ``InputDD`` any more.  If you did non-trivial
+  things with it, use a ``customCore`` now (see apfs/q rev. 5559
+  for an example for how to port).  Also, if you want sequences,
+  you now always have to use multiplicity="multiple" in the input keys.
+  Finally, just use inPars["parName"] throughout in your ``condDescs``
+  to retrieve values, and you should be fine.
 
 
 ...upgrade the database engine?
