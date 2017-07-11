@@ -1273,8 +1273,15 @@ Poke us for hints on good and easily-maitained setups.
 Upgrading Installations from Debian Package
 '''''''''''''''''''''''''''''''''''''''''''
 
-That's easy::
+(1) Make sure you have enabled the intended distribution (*release* or
+    *beta*) in your ``/etc/apt.sources`` (or equivalent)
 
+(2) Make sure all RDs DaCHS sees are in order:
+
+      gavo val -c ALL
+
+    Warnings you can usually ignore, but try to understand messages you
+    get.  You can hide known-broken RDs 
   apt-get update
   apt-get upgrade
 
@@ -1283,7 +1290,6 @@ After the upgrade, be sure to run your regression tests (if you have
 defined any)::
 
   gavo test ALL
-  gavo val -c ALL
 
 This last command might complain about mismatches between RD and on-disk
 metadata; there are several reasons why that may happen, including dumb

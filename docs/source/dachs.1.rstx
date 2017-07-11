@@ -456,7 +456,9 @@ Argument
 --------
 
 id
-  RD id or cross-RD identifier for a testable thing.
+  RD id or cross-RD identifier for a testable thing.  Write ALL here
+  to have DaCHS search and test all RDs in the inputs, ignoring those
+  in or below directories with a file named DACHS_PRUNE.
 
 Options
 -------
@@ -512,7 +514,9 @@ Arguments
 ---------
 
 rd
-       RD path or ID to validate
+  RD path or ID to validate.  Write ALL here to have DaCHS search
+  and validate all RDs in your input and validate them, ignoring those
+  in or below directories with a file named DACHS_PRUNE.
 
 Options
 -------
