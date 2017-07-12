@@ -482,8 +482,8 @@ manually (it's shipped with postgres since 9.1, though)::
 
 After that, you can say::
 
-	<index columns="table_name" method="gin"
-		>LOWER(table_name) gin_trgm_ops</index>
+  <index columns="table_name" method="gin"
+    >LOWER(table_name) gin_trgm_ops</index>
 
 (this is to speed up searching with the ivo_nocasematch ADQL user
 defined function; drop the LOWER as you see fit.
@@ -1172,29 +1172,37 @@ To upgrade, first install the new engine and extensions, for instance::
 
    apt-get install postgresql-${NEWVER}-pgsphere postgresql-${NEWVER}-q3c postgresql-${NEWVER}
 
-If you have custom extensions, this is the point to install
-postgresql-server-dev-$NEWVER to rebuild and install those extensions.
+If you use other extensions in your database (e.g., postgis), also
+install them now.  To see what extensions you have installed, a command
+like::
 
-You will first have to drop the new cluster Debian has already created
-for you, as pg_upgradecluster wants a clean slate::
+  dpkg-query -W "postgresql-${OLDVER}-*"
+
+is probably helpful. Other versioned packages you may want to install
+include:
+
+* ``postgresql-server-dev-$NEWVER`` if you use locally-built extensions.
+  Rebuild and install those extensions *before* proceeding with the
+  upgrade.
+* ``postgresql-plpython-$NEWVER`` if you use python DB extensions
+* ``postgresql-contrib-$NEWVER`` for several interesting index schemes
+  and the like.
+
+You will probably first have to drop the new cluster the Debian
+maintainer scripts may already have created, as pg_upgradecluster wants
+a clean slate::
 
   pg_ctlcluster $NEWVER main stop
   # this is a good time to see if your data center still works; if not,
   # you stopped the currently active cluster and should *not* drop it
   pg_dropcluster $NEWVER main
 
-You can pass a directory into which to put the datafiles to
-pg_createcluster's -d argument.  To see where the old ones are, see::
+If these give errors to the effect that the “specified cluster does not
+exist”, that's fine.
 
-  grep data_directory /etc/postgresql/$OLDVER/main/postgresql.conf
-
-You'll need something like what this needs (use du -s to
-find out) on the filesystem your new cluster uses.  Also, do *not* use
-the old data directory.
-
-During the actual update, the database system will be down, and hence
+During the database update, postgres will be down, and hence
 your data center will not work. For a large database, the update can
-take several hourse.  You should let people know that there's
+take several hours.  You should let people know that there's
 something wrong as good as you can.  As long as nobody really does
 anything with VOSI availability, the next best thing is to put your
 DaCHS installation in panic mode.
@@ -1211,18 +1219,31 @@ somewhat like this::
 
 Then say::
 
-  pg_upgradecluster -m upgrade -v $NEWVER $OLDVER main /var/lib/postgresql/$NEWVER
+  pg_upgradecluster -k -m upgrade -v $NEWVER $OLDVER main /var/lib/postgresql/$NEWVER
 
-*Note*: You can speed up the process (usually by a huge amount) if you
-additionally pass a ``-k`` (“link”) flag.  This will share the files
-between the old and the new cluster, which in turn means that you'll
-probably make a hash of everything if you start the old server ever
-again.  So, only use this if you know what you're doing.
+You may need to change the last argument, depending on where your
+database files actually are.  You can figure out where the old ones were
+using::
 
-pg_upgradecluster is a bit finicky.  If it fails early on, it's usually
-safe to restart it, except you'll get unhelpful error messages ("cannot
-determine cluster locales") at least up to jessie unless you restart the
-old cluster manually (``service postgresql restart`` should work).
+  grep data_directory /etc/postgresql/$OLDVER/main/postgresql.conf
+
+Do *not* use that old directory for the new cluster.
+
+Note the ``-k`` option to the above command: this makes pg_upgrade use
+hard links instead of copies.  This save a lot of space and time.  The
+downside is that once the upgrade has succeeded, the old server may go
+haywire because its files have been changed to fit the new version.  In
+our experience, that's a price worth paying.
+
+If this fails, **do not panic**.  Most of the time it's some extension you
+forgot to install, and once you've done this, everything will be fine.
+The upgrade script points you to the logs of the operation, which should
+let you figure out what to do.
+
+On jessie and before, you'll get unhelpful error messages ("cannot
+determine cluster locales") unless you restart the old cluster manually
+(``service postgresql restart`` should work) before re-starting
+pg_upgradecluster.
 
 When all is done, pg_upgradecluster configures the old cluster to no
 longer start automatically and the new cluster to listen where the old
@@ -1237,11 +1258,65 @@ recommended to run::
   psql gavo -c "VACUUM ANALYZE"
 
 (which can run in parallel to normal operations; you could use the
-opportunity of a downtime to run a VACUUM FULL ANALYZE, too).
+opportunity of a downtime to run a VACUUM FULL ANALYZE, too, but that
+may take ages).
 
 If all looks well, drop the old cluster.  pg_upgradecluster prints the
 respective command last thing it does.  And deinstall the old binaries
 to avoid confusion.
+
+Possible Issues during upgrade
+''''''''''''''''''''''''''''''
+
+Frankly, there's lots.  We'll update this section based your feedback.
+
+(1) Some versions of pgsphere had bad declarations of negators and
+commutators.  These manifest themselves as errors like::
+
+  pg_restore: [archiver (db)] could not execute query: ERROR:  argument of negator must be a name
+      Command was: CREATE OPERATOR @ (
+      PROCEDURE = "sline_contains_point_com",
+      LEFTARG = "spoint",
+      RIGHTARG = "sline",
+      COMMUTAT...
+
+during upgrades.  If you see something like this, you need to remove
+dangling references from the the ``pg_operator`` system catalog before
+commencing.  So, in the *old* cluster, run::
+
+  UPDATE pg_operator AS o
+  SET oprcom=0 
+  WHERE 
+    NOT EXISTS (
+      SELECT 1 FROM pg_operator AS i 
+        WHERE i.oid=o.oprcom) 
+    AND oprcom!=0
+
+and::
+
+  UPDATE pg_operator AS o
+  SET oprnegate=0 
+  WHERE 
+    NOT EXISTS (
+      SELECT 1 FROM pg_operator AS i 
+        WHERE i.oid=o.oprnegate) 
+    AND oprnegate!=0
+
+
+
+
+(2) Remove versioned tablespaces after failures.  pg_upgrade in
+principle does the right thing with tablespaces: It has per-version
+names for the actual data directories.  However, when an upgrade has
+failed, that extra data directory is not removed.  Another attempt at
+upgrading then usually fails because that directory is already there.
+For instance, you'll see in the tablespace /media/db_overflow::
+
+  $ ls
+  PG_9.4_201409291/  PG_9.6_201608131/
+
+In that case, you'll need to remove the 9.6 directory before proceeding.
+
 
 ...switch between SVN and packaged DaCHS?
 -----------------------------------------
@@ -1288,11 +1363,11 @@ following snippet and drop it into
 ``/etc/apache/sites-available/voproxy``::
 
   <VirtualHost *:80>
-	  ServerName vo.obs.example.org
-	  ProxyRequests off
-	  <Location />
-		  ProxyPass http://localhost:8080/
-	  </Location>
+    ServerName vo.obs.example.org
+    ProxyRequests off
+    <Location />
+      ProxyPass http://localhost:8080/
+    </Location>
   </VirtualHost>
 
 This assumes you're using a Debian-derived apache package and that DaCHS
