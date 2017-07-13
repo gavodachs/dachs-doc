@@ -682,10 +682,11 @@ renderers -- include:
   Outreach, EPOResource, Animation, Artwork, Background, BasicData, 
   Historical, Photographic, Press, Organisation, Project, Registry –
   it's optional and we doubt its usefulness.
-* facility -- no IVOA ids are supported here yet, but probably this
+* contentLevel – addresse(s) of the data: Research, Amateur, General
+* facility – no IVOA ids are supported here yet, but probably this
   should change.
-* coverage -- see the special section
-* service-specific metadata (for SIA, SCS, etc.) -- see the
+* coverage – see the special section
+* service-specific metadata (for SIA, SCS, etc.) – see the
   documentation of the respective cores.
 * utype – tables (and possibly other items) can have utypes to signify
   their role in specific data models.  For tables, this utype gets
