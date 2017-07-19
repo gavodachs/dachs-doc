@@ -269,7 +269,8 @@ Other Streams
 '''''''''''''
 
 .. replaceWithResult getStreamsDoc(
-    ["//procs#license-cc0", "//procs#license-cc-by"]
+    ["//procs#license-cc0", "//procs#license-cc-by", 
+     "//procs#license-cc-by-sa"]
     +['//obscore#obscore-columns']
     +['//ssap#'+id for id in ["hcd_condDescs", "atomicCoords"]]
     +['//echelle#'+id for id in ["ssacols"]]

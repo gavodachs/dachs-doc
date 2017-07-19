@@ -298,12 +298,12 @@ need to set previewDir).  DaCHS currently has two of those, both
 available as macros for use in products#define.  Here's how to use
 them::
 
-	<rowfilter procDef="//products#define">
-		<bind name="table">"\schema.data"</bind>
-		<bind name="mime">"image/fits"</bind>
-		<bind name="preview_mime">"image/png"</bind>
-		<bind name="preview">\standardPreviewPath</bind>
-	</rowfilter>
+  <rowfilter procDef="//products#define">
+    <bind name="table">"\schema.data"</bind>
+    <bind name="mime">"image/fits"</bind>
+    <bind name="preview_mime">"image/png"</bind>
+    <bind name="preview">\standardPreviewPath</bind>
+  </rowfilter>
 
 The ``standardPreviewPath`` macro arranges things such that all previews are
 in one directory with base64 encoded names.  This is fairly low overhead
@@ -359,8 +359,36 @@ can call::
 
 to see if previews are missing.
 
-Here's how you could compute color previews when you have images in
-three filters in the FITS extensions 2, 3, and 4::
+As another example, here's how you can statically generate the previews
+that DaCHS would make for FITS images; the classic case when you want
+this when the service has datalinks as accrefs (which, at least for now,
+DaCHS doesn't handle automatically)::
+
+  import os
+
+  import numpy
+
+  from gavo import api
+  from gavo.utils import fitstools, imgtools
+
+
+  PREVIEW_SIZE = 200
+
+  class PreviewMaker(api.PreviewMaker):
+    def getPreviewData(self, srcName):
+      with open(os.path.join(api.getConfig("inputsDir"), srcName)) as inFile:
+        pixels = numpy.array([row 
+          for row in fitstools.iterScaledRows(inFile, 
+            destSize=PREVIEW_SIZE)])
+      return imgtools.jpegFromNumpyArray(pixels)
+
+
+  if __name__=="__main__":
+    api.procmain(PreviewMaker, "plts/q", "import")
+
+
+Finally, here's how you could compute color previews when you have
+images in three filters in the FITS extensions 2, 3, and 4::
 
   import numpy
 

@@ -2378,8 +2378,7 @@ buildFrom attribute to directly make one from an input column.  If you
 want to add a larger number of them, you would use an active tag::
 
   <dbCore id="xlcore" queriedTable="main">
-    <condDesc original="//scs#humanInput"/>
-    <condDesc original="//scs#protoInput"/>
+    <FEED source="//scs#coreDescs"/>
     <LOOP listItems="ipix bmag rmag jmag pmra pmde">
       <events>
         <condDesc buildFrom="\item"/>
@@ -3551,6 +3550,12 @@ with datalink products would be::
       <FEED source="//soda#fits_standardDLFuncs"/>
     </datalinkCore>
   </service>
+
+
+Also note that DaCHS will not produce automatic previews in this
+situation.  You will have to generate precomputed previews as discussed
+in :dachsref:`Product Previews`.
+
 
 Simple FITS Datalink Services
 '''''''''''''''''''''''''''''
