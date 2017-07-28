@@ -1030,6 +1030,28 @@ Whatever CSS is necessary for jquery should for now go into gavo_dc.css
 is).
 
 
+Stuff in gavo.imp
+=================
+
+gavo.imp has some external dependencies of DaCHS.  Quite a few now have
+native python components, so we may drop them in the end.  Here's the
+deal:
+
+* formal -- the framework for HTML form widgets DaCHS uses.  This stuff
+  is long abandoned now by upstream.  We'll probably keep it until
+  at least version 2.0 because parts of formal leak into DaCHS'
+  interface
+* httpheader -- probably unused; we need to check and then drop it
+* pyparsing -- the new 1.x version breaks DaCHS' expectations.  We need
+  to investigate pyparsing 2.  That's a major one, anyway.
+* rjsmin -- Debian packaged, and the Debian version will be picked up
+  automatically if installed (so, this should not go into the Debian
+  package)
+* testresources -- Debian packaged, and the Debian version will be picked up
+  automatically if installed (so, this should not go into the Debian
+  package)
+
+
 
 Different Database Backends
 ===========================
