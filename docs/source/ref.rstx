@@ -2031,7 +2031,7 @@ Other Children
   to string values) -- Properties (i.e., user-defined key-value pairs)
   for the element.
 
-Macros predefined here: `Macro RSTcc0`_, `Macro RSTccby`_, `Macro RSTservicelink`_, `Macro RSTtable`_, `Macro decapitalize`_, `Macro getConfig`_, `Macro internallink`_, `Macro magicEmpty`_, `Macro metaString`_, `Macro quote`_, `Macro rdId`_, `Macro rdIdDotted`_, `Macro schema`_, `Macro sqlquote`_, `Macro test`_, `Macro today`_, `Macro upper`_, `Macro urlquote`_
+Macros predefined here: `Macro RSTcc0`_, `Macro RSTccby`_, `Macro RSTccbysa`_, `Macro RSTservicelink`_, `Macro RSTtable`_, `Macro decapitalize`_, `Macro getConfig`_, `Macro internallink`_, `Macro magicEmpty`_, `Macro metaString`_, `Macro quote`_, `Macro rdId`_, `Macro rdIdDotted`_, `Macro schema`_, `Macro sqlquote`_, `Macro test`_, `Macro today`_, `Macro upper`_, `Macro urlquote`_
 
 Element resRec
 ''''''''''''''
@@ -5167,6 +5167,21 @@ Macro RSTccby
 
 expands to a declaration that stuffDesignation is available under
 CC-BY.
+
+This only works in reStructured text (though it's still almost
+readable as source).
+
+Available in `Element resource`_
+
+Macro RSTccbysa
+'''''''''''''''
+
+::
+
+  \RSTccbysa{stuffDesignation}
+
+expands to a declaration that stuffDesignation is available under
+CC-BY-SA.
 
 This only works in reStructured text (though it's still almost
 readable as source).
@@ -11072,11 +11087,6 @@ Here's a list of assertion methods defined right now:
   
   If you need an RE match rather than equality, there's
   EqualingRE in your code's namespace.
-  
-  This needs lxml (debian package python-lxml) installed.
-  As it's only a matter of time until lxml will become
-  a hard DaCHS dependency, installing it is a good idea
-  anyway.
   
 
 *getFirstVOTableRow(self)*

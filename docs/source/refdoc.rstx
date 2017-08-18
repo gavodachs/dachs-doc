@@ -771,9 +771,6 @@ Display hints use an open vocabulary.  As you add value formatters, you can
 evaluate any display hint you like.  Display hints understood by the
 built-in value formatters include:
 
-checkmark
-  in HTML tables, render this column as empty or checkmark depending on
-  whether the value is false or true to python.
 
 displayUnit
   use the value of this hint as the unit to display a value in.
@@ -799,6 +796,10 @@ type
 
   bibcode
     display the value as a link to an ADS bibcode query.
+
+  checkmark
+    in HTML tables, render this column as empty or checkmark depending on
+    whether the value is false or true to python.
 
   humanDate
     display a timestamp value or a real number in either yr (julian
