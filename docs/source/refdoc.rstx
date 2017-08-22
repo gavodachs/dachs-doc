@@ -1082,6 +1082,61 @@ hard to add):
       </dm>
 
 
+Output tables
+'''''''''''''
+
+When determining what columns to include in a response from a
+table-based core, DaCHS follows relatively complicated rules because
+displays in the browser and almost anywhere else are subject to somewhat
+different constraints.  In the following, when wie talk about “VOTable”,
+we refer to all tabular formats produced by DaCHS (FITS binary, CSV,
+TSV...).
+
+The column selection is influenced by:
+
+* Verbosity.  This is controlled by the ``VERB`` parameter (1..3) or
+  preferentially ``verbosity`` (1..30).  Only columns with ``verbLevel``
+  not exceeding verbosity (or, if not given, VERB*10) are included in
+  the result set.  This, in particular, means that columns with
+  ``verbLevel`` larger than 30 are never automatically included in
+  output tables (but they can be manually selected for HTML using 
+  ``_ADDITEM``).
+* Output Format.  While VOTable takes the core's output table and apply
+  the verbosity filter, HTML uses the service's output table as the basis
+  from which to filter columns.  On the other hand, in HTML output the
+  core output table is used to create the list of potential additional
+  columns.
+* ``votableRespectsOutputTable``.  This is a property on services that
+  makes DaCHS use the service's output table even when generating
+  VOTable output if it is set to ``True``.  Write::
+
+    <property name="votableRespectsOutputTable">True</property>
+
+  in your service element to enable this behaviour.
+* ``_ADDITEM``.  This parameter (used by DaCHS' web interface) lets
+  users select columns not selected by the current settings or the
+  service's output table.  ``_ADDITEM`` is ignored in VOTable unless
+  in HTML mode (which is used in transferring web results via SAMP).
+* ``noxml``.  Columns can be furnished with a
+  ``displayHint="noxml=true"``, and they will never be included in
+  VOTable output; use this when you use complex formatters to produce
+  HTML displays.
+* ``_SET``.  DaCHS supports “column sets”, for instance, to let users
+  select certain kinds of coordinates.  See
+  :samplerd:`apfs/res/apfs_new.rd`` for an example.  Essentially, when
+  defining an output table, each output field gets a ``sets`` attribute
+  (default: no set; use ALL to have the column included in all outputs).
+  Then, add a ``_SET`` service parameter (use ``values`` do declare the
+  avaiable sets).  Note that the ``_SET`` parameter changes VOTable
+  column selection to ``votableRespectsOutputTable`` mode as discussed
+  above.  Services that use column sets should therefore set the
+  property manually for consistency whether or not clients actually pass
+  ``_SET``.
+
+Sorry for this mess; all this had, and by and large still has, good
+reasons.
+
+
 DaCHS' Service Interface
 ========================
 
@@ -1791,61 +1846,6 @@ in the procApp's namespace::
 As an additional service, DaCHS executes your python cores in a sandbox
 directory, so you can create temporary files to your heart's
 delight; they will be torn down once the core is finished.
-
-
-Output tables
-'''''''''''''
-
-When determining what columns to include in a response from a
-table-based core, DaCHS follows relatively complicated rules because
-displays in the browser and almost anywhere else are subject to somewhat
-different constraints.  In the following, when wie talk about “VOTable”,
-we refer to all tabular formats produced by DaCHS (FITS binary, CSV,
-TSV...).
-
-The column selection is influenced by:
-
-* Verbosity.  This is controlled by the ``VERB`` parameter (1..3) or
-  preferentially ``verbosity`` (1..30).  Only columns with ``verbLevel``
-  not exceeding verbosity (or, if not given, VERB*10) are included in
-  the result set.  This, in particular, means that columns with
-  ``verbLevel`` larger than 30 are never automatically included in
-  output tables (but they can be manually selected for HTML using 
-  ``_ADDITEM``).
-* Output Format.  While VOTable takes the core's output table and apply
-  the verbosity filter, HTML uses the service's output table as the basis
-  from which to filter columns.  On the other hand, in HTML output the
-  core output table is used to create the list of potential additional
-  columns.
-* ``votableRespectsOutputTable``.  This is a property on services that
-  makes DaCHS use the service's output table even when generating
-  VOTable output if it is set to ``True``.  Write::
-
-    <property name="votableRespectsOutputTable">True</property>
-
-  in your service element to enable this behaviour.
-* ``_ADDITEM``.  This parameter (used by DaCHS' web interface) lets
-  users select columns not selected by the current settings or the
-  service's output table.  ``_ADDITEM`` is ignored in VOTable unless
-  in HTML mode (which is used in transferring web results via SAMP).
-* ``noxml``.  Columns can be furnished with a
-  ``displayHint="noxml=true"``, and they will never be included in
-  VOTable output; use this when you use complex formatters to produce
-  HTML displays.
-* ``_SET``.  DaCHS supports “column sets”, for instance, to let users
-  select certain kinds of coordinates.  See
-  :samplerd:`apfs/res/apfs_new.rd`` for an example.  Essentially, when
-  defining an output table, each output field gets a ``sets`` attribute
-  (default: no set; use ALL to have the column included in all outputs).
-  Then, add a ``_SET`` service parameter (use ``values`` do declare the
-  avaiable sets).  Note that the ``_SET`` parameter changes VOTable
-  column selection to ``votableRespectsOutputTable`` mode as discussed
-  above.  Services that use column sets should therefore set the
-  property manually for consistency whether or not clients actually pass
-  ``_SET``.
-
-Sorry for this mess; all this had, and by and large still has, good
-reasons.
 
 
 Regression Testing
