@@ -13934,6 +13934,11 @@ which gives you a two-step process of first having the detached headers
 that you can check before applying them.
 
 
+Class IntegrityError
+''''''''''''''''''''
+
+Error related to database integrity.
+
 Constant LIGHT_C
 ''''''''''''''''
 

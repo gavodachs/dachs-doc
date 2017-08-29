@@ -603,25 +603,9 @@ This is a race condition deep within python-cryptography, which is in
 turn is several levels below nevow; what's worse, this happens during
 import, so even monkeypatching is at least very difficult.
 
-Until this is resolved upstream (several bugs to this effect are open),
-we suggest to blindly shut python-cryptography up by, in
-``/usr/lib/python2.7/dist-packages/cryptography/hazmat/bindings/openssl/binding.py``,
-replacing::
-
-  cls._register_osrandom_engine
-
-with::
-
-  try:
-      cls._register_osrandom_engine()
-  except InternalError:
-      # this is a quick hack around threading issues in
-      # python-cryptography
-      pass
-
-Note that this is deep cryptography and we don't guarantee that this
-change doesn't make software that actually depends on this weaker.
-DaCHS itself so far doesn't do SSL and hence won't care anyway.
-
+We currently try to work around it by importing the racing component
+before any threads can occur.  The hack will be in DaCHS 1.0 and the
+1.0.2 beta. It's a hack, though, and it's possible it won't work for
+you.  Let us know if you hit this.
 
 .. |date| date::
