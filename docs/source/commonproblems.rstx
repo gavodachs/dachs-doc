@@ -591,4 +591,37 @@ gavo imp //obscore`` for that (see also `updating obscore`_)
 .. _updating obscore: http://docs.g-vo.org/DaCHS/howDoI.html#update-ivoa-obscore-when-i-ve-changed-something-in-an-obscore-mixin
 
 
+cert already in hash table
+--------------------------
+
+Under circumstance we've not quite understood yet either, in Debian
+stretch DaCHS may dump a long traceback on an error like this::
+
+  cryptography.exceptions.InternalError: Unknown OpenSSL error. This error is commonly encountered when another library is not cleaning up the OpenSSL error stack. If you are using cryptography with another library that uses OpenSSL try disabling it before reporting a bug. Otherwise please file an issue at https://github.com/pyca/cryptography/issues with information on how to reproduce this. ([_OpenSSLErrorWithText(code=185057381L, lib=11, func=124, reason=101, reason_text='error:0B07C065:x509 certificate routines:X509_STORE_add_cert:cert already in hash table')])
+
+This is a race condition deep within python-cryptography, which is in
+turn is several levels below nevow; what's worse, this happens during
+import, so even monkeypatching is at least very difficult.
+
+Until this is resolved upstream (several bugs to this effect are open),
+we suggest to blindly shut python-cryptography up by, in
+``/usr/lib/python2.7/dist-packages/cryptography/hazmat/bindings/openssl/binding.py``,
+replacing::
+
+  cls._register_osrandom_engine
+
+with::
+
+  try:
+      cls._register_osrandom_engine()
+  except InternalError:
+      # this is a quick hack around threading issues in
+      # python-cryptography
+      pass
+
+Note that this is deep cryptography and we don't guarantee that this
+change doesn't make software that actually depends on this weaker.
+DaCHS itself so far doesn't do SSL and hence won't care anyway.
+
+
 .. |date| date::
