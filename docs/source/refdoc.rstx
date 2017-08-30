@@ -4143,8 +4143,46 @@ README).
 
 
 
-The DaCHS API
+Code in DaCHS
 =============
+
+This section contains a few general points for python code embedded in
+DaCHS, be it custom pages, cores, or grammars, or even procs.
+
+Importing modules
+'''''''''''''''''
+
+To keep the various resources as separate from each other as possible,
+DaCHS does not manipulate Python's import path.  However, one frequently
+wants to have library-like modules providing common functionality or
+configuration in a resdir (the conventional place for these would be in
+``res/``).
+
+To import these, use ``api.loadPythonModule(path)``.  Path, here, is the
+full path to the file containing the python code, but without the
+``.py``.  When you have the RD, the conventional pattern is::
+
+  mymod, _ = api.loadPythonModule(rd.getAbsPath("res/mymod"))
+
+instead of ``import mymod``.
+
+As you can see ``loadPythonModule`` returns a tuple; you're very
+typically only interested in the first element.
+
+Note in particular that for modules loaded in this way, the usual rule
+that you can just import modules next to you does not apply.  To import
+a modules “next to” you without having to go through the RD, use the
+special form::
+
+  siblingmod, _ = api.loadPythonModule("siblingmod", relativeTo=__file__)
+
+instead of ``import siblingmod``.  This will take the directory part for
+what's in ``relativeTo`` (here, the module's own path) and make a full
+path out of the first argument to pull the modules from there.
+
+
+The DaCHS API
+'''''''''''''
 
 User extension code (e.g., custom cores, custom grammars, processors)
 for DaCHS should only use DaCHS functions from its api as described
