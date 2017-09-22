@@ -277,6 +277,135 @@ Other Streams
     +['//scs#'+id for id in ["coreDescs", ]])
 
 
+Data Descriptors
+================
+
+Most basic information on data descriptors is contained in 
+:dachsdoc:`tutorial.html`.  The material here just covers some advanced
+topics.
+
+Updating Data Descriptors
+'''''''''''''''''''''''''
+
+By default, ``dachs imp`` will try to drop all tables made by the data
+descriptors selected.  For “growing” data, that is suboptimal,
+since typicaly just a few new datasets need to be added to the table,
+and re-ingesting everything else is just a waste of time and CPU.
+
+To accomodate such situations, DaCHS allows to add an
+``updating="True"`` attribute to a ``data`` element; updating DDs will
+create tables that do not exist but will not drop existing ones.
+
+Using fromdb on ignoresSources
+..............................
+
+Updating DDs will still run like normal DDs and thus import everything
+matching the DD's ``sources``.  Thus, after the second import you would
+have duplicate records for sources that existed during the first import.
+
+To avoid that, you (usually) need to ignore existing sources (see
+`Element ignoreSources`_).  In the typical case, where a dataset's accref
+is just the inputs-relative path to the dataset's source, that is easily
+accomplished through the ``fromdb`` attribute of ``ignoreSources``; its 
+value is a database query that returns the inputs-relative paths of
+sources to ignore.  
+
+Hence, unless you are playing games with the accrefs (in which case you
+are probably smart enough to figure out how to adapt the pattern), the
+following speficiation will exactly import all FITS files within the
+data subdirectory of the resdir that haven't been ingested into the
+``mydata`` table during the last run, either because they've not been
+there or because there were skipped during an ``import -c``::
+
+  <data id="import" updating="true">
+    <sources pattern="data/*.fits">
+      <ignoreSources fromdb="select accref from \schema.mydata"/>
+    </sources>
+
+    <fitsProdGrammar>
+      <rowfilter procDef="//products#define">
+        <bind key="table">"\schema.mydata"</bind>
+      </rowfilter>
+    </fitsProdGrammar>
+    
+    <make table="mydata">
+      <!-- your rowmaker here -->
+    </make>
+  </data>
+
+Note that ``fromdb`` can be combined with ``fromfiles`` and ``pattern``;
+whatever is specified in the latter two will always be ignored.
+
+To completely re-import such a table – for instance after a table schema
+change or because the whole data collection has been re-processed –,
+just run ``dachs drop`` on the DD and run import as usual.
+
+It is probably a good idea to occasionally run ``dachs imp -I`` on
+tables updated in this way to optimise the indices (a ``REINDEX
+<tablename>`` in a database shell will do, too).
+
+
+Using fromdbUpdating on ignoreSources
+.....................................
+
+Sometimes reprocessing happens quite frequently to a small subset of the
+datasets in a resource.  In that case, it would again be a waste to tear
+down the entire thing just to update a handful of records.
+
+For such situations, there is the ``fromdbUpdating`` attribute of
+``ignoreSources``.  As with ``fromdb``, this contains a database query,
+but in addition to the accref, this query has to return a timestamp.  A
+source is then only ignored if this timestamp is not newer than the disk
+file's one.  If that timestamp is the mtime of the file in the original
+import, the net effect is that files that have been modified since that
+import will be re-ingested.
+
+There is a catch, though: You need to make sure that the record ingested
+previously is removed from the table.  Typically, you can do that by
+defining accref as a primary key (if that's not possible because you are
+generating multiple records with the same accref, there is nothing wrong
+with using a compound primary key).  This will, on an attempted
+overwrite, cause an ``IntegrityError``, and you can configure DaCHS to
+turn this into an overwrite using the ``table``'s ``forceUnique`` and
+``dupePolicy`` attributes.
+
+The following snippet illustrates the technique::
+
+	<table id="withdate" mixin="//products#table" onDisk="True"
+			primary="accref" 
+			forceUnique="True" 
+			dupePolicy="overwrite">
+		<column name="mtime" type="timestamp" 
+		  ucd="time;meta.file"
+		  tablehead="Timestamp"
+		  description="Modification date of the source file."/>
+		<!-- your other columns -->
+	</table>
+
+	<data id="import" updating="True">
+		<sources pattern="data/*.fits">
+			<ignoreSources 
+				fromdbUpdating="select accref, mtime from \schema.withdate"/>
+		</sources>
+		<fitsProdGrammar>
+			<rowfilter procDef="//products#define">
+				<bind key="table">"\schema.withdate"</bind>
+			</rowfilter>
+		</fitsProdGrammar>
+		<make table="withdate">
+			<rowmaker>
+				<map key="mtime">datetime.datetime.utcfromtimestamp(
+					os.path.getmtime(\fullPath))</map>
+				<!-- other rowmaker rules -->
+			</rowmaker>
+		</make>
+	</data>
+
+Again, this can be combined with the other attributes of
+``ignoreSources``; in effect, whatever is ignored from them is treated
+as if their modification dates were in the future.
+
+
 Metadata
 ========
 
@@ -4021,7 +4150,7 @@ The following types are defined right now:
 * sourceDone -- every time a source has been processed
 
 Note that preImport, preIndex, and postCreation scripts are not executed
-when a table is updated, in particular, in data items with
+when the make's table is being updated, in particular, in data items with
 ``updating="True"``.  The only way to run scripts in such circumstances
 is to use newSource and sourceDone scripts.
 

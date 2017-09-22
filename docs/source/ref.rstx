@@ -758,7 +758,13 @@ a match, the corresponding source will not be processed.
 
 You can get ignored files from various sources.  If you give more
 than one source, the set of ignored files is the union of the the 
-individual sets.
+individual sets. 
+
+fromdbUpdating is a bit special in that the query must return
+UTC timestamps of the file's mtime during the last ingest in addition 
+to the accrefs (see the tutorial for an example).
+
+Macros are expanded in the RD.
 
 May occur in `Element sources`_.
 
@@ -768,6 +774,10 @@ Atomic Children
 * **fromdb** (unicode string; defaults to None) -- A DB query to
   obtain a set of sources to ignore; the select clause must select
   exactly one column containing the source key.
+* **fromdbUpdating** (unicode string; defaults to None) -- A DB query
+  to obtain a set of sources to ignore unless they the timestamp on
+  disk is newer than what's returned.  The query given must return
+  pairs of accrefs and UTC timestamps of the last ingest.
 * **fromfile** (unicode string; defaults to None) -- A name of a file
   containing blacklisted source paths, one per line.  Empty lines and
   lines beginning with a hash are ignored.
@@ -795,6 +805,15 @@ indices in character columns (outside of the C locale).  That would be::
 (you still want to give columns so the metadata engine is aware of the 
 index).  See section "Operator Classes and Operator Families" in
 the Postgres documentation for details.
+
+For pgsphere-valued columns, you at the time of writing need to specify
+the method::
+
+  <index columns="coverage" method="GIST"/>
+
+To define q3c indices, use the ``//scs#q3cindex`` mixin; if you're
+devious enough to require something more flexible, have a look at
+that mixin's definition.
 
 May occur in `Element outputTable`_, `Element table`_.
 
@@ -956,7 +975,7 @@ can use the ``execDef.spawnPython(modulePath)`` function.
 
 If you must stay within the server process, you can do something like::
 
-  mod = utils.loadPythonModule(rd.getAbsPath("bin/coverageplot.py"))
+  mod, _ = utils.loadPythonModule(rd.getAbsPath("bin/coverageplot.py"))
   mod.makePlot()
 
 -- in that way, your code can sit safely within the resource directory
@@ -2131,7 +2150,7 @@ Structure Children
 * vars (contains `Element var`_ and may be repeated zero or more
   times) -- Definitions of intermediate variables.
 
-Macros predefined here: `Macro RSTservicelink`_, `Macro RSTtable`_, `Macro decapitalize`_, `Macro dlMetaURI`_, `Macro docField`_, `Macro getConfig`_, `Macro inputRelativePath`_, `Macro inputSize`_, `Macro internallink`_, `Macro lastSourceElements`_, `Macro magicEmpty`_, `Macro metaString`_, `Macro property`_, `Macro qName`_, `Macro quote`_, `Macro rdId`_, `Macro rdIdDotted`_, `Macro rootlessPath`_, `Macro rowsMade`_, `Macro rowsProcessed`_, `Macro schema`_, `Macro sourceDate`_, `Macro sqlquote`_, `Macro srcstem`_, `Macro standardPubDID`_, `Macro test`_, `Macro today`_, `Macro upper`_, `Macro urlquote`_
+Macros predefined here: `Macro RSTservicelink`_, `Macro RSTtable`_, `Macro decapitalize`_, `Macro dlMetaURI`_, `Macro docField`_, `Macro fullPath`_, `Macro getConfig`_, `Macro inputRelativePath`_, `Macro inputSize`_, `Macro internallink`_, `Macro lastSourceElements`_, `Macro magicEmpty`_, `Macro metaString`_, `Macro property`_, `Macro qName`_, `Macro quote`_, `Macro rdId`_, `Macro rdIdDotted`_, `Macro rootlessPath`_, `Macro rowsMade`_, `Macro rowsProcessed`_, `Macro schema`_, `Macro sourceDate`_, `Macro sqlquote`_, `Macro srcstem`_, `Macro standardPubDID`_, `Macro test`_, `Macro today`_, `Macro upper`_, `Macro urlquote`_
 
 Element script
 ''''''''''''''
@@ -4824,8 +4843,7 @@ The accref param is the normal way if you just want to retrieve a single
 image, the table case is for building tar files and such.  There is one core
 instance in //products for each case.
 
-The core returns a table containing rows with the single column source.
-Each contains a subclass of ProductBase above.
+The core returns a list of instances of a subclass of ProductBase above.
 
 This core and its supporting machinery handles all the fancy product
 functionality (user autorisation, cutouts, ...).
@@ -5344,6 +5362,18 @@ This is intended for "virtual" data where the dataset is generated
 on the fly through datalink.
 
 Available in `Element binaryGrammar`_, `Element cdfHeaderGrammar`_, `Element columnGrammar`_, `Element contextGrammar`_, `Element csvGrammar`_, `Element customGrammar`_, `Element dictlistGrammar`_, `Element embeddedGrammar`_, `Element fitsProdGrammar`_, `Element fitsTableGrammar`_, `Element freeREGrammar`_, `Element keyValueGrammar`_, `Element mySQLDumpGrammar`_, `Element nullGrammar`_, `Element pdsGrammar`_, `Element reGrammar`_, `Element rowsetGrammar`_, `Element transparentGrammar`_, `Element voTableGrammar`_
+
+Macro fullPath
+''''''''''''''
+
+::
+
+  \fullPath
+
+returns an expression expanding to the full path of the current
+input file.
+
+Available in `Element rowmaker`_
 
 Macro getConfig
 '''''''''''''''
@@ -6257,10 +6287,10 @@ Parameter *size*
   defaults to ``accsize/1024``;
   The estimated size of the product in kilobytes. Only touch when you do not mix in products#table.
 Parameter *tMax*
-  defaults to ``ssa_dateObs+ssa_timeExt/2``;
+  defaults to ``ssa_dateObs+ssa_timeExt/43200.``;
    UNDOCUMENTED
 Parameter *tMin*
-  defaults to ``ssa_dateObs-ssa_timeExt/2``;
+  defaults to ``ssa_dateObs-ssa_timeExt/43200.``;
    UNDOCUMENTED
 Parameter *tResolution*
   defaults to ``NULL``;
@@ -6394,10 +6424,10 @@ Parameter *size*
   defaults to ``accsize/1024``;
   The estimated size of the product in kilobytes. Only touch when you do not mix in products#table.
 Parameter *tMax*
-  defaults to ``ssa_dateObs+ssa_timeExt/2``;
+  defaults to ``ssa_dateObs+ssa_timeExt/43200.``;
    UNDOCUMENTED
 Parameter *tMin*
-  defaults to ``ssa_dateObs-ssa_timeExt/2``;
+  defaults to ``ssa_dateObs-ssa_timeExt/43200.``;
    UNDOCUMENTED
 Parameter *tResolution*
   defaults to ``NULL``;
@@ -8808,6 +8838,134 @@ DEC, and SR parameters, another creating input fields for human
 consumption, and finally MAXREC.
 
 
+
+
+Data Descriptors
+================
+
+Most basic information on data descriptors is contained in 
+:dachsdoc:`tutorial.html`.  The material here just covers some advanced
+topics.
+
+Updating Data Descriptors
+'''''''''''''''''''''''''
+
+By default, ``dachs imp`` will try to drop all tables made by the data
+descriptors selected.  For “growing” data, that is suboptimal,
+since typicaly just a few new datasets need to be added to the table,
+and re-ingesting everything else is just a waste of time and CPU.
+
+To accomodate such situations, DaCHS allows to add an
+``updating="True"`` attribute to a ``data`` element; updating DDs will
+create tables that do not exist but will not drop existing ones.
+
+Using fromdb on ignoresSources
+..............................
+
+Updating DDs will still run like normal DDs and thus import everything
+matching the DD's ``sources``.  Thus, after the second import you would
+have duplicate records for sources that existed during the first import.
+
+To avoid that, you (usually) need to ignore existing sources (see
+`Element ignoreSources`_).  In the typical case, where a dataset's accref
+is just the inputs-relative path to the dataset's source, that is easily
+accomplished through the ``fromdb`` attribute of ``ignoreSources``; this must
+contain a database query that returns the inputs-relative paths of
+sources to ignore.  Hence, unless you are playing games with the accrefs
+(in which case you are probably smart enough to figure out how to adapt
+the pattern), the following speficiation will exactly import all FITS
+files within the data subdirectory of the resdir that haven't been
+ingested into the ``mydata`` table during the last run, either because
+they've not been there or because there were skipped during in ``import
+-c``::
+
+  <data id="import" updating="true">
+    <sources pattern="data/*.fits">
+      <ignoreSources fromdb="select accref from \schema.mydata"/>
+    </sources>
+
+    <fitsProdGrammar>
+      <rowfilter procDef="//products#define">
+        <bind key="table">"\schema.mydata"</bind>
+      </rowfilter>
+    </fitsProdGrammar>
+    
+    <make table="mydata">
+      <!-- your rowmaker here -->
+    </make>
+  </data>
+
+Note that ``fromdb`` can be combined with ``fromfiles`` and ``pattern``;
+whatever is specified in the latter two will always be ignored.
+
+To completely re-import such a table – for instance after a table schema
+change or because the whole data collection has been re-processed –,
+just run ``dachs drop`` on the DD and run import as usual.
+
+It is probably a good idea to occasionally run ``dachs imp -I`` on
+tables updated in this way to optimise the indices (a ``REINDEX
+<tablename>`` in a database shell will do, too).
+
+
+Using ignoreSources/@fromdbUpdating
+...................................
+
+Sometimes reprocessing happens quite frequently to a small subset of the
+datasets in a resource.  In that case, it would again be a waste to tear
+down the entire thing just to update a handful of records.
+
+For such situations, there is the ``fromdbUpdating`` attribute of
+``ignoreSources``.  As with ``fromdb``, this contains a database query,
+but in addition to the accref, this query has to return a timestamp.  A
+source is then only ignored if this timestamp is not newer than the disk
+file's one.  If that timestamp is the mtime of the file in the original
+import, the net effect is that files that have been modified since that
+import will be re-ingested.
+
+There is a catch, though: You need to make sure that the record ingested
+previously is removed from the table.  Typically, you can do that by
+defining accref as a primary key (if that's not possible because you are
+generating multiple records with the same accref, there is nothing wrong
+with using a compound primary key).  This will, on an attempted
+overwrite, cause an ``IntegrityError``, and you can configure DaCHS to
+turn this into an overwrite using the ``table``'s ``forceUnique`` and
+``dupePolicy`` attributes.
+
+The following snippet illustrates the technique::
+
+  <table id="withdate" mixin="//products#table" onDisk="True"
+      primary="accref" 
+      forceUnique="True" 
+      dupePolicy="overwrite">
+    <column name="mtime" type="timestamp" 
+      ucd="time;meta.file"
+      tablehead="Timestamp"
+      description="Modification date of the source file."/>
+    <!-- your other columns -->
+  </table>
+
+  <data id="import" updating="True">
+    <sources pattern="data/*.fits">
+      <ignoreSources 
+        fromdbUpdating="select accref, mtime from \schema.withdate"/>
+    </sources>
+    <fitsProdGrammar>
+      <rowfilter procDef="//products#define">
+        <bind key="table">"\schema.withdate"</bind>
+      </rowfilter>
+    </fitsProdGrammar>
+    <make table="withdate">
+      <rowmaker>
+        <map key="mtime">datetime.datetime.utcfromtimestamp(
+          os.path.getmtime(\fullPath))</map>
+        <!-- other rowmaker rules -->
+      </rowmaker>
+    </make>
+  </data>
+
+Again, this can be combined with the other attributes of
+``ignoreSources``; in effect, whatever is ignored from them is treated
+as if their modification dates were in the future.
 
 
 Metadata
@@ -13289,6 +13447,32 @@ that are immediately accessible in the namespace:
   returns a path made up from the last ``numElements`` items in ``path``.
   
 
+*loadPythonModule(fqName, relativeTo=None)*
+  imports fqName and returns the module with a module description.
+  
+  The module description is what what find_module returns; you may
+  need this for reloading and similar.
+  
+  Do not use this function to import DC-internal modules; this may
+  mess up singletons since you could bypass python's mechanisms
+  to prevent multiple imports of the same module.
+  
+  fqName is a fully qualified path to the module without the .py,
+  unless relativeTo is given, in which case it is interpreted as a
+  relative path.  This for letting modules in resdir/res import each
+  other by saying::
+  
+    mod, _ = api.loadPythonModule("foo", relativeTo=__file__)
+  
+  The python path is temporarily amended with the path part of the
+  source module.
+  
+  If the module is in /var/gavo/inputs/foo/bar/mod.py, Python will know 
+  the module as foo_bar_mod (the last two path components are always added).
+  This is to keep Python from using the module when someone writes
+  import mod.
+  
+
 *makeAbsoluteURL(path)*
   returns a fully qualified URL for a rooted local part.
   
@@ -13533,7 +13717,7 @@ The following types are defined right now:
 * sourceDone -- every time a source has been processed
 
 Note that preImport, preIndex, and postCreation scripts are not executed
-when a table is updated, in particular, in data items with
+when the make's table is being updated, in particular, in data items with
 ``updating="True"``.  The only way to run scripts in such circumstances
 is to use newSource and sourceDone scripts.
 
@@ -13655,8 +13839,46 @@ README).
 
 
 
-The DaCHS API
+Code in DaCHS
 =============
+
+This section contains a few general points for python code embedded in
+DaCHS, be it custom pages, cores, or grammars, or even procs.
+
+Importing modules
+'''''''''''''''''
+
+To keep the various resources as separate from each other as possible,
+DaCHS does not manipulate Python's import path.  However, one frequently
+wants to have library-like modules providing common functionality or
+configuration in a resdir (the conventional place for these would be in
+``res/``).
+
+To import these, use ``api.loadPythonModule(path)``.  Path, here, is the
+full path to the file containing the python code, but without the
+``.py``.  When you have the RD, the conventional pattern is::
+
+  mymod, _ = api.loadPythonModule(rd.getAbsPath("res/mymod"))
+
+instead of ``import mymod``.
+
+As you can see ``loadPythonModule`` returns a tuple; you're very
+typically only interested in the first element.
+
+Note in particular that for modules loaded in this way, the usual rule
+that you can just import modules next to you does not apply.  To import
+a modules “next to” you without having to go through the RD, use the
+special form::
+
+  siblingmod, _ = api.loadPythonModule("siblingmod", relativeTo=__file__)
+
+instead of ``import siblingmod``.  This will take the directory part for
+what's in ``relativeTo`` (here, the module's own path) and make a full
+path out of the first argument to pull the modules from there.
+
+
+The DaCHS API
+'''''''''''''
 
 User extension code (e.g., custom cores, custom grammars, processors)
 for DaCHS should only use DaCHS functions from its api as described
@@ -13740,6 +13962,13 @@ is raised when some code could not be compiled.
 
 BadCodes are constructed with the offending code, a code type,
 the original exception, and optionally a hint and a position.
+
+
+Class Binding
+'''''''''''''
+
+
+OpenSSL API wrapper.
 
 
 Class CannotComputeHeader
@@ -14661,6 +14890,36 @@ Function lastSourceElements
 Signature: ``lastSourceElements(path, numElements)``
 
 returns a path made up from the last ``numElements`` items in ``path``.
+
+
+Function loadPythonModule
+'''''''''''''''''''''''''
+
+Signature: ``loadPythonModule(fqName, relativeTo=None)``
+
+imports fqName and returns the module with a module description.
+
+The module description is what what find_module returns; you may
+need this for reloading and similar.
+
+Do not use this function to import DC-internal modules; this may
+mess up singletons since you could bypass python's mechanisms
+to prevent multiple imports of the same module.
+
+fqName is a fully qualified path to the module without the .py,
+unless relativeTo is given, in which case it is interpreted as a
+relative path.  This for letting modules in resdir/res import each
+other by saying::
+
+  mod, _ = api.loadPythonModule("foo", relativeTo=__file__)
+
+The python path is temporarily amended with the path part of the
+source module.
+
+If the module is in /var/gavo/inputs/foo/bar/mod.py, Python will know 
+the module as foo_bar_mod (the last two path components are always added).
+This is to keep Python from using the module when someone writes
+import mod.
 
 
 Function makeAbsoluteURL
