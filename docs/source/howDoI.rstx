@@ -252,22 +252,6 @@ building the files in $OBJECT, but otherwise it's a simple hack to make
 sure a make on the respective machine builds a suitable binary.
 
 
-...change the description, unit, whatever on a single field in a mixin?
------------------------------------------------------------------------
-
-Sometimes some property of a field you get via a mixin – say, product or
-ssap – isn't quite right or could improved; this could be a description.
-
-In this case, just "overwrite" the field; there can only be one column
-with a given name in each table, and newer columns overwrite older ones.
-When overwriting, you should inherit from the orignal.  Where that is
-depends on the mixin; for SSAP, this could look like this::
-
-  <column original="//ssap#instance.ssa_snr"
-    description="Signal-to-noise ratio at 500 nm (V500 spectra)
-      or 400 nm (V1200 spectra)"/>
-
-
 
 ...transform coordinates from one coordinate system to another?
 ---------------------------------------------------------------
@@ -914,8 +898,8 @@ They're making a world of a difference, and they are in general not hard
 to make even if DaCHS doesn't support your formats out of the box. See
 :dachsref:`Product Previews` for details.
 
-...change metadata for a column coming from a mixin?
-----------------------------------------------------
+...override metadata for a column coming from a mixin?
+------------------------------------------------------
 
 Sometimes you want to change a column coming from a mixin, for instance,
 to be more specific in the description, or to change a display hint.
@@ -927,6 +911,16 @@ Thus, if you say::
   <column original="bandpassLo" displayHint="displayUnit=Angstrom"/>
 
 you'll have the metadata from bandpassLo with a new displayHint.
+
+This is also necessary if you want non-ASCII characters in string-valued
+columns.  For efficiency in VOTable serialisation, DaCHS maps the
+``text`` type to VOTable chars, which only allow ASCII.  To make DaCHS
+use VOTable unicodeChars, you need to declare the corresponding fields
+as ``unicode``.  To do that, drop something like::
+
+  <column original="instrument_host_name" type="unicode"/>
+  
+into the body of the table having the mixin.
 
 
 ...have a custom upload parameter?

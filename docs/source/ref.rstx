@@ -773,11 +773,13 @@ Atomic Children
 
 * **fromdb** (unicode string; defaults to None) -- A DB query to
   obtain a set of sources to ignore; the select clause must select
-  exactly one column containing the source key.
+  exactly one column containing the source key.  See also `Using
+  fromdb on ignoreSources`_
 * **fromdbUpdating** (unicode string; defaults to None) -- A DB query
   to obtain a set of sources to ignore unless they the timestamp on
   disk is newer than what's returned.  The query given must return
-  pairs of accrefs and UTC timestamps of the last ingest.
+  pairs of accrefs and UTC timestamps of the last ingest. See also
+  `Using fromdbUpdating on ignoreSources`_
 * **fromfile** (unicode string; defaults to None) -- A name of a file
   containing blacklisted source paths, one per line.  Empty lines and
   lines beginning with a hash are ignored.
@@ -8869,15 +8871,16 @@ have duplicate records for sources that existed during the first import.
 To avoid that, you (usually) need to ignore existing sources (see
 `Element ignoreSources`_).  In the typical case, where a dataset's accref
 is just the inputs-relative path to the dataset's source, that is easily
-accomplished through the ``fromdb`` attribute of ``ignoreSources``; this must
-contain a database query that returns the inputs-relative paths of
-sources to ignore.  Hence, unless you are playing games with the accrefs
-(in which case you are probably smart enough to figure out how to adapt
-the pattern), the following speficiation will exactly import all FITS
-files within the data subdirectory of the resdir that haven't been
-ingested into the ``mydata`` table during the last run, either because
-they've not been there or because there were skipped during in ``import
--c``::
+accomplished through the ``fromdb`` attribute of ``ignoreSources``; its 
+value is a database query that returns the inputs-relative paths of
+sources to ignore.  
+
+Hence, unless you are playing games with the accrefs (in which case you
+are probably smart enough to figure out how to adapt the pattern), the
+following speficiation will exactly import all FITS files within the
+data subdirectory of the resdir that haven't been ingested into the
+``mydata`` table during the last run, either because they've not been
+there or because there were skipped during an ``import -c``::
 
   <data id="import" updating="true">
     <sources pattern="data/*.fits">
@@ -8907,8 +8910,8 @@ tables updated in this way to optimise the indices (a ``REINDEX
 <tablename>`` in a database shell will do, too).
 
 
-Using ignoreSources/@fromdbUpdating
-...................................
+Using fromdbUpdating on ignoreSources
+.....................................
 
 Sometimes reprocessing happens quite frequently to a small subset of the
 datasets in a resource.  In that case, it would again be a waste to tear

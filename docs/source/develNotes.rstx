@@ -272,8 +272,8 @@ Test framework
 
 All unit tests must import gavo.helpers.testhelpers before importing
 anything else from the gavo namespace.  This is because testhelpers
-sets up a test environment in /var/tmp/gavo_test (set in
-tests/data/test-gavorc).  To make this work reliably, it must manipulate
+sets up a test environment in ~/gavo_test (set in
+tests/test_data/test-gavorc).  To make this work reliably, it must manipulate
 the normal way configuration files are read.
 
 helpers.testhelpers needs a dachstest database for which the current user

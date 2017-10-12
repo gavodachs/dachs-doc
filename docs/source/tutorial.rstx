@@ -629,7 +629,8 @@ particular file.  In the RD, it next says::
         flags:     882-901
       </colDefs>
 
-– so we went for a columnGrammar_.  Those cut up every input line along
+– so we went for :dachsref:`Element columngrammar`.  
+Those cut up every input line along
 character indices that are here, following the display in most editors,
 are counted from 1 upwards.  Note that in ranges, the last column is
 included in the string – these are no python slices but basically a
@@ -1017,7 +1018,8 @@ useful, in particular when an RD contains multiple services, in which
 case one could be "Cone search for ARI's HIPPARCOS re-reduction" and the
 other, say, "Autocorrelation on ARI's HIPPARCOS re-reduction".
 
-See the `data checklist`_ for more information on useful generic
+
+See :dachsdoc:`data_checklist.html` for more information on useful generic
 metadata and remember that services inherit whatever is defined within
 ``resource`` when not specified within the element.
 
@@ -4572,7 +4574,6 @@ embargo period is over.  What you give as ``owner`` is a group name; if
 someone can authenticate as the member of a group, she can access the
 data – see above for details on how to create users and groups.
 
-.. _columnGrammar: http://docs.g-vo.org/DaCHS/ref.html#element-columngrammar
 .. _reGrammar: http://docs.g-vo.org/DaCHS/ref.html#element-regrammar
 .. _var: http://docs.g-vo.org/DaCHS/ref.html#element-var
 .. _map: http://docs.g-vo.org/DaCHS/ref.html#element-map
@@ -4590,7 +4591,6 @@ data – see above for details on how to create users and groups.
 .. _dbCore: http://docs.g-vo.org/DaCHS/ref.html#element-dbcore
 .. _cores available: http://docs.g-vo.org/DaCHS/ref.html#cores-available
 .. _write your own core: http://docs.g-vo.org/DaCHS/ref.html#writing-custom-cores
-.. _data checklist: http//docs.g-vo.org/DaCHS/data_checklist.html
 .. _scs.xml: http://docs.g-vo.org/DaCHS/ref.html#the-scs-xml-renderer
 .. _ESAVO registry: http://esavo.esa.int/registry/index.jsp
 .. _VAO registry: http://nvo.stsci.edu/vor10/index.aspx
