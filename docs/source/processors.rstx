@@ -476,9 +476,9 @@ Here's an example for a simple ImmediateHeaderProcessor::
     
     def _changeHeader(self, srcName, hdr):
       baseName = os.path.splitext(os.path.basename(srcName))[0]
-      hdr.update("FN-WEDGE", "%s/wedges/%sw.fits"%(self.staticBase, baseName),
+      hdr.set("FN-WEDGE", "%s/wedges/%sw.fits"%(self.staticBase, baseName),
         after="FILENAME")
-      hdr.update("FN-PRE", "%s/jpegs/%s.jpg"%(self.staticBase, baseName),
+      hdr.set("FN-PRE", "%s/jpegs/%s.jpg"%(self.staticBase, baseName),
         after="FN-WEDGE")
 
 
@@ -518,7 +518,7 @@ A somewhat silly example could look like this::
       return self.getPrimaryHeader(srcName).has_key("NUMPIXELS")
 
     def _mungeHeader(self, srcName, hdr):
-      hdr.update("NUMPIXELS") = hdr["NAXIS1"]*hdr["NAXIS2"]
+      hdr.set("NUMPIXELS", hdr["NAXIS1"]*hdr["NAXIS2"])
       return hdr
 
   if __name__=="__main__":

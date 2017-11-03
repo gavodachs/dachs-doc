@@ -262,7 +262,9 @@ Atomic Children
 * **verbLevel** (integer; defaults to '20') -- Minimal verbosity level
   at which to include this column
 * **xtype** (unicode string; defaults to None) -- VOTable xtype giving
-  the serialization form
+  the serialization form; you usually do *not* want to set this, as
+  the xtypes actually used are computed from database type. DaCHS
+  xtypes are only used for a few unsavoury, hopefully temporary, hacks
 
 Structure Children
 ..................
@@ -933,7 +935,9 @@ Atomic Children
   expression for a custom widget factory for this input, e.g.,
   'Hidden' or 'widgetFactory(TextArea, rows=15, cols=30)'
 * **xtype** (unicode string; defaults to None) -- VOTable xtype giving
-  the serialization form
+  the serialization form; you usually do *not* want to set this, as
+  the xtypes actually used are computed from database type. DaCHS
+  xtypes are only used for a few unsavoury, hopefully temporary, hacks
 
 Structure Children
 ..................
@@ -1329,7 +1333,9 @@ Atomic Children
 * **wantsRow** (boolean; defaults to None) -- Does formatter expect
   the entire row rather than the colum value only?
 * **xtype** (unicode string; defaults to None) -- VOTable xtype giving
-  the serialization form
+  the serialization form; you usually do *not* want to set this, as
+  the xtypes actually used are computed from database type. DaCHS
+  xtypes are only used for a few unsavoury, hopefully temporary, hacks
 
 Structure Children
 ..................
@@ -1564,7 +1570,9 @@ Atomic Children
 * **verbLevel** (integer; defaults to '20') -- Minimal verbosity level
   at which to include this column
 * **xtype** (unicode string; defaults to None) -- VOTable xtype giving
-  the serialization form
+  the serialization form; you usually do *not* want to set this, as
+  the xtypes actually used are computed from database type. DaCHS
+  xtypes are only used for a few unsavoury, hopefully temporary, hacks
 
 Structure Children
 ..................
@@ -8051,24 +8059,24 @@ Setup parameters for the procedure are:
 
 Late parameter *bandpassHi*
   defaults to ``None``;
-  lower value of wavelength or frequency
+  lower value of wavelength or frequency (you usually want to use //siap#getBandFromFilter to fill this).
 Late parameter *bandpassId*
   defaults to ``None``;
   a rough indicator of the bandpass, like Johnson bands
 Late parameter *bandpassLo*
   defaults to ``None``;
-  upper value of the wavelength or frequency
+  upper value of the wavelength or frequency (you usually want to use //siap#getBandFromFilter to fill this).
 Late parameter *bandpassRefval*
   defaults to ``None``;
-  characteristic frequency or wavelength of the exposure
+  characteristic frequency or wavelength of the exposure (you usually want to use //siap#getBandFromFilter to fill this).
 Late parameter *bandpassUnit*
   defaults to ``"m"``;
-  the unit of the bandpassRefval and friends
+  The unit of the bandpassRefval and friends (just don't touch this)
 Late parameter *dateObs*
   defaults to ``None``;
   the midpoint of the observation; this can either be a datetime instance, or a float>1e6 (a julian date) or something else (which is then interpreted as an MJD)
 Late parameter *instrument*
-  defaults to ``None``;
+  defaults to ``str(rd.getMeta("instrument"))``;
   a short identifier for the instrument used
 Late parameter *pixflags*
   defaults to ``None``;
@@ -8460,6 +8468,9 @@ Parameter *accrefPrefix*
 Parameter *descClass*
   defaults to ``FITSProductDescriptor``;
   The descriptor class to use. The default is fine for vanilla FITS files, but when you deliver datalinks through the product table, you'll have to use DLFITSDescriptor here. Also, you can define a descriptor yourself in the setup (inherit from FITSDescriptor).
+Parameter *qnd*
+  defaults to ``True``;
+  Pass 0 or False here to not use DaCHS fast header reader here. This is necessary to properly handle compressed FITS images -- but it entails the risk that astropy magic will mogrify the header, and it may be dramatically slower in some circumstances.
 
 //soda#fits_makeBANDMeta
 ........................
@@ -8515,7 +8526,7 @@ Setup parameters for the procedure are:
 
 Parameter *crop*
   defaults to ``True``;
-  Cut away everything but the primary HDU?
+  Cut away everything but the primary HDU? (This is unconditionally suppresed for compressed FITSes and when operations are on a non-primary extension).
 
 //soda#fits_makeWCSParams
 .........................
@@ -8861,8 +8872,8 @@ To accomodate such situations, DaCHS allows to add an
 ``updating="True"`` attribute to a ``data`` element; updating DDs will
 create tables that do not exist but will not drop existing ones.
 
-Using fromdb on ignoresSources
-..............................
+Using fromdb on ignoreSources
+.............................
 
 Updating DDs will still run like normal DDs and thus import everything
 matching the DD's ``sources``.  Thus, after the second import you would
@@ -13312,6 +13323,18 @@ that are immediately accessible in the namespace:
   which probably is not what's given in this documentation.
   
 
+*getDatalinkMetaLink(dlSvc, accref)*
+  returns a datalink URL for the product referenced through accref
+  with the datalink service dlSvc.
+  
+  This assumes that dlSvc uses the standard DaCHS pubDIDs.  dlSvc
+  needs to be the service element.
+  
+  A typical use is in a metaMaker and would look like this::
+  
+    getDatalinkMetaLink(rd.getById("dl"), descriptor.accref)
+  
+
 *getFileStem(fPath)*
   returns the file stem of a file path.
   
@@ -14611,6 +14634,22 @@ profile will usually be a string naming a profile defined in
 ``GAVO_ROOT/etc``.
 
 
+Function getDatalinkMetaLink
+''''''''''''''''''''''''''''
+
+Signature: ``getDatalinkMetaLink(dlSvc, accref)``
+
+returns a datalink URL for the product referenced through accref
+with the datalink service dlSvc.
+
+This assumes that dlSvc uses the standard DaCHS pubDIDs.  dlSvc
+needs to be the service element.
+
+A typical use is in a metaMaker and would look like this::
+
+  getDatalinkMetaLink(rd.getById("dl"), descriptor.accref)
+
+
 Function getFileStem
 ''''''''''''''''''''
 
@@ -14775,6 +14814,20 @@ might need other tricks).  If your data comes from plain files, use
 this function.
 
 In a rowmaker, you'll usually use the \standardPubDID macro.
+
+
+Function getTableDefForTable
+''''''''''''''''''''''''''''
+
+Signature: ``getTableDefForTable(connection, tableName)``
+
+returns a TableDef object for a SQL table name.
+
+connection needs to be TableConnection of higher.
+
+This really has little to do with resolving identifiers, but
+this module already has getRDs and similar, so it seemed the least
+unnatural place.
 
 
 Function getWCSAxis
@@ -15293,7 +15346,6 @@ rscdef.Table); a ``StructureError`` will be raised if the reference
 resolves to something else than an instance of that type.
 
 ``id`` can also be a simple rd id.
-
 
 ``kwargs`` lets you pass additional keyword arguments to the ``getRD``
 calls that may be triggered by this.
@@ -16071,8 +16123,13 @@ Columns in tables available for ADQL querying.
   (text) -- Utype of column if any
 **datatype**
   (text) -- ADQL datatype
+**arraysize**
+  (text) -- Arraysize in VOTable notation
+**xtype**
+  (text) -- VOTable extended type information (for special
+  interpretation of data content, e.g., timestamps or points)
 **"size"**
-  (integer) -- Length of variable length datatypes
+  (integer) -- Legacy length (ignore if you can).
 **principal**
   (integer) -- Is column principal?
 **indexed**
@@ -16191,6 +16248,9 @@ Tables available for ADQL querying.
   (text) -- Brief description of the table
 **utype**
   (text) -- utype if the table corresponds to a data model
+**table_index**
+  (integer) -- Suggested position this table should take in a sorted
+  list of tables from this data center
 **sourceRD**
   (text) -- Id of the originating rd (local information)
 

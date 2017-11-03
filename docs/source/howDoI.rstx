@@ -2,7 +2,7 @@
 How Do I?
 =========
 
-Recipies and tricks for solving problems using GAVO DaCHS
+Recipes and tricks for solving problems using GAVO DaCHS
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 :Author: Markus Demleitner
@@ -167,15 +167,23 @@ plus above, for example, may be turned to a space if used in a URL.
 
 Thus, we discourage the use of such names, and if at all possible, you
 should try and use simpler names.  If, however, you insist on such
-names, you can simply write something::
+names, you can simply write something like::
 
    <rowfilter procDef="//products#define">
      <bind key="table">"\schema.newdata"</bind>
-    <bind key="accref">\inputRelativePath{True}</bind>
+     <bind key="accref">\inputRelativePath{True}</bind>
    </rowfilter>
 
 (plus whatever else you want to define for that rowfilter, of course) in
 the respective data element.
+
+Note that, at least as of DaCHS 1.0, due to postgres limitations this
+will generate a bad publisher DID in obscore.  To fix that, explicitly
+have a publisher DID column in your table and fill it with
+``getStandardPubDID(@accref)``.  Then pass that column to te obscore
+mixin's publisherDID parameter.  A non-annoying fix would require a
+urlencode function in postgres – which DaCHS could define, but we'd
+rather not.
 
 
 ...handle formats in which the first line is metadata?
@@ -1134,6 +1142,10 @@ starting shortly before the 1.0 release.
   you now always have to use multiplicity="multiple" in the input keys.
   Finally, just use inPars["parName"] throughout in your ``condDescs``
   to retrieve values, and you should be fine.
+* 1.0: If you previously used import pyfits, you *might* get away with
+  saying ``from astropy import wcs`` and replacing every occurrence
+  of pywcs with wcs.  On the other hand, the astropy API isn't quite
+  the same any more, so be sure to test things.
 
 
 ...upgrade the database engine?

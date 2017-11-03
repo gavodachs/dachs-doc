@@ -3564,15 +3564,18 @@ Simple FITS Datalink Services
 
 A fairly typical case for a datalink service is a file that has a few
 related datasets and perhaps a cutout.  To define such a thing, write
-something like::
+something like (cf. :samplerd:`lswscans/res/positions.rd`)::
 
   <service id="dl" allowed="dlget,dlmeta">
     <meta name="title">HDAP Datalink</meta>
     <meta name="description">This service lets you access cutouts
       from HDAP plates and retrieve scaled versions.</meta>
     <datalinkCore>
-       <FEED source="//soda#fits_standardDLFuncs"
-        accrefPrefix="lswscans"/>
+      <descriptorGenerator procDef="//soda#fits_genDesc">
+        <bind key="accrefPrefix">lswscans</bind>
+      </descriptorGenerator>
+       <FEED source="//soda#fits_standardDLFuncs"/>
+
       <metaMaker>
         <code>
           yield descriptor.makeLink(
@@ -3588,7 +3591,49 @@ something like::
 
 TODO: Explain what's going on here.
 
-TBC
+When you attach the datalink functionality (rather than having datalink
+links as access URLs), the following is the recommended pattern:
+
+(1) Add a pub_did column to the SIAP table.  Make sure you're giving it a
+    UCD of ``meta.id;meta.main`` and that you have no other such column
+    in your table::
+
+      <table id="data" onDisk="true" mixin="//siap#pgs">
+        <index columns="pub_did"/>
+        <column name="pub_did" type="text"
+          ucd="meta.id;meta.main"
+          tablehead="P. DID" 
+          description="Dataset identifier assigned by the publisher"
+          verbLevel="15"/>
+
+(2) Populate the ``pub_did`` column in the row maker::
+
+      <map key="pub_did">\standardPubDID</map>
+      
+(3) In the service that has the siap.xml renderer, declare datalink
+    support by setting the corresponding property to the id of the
+    datalink service (here assumed to be ``dl``)::
+
+      <service id="ssa" core="siacore" allowed="siap.xml">
+        <property name="datalink">dl</property>
+
+(4) If you have a form-based publication, hide the ``pub_did`` column
+    and rather make datalinks:
+
+      <service id="web" core="siacore">
+        ...
+        <outputTable>
+           <outputField name="dlurl" select="accref"
+            tablehead="Datalink Access"
+            description="URL of a datalink document for the dataset
+              (cutouts, different formats, etc)">
+            <formatter>
+              yield T.a(href=getDatalinkMetaLink(
+                rd.getById("dl"), data)
+                )["Datalink"]
+            </formatter>
+          </outputField>
+
 
 .. _large section on it: http://docs.g-vo.org/DaCHS/ref.html#datalink-cores
 
