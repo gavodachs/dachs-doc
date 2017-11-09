@@ -1255,6 +1255,18 @@ which goes over all RDs that have contributed metadata to TAP_SCHEMA and
 re-ingests that metadata.
 
 
+Two-Server Operation
+====================
+
+TODO::
+
+  listen_addresses = '*'  # in config
+  # pg_hba config
+  service postgresql restart
+  sudo -u postgres createuser -sP `id -nu`
+  createdb --encoding=UTF-8 gavo
+
+
 Upgrading
 =========
 

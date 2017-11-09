@@ -1275,6 +1275,8 @@ facility::
     </formatter>
   </outputField>
 
+Within the code, in addition do data, you see rd and queryMeta.
+
 May occur in `Element outputTable`_.
 
 Atomic Children
@@ -2223,6 +2225,12 @@ Properties evaluated:
   that's not done and only the service's output table is evaluated.
   [Note that column selection is such a mess it needs to be fixed
   before version 1.0 anyway]
+* datalink -- an id of an associated datalink service.  This 
+  will be turned into an adhoc:service resource that allows datalink-aware
+  clients to retrieve datalinks for the retrieved data.
+* datalinkIdColumnName -- the name of the column containing the identifier 
+  to pass to the associateDatalink service.  If you don't give it, DaCHS
+  will try to use a column with a meta.id;meta.main UCD or fail.
 
 May occur in `Element resource`_.
 
@@ -5942,8 +5950,8 @@ This mixin has the following parameters:
 
 
 Parameter *accessURL*
-  defaults to ``$COMPUTE``;
-  URL at which the product can be obtained. Leave at $COMPUTE for tables mixing in products.
+  defaults to ``accref``;
+  URL at which the product can be obtained. Leave as is for tables mixing in products.
 Parameter *calibLevel*
   defaults to ``0``;
   Calibration level of data, a number between 0 and 3; for details, see http://dc.g-vo.org/tableinfo/ivoa.obscore#note-calib
@@ -6071,8 +6079,8 @@ This mixin has the following parameters:
 
 
 Parameter *accessURL*
-  defaults to ``$COMPUTE``;
-  URL at which the product can be obtained. Leave at $COMPUTE for tables mixing in products.
+  defaults to ``accref``;
+  URL at which the product can be obtained. Leave as is for tables mixing in products.
 Parameter *calibLevel*
   defaults to ``0``;
   Calibration level of data, a number between 0 and 3; for details, see http://dc.g-vo.org/tableinfo/ivoa.obscore#note-calib
@@ -6210,8 +6218,8 @@ This mixin has the following parameters:
 
 
 Parameter *accessURL*
-  defaults to ``$COMPUTE``;
-  URL at which the product can be obtained. Leave at $COMPUTE for tables mixing in products.
+  defaults to ``accref``;
+  URL at which the product can be obtained. Leave as is for tables mixing in products.
 Parameter *calibLevel*
   defaults to ``0``;
   Calibration level of data, a number between 0 and 3; for details, see http://dc.g-vo.org/tableinfo/ivoa.obscore#note-calib
@@ -6347,8 +6355,8 @@ This mixin has the following parameters:
 
 
 Parameter *accessURL*
-  defaults to ``$COMPUTE``;
-  URL at which the product can be obtained. Leave at $COMPUTE for tables mixing in products.
+  defaults to ``accref``;
+  URL at which the product can be obtained. Leave as is for tables mixing in products.
 Parameter *calibLevel*
   defaults to ``0``;
   Calibration level of data, a number between 0 and 3; for details, see http://dc.g-vo.org/tableinfo/ivoa.obscore#note-calib
@@ -7325,6 +7333,18 @@ that basically communicate there are no reasonable limits on them):
  - sia.maxFileSize
  - sia.maxRecord (default dalHardLimit global meta)
 
+Properties supported by this renderer:
+
+ - datalink -- if present, this must be the id of a datalink service
+   that can work with the pubDIDs in this table.  Since SIAP doesn't
+   have a pubDID column by default, you have to manually add one
+   (see the tutorial).
+ - datalinkIdColumnName -- DaCHS will take the pubDIDs for datalink
+   from the column with the UCD meta.id;meta.main in the table.  If
+   no such table exists or if the UCD is not unique, you can give
+   the name of the column containing the pubDIDs in this property
+   (you should not need this).
+
 
 The siap2.xml Renderer
 ''''''''''''''''''''''
@@ -7390,14 +7410,14 @@ Other SSA metadata includes:
    SDM compliant spectra; otherwise don't say anything, DaCHS will fill
    in the right value.
 
-Services with this renderer can have a datalink property; if present, it
-must point to a datalink service producing SDM-compliant spectra; this
-is for doing cutouts and similar.
+Properties supported by this renderer:
 
-Services with ssap cores may also have a defaultRequest property.  By
-default, requests without a REQUEST parameter will be rejected.  If
-you set defaultRequest to querydata, such request will be processed
-as if REQUEST were given.
+ - datalink -- if present, this must be the id of a datalink service
+   that can work with the pubDIDs in this table 
+ - defaultRequest -- by default, requests without a REQUEST parameter 
+   will be rejected.  If you set defaultRequest to querydata, such 
+   requests will be processed as if REQUEST were given (which is of
+   course sane but is a violation of the standard).
 
 
 The static Renderer
@@ -7745,7 +7765,7 @@ Late parameter *instrument_host_name*
   Name of the observatory or spacecraft that the observation originated from; for ground-based data, use IAU observatory codes, http://www.minorplanetcenter.net/iau/lists/ObsCodesF.html, for space-borne instruments use http://nssdc.gsfc.nasa.gov/nmc/
 Late parameter *instrument_name*
   defaults to ``None``;
-  Service providers are invited to include multiple values for instrumentname, e.g., complete name + usual acronym. This will allow queries on either 'VISIBLE AND INFRARED THERMAL IMAGING SPECTROMETER' or VIRTIS to produce the same reply.
+  Service providers are invited to include multiple values for instrument_name, e.g., complete name + usual acronym. This will allow queries on either 'VISIBLE AND INFRARED THERMAL IMAGING SPECTROMETER' or VIRTIS to produce the same reply.
 Late parameter *measurement_type*
   defaults to ``None``;
   UCD(s) defining the data, with multiple entries separated by hash (#) characters.
@@ -7767,7 +7787,7 @@ Late parameter *release_date*
   Start of public access period
 Late parameter *s_region*
   defaults to ``None``;
-  ObsCore-like footprint, valid for celestial, spherical, or body-fixed frames.
+  A spatial footprint of a dataset located on a spherical coordinate system. Currently, this is fixed to be a spherical polygon (fill it with something like pgsphere.SPoly.fromDALI([@long1, @lat1, @long2, @lat2,...], all coordinates in degrees). You could use circles or MOCs here; contact the tool maintainers if you need that.
 Late parameter *service_title*
   defaults to ``None``;
   Title of resource (an acronym really, will be used to handle multiservice results)
@@ -8872,8 +8892,8 @@ To accomodate such situations, DaCHS allows to add an
 ``updating="True"`` attribute to a ``data`` element; updating DDs will
 create tables that do not exist but will not drop existing ones.
 
-Using fromdb on ignoreSources
-.............................
+Using fromdb on ignoresSources
+..............................
 
 Updating DDs will still run like normal DDs and thus import everything
 matching the DD's ``sources``.  Thus, after the second import you would
@@ -14456,6 +14476,9 @@ VOTableContexts optionally take
   - suppressNamespace=False to leave out a namespace declaration
     (mostly convenient for debugging)
   - overflowElement (see votable.tablewriter.OverflowElement)
+  - resourceProducers (a sequence of functions taking this context
+    and yielding additional resources; this is currently mainly used
+    for datalink)
 
 There's also an attribute produceVODML that will automatically be
 set for VOTable 1.4; you can set it to true manually, but the
@@ -14562,7 +14585,7 @@ ValueError: Invalid dms value with sepChar None: 'junk'
 Function formatData
 '''''''''''''''''''
 
-Signature: ``formatData(formatName, table, outputFile, acquireSamples=True)``
+Signature: ``formatData(formatName, table, outputFile, acquireSamples=True, **moreFormatterArgs)``
 
 writes a table to outputFile in the format given by key.
 
@@ -14575,6 +14598,10 @@ not recognized.  Note that you have to import the serialising modules
 from the format package to make the formats available (fitstable,
 csvtable, geojson, jsontable, texttable, votable; api itself already
 imports the more popular of these).
+
+If a client knows a certain formatter understands additional arguments,
+it can hand them in as keywords arguments.  This will raise an error
+if another formatter that doesn't understand the argument is being used.
 
 
 Function genLimitKeys

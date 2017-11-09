@@ -159,7 +159,7 @@ feeding the tables mixing in a given mixin.
   "//obscore#publishSIAP", "//slap#basic",
   "//ssap#sdm-instance", "//ssap#mixc",
   "//obscore#publishSSAPHCD", "//obscore#publishSSAPMIXC", 
-  "//epntap#table", "//epntap2#table-2_0",
+  "//epntap2#table-2_0",
   "//epntap2#localfile-2_0"])
 
 
@@ -214,7 +214,7 @@ Procedures available for rowmaker/parmaker apply
     "//siap#getBandFromFilter", 
     "//ssap#setMixcMeta", "//ssap#feedSSAToSDM",
     "//slap#fillBasic",
-    "//epntap#populate", "//epntap2#populate-2_0",
+    "//epntap2#populate-2_0",
     "//epntap2#populate-localfile-2_0",
     ])(docStructure)
 
@@ -4256,7 +4256,7 @@ dachsdoc
 dachsref 
   A text role generating a link into the reference documentation.  The 
   argument is a section header within the reference documentation, e.g.,
-  ``:dachsref:`//epntap#populate-2_0``` or 
+  ``:dachsref:`//epntap2#populate-2_0``` or 
   ``:dachsref:`the form renderer```.
 samplerd 
   A text role generating a link to an RD used by the GAVO data center
