@@ -128,6 +128,15 @@ Subsubcommands
 * ``suggestucds tableId`` -- Make suggestions for UCDs of the columns 
   of the referenced table (rd-id#table-id format) not having one.
   This is based on their descriptions and uses a GAVO web service.
+* ``dumpBinary rd-id#table-id fileName`` -- Writes a binary dump of
+  the referenced table to fileName
+    cleantap            remove expired UWS jobs
+* ``restore [-a] rd-id#table-id fileName`` -- Load data from a previously 
+  made (binary) dump; use ``adm dumpBinary`` to create such a dump. Indices 
+  will be re-made after the restore, but no scripts will be run.  With
+  ``-a``, the table will not be torn down before the copy in (which will
+  result in duplicated rows unless the table was emptied in between in
+  some other way).
 
 
 THE config SUBCOMMAND

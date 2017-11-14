@@ -4131,9 +4131,17 @@ the RD as ``table.rd.getById("some_id")``, and the recommended way to
 read stuff from the resource directory is
 ``table.rd.openRes("res/some_file)``.
 
-Some types of scripts may have additional names available.  Currently,
-newSource and sourceDone have the name sourceToken – which is the
-sourceToken as passed to the grammar.
+Some types of scripts may have additional names available.  Currently:
+
+* ``newSource`` and ``sourceDone`` have the name ``sourceToken``; this 
+  is the sourceToken as passed to the grammar; usually, that's the file
+  name that's parsed from, but other constellations are possible.
+* ``sourceDone`` has ``feeder`` -- that is the DaCHS-internal glue
+  to filling tables.  The main use of this is that you can call its
+  ``flush()`` method, followed by a ``table.commit()``.  This may be
+  interesting in updating grammars where you preserve what's already
+  imported.  Note, however, that this may come with a noticeable
+  performance penalty.
 
 Script types
 ''''''''''''

@@ -103,7 +103,7 @@ in a SIAP service in a different RD, would require something like::
 
 (use ``service`` elements if there are multiple services).
 
-Once you have done this, run ``gavo pub <rdid>``.  This causes all
+Once you have done this, run ``dachs pub <rdid>``.  This causes all
 publishable items in the RD to be published.  It also unpublishes
 everything that was published through the RD before and is no longer
 published.  If the ``[web]serverURL`` config item on the machine running gavo
@@ -216,7 +216,22 @@ resources, viz, your registry itself, the authority, and the
 organisation that's managing it.  These are predefined using the data
 you just filled in in the //services RD.  To publish them, you say::
 
-  gavo pub //services
+  dachs pub //services
+
+Depending on other services you're running, you may want to publish the
+following additional build-in resources::
+
+  # If you're publishing spectra, images, and the like, in particular
+  # if you produce pubDIDs
+  dachs pub //products
+  # If you run a TAP service
+  dachs pub //tap
+  # If you run a TAP service and want to point people to the built-in
+  # web interface
+  dachs pub //adql
+  # If you have an obscore service with images and want to also
+  # offer the material via SIAv2
+  dachs pub //siap2
 
 Creating an Organisation Record
 -------------------------------
@@ -291,7 +306,7 @@ is::
   </service>
 
 Of course, you will normally need to add further metadata as discussed
-above.  ``gavo pub`` should complain if there's metadata missing,
+above.  ``dachs pub`` should complain if there's metadata missing,
 though.
 
 The "services" can be fairly funky, actually; here's how GAVO registers
@@ -1265,6 +1280,7 @@ TODO::
   service postgresql restart
   sudo -u postgres createuser -sP `id -nu`
   createdb --encoding=UTF-8 gavo
+  dachs init -d "host=<hostname> user=<yourname> password=<pwd> dbname=gavo"
 
 
 Upgrading

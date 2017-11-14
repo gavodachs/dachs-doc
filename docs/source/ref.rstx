@@ -3217,8 +3217,8 @@ A user-defined external grammar.
 
 See the `separate document`_ on user-defined code on more on direct grammars.
 
-Also note the program gavomkboost that can help you generate core for
-the C boosters used by direct grammars.
+You will almost always use these in connection with C code generated
+by ``dachs mkboost``.
 
 .. _separate document: :dachsdoc:booster.html
 
@@ -5828,47 +5828,6 @@ mixins, there are predefined procedures (both rowmaker applys and
 grammar rowfilters) that should be used in grammars and/or rowmakers
 feeding the tables mixing in a given mixin.
 
-The //epntap#table Mixin
-''''''''''''''''''''''''
-
-
-This mixin defines a table suitable for publication via the
-EPN-TAP protocol, version 0.37.  For new services, use something
-newer (currently, //epntap2#table-2_0).
-
-According to the standard definition, tables mixing this in
-should be called ``epn_core``.  The mixin already arranges
-for the table to be accessible by ADQL and be on disk.
-
-This also causes the product table to be populated.
-This means that grammars feeding such tables need a 
-`//products#define`_ row filter.  At the very least, you need to say::
-
-  <rowfilter procDef="//products#define">
-    <bind name="table">"\schema.epn_core"</bind>
-  </rowfilter>
-
-Use the `//epntap#populate`_ apply in rowmakers
-feeding tables mixing this in.
-
-
-This mixin has the following parameters:
-
-
-Parameter *c1unit*
-  defaults to ``deg``;
-  Unit of the first spatial coordinate
-Parameter *c2unit*
-  defaults to ``deg``;
-  Unit of the second spatial coordinate
-Parameter *c3unit*
-  Unit of the third spatial coordinate
-Parameter *processing_level*
-  How processed is the data? This is a numerical code explained in the corresponding table footnote. In short: 1 -- Raw; 2 -- Edited; 3 -- Calibrated; 4 -- Resampled; 5 -- Derived; 6 -- Ancillary
-Parameter *spectralUCD*
-  defaults to ``>em.freq``;
-  UCD of the spectral axis (ignored for version 2.0
-
 The //epntap2#localfile-2_0 Mixin
 '''''''''''''''''''''''''''''''''
 
@@ -7528,164 +7487,6 @@ Predefined Procedures
 
 Procedures available for rowmaker/parmaker apply
 ''''''''''''''''''''''''''''''''''''''''''''''''
-
-//epntap#populate
-.................
-
-
-Sets metadata for an epntap version 0.37 data set, including 
-its products definition.
-
-The values are left in vars, so you need to do manual copying,
-e.g., using idmaps="*".
-
-
-Setup parameters for the procedure are:
-
-
-Late parameter *access_format*
-  The standard text proposes the standard names VOTable, Fits, CSV, ASCII, PDS, as well as image formats.
-Late parameter *access_md5*
-  defaults to ``None``;
-  MD5 hash of the file content.
-Late parameter *c1_max*
-  defaults to ``None``;
-  First coordinate (e.g., longitude, 'x', or right ascension), upper limit
-Late parameter *c1_min*
-  defaults to ``None``;
-  First coordinate (e.g., longitude, 'x', or right ascension), lower limit.
-Late parameter *c1_resol_max*
-  defaults to ``None``;
-  Resolution in the first coordinate, upper limit
-Late parameter *c1_resol_min*
-  defaults to ``None``;
-  Resolution in the first coordinate, lower limit.
-Late parameter *c2_max*
-  defaults to ``None``;
-  Second coordinate (e.g., latitude, 'y', or declination), upper limit
-Late parameter *c2_min*
-  defaults to ``None``;
-  Second coordinate (e.g., latitude, 'y', or declination), lower limit.
-Late parameter *c2_resol_max*
-  defaults to ``None``;
-  Resolution in the second coordinate, upper limit
-Late parameter *c2_resol_min*
-  defaults to ``None``;
-  Resolution in the second coordinate, lower limit.
-Late parameter *c3_max*
-  defaults to ``None``;
-  Third coordinate (e.g., height, 'z', or distance), upper limit
-Late parameter *c3_min*
-  defaults to ``None``;
-  Third coordinate (e.g., height, 'z', or distance), lower limit.
-Late parameter *c3_resol_max*
-  defaults to ``None``;
-  Resolution in the third coordinate, upper limit
-Late parameter *c3_resol_min*
-  defaults to ``None``;
-  Resolution in the third coordinate, lower limit.
-Late parameter *collection_id*
-  defaults to ``None``;
-  Identifier of the collection this piece of data belongs to
-Late parameter *dataproduct_type*
-  defaults to ``None``;
-  The high-level organization of the data product described (image, spectrum, etc)
-Late parameter *dataset_id*
-  defaults to ``"1"``;
-  Unless you understand the implications, leave this at the default. In particular, note that this is *not* a dataset id in the VO sense, so this should normally not be whatever standardPubDID generates.
-Late parameter *emergence_max*
-  defaults to ``None``;
-  Emergence angle during data acquisition, upper limit
-Late parameter *emergence_min*
-  defaults to ``None``;
-  Emergence angle during data acquisition, lower limit.
-Late parameter *incidence_max*
-  defaults to ``None``;
-  Incidence angle (solar zenithal angle) during data acquisition, upper limit
-Late parameter *incidence_min*
-  defaults to ``None``;
-  Incidence angle (solar zenithal angle) during data acquisition, lower limit.
-Late parameter *index_*
-  defaults to ``\rowsMade``;
-  A numeric reference for the item. By default, this is just the row number. As this will (usually) change when new data is added, you should override it with some unique integer number specific to the data product when there is such a thing.
-Late parameter *instrument_host_name*
-  Name of the observatory or spacecraft that the observation originated from; for ground-based data, use IAU observatory codes, http://www.minorplanetcenter.net/iau/lists/ObsCodesF.html, for space-borne instruments use http://nssdc.gsfc.nasa.gov/nmc/
-Late parameter *instrument_name*
-  defaults to ``None``;
-  Service providers are invited to include multiple values for instrumentname, e.g., complete name + usual acronym. This will allow queries on either 'VISIBLE AND INFRARED THERMAL IMAGING SPECTROMETER' or VIRTIS to produce the same reply.
-Late parameter *measurement_type*
-  defaults to ``None``;
-  UCD(s) defining the data, with multiple entries separated by space characters.
-Late parameter *phase_max*
-  defaults to ``None``;
-  Phase angle during data acquisition, upper limit
-Late parameter *phase_min*
-  defaults to ``None``;
-  Phase angle during data acquisition, lower limit.
-Late parameter *processing_level*
-  defaults to ``0``;
-  CODMAC calibration level (ignored for version 0.37)
-Late parameter *publisher*
-  defaults to ``None``;
-  A short string identifying the entity running the data service used.
-Late parameter *reference*
-  defaults to ``None``;
-  A bibcode or URL of a publication about the data.
-Late parameter *resource_type*
-  defaults to ``None``;
-  'granule' if the row describes a smallest element reachable in a service (e.g., a file), or 'dataset' for an aggregate of granules.
-Late parameter *sampling_step_max*
-  defaults to ``None``;
-  Separation between the centers of two adjacent filters or channels, upper limit
-Late parameter *sampling_step_min*
-  defaults to ``None``;
-  Separation between the centers of two adjacent filters or channels, lower limit.
-Late parameter *service_title*
-  defaults to ``None``;
-  The title of the data service producing this row.(an acronym really, will be used to handle multiservice results)
-Late parameter *spatial_frame_type*
-  Flavor of the coordinate system (this also fixes the meanings of c1, c2, and c3). Values defined by EPN-TAP include celestial, body, cartesian, cylindrical, spherical, healpix.
-Late parameter *spectral_range_max*
-  defaults to ``None``;
-  Spectral domain of the data, upper limit
-Late parameter *spectral_range_min*
-  defaults to ``None``;
-  Spectral domain of the data, lower limit.
-Late parameter *spectral_resolution_max*
-  defaults to ``None``;
-  FWHM of the instrument profile, upper limit
-Late parameter *spectral_resolution_min*
-  defaults to ``None``;
-  FWHM of the instrument profile, lower limit.
-Late parameter *target_class*
-  defaults to ``"UNKNOWN"``;
-  The type of the target; choose from asteroid, dwarf_planet, planet, satellite, comet, exoplanet, interplanetary_medium, ring, sample, sky, spacecraft, spacejunk, star
-Late parameter *target_name*
-  Name of the target object, preferably according to the official IAU nomenclature. As appropriate, take these from the exoplanet encyclopedia http://exoplanet.eu, the meteor catalog at http://www.lpi.usra.edu/meteor/, the catalog of stardust samples at http://curator.jsc.nasa.gov/stardust/catalog/
-Late parameter *target_region*
-  defaults to ``None``;
-  This is a complement to the target name to identify a substructure of the target that was being observed (e.g., Atmosphere, Surface). Take terms from them Spase dictionary at http://www.spase-group.org or the IVOA thesaurus.
-Late parameter *time_exp_max*
-  defaults to ``None``;
-  Integration time of the measurement, upper limit
-Late parameter *time_exp_min*
-  defaults to ``None``;
-  Integration time of the measurement, lower limit.
-Late parameter *time_max*
-  defaults to ``None``;
-  Acquisition stop time (as JD)
-Late parameter *time_min*
-  defaults to ``None``;
-  Acquisition start time (as JD)
-Late parameter *time_sampling_step_max*
-  defaults to ``None``;
-  Sampling time for measurements of dynamical phenomena, upper limit
-Late parameter *time_sampling_step_min*
-  defaults to ``None``;
-  Sampling time for measurements of dynamical phenomena, lower limit.
-Late parameter *time_scale*
-  defaults to ``"UNKNOWN"``;
-  Time scale used for the various times, as given by IVOA's STC data model. Choose from TT, TDB, TOG, TOB, TAI, UTC, GPS, UNKNOWN
 
 //epntap2#populate-2_0
 ......................
@@ -13869,7 +13670,7 @@ dachsdoc
 dachsref 
   A text role generating a link into the reference documentation.  The 
   argument is a section header within the reference documentation, e.g.,
-  ``:dachsref:`//epntap#populate-2_0``` or 
+  ``:dachsref:`//epntap2#populate-2_0``` or 
   ``:dachsref:`the form renderer```.
 samplerd 
   A text role generating a link to an RD used by the GAVO data center
