@@ -304,7 +304,7 @@ postgres databases on that particular system):
 
 (#) Create the database itself::
 
-       sudo -u postgres createdb --encoding=UTF-8 --locale=C gavo
+       sudo -u postgres createdb -Ttemplate0 --encoding=UTF-8 --locale=C gavo
 
 On Debian, the configuration files for this cluster are at
 ``/etc/postgresql/$PGVERSION/pgdata/``.
@@ -336,54 +336,7 @@ as employed by DaCHS, they travel through the net unencrypted anyway
 Connecting to a Remote Database
 '''''''''''''''''''''''''''''''
 
-If you already have a database and are fed up with playing around in the
-toy database we advised you to start with at the top of `Cluster
-Creation`_, you still need to prepare the database server.  You
-may need to edit pg_hba.conf on the remote side as discussed in
-`adapting pg_hba.conf`_ to allow password authenticated access from the
-host that runs DaCHS.  And, during initialization, you will need access
-to a superuser profile, in the following, admin::
-
-  gavo init -d "host=foo.bar user=admin password=secret"
-
-
-Adapting pg_hba.conf
-''''''''''''''''''''
-
-The default DaCHS configuration speaks to the server via TCP/IP.  Unless
-you give an option during gavo init below, it will try to connect to the
-server on 127.0.0.1.  This will work fairly well, but depending on usage
-details, you may gain some (or even quite a lot) performance if you let
-DaCHS talk to postgres via unix domain sockets (that, of course, only
-works if DaCHS and postgres are on the same server).  To do that, you
-must fix your ``pg_hba.conf``.  This is tricky, and we recommend you
-make your system run first and then try what's described here if you
-think you must.
-
-On Debian systems, the ``pg_hba.conf`` is in
-``/etc/postgresql/<version>/<cluster>/``, e.g.
-``/etc/postgresql/9.2/pgdata/`` if you created a new cluster by the
-abover recipe with postgres 9.2, or ``/etc/postgresql/8.4/main/`` in a
-default Debian cluster with postgres 8.4.  Other systems may have it in
-whacky places.
-
-Note that running a database server always is a security liability.  You
-should make sure you understand what the pg_hba.conf (in postgres'
-configuration directory) says.
-
-To let DaCHS access postgres via unix domain sockets, you must have a
-line like::
-
-  local   gavo        gavo,gavoadmin,untrusted          md5
-
-in pg_hba.conf, probably right below the line allowing the postgres user
-complete access (the order of lines in pg_hba.conf is significant); it
-allows password authentication for the three users above from the local
-machine.  To make the server use the new local connection, comment out
-the line for ``host`` in your ``rootDir/etc/dsn`` file (with a hash).
-
-You must restart the postgres server after you changed pg_hba.conf to
-make the server notice your changes.
+See :dachsdoc:`opguide.html#two-server-operation`.
 
 
 Configuration File

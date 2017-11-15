@@ -1273,14 +1273,54 @@ re-ingests that metadata.
 Two-Server Operation
 ====================
 
-TODO::
+When you want to run the database server on a different machine than the
+DaCHS server, the setup becomes a bit more involved.  First, you'll only
+install python-gavodachs (rather than gavodachs-server) on the
+application server.
 
-  listen_addresses = '*'  # in config
-  # pg_hba config
-  service postgresql restart
-  sudo -u postgres createuser -sP `id -nu`
-  createdb --encoding=UTF-8 gavo
-  dachs init -d "host=<hostname> user=<yourname> password=<pwd> dbname=gavo"
+Then, you need to configure the two servers to talk to each other
+Details depend on your setup, and you may want to apply extra hardening
+over what's below, but the following should get you started; it assumes
+the machine DaCHS runs on is called appserver.local, the database server
+is dbserver.local
+
+To enable remote queries on the database server, on that machine, do
+something like::
+
+  $ cd /etc/postgres/<version>/main
+  $ sudo vi posgresql.conf
+  # edit so that listen_addresses = '*'
+  # -- without that, the server only listens on the loopback address
+  $ sudo vi pg_hba config
+  # add a line like
+  # host    all             all             appserver.local/32      md5
+  # below the access line enabling access for 127.0.0.1
+  # you can be more restrictive (e.g., "gavo" instead of the first "all",
+  # but that's left as an exercise to the reader
+  $ sudo service postgresql restart
+  # the following assumes you have the same username on appserver and on
+  # dbserver, otherwise use the username on *appserver*.
+  $ sudo -u postgres createuser -sP `id -nu`
+  $ createdb -Ttemplate0 --encoding=UTF-8 --locale=C gavo
+
+After that, you have a database DaCHS can configure from your account
+on appserver, using the password you gave in the createuser step.
+
+To do that, on appserver say::
+
+  $ dachs init -d "host=dbserver.local user=<yourname> password=<pwd> dbname=gavo"
+
+After that, everything should work as in the one-machine case.
+
+Hint: do something like:
+
+  export PGHOST=dbserver.local
+  export PGUSER=<yourname>  (or gavoadmin, if you prefer)
+
+in your appserver's ``.bashrc`` (or equivalent), and ``psql gavo`` will
+give you a database shell on dbserver.  If you trust your appserver, you
+can even give your password in .pgpass.  But don't complain if this
+bites you later...
 
 
 Upgrading
