@@ -128,15 +128,6 @@ Subsubcommands
 * ``suggestucds tableId`` -- Make suggestions for UCDs of the columns 
   of the referenced table (rd-id#table-id format) not having one.
   This is based on their descriptions and uses a GAVO web service.
-* ``dumpBinary rd-id#table-id fileName`` -- Writes a binary dump of
-  the referenced table to fileName
-    cleantap            remove expired UWS jobs
-* ``restore [-a] rd-id#table-id fileName`` -- Load data from a previously 
-  made (binary) dump; use ``adm dumpBinary`` to create such a dump. Indices 
-  will be re-made after the restore, but no scripts will be run.  With
-  ``-a``, the table will not be torn down before the copy in (which will
-  result in duplicated rows unless the table was emptied in between in
-  some other way).
 
 
 THE config SUBCOMMAND
@@ -193,6 +184,83 @@ Options
 -s, --system
        drop tables even if they are system tables
 
+
+THE dump SUBCOMMAND
+===================
+
+Synopsis::
+
+         dachs dump [-h] {load,create,ls} ...
+
+This is an interface to dumping database tables and inspecting and
+restoring the generated dumps.
+
+This is mainly intended for small- to medium tables that are just kept
+in the database, e.g., DaCHS' administrative tables and the like.  For
+normal user tables, built from science data, doing re-imports is the
+recommended way to deal with data loss.
+
+In particular, this command is *not* designed (at this point) for really
+large tables.  For technical reasons (that could be overcome), currently
+the individual dumps are kept in memory during creation (but not during
+loading).
+
+Before loading, the target tables are dropped if they are already
+present; not that this will also drop any views they might be part of.
+After loading, indices and primary keys on the restored tables will be
+recreated, but no scripts or similar are run.  Hence, you will have to
+manually re-create any dependent resources after a restore.
+
+Subsubcommands
+--------------
+
+dump create
+'''''''''''
+
+Synopsis::
+
+      dachs dump create [-h] dumpFile ids [ids ...]
+
+Dump one or more tables to DaCHS' dump format.  When you pass in RD ids,
+all onDisk-tables defined in the RD will be dumped.
+
+Positional arguments:
+
+dumpFile 
+  Name of a file to write the dump to; use - to dump to stderr.
+ids 
+  ids of table definitions (as in myres/q#main) or RDs to dump.
+
+
+dump load
+'''''''''
+
+Synopsis::
+
+      dachs dump load [-h] source
+
+Restore table(s) from a file created by the ``dump create`` subcommand
+before
+
+Positional argument:
+
+source 
+  File to restore from. Use - to restore from stdin.
+
+dump ls
+'''''''
+
+Synopsis::
+
+      dachs dump ls [-h] source
+
+List tables and dump metadata from a DaCHS dump.
+
+Positional arguments:
+
+source 
+  source file to list
+  
 
 
 The import SUBCOMMAND
