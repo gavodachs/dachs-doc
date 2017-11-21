@@ -432,6 +432,34 @@ a while).
 
 .. _Registry of Registries: http://rofr.ivoa.net/
 
+Ensure There's a Backup of your Registry State
+----------------------------------------------
+
+From your file system, there's no way to figure out what you have
+published when.  To ensure that your registry stays consistent even when
+your database disappears, you should make sure that either you have a
+safe backup of your entire database (and no, backing up the files
+doesn't count, as that probably won't let you restore the thing) or,
+simpler, just add::
+
+  [db]
+    dumpSystemTables: True
+
+to your /etc/gavo.rc.  With that, DaCHS will every midnight dump the
+contents of the tables in //services and //users (which contain
+everything permanently operator-changable that doesn't go through imp)
+to ``$stateDir/systemtables.dump``.  You can restore this file using
+``dachs dump load`` in case of a disaster (in particular if you back it
+up off-site once more).
+
+Note that this will currently contain cleartext passwords of your site
+users (the stuff you added through ``dachs adm adduser``).  This doesn't
+hurt much over what's the case anyway, as the passwords are unencrypted
+in the database.  But it would still be bad if anyone used valuable
+passwords with DaCHS.  If you forsee that, implement password hashing
+and salting for DaCHS' user table or find someone to do that before
+going ahead.
+
 
 
 Adapting DaCHS for Your Site
