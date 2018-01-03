@@ -470,6 +470,13 @@ Options
        may  sometimes  be  desirable  with minor updates on an RD 
        that don't justify a re-publication to the VO.
 
+-u, --unpublish
+       Unpublishes all services ever published from this RD.  Note that
+       this will in general create "deleted records", i.e., essentially
+       empty resource records only stating that the resource referenced
+       by an identifier is no longer available.  This is important for
+       functioning 
+
 
 THE purge SUBCOMMAND
 ====================
