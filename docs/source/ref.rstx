@@ -354,6 +354,40 @@ Structure Children
 * phraseMaker (contains `Element phraseMaker`_) -- Code to generate
   custom SQL from the input keys
 
+Element coverage
+''''''''''''''''
+
+The coverage of a resource.
+
+For now, this is attached to the complete resource rather than the table,
+since this is where it sits in VOResource.  DaCHS *could* be a bit
+more flexible, allowing different coverages per publish element.  It
+is not right now, though.
+
+Note: Technically, this will introduce or amend the coverage meta
+element.  The information given here will be masked if you define
+a coverage meta on the service or table level.  Just do not do that.
+
+May occur in `Element resource`_.
+
+Atomic Children
+...............
+
+* **spatial** (unicode string; defaults to <Not given/empty>) -- A MOC
+  in ASCII representation giving the ICRS coverage of the resource
+* **spectral** (A sequence of intervals (a space-separated pair of
+  floats; defaults to u'[]') -- Interval(s) of spectral coverage, in
+  meters of BARYCENTER vacuum wavelength.
+* **temporal** (A sequence of intervals (a space-separated pair of
+  floats; defaults to u'[]') -- Interval(s) of temporal coverage, in
+  MJD (for TT BARYCENTER).
+
+Structure Children
+..................
+
+* updater (contains `Element updater`_) -- Rules for automatic
+  computation or updating of coverage information.
+
 Element customDF
 ''''''''''''''''
 
@@ -2033,6 +2067,8 @@ Structure Children
   re,uploadCore,productCore,tapCore,customCore,ssapCore,nullCore and
   may be repeated zero or more times) -- Cores available in this
   resource.
+* coverage (contains `Element coverage`_) -- STC coverage of this
+  resource.
 * dds (contains `Element data`_ and may be repeated zero or more
   times) -- Descriptors for the data generated and/or published within
   this resource.
@@ -2473,6 +2509,31 @@ Other Children
 
 Macros predefined here: `Macro RSTservicelink`_, `Macro RSTtable`_, `Macro colNames`_, `Macro curtable`_, `Macro decapitalize`_, `Macro getConfig`_, `Macro getParam`_, `Macro internallink`_, `Macro magicEmpty`_, `Macro metaString`_, `Macro nameForUCD`_, `Macro nameForUCDs`_, `Macro qName`_, `Macro quote`_, `Macro rdId`_, `Macro rdIdDotted`_, `Macro schema`_, `Macro sqlquote`_, `Macro tablename`_, `Macro test`_, `Macro today`_, `Macro upper`_, `Macro urlquote`_
 
+Element updater
+'''''''''''''''
+
+Information on where and how to update a piece of coverage information.
+
+May occur in `Element coverage`_.
+
+Atomic Children
+...............
+
+* **mocOrder** (integer; defaults to '6') -- Maximal HEALpix order to
+  use in coverage MOCs (6 is about a degree resolution, each
+  additional point doubles resolution).
+* **sourceTable** (id reference; defaults to <Not given/empty>) -- A
+  table from which to compute coverage by default.
+* **spaceTable** (id reference; defaults to <Not given/empty>) -- A
+  table from which to compute spatial coverage (overrides
+  sourceTable).
+* **spectralTable** (id reference; defaults to <Not given/empty>) -- A
+  table from which to compute spectral coverage (overrides
+  sourceTable)
+* **timeTable** (id reference; defaults to <Not given/empty>) -- A
+  table from which to compute temporal coverage (overrides
+  sourceTable)
+
 Element url
 '''''''''''
 
@@ -2555,7 +2616,7 @@ Hence, the main utility of values is metadata declaration, both
 in the form render (where they become placeholders) and in datalink
 (where they are communicated as VOTable values).
 
-May occur in `Element param`_, `Element column`_, `Element outputField`_, `Element inputKey`_.
+May occur in `Element param`_, `Element column`_, `Element inputKey`_, `Element outputField`_.
 
 Atomic Children
 ...............
@@ -4763,6 +4824,12 @@ structures.  Hence, a metaMaker returning an InputKey could look like this::
 
 (of course, you should give more metadata -- ucds, better description,
 etc) in production).
+
+It's ok to yield None; this will suppress a Datalink and is convenient
+when some component further down figures out that a link doesn't exist
+(e.g., because a file isn't there).  Note that in many cases, it's
+more helpful to client components to handle such situations by
+yielding a DatalinkFault.NotFoundFault.
 
 In addition to the usual names available to ProcApps, meta makers have:
   - MS -- function to make DaCHS structures
@@ -8693,8 +8760,8 @@ To accomodate such situations, DaCHS allows to add an
 ``updating="True"`` attribute to a ``data`` element; updating DDs will
 create tables that do not exist but will not drop existing ones.
 
-Using fromdb on ignoresSources
-..............................
+Using fromdb on ignoreSources
+.............................
 
 Updating DDs will still run like normal DDs and thus import everything
 matching the DD's ``sources``.  Thus, after the second import you would
@@ -11567,6 +11634,12 @@ File size and media type type, which otherwise should be given
 when constructing a ``LinkDef``, then default to what's inferrable from
 the file (name).
 
+``makeLinkFromFile`` will create ``NotFoundFault`` error links if the
+file does not exist, thus alerting the user (and possibly you) that an
+expected file was not there.  When missing files are expectable and
+should not cause diagnostics, pass a ``suppressMissing=True`` to
+``makeLinkFromFile``.
+
 Another recommended pattern is used in the example: the datalink service
 itself is used to deliver the static, non-product files.  This is
 effected by declaring the service embedding the core somewhat like
@@ -13545,9 +13618,17 @@ the RD as ``table.rd.getById("some_id")``, and the recommended way to
 read stuff from the resource directory is
 ``table.rd.openRes("res/some_file)``.
 
-Some types of scripts may have additional names available.  Currently,
-newSource and sourceDone have the name sourceToken – which is the
-sourceToken as passed to the grammar.
+Some types of scripts may have additional names available.  Currently:
+
+* ``newSource`` and ``sourceDone`` have the name ``sourceToken``; this 
+  is the sourceToken as passed to the grammar; usually, that's the file
+  name that's parsed from, but other constellations are possible.
+* ``sourceDone`` has ``feeder`` -- that is the DaCHS-internal glue
+  to filling tables.  The main use of this is that you can call its
+  ``flush()`` method, followed by a ``table.commit()``.  This may be
+  interesting in updating grammars where you preserve what's already
+  imported.  Note, however, that this may come with a noticeable
+  performance penalty.
 
 Script types
 ''''''''''''
@@ -13754,7 +13835,7 @@ what you've written.
 Here is an alphabetical list of the documented API functions:
 
 Class ADQLTAPJob
-''''''''''''''''
+................
 
 A facade for an ADQL-based async TAP job.
 
@@ -13769,7 +13850,7 @@ See :dachsdoc:`adql.html` for details.
 
 
 Class AnetHeaderProcessor
-'''''''''''''''''''''''''
+.........................
 
 A file processor for calibrating FITS frames using astrometry.net.
 
@@ -13793,7 +13874,7 @@ See :dachsdoc:`processors#astrometry-net` for details.
 
 
 Class Authenticate
-''''''''''''''''''
+..................
 
 raised to initiate an authentication request.
 
@@ -13803,7 +13884,7 @@ will be used.
 
 
 Class BadCode
-'''''''''''''
+.............
 
 is raised when some code could not be compiled.
 
@@ -13812,14 +13893,14 @@ the original exception, and optionally a hint and a position.
 
 
 Class Binding
-'''''''''''''
+.............
 
 
 OpenSSL API wrapper.
 
 
 Class CannotComputeHeader
-'''''''''''''''''''''''''
+.........................
 
 is raised when no FITS header was generated by a HeaderProcessor.
 
@@ -13827,7 +13908,7 @@ Specifically, this is what gets raised when ``_getHeader`` returns ``None``.
 
 
 Core
-''''
+....
 
 A definition of the "active" part of a service.
 
@@ -13841,12 +13922,12 @@ cores in RDs.
 
 
 Class DBError
-'''''''''''''
+.............
 
 Base class for error exceptions.
 
 Class DBTable
-'''''''''''''
+.............
 
 An interface to a table in the database.
 
@@ -13884,22 +13965,22 @@ The main attributes (with API guarantees) include:
 
 
 Constant DEG
-''''''''''''
+............
 
 A constant, valued 0.0174532925199
 
 Constant DEG_ARCSEC
-'''''''''''''''''''
+...................
 
 A constant, valued 0.000277777777778
 
 Constant DEG_MAS
-''''''''''''''''
+................
 
 A constant, valued 2.77777777778e-07
 
 Class Data
-''''''''''
+..........
 
 A collection of tables.
 
@@ -13911,7 +13992,7 @@ table built.
 
 
 Class DataError
-'''''''''''''''
+...............
 
 is raised when something is wrong with a data set.
 
@@ -13919,7 +14000,7 @@ When facing the web, these yield HTTP status 406.
 
 
 Class Error
-'''''''''''
+...........
 
 The base class for all exceptions that can be expected to escape
 a module.
@@ -13928,7 +14009,7 @@ Apart from the normal message, you can give a ``hint`` constructor argument.
 
 
 Class FileProcessor
-'''''''''''''''''''
+...................
 
 An abstract base for a source file processor.
 
@@ -13944,13 +14025,13 @@ discussed in :dachsdoc:`processing.html`.
 
 
 Class ForbiddenURI
-''''''''''''''''''
+..................
 
 raised to generate an HTTP 403 response.
 
 
 Class HeaderProcessor
-'''''''''''''''''''''
+.....................
 
 A base for processors doing FITS header manipulations.
 
@@ -13987,14 +14068,14 @@ All this leads to the messy logic.  Sorry 'bout this.
 
 
 Class IgnoreThisRow
-'''''''''''''''''''
+...................
 
 can be raised by user code to indicate that a row should be
 skipped when building a table.
 
 
 Class ImmediateHeaderProcessor
-''''''''''''''''''''''''''''''
+..............................
 
 An base for processors doing simple FITS manipulations to the primary
 FITS header.
@@ -14011,17 +14092,17 @@ that you can check before applying them.
 
 
 Class IntegrityError
-''''''''''''''''''''
+....................
 
 Error related to database integrity.
 
 Constant LIGHT_C
-''''''''''''''''
+................
 
 A constant, valued 299792458.0
 
 Class LiteralParseError
-'''''''''''''''''''''''
+.......................
 
 is raised if an attribute literal is somehow bad.
 
@@ -14031,7 +14112,7 @@ parse position and a hint.
 
 
 Function MS
-'''''''''''
+...........
 
 Signature: ``MS(structClass, **kwargs)``
 
@@ -14047,13 +14128,13 @@ this::
 
 
 Class NoMetaKey
-'''''''''''''''
+...............
 
 is raised when a meta key does not exist (and raiseOnFail is True).
 
 
 Class NotFoundError
-'''''''''''''''''''
+...................
 
 is raised when something is asked for something that does not exist.
 
@@ -14062,7 +14143,7 @@ that may be long.
 
 
 OutputTableDef
-''''''''''''''
+..............
 
 A table that has outputFields for columns.
 
@@ -14077,12 +14158,12 @@ votableRespectsOutputTable property to True.
 
 
 Constant PLANCK_H
-'''''''''''''''''
+.................
 
 A constant, valued 6.62607004e-34
 
 Class PlainUI
-'''''''''''''
+.............
 
 An Observer spitting out most info to the screen.
 
@@ -14090,7 +14171,7 @@ This is to configure the UI.  Enable it by calling ``api.PlainUI(api.ui)``.
 
 
 Class PreviewMaker
-''''''''''''''''''
+..................
 
 A file processor for generating previews.
 
@@ -14099,7 +14180,7 @@ the raw preview data.
 
 
 RD
-''
+..
 
 A resource descriptor.
 
@@ -14111,13 +14192,13 @@ In DaCHS' RD XML serialisation, they correspond to the root element.
 
 
 Class RDNotFound
-''''''''''''''''
+................
 
 is raised when an RD cannot be located.
 
 
 Class ReportableError
-'''''''''''''''''''''
+.....................
 
 is raised when something decides it can come up with an error message
 that should be presented to the user as-is.
@@ -14127,7 +14208,7 @@ The content should be treated as a unicode string.
 
 
 Class SeeOther
-''''''''''''''
+..............
 
 raised to redirect a user agent to a different resource (HTTP 303).
 
@@ -14139,7 +14220,7 @@ instead of a 301.
 
 
 Class SourceParseError
-''''''''''''''''''''''
+......................
 
 is raised when some syntax error occurs during a source parse.
 
@@ -14149,7 +14230,7 @@ call.
 
 
 Class StingyPlainUI
-'''''''''''''''''''
+...................
 
 An Observer swallowing infos, warnings, and the like.
 
@@ -14158,7 +14239,7 @@ This is to configure the UI.  Enable it by calling
 
 
 Class StructureError
-''''''''''''''''''''
+....................
 
 is raised if an error occurs during the construction of
 structures.
@@ -14174,7 +14255,7 @@ Thus, you're probably well advised to leave it blank.
 
 
 Function TAItoTT
-''''''''''''''''
+................
 
 Signature: ``TAItoTT(tai)``
 
@@ -14182,7 +14263,7 @@ returns TDT for a (datetime.datetime) TAI.
 
 
 Function TTtoTAI
-''''''''''''''''
+................
 
 Signature: ``TTtoTAI(tdt)``
 
@@ -14190,7 +14271,7 @@ returns TAI for a (datetime.datetime) TDT.
 
 
 TableDef
-''''''''
+........
 
 A definition of a table, both on-disk and internal.
 
@@ -14209,7 +14290,7 @@ URIs must be identical (in particular, each name needs a URI).
 
 
 Function TableForDef
-''''''''''''''''''''
+....................
 
 Signature: ``TableForDef(tableDef, suppressIndex=False, parseOptions=<ParseOptions validateRows=False maxRows=None keepGoing=False>, **kwargs)``
 
@@ -14227,13 +14308,13 @@ See the `function getParseOptions`_ for what you can pass in as
 
 
 Class UnknownURI
-''''''''''''''''
+................
 
 raised to generate an HTTP 404 response.
 
 
 Class UnmanagedQuerier
-''''''''''''''''''''''
+......................
 
 A simple interface to querying the database through a connection
 managed by someone else.
@@ -14256,7 +14337,7 @@ Documented ones include:
 
 
 Class VOTableContext
-''''''''''''''''''''
+....................
 
 A context object for writing VOTables.
 
@@ -14290,13 +14371,13 @@ that's the modelsUsed dictionary, mapping prefix -> dm.Model instances
 
 
 Class VOTableError
-''''''''''''''''''
+..................
 
 The base class of VOTable-related errors.
 
 
 Class ValidationError
-'''''''''''''''''''''
+.....................
 
 is raised when the validation of a field fails.  
 
@@ -14305,7 +14386,7 @@ and optionally a row (i.e., a dict) and a hint.
 
 
 Class WebRedirect
-'''''''''''''''''
+.................
 
 raised to redirect a user agent to a different resource (HTTP 301).
 
@@ -14314,7 +14395,7 @@ relative (to webRoot) or absolute (starting with http).
 
 
 Function bYearToDateTime
-''''''''''''''''''''''''
+........................
 
 Signature: ``bYearToDateTime(bYear)``
 
@@ -14324,7 +14405,7 @@ This uses the formula given by Lieske, J.H., A&A 73, 282 (1979).
 
 
 Function computeMean
-''''''''''''''''''''
+....................
 
 Signature: ``computeMean(val1, val2)``
 
@@ -14339,8 +14420,19 @@ Beware: Integer division done here for the benefit of datetime calculations.
 datetime.datetime(2000, 10, 12, 12, 0)
 
 
+Function createDump
+...................
+
+Signature: ``createDump(tableIds, destFile)``
+
+writes a DaCHS dump of tableIds to destFile.
+
+tableIds is a list of rd-id#table-id identifiers (all must resolve),
+destFile is a file object opened for writing.
+
+
 Function dateTimeToJYear
-''''''''''''''''''''''''
+........................
 
 Signature: ``dateTimeToJYear(dt)``
 
@@ -14348,7 +14440,7 @@ returns a fractional (julian) year for a datetime.datetime instance.
 
 
 Function dateTimeToJdn
-''''''''''''''''''''''
+......................
 
 Signature: ``dateTimeToJdn(dt)``
 
@@ -14357,7 +14449,7 @@ instance.
 
 
 Function dateTimeToMJD
-''''''''''''''''''''''
+......................
 
 Signature: ``dateTimeToMJD(dt)``
 
@@ -14365,7 +14457,7 @@ returns a modified julian date for a datetime instance.
 
 
 Function dmsToDeg
-'''''''''''''''''
+.................
 
 Signature: ``dmsToDeg(dmsAngle, sepChar=None)``
 
@@ -14384,7 +14476,7 @@ ValueError: Invalid dms value with sepChar None: 'junk'
 
 
 Function formatData
-'''''''''''''''''''
+...................
 
 Signature: ``formatData(formatName, table, outputFile, acquireSamples=True, **moreFormatterArgs)``
 
@@ -14405,8 +14497,31 @@ it can hand them in as keywords arguments.  This will raise an error
 if another formatter that doesn't understand the argument is being used.
 
 
+Function formatISODT
+....................
+
+Signature: ``formatISODT(dt)``
+
+returns some ISO8601 representation of a datetime instance.
+
+The reason for preferring this function over a simple str is that
+datetime's default representation is too difficult for some other
+code (e.g., itself); hence, this code suppresses any microsecond part
+and always adds a Z (where strftime works, utils.isoTimestampFmt produces
+an identical string).
+
+The behaviour of this function for timezone-aware datetimes is undefined.
+
+For convenience, None is returned as None
+
+>>> formatISODT(datetime.datetime(2015, 10, 20, 12, 34, 22, 250))
+'2015-10-20T12:34:22Z'
+>>> formatISODT(datetime.datetime(1815, 10, 20, 12, 34, 22, 250))
+'1815-10-20T12:34:22Z'
+
+
 Function genLimitKeys
-'''''''''''''''''''''
+.....................
 
 Signature: ``genLimitKeys(inputKey)``
 
@@ -14420,7 +14535,7 @@ Don't use this function any more.  It will go away soon.
 
 
 Function getAccrefFromStandardPubDID
-''''''''''''''''''''''''''''''''''''
+....................................
 
 Signature: ``getAccrefFromStandardPubDID(pubdid, authBase=u'ivo://org.gavo.dc/~?')``
 
@@ -14437,7 +14552,7 @@ which probably is not what's given in this documentation.
 
 
 Function getAsVOTable
-'''''''''''''''''''''
+.....................
 
 Signature: ``getAsVOTable(data, ctx=None, **kwargs)``
 
@@ -14447,7 +14562,7 @@ returns a string containing a VOTable representation of data.
 
 
 Function getDBConnection
-''''''''''''''''''''''''
+........................
 
 Signature: ``getDBConnection(profile, debug=False, autocommitted=False)``
 
@@ -14463,7 +14578,7 @@ profile will usually be a string naming a profile defined in
 
 
 Function getDatalinkMetaLink
-''''''''''''''''''''''''''''
+............................
 
 Signature: ``getDatalinkMetaLink(dlSvc, accref)``
 
@@ -14479,7 +14594,7 @@ A typical use is in a metaMaker and would look like this::
 
 
 Function getFileStem
-''''''''''''''''''''
+....................
 
 Signature: ``getFileStem(fPath)``
 
@@ -14499,7 +14614,7 @@ except up to one of some common compression extensions (.gz, .xz, .bz2,
 
 
 Function getFlatName
-''''''''''''''''''''
+....................
 
 Signature: ``getFlatName(accref)``
 
@@ -14510,7 +14625,7 @@ slashes.  This is used to, e.g., keep all previews in one directory.
 
 
 Function getFormatted
-'''''''''''''''''''''
+.....................
 
 Signature: ``getFormatted(formatName, table, acquireSamples=False)``
 
@@ -14522,7 +14637,7 @@ This function will use large amounts of memory for large data.
 
 
 Function getInputsRelativePath
-''''''''''''''''''''''''''''''
+..............................
 
 Signature: ``getInputsRelativePath(absPath, liberalChars=True)``
 
@@ -14536,7 +14651,7 @@ In rowmakers and rowfilters, you'll usually use the macro
 
 
 Function getMetaText
-''''''''''''''''''''
+....................
 
 Signature: ``getMetaText(ob, key, default=None, **kwargs)``
 
@@ -14555,7 +14670,7 @@ argument.
 
 
 Function getParseOptions
-''''''''''''''''''''''''
+........................
 
 Signature: ``getParseOptions(validateRows=True, doTableUpdates=False, batchSize=1024, maxRows=None, keepGoing=False, dropIndices=False, dumpRows=False, metaOnly=False, buildDependencies=True, systemImport=False, commitAfterMeta=False, dumpIngestees=False)``
 
@@ -14578,7 +14693,7 @@ while building the dependencies themselves.
 
 
 Function getQueryMeta
-'''''''''''''''''''''
+.....................
 
 Signature: ``getQueryMeta()``
 
@@ -14589,7 +14704,7 @@ to, e.g., enforce match limits by writing getQueryMeta()["dbLimit"].
 
 
 Function getReferencedElement
-'''''''''''''''''''''''''''''
+.............................
 
 Signature: ``getReferencedElement(refString, forceType=None, **kwargs)``
 
@@ -14609,7 +14724,7 @@ This supports further keyword arguments to getRD.
 
 
 Function getRelativePath
-''''''''''''''''''''''''
+........................
 
 Signature: ``getRelativePath(fullPath, rootPath, liberalChars=True)``
 
@@ -14622,7 +14737,7 @@ similar) are present in the result.  This is mainly for products.
 
 
 Function getStandardPubDID
-''''''''''''''''''''''''''
+..........................
 
 Signature: ``getStandardPubDID(path)``
 
@@ -14645,7 +14760,7 @@ In a rowmaker, you'll usually use the \standardPubDID macro.
 
 
 Function getTableDefForTable
-''''''''''''''''''''''''''''
+............................
 
 Signature: ``getTableDefForTable(connection, tableName)``
 
@@ -14659,7 +14774,7 @@ unnatural place.
 
 
 Function getWCSAxis
-'''''''''''''''''''
+...................
 
 Signature: ``getWCSAxis(header, axisIndex, forceSeparable=False)``
 
@@ -14679,7 +14794,7 @@ a DaCHS-specific implementation).  We'll extend it on request.
 
 
 Function getXMLTree
-'''''''''''''''''''
+...................
 
 Signature: ``getXMLTree(xmlString, debug=False)``
 
@@ -14693,7 +14808,7 @@ might want to think again before you use this in production code.
 
 
 Function hmsToDeg
-'''''''''''''''''
+.................
 
 Signature: ``hmsToDeg(hms, sepChar=None)``
 
@@ -14711,7 +14826,7 @@ ValueError: Invalid time with sepChar None: 'junk'
 
 
 Function iterSimpleText
-'''''''''''''''''''''''
+.......................
 
 Signature: ``iterSimpleText(f)``
 
@@ -14739,7 +14854,7 @@ The grammar rules are, specifically:
 
 
 Function jYearToDateTime
-''''''''''''''''''''''''
+........................
 
 Signature: ``jYearToDateTime(jYear)``
 
@@ -14749,7 +14864,7 @@ This refers to time specifications like J2001.32.
 
 
 Function jdnToDateTime
-''''''''''''''''''''''
+......................
 
 Signature: ``jdnToDateTime(jd)``
 
@@ -14757,7 +14872,7 @@ returns a ``datetime.datetime`` instance for a julian day number.
 
 
 Function killBlanks
-'''''''''''''''''''
+...................
 
 Signature: ``killBlanks(literal)``
 
@@ -14769,7 +14884,7 @@ Nones are passed through.
 
 
 Function lastSourceElements
-'''''''''''''''''''''''''''
+...........................
 
 Signature: ``lastSourceElements(path, numElements)``
 
@@ -14777,7 +14892,7 @@ returns a path made up from the last ``numElements`` items in ``path``.
 
 
 Function loadPythonModule
-'''''''''''''''''''''''''
+.........................
 
 Signature: ``loadPythonModule(fqName, relativeTo=None)``
 
@@ -14807,7 +14922,7 @@ import mod.
 
 
 Function makeAbsoluteURL
-''''''''''''''''''''''''
+........................
 
 Signature: ``makeAbsoluteURL(path)``
 
@@ -14815,7 +14930,7 @@ returns a fully qualified URL for a rooted local part.
 
 
 Function makeData
-'''''''''''''''''
+.................
 
 Signature: ``makeData(dd, parseOptions=<ParseOptions validateRows=False maxRows=None keepGoing=False>, forceSource=None, connection=None, data=None, runCommit=True)``
 
@@ -14837,7 +14952,7 @@ makes sense if you want to, e.g., add some meta information up front.
 
 
 Function makeDependentsFor
-''''''''''''''''''''''''''
+..........................
 
 Signature: ``makeDependentsFor(dds, parseOptions, connection)``
 
@@ -14845,7 +14960,7 @@ rebuilds all data dependent on one of the DDs in the dds sequence.
 
 
 Function makeProductLink
-''''''''''''''''''''''''
+........................
 
 Signature: ``makeProductLink(key, withHost=True)``
 
@@ -14855,7 +14970,7 @@ key can be an accref string or an RAccref
 
 
 Function makeSitePath
-'''''''''''''''''''''
+.....................
 
 Signature: ``makeSitePath(path)``
 
@@ -14866,7 +14981,7 @@ for clarity but not mandatory.
 
 
 Function makeStruct
-'''''''''''''''''''
+...................
 
 Signature: ``makeStruct(structClass, **kwargs)``
 
@@ -14882,7 +14997,7 @@ this::
 
 
 Function makeTimestamp
-''''''''''''''''''''''
+......................
 
 Signature: ``makeTimestamp(date, time)``
 
@@ -14890,7 +15005,7 @@ makes a datetime instance from a date and a time.
 
 
 Function mjdToDateTime
-''''''''''''''''''''''
+......................
 
 Signature: ``mjdToDateTime(mjd)``
 
@@ -14901,7 +15016,7 @@ to jd.
 
 
 Function parseAngle
-'''''''''''''''''''
+...................
 
 Signature: ``parseAngle(literal, format, sepChar=None)``
 
@@ -14920,7 +15035,7 @@ specify what separates hours/degrees, minutes, and seconds.
 
 
 Function parseBooleanLiteral
-''''''''''''''''''''''''''''
+............................
 
 Signature: ``parseBooleanLiteral(literal)``
 
@@ -14931,7 +15046,7 @@ some capitalization.
 
 
 Function parseCooPair
-'''''''''''''''''''''
+.....................
 
 Signature: ``parseCooPair(soup)``
 
@@ -14963,7 +15078,7 @@ ValueError: QSO2230+44.3 has no discernible position in it
 
 
 Function parseDate
-''''''''''''''''''
+..................
 
 Signature: ``parseDate(literal, format='%Y-%m-%d')``
 
@@ -14975,7 +15090,7 @@ The function understands the special ``dateFormat`` ``!!jYear``
 
 
 Function parseFloat
-'''''''''''''''''''
+...................
 
 Signature: ``parseFloat(literal)``
 
@@ -14994,7 +15109,7 @@ ValueError: could not convert string to float: wobbadobba
 
 
 Function parseFromString
-''''''''''''''''''''''''
+........................
 
 Signature: ``parseFromString(rootStruct, inputString, context=None)``
 
@@ -15007,7 +15122,7 @@ this::
 
 
 Function parseISODT
-'''''''''''''''''''
+...................
 
 Signature: ``parseISODT(literal)``
 
@@ -15034,7 +15149,7 @@ ValueError: Bad ISO datetime literal: junk (required format: yyyy-mm-ddThh:mm:ss
 
 
 Function parseInt
-'''''''''''''''''
+.................
 
 Signature: ``parseInt(literal)``
 
@@ -15048,13 +15163,13 @@ string.
 
 
 parseNonValidating
-''''''''''''''''''
+..................
 
 see `function getParseOptions`_ .
 
 
 Function parseSPoint
-''''''''''''''''''''
+....................
 
 Signature: ``parseSPoint(soup)``
 
@@ -15065,7 +15180,7 @@ The coordinate pair can be formatted in a variety of ways; see the
 
 
 Function parseTime
-''''''''''''''''''
+..................
 
 Signature: ``parseTime(literal, format='%H:%M:%S')``
 
@@ -15086,7 +15201,7 @@ datetime.timedelta(0, 72240)
 
 
 Function parseTimestamp
-'''''''''''''''''''''''
+.......................
 
 Signature: ``parseTimestamp(literal, format='%Y-%m-%dT%H:%M:%S')``
 
@@ -15098,13 +15213,13 @@ a parse with essentially DALI-standard ISO representation is always tried)
 
 
 parseValidating
-'''''''''''''''
+...............
 
 see `function getParseOptions`_ .
 
 
 Function parseWithNull
-''''''''''''''''''''''
+......................
 
 Signature: ``parseWithNull(literal, baseParser, nullLiteral=<Undefined>, default=None, checker=None)``
 
@@ -15128,7 +15243,7 @@ None
 
 
 Function procmain
-'''''''''''''''''
+.................
 
 Signature: ``procmain(processorClass, rdId, ddId)``
 
@@ -15141,7 +15256,7 @@ See :dachsdoc:`processors.html` for details.
 
 
 Function quoteProductKey
-''''''''''''''''''''''''
+........................
 
 Signature: ``quoteProductKey(key)``
 
@@ -15154,7 +15269,7 @@ in any case.
 
 
 Function requireValue
-'''''''''''''''''''''
+.....................
 
 Signature: ``requireValue(val, fieldName)``
 
@@ -15163,7 +15278,7 @@ for ``fieldName`` will be raised.
 
 
 Function resolveCrossId
-'''''''''''''''''''''''
+.......................
 
 Signature: ``resolveCrossId(id, forceType=None, **kwargs)``
 
@@ -15179,8 +15294,24 @@ resolves to something else than an instance of that type.
 calls that may be triggered by this.
 
 
+Function restoreDump
+....................
+
+Signature: ``restoreDump(dumpFile)``
+
+restores a dump.
+
+dumpFile is an open file object containing a file crated by createDump.
+
+This comprises recrating all mentioned tables, copying in the associated
+data, and re-creating all indices.
+
+Each table is handled in a separate transaction, we do not stop if a single
+restore has failed.
+
+
 Function scale
-''''''''''''''
+..............
 
 Signature: ``scale(val, factor, offset=0)``
 
@@ -15191,7 +15322,7 @@ It is a somewhat safer alternative to using nullExcs with scaled values.
 
 
 setConfig
-'''''''''
+.........
 
 sets a configuration item to a value.
 
@@ -15206,7 +15337,7 @@ Origin is a tag you can use to, e.g., determine what to save.
 
 
 Function toMJD
-''''''''''''''
+..............
 
 Signature: ``toMJD(literal)``
 
@@ -15221,7 +15352,7 @@ Valid representations include:
 
 
 ui
-''
+..
 
 is the central event dispatcher.
 
@@ -15230,7 +15361,7 @@ then attach to them.
 
 
 Function writeAsVOTable
-'''''''''''''''''''''''
+.......................
 
 Signature: ``writeAsVOTable(data, outputFile, ctx=None, **kwargs)``
 

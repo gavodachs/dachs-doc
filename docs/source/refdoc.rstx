@@ -296,8 +296,8 @@ To accomodate such situations, DaCHS allows to add an
 ``updating="True"`` attribute to a ``data`` element; updating DDs will
 create tables that do not exist but will not drop existing ones.
 
-Using fromdb on ignoresSources
-..............................
+Using fromdb on ignoreSources
+.............................
 
 Updating DDs will still run like normal DDs and thus import everything
 matching the DD's ``sources``.  Thus, after the second import you would
@@ -2577,6 +2577,12 @@ File size and media type type, which otherwise should be given
 when constructing a ``LinkDef``, then default to what's inferrable from
 the file (name).
 
+``makeLinkFromFile`` will create ``NotFoundFault`` error links if the
+file does not exist, thus alerting the user (and possibly you) that an
+expected file was not there.  When missing files are expectable and
+should not cause diagnostics, pass a ``suppressMissing=True`` to
+``makeLinkFromFile``.
+
 Another recommended pattern is used in the example: the datalink service
 itself is used to deliver the static, non-product files.  This is
 effected by declaring the service embedding the core somewhat like
@@ -3950,8 +3956,8 @@ Writing Custom Grammars
 
 A custom grammar simply is a python module located within a resource
 directory defining a row iterator class derived from
-gavo.grammars.customgrammar.CustomRowIterator; this class must be called
-RowIterator.  You want to override the _iterRows method.  It will have
+``gavo.grammars.customgrammar.CustomRowIterator``. This class must be called
+``RowIterator``.  You want to override the ``_iterRows`` method.  It will have
 to yield row dictionaries, i.e., dictionaries mapping string keys to
 something (preferably strings, but you will usually get away with
 returning complete values even without fancy rowmakers).  
@@ -3970,8 +3976,28 @@ This would be used with a ``data`` material like::
   <sources><item>4</item><item>40</item></sources>
   <customGrammar module="res/sillygrammar"/>
 
-– ``self.sourceToken`` simply contains whatever the ``sources`` produce,
-one item after the other.
+– ``self.sourceToken`` simply contains whatever the ``sources`` produce.
+One ``RowIterator`` will be constructed for each item.
+
+It is highly recommended to keep track of the current position so DaCHS
+can give more useful error messages.  When an error occurs, DaCHS will
+call the iterator's ``getLocator`` method.  This returns an arbitrary
+string, where obviously it's a good idea if it leads users to somewhere
+close to where the problem will be.  Here's a custom grammar reading
+space-separated key-value pairs from a file::
+
+  class RowIterator(CustomRowIterator):
+    def _iterRows(self):
+      self.lineNumber = 0
+      with open(self.sourceToken) as f:
+        for self.lineNumber, line in enumerate(f):
+          yield dict(zip(["key", "value"], line.split(" ", 1)))
+    
+    def getLocator(self):
+      return "line %s"%self.lineNumber
+
+Note that ``getLocator`` doesn't include the source file name; it will
+be inserted into the error message by DaCHS.
 
 Do not override magic methods, since you may lose row filters, sourceFields,
 and the like if you do.  An exception is the constructor.  If you must,

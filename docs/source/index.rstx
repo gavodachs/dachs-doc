@@ -135,12 +135,12 @@ Library Documentation
 DaCHS developer Documentation
 -----------------------------
 
-* Epydoc-generated `API documentation <./apidoc>`_.  Note, however,
-  that none of this is, as yet, guaranteed stable API.  Very little
-  will be.  The main purpose of this is to help understanding the code
-  as it is; but of course you should tell us "I need this
-  function in a stable API" when you do, and we promise to regard
-  such requests with favor.
+* Epydoc-generated `API documentation <./apidoc>`_.  The main purpose of
+  this is to help understanding the code as it is.  We make some effort
+  to keep stable whatever is “exported” from each subpackage (i.e., what
+  you get when importing gavo.something).  However, we will only warn
+  about API changes for things in gavo.api (see
+  :dachsref:`The DaCHS API`).
 
 * :doc:`Development notes <develNotes>`
 
