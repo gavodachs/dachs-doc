@@ -2261,12 +2261,6 @@ Properties evaluated:
   that's not done and only the service's output table is evaluated.
   [Note that column selection is such a mess it needs to be fixed
   before version 1.0 anyway]
-* datalink -- an id of an associated datalink service.  This 
-  will be turned into an adhoc:service resource that allows datalink-aware
-  clients to retrieve datalinks for the retrieved data.
-* datalinkIdColumnName -- the name of the column containing the identifier 
-  to pass to the associateDatalink service.  If you don't give it, DaCHS
-  will try to use a column with a meta.id;meta.main UCD or fail.
 
 May occur in `Element resource`_.
 
@@ -7012,6 +7006,22 @@ every service.  The responses contain information on what renderers
 ("interfaces") are available for a service and what properties they have.
 
 
+The coverage Renderer
+'''''''''''''''''''''
+
+*This renderer's parameter style is "clear".  This is an unchecked renderer.*
+
+A renderer returning various forms of a service's spatial coverage.
+
+This will return a 404 if the service doesn't have a coverage.spatial
+meta (and will bomb out if that isn't a SMoc).
+
+Based on the accept header, it will return a PNG if the client
+indicates it's interested in that or if it accepts text/html, in which
+case we assume it's a browser; otherwise, it will produce a
+MOC in FITS format.
+
+
 The custom Renderer
 '''''''''''''''''''
 
@@ -7485,9 +7495,10 @@ The tableinfo Renderer
 A renderer for displaying table information.
 
 Since tables don't necessarily have associated services, this 
-renderer cannot use a service.  There's a built-in vanity tableinfo
-that sits on //dc_tables#show using this renderer, but it
-really doesn't matter.
+renderer cannot use a service to sit on.  Instead, the table is
+being passed in as as an argument. There's a built-in vanity tableinfo
+that sits on //dc_tables#show using this renderer (it could really
+sit anywhere else).
 
 
 The tablenote Renderer
@@ -11571,6 +11582,51 @@ look at the processing of a SODA request, after which we look more
 closely at the various elements that make up Datalink/SODA services.
 
 
+Integrating Datalink Services
+'''''''''''''''''''''''''''''
+
+You generally declare datalink services on the table(s) that contain the
+identifiers the datalink service accepts.  For that, you include
+two pieces of metadata: The identifier of the datalink service (which
+can be a cross-RD id with a hash) and the column name within the table.
+Both items will only be checked at run time, and broken links will be
+reported as warnings.  If the following doesn't give you the datalink
+resources in results involving the tables, be sure to check the
+``dcInfos`` log file.
+
+The following example is a table that contains two sorts of identifiers
+that are understood by two different datalink services; one, ``dlsvc``
+within the same RD, works on values in the ``accref`` column, the other,
+taken from a (hypothetical) ``doires/q`` RD, would work on the ``doi``
+column::
+
+  <table id="datasets" onDisk="True">
+    <meta name="_associatedDatalinkSvc">
+      <meta name="serviceId">dlsvc</meta>
+      <meta name="idColumn">accref</meta>
+    </meta>
+    <meta name="_associatedDatalinkSvc">
+      <meta name="serviceId">doires/q#doidl</meta>
+      <meta name="idColumn">doi</meta>
+    </meta>
+
+    <column name="accref" type="text".../>
+    <column name="doi" type="text".../>
+  </table>
+
+  <service id="dlsvc" allowed="dlmeta,deget">
+    <meta name="dlget.description">A service for slicing and dicing.</meta>
+  </service>
+
+Note that forward references, which are generally not allowed in DaCHS,
+are possible in ``serviceId`` and ``idColumn``.
+
+An older way to associate datalink services with tables is to give
+certain services (most notably, SSA ones) a ``datalink`` property.  This
+is deprecated now.  If you see it in examples, please tell us so we can
+fix it.
+
+
 Making Datalinks
 ''''''''''''''''
 
@@ -11693,6 +11749,24 @@ pre-defined meta makers and data functions.  So, most of the time data
 processing will just re-use STREAMs and procDefs from the ``//soda`` RD.
 
 The two most common cases are cutouts over FITS cubes and over spectra.
+
+Processing services are referenced from the links table.  In DaCHS,
+the description column for the services is empty by default, which you
+may want to change.  Just set a ``dlget.description`` meta on the
+service.  In the following example, there is a normal VOResource
+description that will end up in the Registry and the DaCHS web
+interface, and a description of the processing service::
+
+  <service id="dl" allowed="dlmeta,dlget">
+    <meta name="description">A datalink service for the COOL data
+      collection, giving provenance links, extracted sources, and
+      cutouts</meta>
+    <meta name="dlget.description">Use this interactive service
+      to do cutouts, retrieved scaled images, and choose between
+      FITS and JPEG results.</meta>
+    ...
+
+
 
 FITS/SODA processing
 ....................
@@ -12280,12 +12354,7 @@ is not recommended, as it clutters the registry with services that
 are not really usable after discovery.
 
 Datalink services will, however, appear as capabilities of services
-they're assigned to.  You do this by setting a ``datalink`` property on
-the main service like this::
-
-    <property name="datalink">my-datalink-service</property>
-
-as, for instance, in :samplerd:`mlqso/q`.
+that publish tables that have associated datalink services.
 
 While it might be a good idea to provide some ``_example`` meta for all
 datalink services, when you register them, you really should provide one in any
@@ -13013,8 +13082,8 @@ Writing Custom Grammars
 
 A custom grammar simply is a python module located within a resource
 directory defining a row iterator class derived from
-gavo.grammars.customgrammar.CustomRowIterator; this class must be called
-RowIterator.  You want to override the _iterRows method.  It will have
+``gavo.grammars.customgrammar.CustomRowIterator``. This class must be called
+``RowIterator``.  You want to override the ``_iterRows`` method.  It will have
 to yield row dictionaries, i.e., dictionaries mapping string keys to
 something (preferably strings, but you will usually get away with
 returning complete values even without fancy rowmakers).  
@@ -13033,8 +13102,28 @@ This would be used with a ``data`` material like::
   <sources><item>4</item><item>40</item></sources>
   <customGrammar module="res/sillygrammar"/>
 
-– ``self.sourceToken`` simply contains whatever the ``sources`` produce,
-one item after the other.
+– ``self.sourceToken`` simply contains whatever the ``sources`` produce.
+One ``RowIterator`` will be constructed for each item.
+
+It is highly recommended to keep track of the current position so DaCHS
+can give more useful error messages.  When an error occurs, DaCHS will
+call the iterator's ``getLocator`` method.  This returns an arbitrary
+string, where obviously it's a good idea if it leads users to somewhere
+close to where the problem will be.  Here's a custom grammar reading
+space-separated key-value pairs from a file::
+
+  class RowIterator(CustomRowIterator):
+    def _iterRows(self):
+      self.lineNumber = 0
+      with open(self.sourceToken) as f:
+        for self.lineNumber, line in enumerate(f):
+          yield dict(zip(["key", "value"], line.split(" ", 1)))
+    
+    def getLocator(self):
+      return "line %s"%self.lineNumber
+
+Note that ``getLocator`` doesn't include the source file name; it will
+be inserted into the error message by DaCHS.
 
 Do not override magic methods, since you may lose row filters, sourceFields,
 and the like if you do.  An exception is the constructor.  If you must,
@@ -14358,9 +14447,8 @@ VOTableContexts optionally take
   - suppressNamespace=False to leave out a namespace declaration
     (mostly convenient for debugging)
   - overflowElement (see votable.tablewriter.OverflowElement)
-  - resourceProducers (a sequence of functions taking this context
-    and yielding additional resources; this is currently mainly used
-    for datalink)
+  - the resourceProducers argument is deprecated.  If you use it
+    contact the DaCHS authors.
 
 There's also an attribute produceVODML that will automatically be
 set for VOTable 1.4; you can set it to true manually, but the

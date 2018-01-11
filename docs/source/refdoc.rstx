@@ -2514,6 +2514,55 @@ look at the processing of a SODA request, after which we look more
 closely at the various elements that make up Datalink/SODA services.
 
 
+Integrating Datalink Services
+'''''''''''''''''''''''''''''
+
+You generally declare datalink services on the table(s) that contain the
+identifiers the datalink service accepts.  For that, you include
+two pieces of metadata: The identifier of the datalink service (which
+can be a cross-RD id with a hash; use the
+``_associatedDatalinkSvc.serviceId`` meta key) and the column name
+within the table (use the ``_associatedDatalinkSvc.idColumn`` meta key).
+Both items will only be checked at run time, and broken links will be
+reported as warnings.  If the following doesn't give you the datalink
+resources in results involving the tables, be sure to check the
+``dcInfos`` log file.
+
+The following example is a table that contains two sorts of identifiers
+that are understood by two different datalink services; one, ``dlsvc``
+within the same RD, works on values in the ``accref`` column, the other,
+taken from a (hypothetical) ``doires/q`` RD, would work on the ``doi``
+column::
+
+  <table id="datasets" onDisk="True">
+    <meta name="_associatedDatalinkSvc">
+      <meta name="serviceId">dlsvc</meta>
+      <meta name="idColumn">accref</meta>
+    </meta>
+    <meta name="_associatedDatalinkSvc">
+      <meta name="serviceId">doires/q#doidl</meta>
+      <meta name="idColumn">doi</meta>
+    </meta>
+
+    <column name="accref" type="text".../>
+    <column name="doi" type="text".../>
+  </table>
+
+  <service id="dlsvc" allowed="dlmeta,deget">
+    <meta name="dlget.description">A service for 
+      slicing and dicing.</meta>
+    ...
+  </service>
+
+Note that forward references, which are generally not allowed in DaCHS,
+are possible in ``serviceId`` and ``idColumn``.
+
+An older way to associate datalink services with tables is to give
+certain services (most notably, SSA ones) a ``datalink`` property.  This
+is deprecated now.  If you see it in examples, please tell us so we can
+fix it.
+
+
 Making Datalinks
 ''''''''''''''''
 
@@ -2636,6 +2685,24 @@ pre-defined meta makers and data functions.  So, most of the time data
 processing will just re-use STREAMs and procDefs from the ``//soda`` RD.
 
 The two most common cases are cutouts over FITS cubes and over spectra.
+
+Processing services are referenced from the links table.  In DaCHS,
+the description column for the services is empty by default, which you
+may want to change.  Just set a ``dlget.description`` meta on the
+service.  In the following example, there is a normal VOResource
+description that will end up in the Registry and the DaCHS web
+interface, and a description of the processing service::
+
+  <service id="dl" allowed="dlmeta,dlget">
+    <meta name="description">A datalink service for the COOL data
+      collection, giving provenance links, extracted sources, and
+      cutouts</meta>
+    <meta name="dlget.description">Use this interactive service
+      to do cutouts, retrieved scaled images, and choose between
+      FITS and JPEG results.</meta>
+    ...
+
+
 
 FITS/SODA processing
 ....................
@@ -3223,12 +3290,7 @@ is not recommended, as it clutters the registry with services that
 are not really usable after discovery.
 
 Datalink services will, however, appear as capabilities of services
-they're assigned to.  You do this by setting a ``datalink`` property on
-the main service like this::
-
-    <property name="datalink">my-datalink-service</property>
-
-as, for instance, in :samplerd:`mlqso/q`.
+that publish tables that have associated datalink services.
 
 While it might be a good idea to provide some ``_example`` meta for all
 datalink services, when you register them, you really should provide one in any
