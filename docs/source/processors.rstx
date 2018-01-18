@@ -153,6 +153,10 @@ business writing to the database, the connection is for the
 *trustedquery* profile.  If you absolutely have to write, use the *feed*
 profile, but note that you will have to manually commit then.
 
+Note that some processor classes (``PreviewMaker``, in particular)
+already open such a connection for you so you don't have to do anything
+for these.
+
 
 Gathering Data
 ''''''''''''''
