@@ -592,7 +592,7 @@ gavo imp //obscore`` for that (see also `updating obscore`_)
 
 
 cert already in hash table
---------------------------
+==========================
 
 Under circumstance we've not quite understood yet either, in Debian
 stretch DaCHS may dump a long traceback on an error like this::
@@ -607,5 +607,30 @@ We currently try to work around it by importing the racing component
 before any threads can occur.  The hack will be in DaCHS 1.0 and the
 1.0.2 beta. It's a hack, though, and it's possible it won't work for
 you.  Let us know if you hit this.
+
+
+dachs init fails with "type spoint does not exist"
+==================================================
+
+This always means that the pgsphere extension could not be loaded, and
+DaCHS can no longer do without it.  Actually, we could try to make it,
+but you really need pg_sphere in almost all installations, so it's
+better to fix this than to work around it.
+
+Unfortunately, there is any number of reasons for a missing pgsphere.
+
+If, for instance, you see this error message and have installed DaCHS
+from tarball or svn, with manual dependency management, just install the
+pgsphere postgres extension (and, while you're at it, get q3c, too).
+
+If this happens while installing the Debian package, in all likelihood
+DaCHS is not talking to the postgres version in thinks it is.  This very
+typically happens if you already have an older postgres version on the
+box.  Unless you're sure you know what you're doing, just perform an
+upgrade to the version DaCHS wants – see
+:dachsdoc:`howDoI.html#upgrade-the-database-engine`.  If you'd need to
+downgrade, that's trouble.  Complain to the dachs-support mailing list –
+essentially, someone will have to build a pgsphere package for your
+postgres version.
 
 .. |date| date::

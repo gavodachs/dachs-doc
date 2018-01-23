@@ -1236,7 +1236,7 @@ using::
 Do *not* use that old directory for the new cluster.
 
 Note the ``-k`` option to the above command: this makes pg_upgrade use
-hard links instead of copies.  This save a lot of space and time.  The
+hard links instead of copies.  This saves a lot of space and time.  The
 downside is that once the upgrade has succeeded, the old server may go
 haywire because its files have been changed to fit the new version.  In
 our experience, that's a price worth paying.
