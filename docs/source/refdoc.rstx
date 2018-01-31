@@ -371,35 +371,35 @@ turn this into an overwrite using the ``table``'s ``forceUnique`` and
 
 The following snippet illustrates the technique::
 
-	<table id="withdate" mixin="//products#table" onDisk="True"
-			primary="accref" 
-			forceUnique="True" 
-			dupePolicy="overwrite">
-		<column name="mtime" type="timestamp" 
-		  ucd="time;meta.file"
-		  tablehead="Timestamp"
-		  description="Modification date of the source file."/>
-		<!-- your other columns -->
-	</table>
+  <table id="withdate" mixin="//products#table" onDisk="True"
+      primary="accref" 
+      forceUnique="True" 
+      dupePolicy="overwrite">
+    <column name="mtime" type="timestamp" 
+      ucd="time;meta.file"
+      tablehead="Timestamp"
+      description="Modification date of the source file."/>
+    <!-- your other columns -->
+  </table>
 
-	<data id="import" updating="True">
-		<sources pattern="data/*.fits">
-			<ignoreSources 
-				fromdbUpdating="select accref, mtime from \schema.withdate"/>
-		</sources>
-		<fitsProdGrammar>
-			<rowfilter procDef="//products#define">
-				<bind key="table">"\schema.withdate"</bind>
-			</rowfilter>
-		</fitsProdGrammar>
-		<make table="withdate">
-			<rowmaker>
-				<map key="mtime">datetime.datetime.utcfromtimestamp(
-					os.path.getmtime(\fullPath))</map>
-				<!-- other rowmaker rules -->
-			</rowmaker>
-		</make>
-	</data>
+  <data id="import" updating="True">
+    <sources pattern="data/*.fits">
+      <ignoreSources 
+        fromdbUpdating="select accref, mtime from \schema.withdate"/>
+    </sources>
+    <fitsProdGrammar>
+      <rowfilter procDef="//products#define">
+        <bind key="table">"\schema.withdate"</bind>
+      </rowfilter>
+    </fitsProdGrammar>
+    <make table="withdate">
+      <rowmaker>
+        <map key="mtime">datetime.datetime.utcfromtimestamp(
+          os.path.getmtime(\fullPath))</map>
+        <!-- other rowmaker rules -->
+      </rowmaker>
+    </make>
+  </data>
 
 Again, this can be combined with the other attributes of
 ``ignoreSources``; in effect, whatever is ignored from them is treated
@@ -851,46 +851,123 @@ are usually set there:
 Coverage Metadata
 '''''''''''''''''
 
-Coverage metadata probably is the most complex piece of metadata, but
-also potentially the most useful, since it would allow clients to
-restrict querying to services known to contain relevant material.  So,
-try to get it right.
+Coverage metadata lets clients get a quick idea of where in space, time,
+and electromagnetic spectrum the data within a resource is.  Obviously,
+this information is particularly important for resource discovery in
+registries.
 
-Within DaCHS, coverage metadata uses the following keys:
+Not all resources have coverages on all axes; a service validator, say,
+probably has no physical coverage at all, and a theoretical spectral
+service may just have meaningful spectral coverage.
 
-* coverage.profile – an STC-S string giving the coverage of the service.
-  These can become rather complex.  We implement several extensions to
-  STC-S.  See also the `documentation for GAVO STC`_
-* coverage.waveband – One of Radio, Millimeter, Infrared, Optical, UV,
+There are two meta keys pertinent to coverage metadata:
+
+* ``coverage.waveband`` – One of Radio, Millimeter, Infrared, Optical, UV,
   EUV, X-ray, Gamma-ray, and you can have multiple waveband
-  specifications.  Note that you can provide much more detailed
-  information on the covered spectral range as part of coverage.profile
-  (but it's also much less likely that there is proper support for data
-  there in registries and clients).
-* coverage.regionOfRegard – in essence, the "pixel size" of the service in
+  specifications.  As this information is quite regularly used in
+  discovery you should make sure to define it if applicable.
+* ``coverage.regionOfRegard`` – in essence, the "pixel size" of the service in
   degrees.  If, for example, your service gives data on a lattice of
   sampling points, the typical distance of such points should be given
-  here.  Leave out if this doesn't apply to your service.
-* coverage.footprint – reserved; this will probably be filled in
-  automatically by the software once we have a footprint standard and
-  DaCHS implements it.
+  here.  You will not usually specify this unless your „pixel size” is
+  significantly larger than about an arcsec.
 
-Here's an example for a service covering the large and small magellanic
-clouds::
+The legacy ``coverage.profile`` meta key should not be used any more.
 
-  <meta name="coverage">
-    <meta name="profile">
-      Union ICRS (
-        Box 81 69.75 14 3.25
-        Box 13 -73 9 2)</meta>
-    <meta name="waveband">Optical</meta>
-    <meta name="waveband">Infrared</meta>
-    <meta name="regionOfRegard">0.02</meta>
-  </meta>
+To give proper, numeric STC coverage, use the `Element coverage`_.  
 
+It has three children, one each for the spatial, spectral, and temporal
+axes.  For spectral and temporal, just add as many intervals as
+necessary.  Do not worry about gaps in the temporal coverage: it is not
+necessary that the coverage is “tight”; as long as there is a reasonable
+expectation that data *could* be there, it's fine to declare coverage.
+Hence, for ground-based observations, there is no need to exclude
+intervals of daylight, bad weather, or even maintenance downtime.
 
-.. _Documentation for GAVO STC: http://docs.g-vo.org/DaCHS/stc.html
+Intervals are given as in VOTable tabledata, i.e., as two floating point
+numbers separated by whitespace.  There are no (half-) open intervals –
+just use insanely small or large numbers if you really think you need
+them.
 
+For spatial coverage, a single ``spatial`` element should be given.  It
+has to contain a MOC in ASCII serialisation.  Recent versions of Aladin
+can generate those, or you can write SQL queries to have them computed
+by sufficiently new versions of pgsphere.  Most typically, you will use
+``updater`` elements to fill spatial coverage (see below).
+
+A complete coverage element would thus look like this::
+
+  <coverage>
+    <spectral>3.8e-07 5.2e-07</spectral>
+    <temporal>18867 27155</temporal>
+    <spatial>
+      4/2068 
+      5/8263,8268-8269,8271,8280,8323,8326,8329,9376,9378 
+      6/33045-33047,33049,33051,33069,33080-33081,33083,33104-33106,
+        33112,33124-33126,33128-33130,33287,33289,33291,33297-33299,
+        33313,33315,33323-33326,33328-33330,37416,37418,37536
+    </spatial>
+  </coverage>
+
+In general computing coverage is a tedious task.  Hence, DaCHS has rules
+to compute it for many common cases (SSAP, SIAP, Obscore, catalogs with
+usable UCDs).  Because coverage calculations can run for a long time,
+they are not performed online.  Instead, DaCHS updates coverage elements
+when the operator runs ``dachs limits``.  In the simplest case,
+operators add::
+
+  <coverage>
+    <updater sourceTable="data"/>
+    <spectral/>
+    <temporal/>
+    <spatial/>
+  </coverage>
+
+into an RD with a table named data.  Currently, this must be lexically
+below the table element, but if this isn't fixed to allow the location
+of the coverage element near the rest of the metadata near the top of
+the RD, complain fiercely.
+
+Operators then run ``dachs limits q`` (assuming the RD is called
+``q.rd``), and DaCHS will fill out the three coverage elements (in case
+you want to fix them: the heuristics it uses to do that are in
+gavo.user.info).  
+
+In this construction, DaCHS will overwrite any previous content in the
+coverage child elements.  If you want to fill out some coverage items
+manually and have DaCHS only compute, say, the spatial coverage, don't
+give the ``sourceTable`` attribute (which essentially says: “grab as
+much coverage from the referenced table as you can”) but rather the
+specialised ``spaceTable``.  This is particularly useful if you want to
+annotate ”holes” in your temporal coverage.  For instance, if your
+resource contains two fairly separate campaigns (which DaCHS does not
+currently realise automatically)::
+
+  <coverage>
+    <updater spaceTable="main"/>
+    <spatial/>
+    <temporal>45201 45409</temporal>
+    <temporal>54888 55056</temporal>
+  </coverage>
+
+Due to limitations of pgsphere, DaCHS does not currently take into
+account the size of the items in a database table.  While that is
+probably all right for spectra and catalogs, for images this might lose
+significant coverage, as DaCHS only uses the centers of the images and
+just marks the containing healpix of the selected MOC order.  The
+default MOC order is 6 (a resolution of about a degree).  Until we
+properly deal with polygons, make sure to increase the MOC order to at
+least the order of magnitude of the images in an image service, like
+this::
+
+   <coverage>
+    <updater sourceTable="main" mocOrder="4"/>
+    <spatial/>
+   </coverage>
+
+If you know your resource only contains relatively few but compact
+patches, you may also want to increase ``mocOrder`` (spatial resolution
+doubles when you increase mocOrder by one).
 
 
 Display Hints
