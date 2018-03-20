@@ -35,6 +35,7 @@ All DaCHS functionality is invoked through a
 program called ``dachs``.  Multiple functions are integrated and selected
 through the first argument; run ``dachs help`` to see what's available;
 realistically, the functions most operators will be confronted with are
+``start``,
 ``import``, ``serve``, ``publish``, and ``test``.  Also make sure you at
 least once skim the man page.
 
@@ -77,14 +78,26 @@ reside within some subdirectory of DaCHS' input directory (unless you
 configured otherwise, that's /var/gavo/inputs; we assume that in the
 following).
 
-This tutorial will use the ARIHIP catalog as an example – this is a
+Since both astronomical data and VO services tend to be complex, you can
+do a lot of things in an RD.  However, the publication of a certain
+data type (e.g., catalogue, spectra or image collection) often follows a
+pattern.  DaCHS comes with a library of such patterns, and when starting
+a service, you will usually do something like::
+
+  cd /var/gavo/inputs
+  mkdir <collection-name>
+  cd <collection-name>
+  dachs start <data-type-tag>
+
+To see something quickly, however, we will look at an existing data set
+first, a catalog called ARIHIP catalog – this is a
 re-reduction of the Hipparcos result catalog
 with particularly careful solutions for proper
 motion.  It has a column-based input and probably a few more columns
 than your average catalog these days.  It hence is simple in principle
 but let us demonstrate a few advanced concepts, too.
 
-You can, in principle, run the following under any user id, as long as
+You can run the following under any user id, as long as
 you wisely manage the permissions.  For testing, however, we recommend
 doing it as the data center administrative account (for the Debian
 package, that's gavoadmin, if you did the setup manually, it's whatever
@@ -117,34 +130,34 @@ full of binary files, and either versioned by upstream or not at all)::
   curl -O http://dc.g-vo.org/arihip/q/cone/static/data.txt.gz
 
 At this point, we're ready for ingestion.  All commands to DaCHS go
-through the ``gavo`` program that has several sub-commands; in this
+through the ``dachs`` program that has several sub-commands; in this
 case, we need the ``import`` sub-command.  The sub-commands can be
 abbreviated as long as the abbreviation is unambiguous::
 
   cd ..
-  gavo imp q
+  dachs imp q
 
 This should run for a while, reporting the number of ingested rows now
 and then, and finally say something like "Rows affected: XY".  With this,
 the data is in the database and is ready for querying.
 
-Let us mention in passing that ``gavo imp`` tries to interpret its first
+Let us mention in passing that ``dachs imp`` tries to interpret its first
 argument first as a file system path.  If that fails, it tries to
 interpret it as an RD identifier, i.e., the inputsDir-relative path of
 the RD with the extension stripped.  Our example RD thus has the RD id
-arihip/q, and you could have said::
+*arihip/q*, and you could have said::
 
-  gavo imp arihip/q
+  dachs imp arihip/q
 
 from anywhere in the file system.
 
-After you have imported a table, it is a good idea to run ``gavo info``
+After you have imported a table, it is a good idea to run ``dachs info``
 with the DaCHS identifier of the freshly imported table, e.g.,::
 
-  gavo info arihip/q#main
+  dachs info arihip/q#main
 
 The DaCHS identifier of the table consists of the RD id as introduced
-above, the hash (inspired by the URL fragment identifier) and the id of
+above, the hash (inspired by the URL fragment identifier), and the id of
 the table.
 
 This will output several properties (min, max, avg) of numeric columns
@@ -156,11 +169,11 @@ declaring columns as required when they do not indeed contain NULLs.
 Now start the server; if you installed from the Debian package, it is
 already running; stop it first for this tutorial::
 
-  sudo /etc/init.d/dachs stop  # only if installed from package
-  gavo serve debug
+  sudo service dachs stop  # only if installed from package
+  dachs serve debug
 
 (if the last command fails with permission problems, add yourself to the
-gavo group, say ``newgrp gavo`` and try again).
+gavo group, say ``newgrp gavo`` (or log out and in again) and try again).
 
 The RD sets up a form-based service you can operate from a web browser;
 open the URL http://localhost:8080/arihip/q/cone/form [#binding]_
@@ -171,7 +184,7 @@ VizieR-like expressions in those fields.
 Briefly have a look at the URL; apart from the host name and port (see
 the `operator's guide`_ on how to change those), there is the path to the
 RD (without the file extension), then the id of the service element (see
-below) and a "renderer name".  That essentially defines the physical
+below) and a “renderer name”.  That essentially defines the physical
 interface of the service, i.e., which protocol it is accessed through.
 In this case, it's ``form`` for an HTML form.
 
@@ -187,8 +200,8 @@ Incidentally, cone search does not (yet) have a usable interface to
 discover additional parameters, and hence TOPCAT restricts you to those
 mandatory for every SCS service.  For instance, as delivered, arihip
 admits an ``mv`` parameter.  DaCHS supports a special syntax for
-"free" parameters of cone searches as defined by the spectral access
-protocol SSAP; to say "everything brighter than 6th magnitude", the
+“free” parameters of cone searches as defined by the spectral access
+protocol SSAP; to say ”everything brighter than 6th magnitude”, the
 parameter setting would be ``/6``; to use this constraint within TOPCAT,
 the access URL needs to be amended like this:
 ``http://localhost:8080/arihip/q/cone/scs.xml?mv=/6``.
@@ -1030,26 +1043,67 @@ reference documentation, requires the parameters of a test query
 returning a nonempty result.
 
 
+Introduction to DaCHS Publishing 
+================================
+
 Starting from Scratch
 ---------------------
 
-When you start to write your own RD, it might be a good idea to start
-from our RD template.  To do this, create your resource directory, go in
-there and say::
+When you get a new data collection in, it might be a good idea to check
+the `GAVO data center's service roster`_ if there's anything similar
+there and then see if starting from the corresponding RD in our 
+`RD repository`_.
 
-  gavo admin dumpDF src/template.rd_ > q.rd
+The standard way (and that's what we almost always do), however, is to
+use ``dachs start``.  To use it, create your resource directory, change
+into it and give build a q.rd template by running ``dachs start
+<proto>``.  For instance, when you have a catalog called smartdata, you
+would write::
 
-(dumpDF stands for "dump distribution file" and is the canonical way to
-get at DaCHS "built-in" files).
+  cd /var/gavo/inputs
+  mkdir smartdata
+  cd smartdata
+  dachs start scs
 
-Right now, this only contains the skeleton for the metadata.  We may
-expand it as we get good ideas on how to keep things generic.  Or should
-we have different templates for various major service types?
+Use ``dachs start list`` to see what templates there are (scs, siap, and
+ssap are the most likely candidates for VO beginners).
 
-There's also ``gavo mkrd``, which can generate RD templates from some
-types of inputs.  We're not convinced this kind of thing actually is
-useful, but you're welcome to try it and encourage us if you like it, in
-particular if you have ideas on how to improve things.
+After that, you have a file called q.rd in the current directory.  This
+would be the perfect time to check it into your version control (you
+have one, don't you?).
+
+Next, bring in (a sample of) your data (recommended: in the data
+subdirectory).
+
+And then the actual work begins: Filling in the global metadata, the
+table structure, the ingestion rules, service metadata, and regression
+tests.  Where possible, the templates are written such that when you
+have filled out everything ``%between percent signs%``, you should have a
+very basic (possibly usesless) service.  The envisioned workflow is
+that you go through the file pattern by pattern.  As an example, if
+you're using the vim editor, you can drop the following into your
+~/.vimrc::
+
+  augroup rd
+	  au!
+	  au BufRead,BufNewFile *.rd imap <F8> <ESC>/%[^%]*%<CR>a
+	  au BufRead,BufNewFile *.rd imap <F9> <ESC>cf%
+  augroup END
+
+Then, when you open an rd file, you can, in insert mode, alternately hit
+F8 to go to the next thing to fill in, and F9 to replace the template
+text (that usually gives you a hint on what to put there – but also read
+the comments).
+
+If you've followed the chapter on `Building a catalog service`_
+above, not much of what you'll be seeing should surprise you.  If you're
+wondering about a particular thing, you can always refer to the `RD
+element reference`_ to see how it's used in our data center, or go to
+the `reference documentation`_.  Also, please give us hints if you see a
+way to make the material more helpful.
+
+.. _GAVO data center's service roster: http://dc.g-vo.org
+.. _RD repository: http://svn.ari.uni-heidelberg.de/svn/gavo/hdinputs/
 
 
 Debugging
@@ -1116,6 +1170,13 @@ General Hints
 * If ``gavo serve start`` doesn't actually cause the server to run,
   something went wrong after detaching from the controlling terminal.
   The messages are in the logs directory, in the file ``serverStderr``.
+
+
+Publication Options
+'''''''''''''''''''
+
+TODO: registry chapter, purx, eschrow
+
 
 Debugging Services
 ''''''''''''''''''
@@ -2617,6 +2678,8 @@ This does, step by step:
   a command like ``DELETE FROM products WHERE sourcetable='<your wrong
   table>'``.  So, always bind table.  Make sure to include the quotes,
   this is supposed to be a valid python expression yielding a string.
+  Also, this is where you'd define the media type for your products
+  if they're not FITS files.
 * You then need to define a rowmaker that must apply two procs.  For
   one, you need `//siap#computePGS <ref.html#siap-computepgs>`_
   (if you mixed in ``//siap#pgsSIAP``).  No bindings are required here.
@@ -3618,7 +3681,7 @@ links as access URLs), the following is the recommended pattern:
         <property name="datalink">dl</property>
 
 (4) If you have a form-based publication, hide the ``pub_did`` column
-    and rather make datalinks:
+    and rather make datalinks::
 
       <service id="web" core="siacore">
         ...

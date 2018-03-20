@@ -520,6 +520,39 @@ Subsubcommands
 * ``stop`` -- stop a running server
 
 
+THE start SUBCOMMAND
+====================
+
+Synopsis::
+
+       dachs start [-h] (list|<data-type-tag>)
+
+The start subcommand generates a template RD for a certain type of data
+that you can then fill out.  The data-type-tag can be something like scs
+(for catalogs), siap (for images), or ssap (for spectra).  Pass ``list``
+to see what is available.
+
+The template uses the name of current directory as resdir and schema
+name.  That means that if starting a data collection, you should create
+its resdir as a child of GAVO_ROOT/inputs and execute ``dachs start`` in
+that dicrectory.
+
+To fill out the template RD, load it into a text editor and, ina first
+go, search for the pattern %.*%.  You should see enough hints from what
+is between the percent signs and the environment to get a reasonable
+shot at filling things out.  Then reead the comments; very typcially,
+you can get an extremely basic data publication without that, but a good
+service will normally require some extra work beyond filling things out.
+
+Argument
+--------
+
+data-type-tag
+  A short identifier for a data type.  Pass ``list`` here to see a
+  list of known tags and their meanings.
+
+
+
 THE test SUBCOMMAND
 ===================
 

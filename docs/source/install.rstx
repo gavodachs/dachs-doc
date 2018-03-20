@@ -50,15 +50,13 @@ Dependencies
 
 Unfortunately, DaCHS has quite a few dependencies;
 here's the list of dependencies of our Debian package as of version
-0.9.45 this should give you some clue as to what might be necessary on
+1.1. This should give you some clue as to what might be necessary on
 other systems::
 
-  postgresql-9.4-pgsphere|postgresql-9.1-pgsphere,
-  postgresql-9.4-q3c|postgresql-9.1-q3c,
-  python-docutils, python-imaging, python-lxml, python-nevow, python-numpy,
-  python-pkg-resources, python-psycopg2, python-pyfits (>= 1:2.0),
-  python-pywcs, python-soappy, python-twisted, python-zsi,
-  python-matplotlib
+  python-docutils python-lxml python-nevow python-pkg-resources
+  python-soappy python-twisted python-zsi python-astropy python-imaging
+  python-numpy python-pkg-resources python-psycopg2 python-pymoc
+  python-testresources postgresql-9.6-pgsphere postgresql-9.6-q3c
 
 If you want to use boosters, you will additionally need::
 
@@ -515,10 +513,9 @@ So, in this sequence, run::
   gavo imp --system //dc_tables
   gavo imp --system //services
   gavo imp --system //users
+  gavo imp --system //products
   gavo imp --system //adql
   gavo imp --system //tap
-  gavo imp --system //products
-  gavo imp --system //obscore
 
 Output of the type ``Columns affected: 0`` is ok for these commands.
 

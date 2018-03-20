@@ -1922,7 +1922,7 @@ A specification of how a service should be published.
 This contains most of the metadata for what is an interface in
 registry speak.
 
-May occur in `Element service`_.
+May occur in `Element service`_, `Element resRec`_.
 
 Atomic Children
 ...............
@@ -2114,10 +2114,8 @@ Element resRec
 
 A resource for pure registration purposes.
 
-A Resource does nothing; it is for registration of Authorities,
-Organizations, Instruments, or whatever.  Thus, they consist
-of metadata only (resources that do something are services; they
-carry their own metadata and care for their registration themselves.).
+A Resource without DaCHS defined behaviour.  This can be
+Organizations or Instruments, but possibly also external services
 
 All resources must either have an id (which is used in the construction of
 their IVOID), or you must give an identifier meta item.
@@ -2137,9 +2135,20 @@ You must further set the following meta items:
    - creationDate
 
 Additional meta keys (e.g., accessURL for a registry) may be required 
-depending on resType.  See the registry session in the operator's guide.
+depending on resType.  See the registry section in the operator's guide.
+
+ResRecs can also have publication children.  These will be turned into
+the appropriate capabilities depending on the value of the render 
+attribute.
 
 May occur in `Element resource`_.
+
+Structure Children
+..................
+
+* publications (contains `Element publish`_ and may be repeated zero
+  or more times) -- Capabilities the record should have (this is empty
+  for standards, organisations, instruments, etc.)
 
 Other Children
 ..............
@@ -7100,6 +7109,17 @@ This is mainly useful with custom cores doing weird things.  This
 renderer will not work with dbBasedCores and similar.
 
 
+The edition Renderer
+''''''''''''''''''''
+
+*This renderer's parameter style is "clear".  This is an unchecked renderer.*
+
+A renderer representing a (tutorial-like) text document.
+
+Not sure yet what I'll do when people actually call this; for now,
+the access URL must be given as metadata.
+
+
 The examples Renderer
 '''''''''''''''''''''
 
@@ -7437,7 +7457,8 @@ Other SSA metadata includes:
 Properties supported by this renderer:
 
  - datalink -- if present, this must be the id of a datalink service
-   that can work with the pubDIDs in this table 
+   that can work with the pubDIDs in this table (don't use this any more,
+   datalink is handled through table-level metadata now)
  - defaultRequest -- by default, requests without a REQUEST parameter 
    will be rejected.  If you set defaultRequest to querydata, such 
    requests will be processed as if REQUEST were given (which is of
@@ -8247,6 +8268,12 @@ a grammar's result.
 See the documentation on the //products#table mixin.  In short:
 you will always  have to touch table (to the name of the
 table this row is managed in).  
+
+If you don't serve FITS images, you will also have to set
+mime.  Use a media type like "image/jpeg" or "text/csv" here
+as appropriate.  If not set, this defaults to "image/fits" (which
+is, we claim, suitable for cubes and certain spectra, too); for
+FITS binary tables, use application/fits.
 
 Everything else is optional: You may want to set preview
 and preview_mime if DaCHS can't do previews of your stuff 
@@ -9872,11 +9899,16 @@ expectation that data *could* be there, it's fine to declare coverage.
 Hence, for ground-based observations, there is no need to exclude
 intervals of daylight, bad weather, or even maintenance downtime.
 
+Intervals are given as in VOTable tabledata, i.e., as two floating point
+numbers separated by whitespace.  There are no (half-) open intervals –
+just use insanely small or large numbers if you really think you need
+them.
+
 For spatial coverage, a single ``spatial`` element should be given.  It
 has to contain a MOC in ASCII serialisation.  Recent versions of Aladin
-can generate those, or you can write SQL queries to have them computed.
-Most typically, you will use ``updater`` elements to fill spatial
-coverage (see below).
+can generate those, or you can write SQL queries to have them computed
+by sufficiently new versions of pgsphere.  Most typically, you will use
+``updater`` elements to fill spatial coverage (see below).
 
 A complete coverage element would thus look like this::
 
@@ -9912,16 +9944,19 @@ of the coverage element near the rest of the metadata near the top of
 the RD, complain fiercely.
 
 Operators then run ``dachs limits q`` (assuming the RD is called
-``q.rd``), and DaCHS will fill out the various fields.  In this
-construction, DaCHS will overwrite any previous content in the coverage
-fields.  If you want to fill out some coverage items manually and have
-DaCHS only compute, say, the spatial coverage, don't give the
-``sourceTable`` attribute (which essentially says: “grab as much
-coverage from the referenced table as you can”) but rather the
-specialised ``spaceTable``.  This is particularly nice if you want to
-annotate ”holes” in your coverage.  For instance, if your resource
-contains two fairly separate campaigns (which DaCHS does not currently
-realise automatically)::
+``q.rd``), and DaCHS will fill out the three coverage elements (in case
+you want to fix them: the heuristics it uses to do that are in
+gavo.user.info).  
+
+In this construction, DaCHS will overwrite any previous content in the
+coverage child elements.  If you want to fill out some coverage items
+manually and have DaCHS only compute, say, the spatial coverage, don't
+give the ``sourceTable`` attribute (which essentially says: “grab as
+much coverage from the referenced table as you can”) but rather the
+specialised ``spaceTable``.  This is particularly useful if you want to
+annotate ”holes” in your temporal coverage.  For instance, if your
+resource contains two fairly separate campaigns (which DaCHS does not
+currently realise automatically)::
 
   <coverage>
     <updater spaceTable="main"/>
@@ -9935,9 +9970,10 @@ account the size of the items in a database table.  While that is
 probably all right for spectra and catalogs, for images this might lose
 significant coverage, as DaCHS only uses the centers of the images and
 just marks the containing healpix of the selected MOC order.  The
-default MOC order is 6 (or about a degree).  Until we properly deal with
-polygons, make sure to increase the MOC order to at least the order of
-magnitude of the images in an image service, like this::
+default MOC order is 6 (a resolution of about a degree).  Until we
+properly deal with polygons, make sure to increase the MOC order to at
+least the order of magnitude of the images in an image service, like
+this::
 
    <coverage>
     <updater sourceTable="main" mocOrder="4"/>
