@@ -853,6 +853,14 @@ To define q3c indices, use the ``//scs#q3cindex`` mixin; if you're
 devious enough to require something more flexible, have a look at
 that mixin's definition.
 
+If indexed columns take part in a DaCHS-defined view, DaCHS will not 
+notice.  You should still declare the indices so users will see them
+in the metadata; writing::
+
+  <index columns="col1, col2, col3"/>
+
+is sufficent for that.
+
 May occur in `Element outputTable`_, `Element table`_.
 
 Atomic Children
@@ -7584,6 +7592,13 @@ Sets metadata for an epntap data set, including its products definition.
 The values are left in vars, so you need to do manual copying,
 e.g., using idmaps="*".
 
+In some descriptions below, you will see __replace_framed__.  This
+means that the actual descriptions, units, and UCDs will depend
+on the value of spatial_frame_type in `the //epntap2#table-2_0 mixin`_.
+After you have made a first (possibly severely incomplete) import
+of your table, you can see the actual metadata by opening
+http://localhost:8080/tableinfo/<schema>.epn_core.
+
 
 Setup parameters for the procedure are:
 
@@ -13297,7 +13312,7 @@ given row by raising ``IgnoreThisRow`` or using the trigger mechanism.
 However, when filling complex data models with potentially dozens of
 tables, this becomes highly inefficient.
 
-When you write your own grammars, you can to better.  Instead of just
+When you write your own grammars, you can do better.  Instead of just
 yielding a row from ``_iterRows``, you yield a pair of a role (as
 specified in the ``role`` attribute of a ``make`` element) and the row.
 The machinery will then pass the row only to the feeder for the table in

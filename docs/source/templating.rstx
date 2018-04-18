@@ -138,13 +138,22 @@ kilobytes.
 Note that the root page (and a few more similarly static documents) are
 fairly aggressively cached by DaCHS.  This means that changes to the
 docment will not usually become immediately visible in your browser.
-However, documents are not cached when you are logged in.  As you write
-on your root page, it is therefore advisable to log in as administrator
-(see the [web]adminpasswd config item; e.g., click on the little [s] on
-the root page and select "Log in" from the sidebar); if you're happy
-with your design, run ``gavo serve expire //services`` (the root page
-cache is controlled by the //services RD), and it will be shown to
-non-logged users, too.
+However, documents are not cached when you are logged in.  To avoid
+excessive server restarts while editing the template, you should
+therefore create a user.
+
+The most straightforward way to do that is to create an administrator
+account; set the [web]adminpasswd config item in your /etc/gavo.rc.
+Then go to any page that as a sidebar
+(http://localhost:8080/__system__/services/overview/form should work
+fine, which is what's behind the little [s] at the bottom of the default
+template), click "log in" in the sidebar, and then use ``gavoadmin`` as
+user name and the password just set.
+
+If you're happy with your design, run ``gavo serve expire //services``
+(the root page cache is controlled by the //services RD), and it will be
+shown to non-logged users, too (that also only works when you have set
+an adminpasswd).
 
 
 The Templating Language
