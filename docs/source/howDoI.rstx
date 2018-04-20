@@ -579,6 +579,88 @@ anchorText property, like this::
   </outputField>
 
 
+...wrap an external service with datalink?
+------------------------------------------
+
+Say you have an existing ephemeris computing service that conforms to
+no standard and you'd like to make it usable through a datalink client.
+The trick is to declare the parameters in DaCHS, compute a target URL
+and then redirect.  Note that this will not be as easy if the wrapped
+services require POSTing or file uploads, because these will, in
+general, not survive POSTing.
+
+In the following example, we first define a custom descriptor generator;
+we'll need that here as DaCHS' built-in descriptor generators all assume
+they can find the referenced data sets in the ``dc.products`` table.
+In this case, we assume the data is remote and all we have is what is in
+a database table.  In EPN-TAP style, the dataset is identified with the
+``granule_uid`` column.
+
+Then, we define our parameter range from a database column – note how
+the descriptor is used to communicate the database row.
+
+Finally, in the data function we construct the destination URL and then
+redirect to the process that actually serves the data::
+
+  <service id="dl-cutout" allowed="dlget,dlmeta">
+    <datalinkCore>
+      <descriptorGenerator>
+        <setup>
+          <code>
+            class CustomDescriptor(object):
+              def __init__(self, granule_uid):
+                self.pubDID = granule_uid
+                with base.getTableConn() as conn:
+                  self.metadata = list(
+                    conn.queryToDicts("SELECT * FROM \schema.epn_core"
+                      " WHERE granule_uid=%(guid)s",
+                      {"guid": self.pubDID}))[0]
+             </code>
+         </setup>
+        <code>
+          return CustomDescriptor(pubDID)
+        </code>
+      </descriptorGenerator>
+
+      <metaMaker>
+        <code>
+          yield MS(InputKey, name="TIME_MJD", 
+            type="double precision[2]",
+            xtype="interval",
+            ucd="meta.epoch",
+            description="Range of data to return.",
+            multiplicity="forced-single",
+            required=True,
+            values=MS(Values,
+              min=jdnToMJD(descriptor.metadata["time_min"]),
+              max=jdnToMJD(descriptor.metadata["time_max"]),))
+        </code>
+      </metaMaker>
+
+      <dataFunction>
+        <setup>
+          <par name="server_url"
+            >'http://custom-upstream.example.edu/cutout?'</par>
+          <code>
+            import urllib
+            from gavo.svcs import WebRedirect
+          </code>
+        </setup>
+        <code>
+          time_interval = args["TIME_MJD"]
+          parameters = {
+            "magic_value": "any_madness",
+            "dataset": descriptor.pubDID,
+            "start_time": mjdToDateTime(time_interval[0]).isoformat(),
+            "end_time": mjdToDateTime(time_interval[1]).isoformat(),
+          }
+          raise WebRedirect(server_url+urllib.urlencode(parameters))
+        </code>
+      </dataFunction>
+    </datalinkCore>
+  </service>
+
+
 
 Form-based interfaces
 =====================
