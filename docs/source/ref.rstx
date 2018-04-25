@@ -11696,8 +11696,8 @@ You generally declare datalink services on the table(s) that contain the
 identifiers the datalink service accepts.  For that, you include
 two pieces of metadata: The identifier of the datalink service (which
 can be a cross-RD id with a hash; use the
-``_associatedDatalinkSvc.serviceId`` meta key) and the column name
-within the table (use the ``_associatedDatalinkSvc.idColumn`` meta key).
+``_associatedDatalinkService.serviceId`` meta key) and the column name
+within the table (use the ``_associatedDatalinkService.idColumn`` meta key).
 Both items will only be checked at run time, and broken links will be
 reported as warnings.  If the following doesn't give you the datalink
 resources in results involving the tables, be sure to check the
@@ -11710,11 +11710,11 @@ taken from a (hypothetical) ``doires/q`` RD, would work on the ``doi``
 column::
 
   <table id="datasets" onDisk="True">
-    <meta name="_associatedDatalinkSvc">
+    <meta name="_associatedDatalinkService">
       <meta name="serviceId">dlsvc</meta>
       <meta name="idColumn">accref</meta>
     </meta>
-    <meta name="_associatedDatalinkSvc">
+    <meta name="_associatedDatalinkService">
       <meta name="serviceId">doires/q#doidl</meta>
       <meta name="idColumn">doi</meta>
     </meta>
