@@ -101,7 +101,7 @@ You can run the following under any user id, as long as
 you wisely manage the permissions.  For testing, however, we recommend
 doing it as the data center administrative account (for the Debian
 package, that's gavoadmin, if you did the setup manually, it's whatever
-user did the ``gavo init``).
+user did the ``dachs init``).
 
 To get a quick start, just pull in the RD in use by GAVO's data center::
 
@@ -489,7 +489,7 @@ Futher metadata on columns includes:
 * ``ucd`` – a Unified Content Descriptor as defined by IVOA.  To figure out
   "good" UCDs, the `GAVO UCD resolver`_ can help.  An easy way to come
   up with them is also to leave them out initially and then run
-  ``gavo admin suggestucds`` (it's what we do these days).
+  ``dachs admin suggestucds`` (it's what we do these days).
 * ``required`` – True if value must be set in order for the record to be
   valid.  By default, NULL (which in python is None) is a valid value
   for any column and will silently be inserted if you don't assign a
@@ -528,7 +528,7 @@ column, like this::
     <values nullLiteral="-1"/>
   </column>
 
-The output of ``gavo info`` (see above) can help you to choose suitable
+The output of ``dachs info`` (see above) can help you to choose suitable
 NULL values.  To help people spot them when metadata is missing, it's
 usually wise to choose "conspicuous" null values (like -1, 9999, or
 similar).
@@ -558,9 +558,9 @@ defined above.  It starts like this::
     <sources>data/data.txt.gz</sources>
 
 Data elements can have ids which can be used to indiviually reference
-them from a ``gavo imp`` command line; this is useful if you just want
+them from a ``dachs imp`` command line; this is useful if you just want
 to import one part of a multi-table data collection.  The default of
-``gavo imp`` default is to build all ``data`` elements except those
+``dachs imp`` default is to build all ``data`` elements except those
 having an ``auto="False"`` attribute.
 
 It is recommended that the id is a short verb phrase, as ``data``
@@ -607,10 +607,10 @@ using import's ``--dump`` flag. During development, it is frequently
 convenient to just import a few rows and watch what they produce; this
 would look like this::
 
-  gavo imp -M 100 --dump q.rd | less
+  dachs imp -M 100 --dump q.rd | less
 
 (if you interrrupt the above command, your table should be unscathed –
-check with ``gavo info`` –; otherwise just re-run the full import).
+check with ``dachs info`` –; otherwise just re-run the full import).
 
 With a source that has both a separator character and aligned columns,
 there are several valid choice for which grammar to use on this
@@ -871,7 +871,7 @@ a chapter on `DaCHS' public mixins`_.  For the curious: you can have a
 look at the actual definitions by admin's ``dumpDF`` subcommand, e.g.,
 like this::
 
-  gavo admin dumpDF //scs
+  dachs admin dumpDF //scs
 
 The ``//scs#q3cindex`` mixin referenced here arranges for spatial
 indexing of tables having some sort of spherical coordinates.
@@ -1129,15 +1129,15 @@ General Hints
 * If you get error messages, be sure to check our `hints on common
   problems`_ – may commonly encountered problems are explained there with
   suggestions for how to fix them.
-* The gavo command takes a ``--hints`` switch.  With it, error messages
+* The dachs command takes a ``--hints`` switch.  With it, error messages
   are frequently accompanied with – you guessed it – hints on what might
   cause the problem and possible solutions.  Note that ``--hints``, like
   the other debugging switches, goes between ``gavo`` and the subcommand
-  name, as in ``gavo --hints serve``.
+  name, as in ``dachs --hints serve``.
 * Validate your RD.  This is, in general, a good idea before doing
   anything with the RD, since it will allow you to more easily catch errors
   than the in all likelihood even more byzantine error messages that
-  may arise when something goes wrong later.  The ``gavo val``
+  may arise when something goes wrong later.  The ``dachs val``
   subcommand takes one or more RDs.    If you don't understand its
   output, complain to gavo@ari.uni-heidelberg.de -- the command is really
   intended to help you catch errors, and if it doesn't do so, it's
@@ -1147,14 +1147,14 @@ General Hints
 * When hunting bugs, it's usually a good idea to enable the logging of
   (many) tracebacks by passing the ``--debug`` flag to ``gavo``.
 * If you're trying to figure out server behaviour, don't run the
-  server daemonized but use ``gavo serve debug`` instead; this won't
+  server daemonized but use ``dachs serve debug`` instead; this won't
   detach and log to stdout.
 * With this (or the problem is in normally-running DaCHS code in the
   first place), the python debugger is your friend.  The ``gavo``
   command has an option ``--enable-pdb`` that will dump you into the
   debugger where an uncaught exception happened (as the server should
   never let an uncaught exception through, that's not useful with
-  ``gavo serve``).  If that doesn't help you, you can set breakpoints
+  ``dachs serve``).  If that doesn't help you, you can set breakpoints
   (e.g., in your own in-RD procedure defininitions by writing
   ``import pdb; pdb.set_trace``.  If you install the python-ipdb package,
   and write ipdb instead of pdb, you'll get a nicer debugger commandline
@@ -1163,11 +1163,11 @@ General Hints
   GAVO_SQL_DEBUG environment variable to any value.  This could look like
   this::
 
-    env GAVO_SQL_DEBUG=1 gavo imp q create
+    env GAVO_SQL_DEBUG=1 dachs imp q create
 
   The first couple of requests are for internal use (like checking that
   some meta tables are present).
-* If ``gavo serve start`` doesn't actually cause the server to run,
+* If ``dachs serve start`` doesn't actually cause the server to run,
   something went wrong after detaching from the controlling terminal.
   The messages are in the logs directory, in the file ``serverStderr``.
 
@@ -1184,7 +1184,7 @@ Debugging Services
 Debugging services is of course an extra challenge since code runs deep
 in the bowels of a complex system, with timeouts, threads, and all kinds
 of nastyness involved.  The first adivce is: Pull whatever is mysterious
-into your development system and run ``gavo serve debug``.  You can even
+into your development system and run ``dachs serve debug``.  You can even
 do the ``import pdb;pdb.set_trace()`` trick then.  It's a bit tricky to
 communicate with the debugger in between the log messages of ``gavo
 serve debug``, and there's no readline support since pdb doesn't think
@@ -1261,7 +1261,7 @@ These are mostly easy to diagnose (and fix), except that sometimes the
 errors show up too late.  For an example of a dramatic failure, delete
 the closing tag of the ``source`` meta.  The result then is::
 
-  arihip > gavo imp q
+  arihip > dachs imp q
   *** Error: In /home/msdemlei/gavo/inputs/arihip/q.rd: mismatched tag:
   line 674, column 2
 
@@ -1285,7 +1285,7 @@ the wonder element in the next example::
 
 This time, DaCHS gets it pretty much right::
 
-  msdemlei@victor:/home/msdemlei/gavo/inputs/arihip > gavo imp q
+  msdemlei@victor:/home/msdemlei/gavo/inputs/arihip > dachs imp q
   *** Error: At /home/msdemlei/gavo/inputs/arihip/q.rd, (112, 4): table
   elements have no wonder attributes or children.
 
@@ -1297,7 +1297,7 @@ CDATA sequence in::
 
 This results in::
 
-  arihip > gavo imp q
+  arihip > dachs imp q
   *** Error: In /home/msdemlei/gavo/inputs/arihip/q.rd: not well-formed
   (invalid token): line 411, column 24
 
@@ -1317,7 +1317,7 @@ whitespace from the second column line like this::
 
 That results in::
 
-  arihip > gavo --debug imp q
+  arihip > dachs --debug imp q
   *** Error: At /home/msdemlei/gavo/inputs/arihip/q.rd, (317, 4): Bad
   text in meta value (Bad indent in line u'    was taken from using the
   following codes:')
@@ -1362,7 +1362,7 @@ case, change the kbin mapping to::
 (note the missing e).  The result is an error message that looks a bit
 frightening with rawdicts as large as in this case::
 
-  arihip > gavo imp q
+  arihip > dachs imp q
   Making data import
   Starting /home/msdemlei/gavo/inputs/arihip/data/data.txt.gz
   Failed /home/msdemlei/gavo/inputs/arihip/data/data.txt.gz
@@ -1397,7 +1397,7 @@ vrad mapping, i.e., removing the entire element::
 
 This gives::
 
-  /arihip > gavo imp -M 12 q
+  /arihip > dachs imp -M 12 q
   [...]
   Field vrad: While building vrad in None: could not
   convert string to float: +   8.3
@@ -1417,7 +1417,7 @@ remove the line::
 
 from the column grammar's ``colDefs`` element.  The result is::
 
-  arihip > gavo imp -M 12 q
+  arihip > dachs imp -M 12 q
   Making data import
   Starting /home/msdemlei/gavo/inputs/arihip/data/data.txt.gz
     Source hit import limit, import aborted.
@@ -1431,7 +1431,7 @@ from the column grammar's ``colDefs`` element.  The result is::
 – a clean import.  However, all vrads in the table are now, of course,
 NULL::
 
-  arihip > gavo info arihip/q#main
+  arihip > dachs info arihip/q#main
    col           min         avg     max       hasnulls
    [...]
    vrad          None        None    None      True
@@ -1452,7 +1452,7 @@ This now yields an error; note that the message is fairly generic, but
 if you consider that rawdicts are mappings, you will at least see the
 logic in it::
 
-  arihip > gavo imp -M 12 q
+  arihip > dachs imp -M 12 q
   Making data import
   Starting /home/msdemlei/gavo/inputs/arihip/data/data.txt.gz
     Source hit import limit, import aborted.
@@ -1484,7 +1484,7 @@ larger.  To see how basic problems are reported, add::
 
 somewhere within the RD.  This yields::
 
-  arihip > gavo imp q
+  arihip > dachs imp q
   [...]
   u'raHIP': None} Field proc98577cc: While executing proc98577cc in
   None: global name 'ddt' is not defined
@@ -1689,7 +1689,7 @@ transaction updating the table.  So, something like::
 
 will wait for the transaction to finish.  But the transaction is waiting
 for data that will only come when the query finishes -- this is a
-deadlock, and gavo imp will just sit there and wait (see also `Deadlocks
+deadlock, and dachs imp will just sit there and wait (see also `Deadlocks
 <commonproblems.html#deadlocks>`_).
 
 To get around this, you need to query using the data's connection.  So,
@@ -1804,7 +1804,7 @@ institution undergoes the yearly reorganization).
 You can retrieve the default response template as something to start
 from by saying::
 
-  gavo admin dumpDF templates/defaultsresponse.html
+  dachs admin dumpDF templates/defaultsresponse.html
 
 To obtain the plainest output conceivable, try::
 
@@ -1864,8 +1864,8 @@ recommended way to do these things is to stereotypically add ``<values
 min="0" max="0"/>`` in columns that generate query parameters and then
 run either of::
 
-  gavo limits arihip/q       # update all tables present
-  gavo limits arihip/q#main  # only update the single table
+  dachs limits arihip/q       # update all tables present
+  dachs limits arihip/q#main  # only update the single table
 
 after an import giving new data.
 
@@ -2518,7 +2518,7 @@ proper client for real work, and we didn't show you this).
 Run the import::
 
   cd ..
-  gavo imp q
+  dachs imp q
 
 Now start the server as necessary (see above), and start TOPCAT and
 Aladin_.  In TOPCAT, open VO/SIA Query, enter your new service's access
@@ -2787,7 +2787,7 @@ analogous to the ones for SIAP_.
 
 Once that's done, you can say::
 
-  gavo pub //siap2
+  dachs pub //siap2
 
 and you're done.
 
@@ -3283,7 +3283,7 @@ this.  You can see the result in context in :samplerd:`k2c9vst/q`.
 **Warning**: This introduces a fairly complex dependency scheme, and
 when dropping, DaCHS doesn't take into account dependencies yet.  Thus,
 dropping the tables belonging to a service discribed here essentially
-needs to happen manually (``gavo purge`` on the tables).  We intend to
+needs to happen manually (``dachs purge`` on the tables).  We intend to
 fix this; complaints will make us do that quicker.
 
 First, write a table definition and a null data item::
@@ -3395,7 +3395,7 @@ In the simplest case, a SIAP table, you could get by simply adding::
     mixin="//obscore#publishSIAP"
 
 to the table definition's start tag.  You do not have to re-import a table to
-publish it to obscore after the fact – ``gavo imp -m <rd id> && gavo imp
+publish it to obscore after the fact – ``dachs imp -m <rd id> && dachs imp
 //obscore create`` will include an existing table to the obscore view.
 
 Even for SIAP, you will usually want to add metadata not contained
@@ -3416,8 +3416,8 @@ can avoid having to re-import everything by adding the mixin clause and
 then updating the metadata.  In that case, you must manually remake the
 obscore table::
 
-  gavo imp -m path/to/my/rd
-  gavo imp //obscore create
+  dachs imp -m path/to/my/rd
+  dachs imp //obscore create
 
 For SSAP tables, there is an ``//obscore#publishSSAPHCD`` mixin that works
 like its SIAP cousin (see the reference documentation of details).
@@ -3706,7 +3706,7 @@ Publishing DaCHS-managed tables via TAP
 
 In the simplest form, all you need to do to publish a table through
 the TAP endpoint is to add an ``adql="True"`` attribute to the table
-definition and update the metadata (by saying ``gavo imp -m <rd>``).
+definition and update the metadata (by saying ``dachs imp -m <rd>``).
 
 You should, however, take particular care that there's a useful
 description of the table, usually as a direct meta on the table.
@@ -3767,8 +3767,8 @@ in ADQL; it would cause the tables to be created on a plain ``gavo
 imp``, in the present context, it just says something like "put the
 table metadata into DaCHS' internal catalogs".
 
-After that, say ``gavo imp -m <rd-id>``; make sure you don't forget the
-``-m``, because without it, ``gavo imp`` will drop the existing tables
+After that, say ``dachs imp -m <rd-id>``; make sure you don't forget the
+``-m``, because without it, ``dachs imp`` will drop the existing tables
 if it can, i.e., if gavoadmin has write access to the schema in
 question, and it should have that for reasons explained in the next
 paragraph.
@@ -3809,7 +3809,7 @@ Here's an example for the case of a multi-table publication::
 
 Don't forget that you need to execute::
 
-  gavo pub the/rdid
+  dachs pub the/rdid
 
 to make DaCHS actually publish the table.
 
@@ -4075,7 +4075,7 @@ For registration, just add::
 
   <publish/>
 
-to your table body and run ``gavo pub <rd-id>``.
+to your table body and run ``dachs pub <rd-id>``.
 
 Writing Examples
 ================
@@ -4130,7 +4130,7 @@ As is described in the operator's guide, DaCHS does not pick up changes
 to ``userconfig`` automatically.  Hence, after adding or changing
 examples, you have to run::
 
-  gavo serve exp % //tap
+  dachs serve exp % //tap
 
 as the gavo user on the server.
 
@@ -4409,9 +4409,9 @@ Here's "best practice" recommendations:
   to trim the interface and in particular the response a bit (using
   outputTable).  If you do, you'll have to use the ``service=`` trick as
   in SSAP.
-* your TAP service you only need to register once: ``gavo pub //tap``.
+* your TAP service you only need to register once: ``dachs pub //tap``.
   this will register any obscore table you may have.  Similarly, if you
-  want to register your SIAv2 service, you'll just say ``gavo pub
+  want to register your SIAv2 service, you'll just say ``dachs pub
   //siap2``.
 
 For compound services like TAP, Obscore and SIAv2, which typically
@@ -4483,13 +4483,13 @@ RD.  I won't hide that it's also technically simpler this way.
 
 So, to actually make the publication happen, run::
 
-  gavo pub q.rd
+  dachs pub q.rd
 
-(you pass RD ids instead of filenames, too, as in ``gavo pub
+(you pass RD ids instead of filenames, too, as in ``dachs pub
 arigfh/q``).  When there are ``local`` publications in the RD published,
 the ``//services`` RD on the running DaCHS instance has to be reloaded.
 If you gave the [web]adminpasswd configuration item in your ``gavo.rc``
-(and you're running gavo pub on a machine that has serverURL configured
+(and you're running dachs pub on a machine that has serverURL configured
 to point to the running instance), DaCHS will automatically do this;
 otherwise, it will issue a warning.
 
@@ -4529,7 +4529,7 @@ to tell the `RofR`_ (Registry of Registries) about your data center.  Go
 there, hit "Register/Validate a Registry", enter ``<your data center's
 base URL>/oai.xml`` in the URL box and let it run.
 
-If your endpoint does not validate, please run ``gavo val`` on all RDs
+If your endpoint does not validate, please run ``dachs val`` on all RDs
 that contain published services.  If that doesn't turn up the problem,
 complain to us.
 
@@ -4570,10 +4570,10 @@ User/Group management
 
 The DaCHS user administration is fashioned a bit after the Unix
 user/group model, except that there always is a group corresponding to a
-user.  To create a user and its group, use ``gavo admin adduser``, like
+user.  To create a user and its group, use ``dachs admin adduser``, like
 this::
 
-  gavo admin adduser kroisos notsecret "Remove when xy is public"
+  dachs admin adduser kroisos notsecret "Remove when xy is public"
 
 This command adds the user kroisos with the password notsecret and an
 optional comment reminding future operators what to do with the
@@ -4584,10 +4584,10 @@ doesn't matter much since with it, the passwords traverse the net in
 basically cleartext anyway. Again: all this is mild deterrence rather
 than hard security.
 
-To add existing users to groups, use ``gavo admin addtogroup``, like
+To add existing users to groups, use ``dachs admin addtogroup``, like
 this::
 
-  gavo admin addtogroup kroisos happy
+  dachs admin addtogroup kroisos happy
 
 – this adds kroisos to the happy group, and whoever can authenticate as
 kroisos will be allowed access to any products or services retstricted
@@ -4595,7 +4595,7 @@ to happy.
 
 To discover further commands manipulating the user table, try::
 
-  gavo admin --help
+  dachs admin --help
 
 *Important*: When you use authentication, please set the ``[web]realm``
 configuration item to some string reasonably characteristic for your

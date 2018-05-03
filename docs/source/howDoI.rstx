@@ -243,7 +243,7 @@ automatically add the platform postfix.
 If you build your own software, a make file like the following could be
 helpful::
 
-  PLATFORM=$(shell gavo config platform)
+  PLATFORM=$(shell dachs config platform)
   TARGET=@@@binName@@@-$(PLATFORM)
   OBJECTS=@@@your object files@@@
 
@@ -305,14 +305,14 @@ file.  Hence, you'd say::
 When you change a specification in an obscore mixin, it would be a waste
 to re-import the table with the mixin, since in general nothing has
 changed there.  However, the script updating the obscore view will only
-be run on a full ``gavo imp``, not on a ``gavo imp -m``.
+be run on a full ``dachs imp``, not on a ``dachs imp -m``.
 
-Since version 0.9.7, ``gavo imp -m`` now at least updates the view fragment
+Since version 0.9.7, ``dachs imp -m`` now at least updates the view fragment
 when the table metadata of a table with obscore is updated.  It does
 not, however, re-make the view.  You can easily do that, manually,
 however::
 
-  gavo imp //obscore
+  dachs imp //obscore
 
 
 
@@ -495,9 +495,9 @@ Fort Knox).
 
 First, create a group of authorized users and add a user to it:
 
-  gavo admin adduser tapusers master_password
-  gavo admin adduser smart_pi his_password
-  gavo admin addtogroup smart_pi tapusers
+  dachs admin adduser tapusers master_password
+  dachs admin adduser smart_pi his_password
+  dachs admin addtogroup smart_pi tapusers
 
 Then, limit access to the TAP service itself.  To make it easy to redo
 your changes and return to mainline development, we recommend to use a
@@ -1340,7 +1340,7 @@ DaCHS installation in panic mode.
 To do this, place a file called MAINT into DaCHS's stateDir, maybe
 somewhat like this::
 
-  cat <<EOF > `gavo config stateDir`/MAINT
+  cat <<EOF > `dachs config stateDir`/MAINT
   We're currently upgrading our database and cannot properly respond to
   requests.
 
