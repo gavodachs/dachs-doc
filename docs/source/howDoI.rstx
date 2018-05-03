@@ -1177,6 +1177,48 @@ become a bother.
 Operations
 ==========
 
+...get rid of stuff I imported or published?
+--------------------------------------------
+
+First, to avoid trouble you should always drop things before renaming
+them – DaCHS tries hard to not touch things that it does not know about
+(i.e., things no longer mentioned in RDs).
+
+So, it's best to run::
+
+  dachs drop res/q
+
+while the RD is still there.  But of course, you usually only remember
+to do that when it's hard to recover the previous situation.  To save
+the day then, DaCHS offers the ``-f`` flag to ``drop``::
+
+  dachs drop -f res/q
+
+With ``-f``, ``dachs drop`` doesn't even bother to look at what might
+have been in the RD.  It just visits all tables in which rows record
+which RD they came from, and when the RD id you give matches the source
+of the row, it does down the drain.  
+
+This is somewhat dangerous when the RD contained published services.  If
+you absolutely have to use ``drop -f`` on such an RD, please be sure to
+recreate deleted services after dropping the RD (see ``dachs admin
+makeDeletedRecord`` for how to do that).
+
+If you merely see a table that should have been long gone and you can't
+even remember what RD it came from, there's the ``purge`` subcommand.
+In contrast to most other DaCHS commands, it accepts a database table
+name, and again removes traces for that table where it can find it (in
+particular in TAP_SCHEMA)::
+
+  dachs purge myschema.tablename.
+
+In short: To drop stuff from an RD, use ``drop -f``.  To drop a table
+with a qualified name, use ``purge``.
+
+By the way, DaCHS will never remove a schema right now.  To get rid of
+empty schemas, use psql (“drop schema...”).
+
+
 ...get rid of DaCHS entirely?
 -----------------------------
 
