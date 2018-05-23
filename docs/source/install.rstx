@@ -19,7 +19,7 @@ distribution pages`_ for details on those.
 .. _GAVO DC's software distribution pages: http://vo.ari.uni-heidelberg.de/soft
 
 
-Debian systems
+Debian Systems
 ==============
 
 The preferred way to run DaCHS is on Debian stable or compatible
@@ -39,6 +39,297 @@ whether you want to run the bleeding-edge version.  You can
 .. _add our apt repository: http://soft.g-vo.org/repo
 .. _tutorial: tutorial.html
 .. _Operator's Guide: opguide.html
+
+
+RPM-based Distributions
+========================
+
+The following instructions were mainly written by Chris Piker (U Iowa)
+– thanks! – and reflect the state on CentOS 7.  The systemd parts are
+probably applicable beyond the RPM universe.
+
+
+Setup PostgreSQL with an alternate database cluster using the C locale
+----------------------------------------------------------------------
+
+Install postgres if needed::
+
+  $ sudo yum install postgresql-server postgresql-devel
+
+If postgres is running shut it down::
+
+  $ sudo systemctl stop postgresql.service
+
+Moving the database cluster:  The database cluster is typically in the
+``$HOME/data`` directory of the postgres user.  Changing this under CentOS 7
+which uses systemd is a bit different.  Configuration files are now .ini 
+style files (not bash scripts) and they live under
+``/usr/lib/systemd/system/``.
+  
+The default configuration file for postgres is
+``/usr/lib/systemd/system/postgresql.service``.
+
+The files in ``/usr/lib/systemd`` are maintained by the package manager so you
+should leave them alone.  Forturnatly, systemd looks for overrides in an 
+alternate directory first before loading the deflault service configuration.
+
+Local user defined overrides for services go in the
+``/etc/systemd/system`` directory.  So, put::
+
+     # Include the default config:
+     .include /usr/lib/systemd/system/postgresql.service
+
+     [Service]
+     Environment=PGDATA=<your path here>/data
+	  
+into ``/etc/systemd/system/postgresql.service``; of course *<your path
+here>* needs to be substituted with the path to somewhere where there's
+enough space for what you expect in your database; it's usually a good
+idea to use a directory on a separate partition here.  The examples
+below assume ``/disk/1/pgsql`` (and need to be adjusted accordingly in
+the likey event that you chose something else).
+  
+Let systemd know that you've changed something::
+
+  $ sudo /bin/systemctl daemon-reload
+  
+Also, the home directory for the postgres user should be changed to::
+
+  $ $EDITOR /etc/passwd  (change postgres user home directory)
+  $ sudo mkdir /disk/1/pgsql
+  $ sudo cp /var/lib/pgsql/.bash_profile /disk/1/pgsql
+  $ sudo chown -R postgres:postgres /disk/1/pgsql
+  
+Now initialize the db-cluster::
+
+  $ sudo su -l postgres 
+  $ initdb -D $HOME/data --locale=C --lc-collate=C --lc-ctype=C -E UTF8
+  $ $EDITOR data/pg_hba.conf 
+    > change 'trust' authentication to 'ident'
+	 
+Start up the service::
+
+  $ sudo systemctl enable postgresql.service
+  $ sudo systemctl start postgresql.service
+  
+Test the service::
+
+  $ sudo su -l postgres
+  postgres$ psql
+  postgres# \l
+
+Make sure postgresql account has a password and will listen on the loop-back
+interface::
+
+  $ sudo su -l postgres
+  $ psql
+  postgres# alter user postgres encrypted password '*********'; (remember this)
+  postgres# \q
+  $ rm .psql_history  (or else the password is stored on disk)
+  
+  $ cd data
+  $ vim pg_hba.conf
+    <<< change <<<
+       host    all         all             127.0.0.1/32            ident
+	    host    all         all             ::1/128                 ident
+    >>> to >>>>
+       host    all         all             127.0.0.1/32            md5
+	    host    all         all             ::1/128                 md5
+  
+and restart the postmaster::
+  
+  $ exit   (postgres account)
+  $ sudo systemctl restart postgresql.service
+
+Test that it works, you should get a password prompt::
+
+  $ sudo -u postgres psql -h 127.0.0.1 -U postgres template1
+
+
+Install distribution supplied dependenency packages
+---------------------------------------------------
+
+This is realatively straighforward::
+
+  $ sudo yum install SOAPpy
+  $ sudo yum install python-twisted #has lots of dependencies, yum get's them
+  $ sudo yum install pyparsing
+  $ sudo yum install python-astropy astropy-tools
+  $ sudo yum install python-matplotlib
+  $ sudo yum install python-setuptools
+  $ sudo yum install python-docutils
+  $ sudo yum install python-mistune #needed by nevow
+  $ sudo yum install python-pillow  #New name for Python Image Manipulation Lib
+  
+
+Make/install extra packages 
+---------------------------
+
+The RedHat/CentOS package universe is smaller than that available to Fedora
+and Debian.  Insstead of searching for rpm's that may or may not be compatible
+with your OS, is ususally more reliable to just build packages from sources 
+if they are not available in the primary repositories.
+
+
+PGSphere
+''''''''
+
+::
+
+  $ git clone https://github.com/akorotkov/pgsphere.git
+  $ cd pgsphere
+  $ make USE_PGXS=1 PG_CONFIG=/usr/bin/pg_config
+  $ sudo make USE_PGXS=1 PG_CONFIG=/usr/bin/pg_config install
+  
+Test (difficult due to user permissions, but possible)::
+  
+  $ mkdir results
+  $ sudo chmod 777 . results
+  $ sudo su postgres
+  $ make USE_PGXS=1 installcheck
+  $ exit
+  $ rm regression.*
+  $ sudo su postgres
+  $ make USE_PGXS=1 crushtest
+  $ exit
+
+
+QC3
+'''
+
+::
+
+  $ git clone https://github.com/segasai/q3c.git
+  $ cd q3c
+  $ make
+  $ sudo make install
+
+  
+m2r 
+'''
+
+Markdown text on reStructuredText converter, needed by nevow::
+
+  $ git clone https://github.com/miyakogi/m2r.git
+  $ cd m2r
+  $ $EDITOR setup.py #(look for potential issues)
+  $ sudo python setup.py install --dry-run #(look for potential issues)
+  $ sudo python setup.py install
+  
+  
+Automat
+'''''''
+
+There are finite-state machines for python, need by twisted. Version
+0.3.0 is the newest that will work with the system supplied python
+(Python 2.7.5)::
+
+  $ wget https://github.com/glyph/automat/archive/v0.3.0.tar.gz
+  $ tar -xvzf v0.3.0.tar.gz
+  $ $EDITOR setup.py         # (look for potential issues)
+  $ sudo python setup.py install --dry-run #(look for potential issues)
+  $ sudo python setup.py install
+
+
+nevow
+'''''
+
+Download the version 0.13.0 release source code from
+https://github.com/twisted/nevow/releases::
+  
+  $ wget https://github.com/twisted/nevow/archive/nevow-0.13.0.tar.gz
+  $ tar -xvzf nevow-0.13.0.tar.gz
+  $ $EDITOR setup.py   #(look for potential issues)
+  $ sudo python setup.py install --dry-run #(look for potential issues)
+  $ sudo python setup.py install
+
+
+
+Download/Patch/Build/Install GAVO DaCHS Software
+------------------------------------------------
+
+Getting the source is an easy download; these instructions were tested
+with SVN revision 6511::
+
+  $ svn http://svn.ari.uni-heidelberg.de/svn/gavo/python/trunk dachs
+  $ cd dachs
+
+
+Run setup::
+
+  $ python setup.py install --dry-run # (Look for problems)
+  $ sudo python setup.py install
+	
+From here follow the standard instructions to test dachs.  With this,
+you should be all set to try out stuff from :dachsdoc:`tutorial.html`.
+
+The final step is to make DaCHS start as part of the system boot.
+
+
+Setup DaCHS web-server as a system service
+------------------------------------------
+
+Rather than use the init script provided by upstream, use the following
+systemd unit file (put it into ``/etc/systemd/system/dachs.service``)::
+
+	[Unit]
+	Description=GAVO Data Center Helper Suite
+	After=network.target postgresql.service
+	Requires=postgresql.service
+
+	[Service]
+	Type=forking
+	PIDFile=/DACHS/ROOT/DIR/state/web.pid
+
+	User=gavo
+	Group=gavo
+
+	WorkingDirectory=/DACHS/ROOT/DIR
+	
+	# Configure the server environment if you have a non-standard setup, this 
+	# may not be needed if no special arguments were supplied to 
+	# "python setup.py install" when installing the dachs software
+	
+	#Environment=GAVOSETTINGS=/ABSOLUTE/PATH/TO/GAVO.RC
+	
+	# When setting a sub-path the *entire* path must be set.  Systemd has
+	# *no* facility for variable substitution in any environment variables.
+	
+	#Environment=PATH=/usr/bin:/usr/sbin:/DIR/CONTAINING/DACHS_SCRIPT
+	
+	# Again, if your gavodachs-1.1.3-py2.7.egg file is not is the standard 
+	# location set the entire PYTHONPATH here, statements such as
+	# PYTHONPATH=${PYTHONPATH}:/some/other/directory do *not* work in
+	# systemd unit scripts.
+	
+	#Environment=PYTHONPATH=/DIR/CONTAINING/GAVODACHS_EGG
+	
+	ExecStart=/bin/python /ABS/PATH/TO/DACHS_SCRIPT serve start
+	ExecReload=/bin/python /ABS/PATH/TO/DACHS_SCRIPT serve restart
+	ExecStop=/bin/python /ABS/PATH/TO/DACHS_SCRIPT serve stop
+	
+	[Install]
+	WantedBy=multi-user.target
+
+You will have to adapt the all-uppercase strings to the installation
+choices you made above.
+
+Before activating DaCHS through systemd, make sure you have shutdown any
+instances of dachs that you may have running::
+
+  $ sudo su -l gavo
+  $ dachs serve stop
+  $ exit
+  
+Let systemd know a config file has changed::
+
+  $ sudo /bin/systemctl daemon-reload
+
+Then enable and start the service::
+
+  $ sudo systemctl enable dachs.service
+  $ sudo systemctl start dachs.service
+  $ sudo systemctl status dachs.service
 
 
 
