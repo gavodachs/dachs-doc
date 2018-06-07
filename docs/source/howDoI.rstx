@@ -1529,4 +1529,44 @@ in such cases you'd have to write::
 to make it bind to all interfaces the machine has (in particular the one
 that the reverse proxy can see).
 
+
+...change the host name of my server?
+-------------------------------------
+
+If your services are not registered, all you need to fix is the
+[web]serverURL setting in your ``/etc/gavo.rc``.
+
+If (as they should) your services are registered, you have to re-publish
+them, as the URLs are baked into the registry records.  To do that,
+run::
+
+  dachs pub -a
+
+However, changing the host name will also change the access URL of your
+publishing registry endpoint.  If that is what you use to distribute the
+resource records (i.e., if you're registered with the Registry of
+Registries), you must therefore inform them of the change, and there is
+no automated way to do that yet.  For now, just send a mail to ivoa-rofr
+(at) cfa.harvard.edu saying something like::
+
+  Dear RofR maintainer,
+
+  We've had to change the host name of our data centre.  Hence, the
+  publishing registry for the authority ivo://my.authority is no
+  longer at http://old.domain.name/oai.xml but instead at
+  http://new.domain.name/oai.xml.
+
+  Would you change the RofR files accordingly?
+
+  Thanks,
+
+          X
+
+If instead you're using purx to get your records out, send mail to
+gavo@ari.uni-heidelberg; there's no automatic way to change a
+purx-harvested URL right now, either.
+
+If you're using one of the browser-based publishing registries (at ESAC
+or STScI), you'll have to re-upload your registry records there.
+
 .. |date| date::

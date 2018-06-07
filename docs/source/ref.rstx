@@ -213,6 +213,11 @@ Properties evaluated:
 
 - std -- set to 1 to tell the tap schema importer to have the column's
   std column in TAP_SCHEMA 1 (it's 0 otherwise).
+- statisticsTarget -- an integer to be set as this column's 
+  statistics-gathering target.  Set this to something between 100 and
+  10000 on postgres if you have large tables and columns with strongly
+  non-uniform distributions.  Set to -1 to revert to the system default.
+  gavo imp -m will apply changes here.
 
 May occur in `Element table`_.
 
@@ -252,9 +257,9 @@ Atomic Children
   include: unicode, pql-float, text, spoly, char, raw, vexpr-mjd,
   boolean, file, smallint, vexpr-string, scircle, vexpr-float, vexpr-
   date, pql-string, smoc, real, spoint, pql-int, timestamp, pql-date,
-  date, integer, box, pql-upload, double precision, sbox, bigint,
-  time, bytea; defaults to 'real') -- datatype for the column (SQL-
-  like type system)
+  int4range, date, integer, box, pql-upload, double precision, sbox,
+  bigint, time, bytea; defaults to 'real') -- datatype for the column
+  (SQL-like type system)
 * **ucd** (unicode string; defaults to '') -- UCD of the column
 * **unit** (unicode string; defaults to '') -- Unit of the values
 * **utype** (unicode string; defaults to None) -- utype for this
@@ -969,9 +974,9 @@ Atomic Children
   include: unicode, pql-float, text, spoly, char, raw, vexpr-mjd,
   boolean, file, smallint, vexpr-string, scircle, vexpr-float, vexpr-
   date, pql-string, smoc, real, spoint, pql-int, timestamp, pql-date,
-  date, integer, box, pql-upload, double precision, sbox, bigint,
-  time, bytea; defaults to 'real') -- datatype for the column (SQL-
-  like type system)
+  int4range, date, integer, box, pql-upload, double precision, sbox,
+  bigint, time, bytea; defaults to 'real') -- datatype for the column
+  (SQL-like type system)
 * **ucd** (unicode string; defaults to '') -- UCD of the column
 * **unit** (unicode string; defaults to '') -- Unit of the values
 * **utype** (unicode string; defaults to None) -- utype for this
@@ -1371,9 +1376,9 @@ Atomic Children
   include: unicode, pql-float, text, spoly, char, raw, vexpr-mjd,
   boolean, file, smallint, vexpr-string, scircle, vexpr-float, vexpr-
   date, pql-string, smoc, real, spoint, pql-int, timestamp, pql-date,
-  date, integer, box, pql-upload, double precision, sbox, bigint,
-  time, bytea; defaults to 'real') -- datatype for the column (SQL-
-  like type system)
+  int4range, date, integer, box, pql-upload, double precision, sbox,
+  bigint, time, bytea; defaults to 'real') -- datatype for the column
+  (SQL-like type system)
 * **ucd** (unicode string; defaults to '') -- UCD of the column
 * **unit** (unicode string; defaults to '') -- Unit of the values
 * **utype** (unicode string; defaults to None) -- utype for this
@@ -1610,9 +1615,9 @@ Atomic Children
   include: unicode, pql-float, text, spoly, char, raw, vexpr-mjd,
   boolean, file, smallint, vexpr-string, scircle, vexpr-float, vexpr-
   date, pql-string, smoc, real, spoint, pql-int, timestamp, pql-date,
-  date, integer, box, pql-upload, double precision, sbox, bigint,
-  time, bytea; defaults to 'real') -- datatype for the column (SQL-
-  like type system)
+  int4range, date, integer, box, pql-upload, double precision, sbox,
+  bigint, time, bytea; defaults to 'real') -- datatype for the column
+  (SQL-like type system)
 * **ucd** (unicode string; defaults to '') -- UCD of the column
 * **unit** (unicode string; defaults to '') -- Unit of the values
 * **utype** (unicode string; defaults to None) -- utype for this
@@ -2221,7 +2226,7 @@ Structure Children
 * vars (contains `Element var`_ and may be repeated zero or more
   times) -- Definitions of intermediate variables.
 
-Macros predefined here: `Macro RSTservicelink`_, `Macro RSTtable`_, `Macro decapitalize`_, `Macro dlMetaURI`_, `Macro docField`_, `Macro fullPath`_, `Macro getConfig`_, `Macro inputRelativePath`_, `Macro inputSize`_, `Macro internallink`_, `Macro lastSourceElements`_, `Macro magicEmpty`_, `Macro metaString`_, `Macro property`_, `Macro qName`_, `Macro quote`_, `Macro rdId`_, `Macro rdIdDotted`_, `Macro rootlessPath`_, `Macro rowsMade`_, `Macro rowsProcessed`_, `Macro schema`_, `Macro sourceDate`_, `Macro sqlquote`_, `Macro srcstem`_, `Macro standardPubDID`_, `Macro test`_, `Macro today`_, `Macro upper`_, `Macro urlquote`_
+Macros predefined here: `Macro RSTservicelink`_, `Macro RSTtable`_, `Macro decapitalize`_, `Macro dlMetaURI`_, `Macro docField`_, `Macro fullPath`_, `Macro getConfig`_, `Macro inputRelativePath`_, `Macro inputSize`_, `Macro internallink`_, `Macro lastSourceElements`_, `Macro magicEmpty`_, `Macro metaString`_, `Macro property`_, `Macro qName`_, `Macro quote`_, `Macro rdId`_, `Macro rdIdDotted`_, `Macro rootlessPath`_, `Macro rowsMade`_, `Macro rowsProcessed`_, `Macro schema`_, `Macro sourceCDate`_, `Macro sourceDate`_, `Macro sqlquote`_, `Macro srcstem`_, `Macro standardPubDID`_, `Macro test`_, `Macro today`_, `Macro upper`_, `Macro urlquote`_
 
 Element script
 ''''''''''''''
@@ -2282,8 +2287,6 @@ Properties evaluated:
   all columns from the underlying database table with low enough
   verbLevel (essentially).  When this property is "True" (case-sensitive),
   that's not done and only the service's output table is evaluated.
-  [Note that column selection is such a mess it needs to be fixed
-  before version 1.0 anyway]
 
 May occur in `Element resource`_.
 
@@ -5808,6 +5811,21 @@ the schema of the current resource descriptor.
 
 Available in `Element FEED`_, `Element LFEED`_, `Element LOOP`_, `Element binaryGrammar`_, `Element cdfHeaderGrammar`_, `Element columnGrammar`_, `Element contextGrammar`_, `Element csvGrammar`_, `Element customGrammar`_, `Element dictlistGrammar`_, `Element embeddedGrammar`_, `Element fitsProdGrammar`_, `Element fitsTableGrammar`_, `Element freeREGrammar`_, `Element inputTable`_, `Element keyValueGrammar`_, `Element mixinDef`_, `Element mySQLDumpGrammar`_, `Element nullGrammar`_, `Element odbcGrammar`_, `Element outputTable`_, `Element pdsGrammar`_, `Element reGrammar`_, `Element resRec`_, `Element resource`_, `Element rowmaker`_, `Element rowsetGrammar`_, `Element service`_, `Element table`_, `Element transparentGrammar`_, `Element voTableGrammar`_
 
+Macro sourceCDate
+'''''''''''''''''
+
+::
+
+  \sourceCDate
+
+returns an expression giving the timestamp for the create
+date of the current source.
+
+Use dateTimeToJdn or dateTimeToMJD to turn this into JD or MJD (which 
+is usually preferred in database tables).  See also the sourceDate macro.
+
+Available in `Element rowmaker`_
+
 Macro sourceDate
 ''''''''''''''''
 
@@ -5816,6 +5834,10 @@ Macro sourceDate
   \sourceDate
 
 returns an expression giving the timestamp of the current source.
+
+This is a timestamp of the modification date; use dateTimeToJdn or
+dateTimeToMJD to turn this into JD or MJD (which is usually preferred
+in database tables).  See also the sourceCDate macro.
 
 Available in `Element binaryGrammar`_, `Element cdfHeaderGrammar`_, `Element columnGrammar`_, `Element contextGrammar`_, `Element csvGrammar`_, `Element customGrammar`_, `Element dictlistGrammar`_, `Element embeddedGrammar`_, `Element fitsProdGrammar`_, `Element fitsTableGrammar`_, `Element freeREGrammar`_, `Element keyValueGrammar`_, `Element mySQLDumpGrammar`_, `Element nullGrammar`_, `Element odbcGrammar`_, `Element pdsGrammar`_, `Element reGrammar`_, `Element rowmaker`_, `Element rowsetGrammar`_, `Element transparentGrammar`_, `Element voTableGrammar`_
 
@@ -7828,6 +7850,13 @@ This will only (properly) work when you use a `//products#define`_
 rowfilter; if you have that, this will work without further 
 configuration.
 
+
+Setup parameters for the procedure are:
+
+
+Late parameter *creation_date*
+  defaults to ``\sourceCDate``;
+  A timestamp giving the dataset's creation time as a datetime object
 
 //procs#dictMap
 ...............
