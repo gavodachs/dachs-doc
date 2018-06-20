@@ -633,4 +633,15 @@ downgrade, that's trouble.  Complain to the dachs-support mailing list –
 essentially, someone will have to build a pgsphere package for your
 postgres version.
 
+
+relation "ivoa._obscoresources" does not exist
+==============================================
+
+This happens when you try to import an obscore-published table (these
+mix in something like ``//obscore#publish-whatever``) without having
+created the obscore table itself.  The fix is easy: Either remove the
+mixin if you don't want the obscore publication (which would be odd for
+production data) or, more typically, create the obscore table::
+
+  dachs imp //obscore
 .. |date| date::
