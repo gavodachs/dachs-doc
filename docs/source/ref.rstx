@@ -218,6 +218,12 @@ Properties evaluated:
   10000 on postgres if you have large tables and columns with strongly
   non-uniform distributions.  Set to -1 to revert to the system default.
   gavo imp -m will apply changes here.
+- targetType -- for a column containing a URL, the media type of the
+  resource pointed at.  This is for producing extra annotation for
+  Aladin and friends as per 
+  http://mail.ivoa.net/pipermail/dal/2018-May/008017.html
+- targetTitle -- if you give targetType, use this to set the link
+  title (defaults to "Link").
 
 May occur in `Element table`_.
 
@@ -12611,6 +12617,35 @@ This way, of course, without a datalink-enabled client people might be
 locked out from the dataset entirely.  On the other hand, DaCHS comes
 with a stylesheet that enables datalink operation from a common web
 brower, so that's perhaps not too bad.
+
+Aladin likes it when columns containing datalink URLs are marked up.
+DaCHS has two properties that let you add that markup, *targetType* and
+*targetTitle*.  On a standalone datalink column that you just add to an
+output table, this could look like this (the datalink service would have
+an id of “dl” here; this also assumes you have a column named
+``pub_did``)::
+
+  <outputField name="datalink" type="text" id="datalink_output"
+      ucd="meta.ref.url"
+      select="'\getConfig{web}{serverURL}/\rdId/dl/dlmeta?ID='
+        || gavo_urlescape(pub_did)"
+      tablehead="DL"
+      description="URL of a datalink document for this dataset."
+      displayHint="type=url" verbLevel="1">
+    <property name="targetType"
+      >application/x-votable+xml;content=datalink</property>
+    <property name="targetTitle">Datalink</property>
+  </outputField>
+
+When your product link is a datalink, you have to amend the ``accref``
+column in your main table.  This stereotypically looks like this::
+
+  <column original="accref">
+    <property name="targetType"
+      >application/x-votable+xml;content=datalink</property>
+    <property name="targetTitle">Datalink</property>
+  </column>
+
 
 To have datalinks rather than the plain dataset as what the accref
 points to, you need to change what DaCHS thinks of your dataset; this is

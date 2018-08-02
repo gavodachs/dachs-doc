@@ -3408,6 +3408,35 @@ locked out from the dataset entirely.  On the other hand, DaCHS comes
 with a stylesheet that enables datalink operation from a common web
 brower, so that's perhaps not too bad.
 
+Aladin likes it when columns containing datalink URLs are marked up.
+DaCHS has two properties that let you add that markup, *targetType* and
+*targetTitle*.  On a standalone datalink column that you just add to an
+output table, this could look like this (the datalink service would have
+an id of “dl” here; this also assumes you have a column named
+``pub_did``)::
+
+	<outputField name="datalink" type="text" id="datalink_output"
+		  ucd="meta.ref.url"
+		  select="'\getConfig{web}{serverURL}/\rdId/dl/dlmeta?ID='
+			  || gavo_urlescape(pub_did)"
+		  tablehead="DL"
+		  description="URL of a datalink document for this dataset."
+		  displayHint="type=url" verbLevel="1">
+		<property name="targetType"
+			>application/x-votable+xml;content=datalink</property>
+		<property name="targetTitle">Datalink</property>
+  </outputField>
+
+When your product link is a datalink, you have to amend the ``accref``
+column in your main table.  This stereotypically looks like this::
+
+  <column original="accref">
+    <property name="targetType"
+      >application/x-votable+xml;content=datalink</property>
+    <property name="targetTitle">Datalink</property>
+  </column>
+
+
 To have datalinks rather than the plain dataset as what the accref
 points to, you need to change what DaCHS thinks of your dataset; this is
 what the `//products#define`_ rowfilter in your grammar is for::
