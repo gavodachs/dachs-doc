@@ -1925,7 +1925,7 @@ process, and that can only have one current directory.
 
 Instead, in such situations, make a temporary directory and manually
 place your inputs in there.  The spacecore
-(https://svn.ari.uni-heidelberg.de/svn/gavo/hdinputs/sp_ace/res/spacecore.py)
+(http://svn.ari.uni-heidelberg.de/svn/gavo/hdinputs/sp_ace/res/spacecore.py)
 shows how this could look like, including  tearing the stuff down
 safely when done (the runSpace function).
 

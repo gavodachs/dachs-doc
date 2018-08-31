@@ -736,6 +736,124 @@ version 0.6::
 Note again that ``<key>`` must be a *single* path element only.
 
 
+Enabling HTTPS
+==============
+
+DaCHS can natively speak HTTPS; you have to let it claim port 443 on all
+the network interfaces you bind it to, though.  
+
+If, on the other hand, you use an external HTTPS termination (usually a
+reverse proxy), your best shot is probably to configure the reverse
+proxy's HTTPS URL as serverURL.  You cannot currently have parallel HTTP
+in such a configuration, which is unfortunate (see `HTTP preferred`_).
+If you really need external HTTPS termination, please let us know and
+we'll try to think of something.
+
+To make DaCHS (attempt to) bind to an HTTPS port, all you need to do is
+give it a secret key and a certificate (which really is a public key
+with a CA's signature); these need to come in PEM format concatenated a
+file called ``$GAVO_DIR/hazmat/bundle.pem``.  Just so the whole crypto
+thing doesn't become a total carnival, you should have the hazmat
+directory owned by root and with permissions 700.  DaCHS will only read
+it when starting up using ``gavo serve`` and before dropping privileges.
+That way, if there's a minor security issue in DaCHS, you at least don't
+necessarily lose your private key.
+
+On the other hand, you need to become root to update the certificate in
+this setup, which probably again is a security hazard, in particular
+when it's automated.  If you want to do better, you probably can.
+Whatever you do, just make sure the operational DaCHS server (i.e., the
+gavo user) can't read the private key.
+
+
+Letsencrypt
+-----------
+
+To get a certificate that is (hopefully) widely accepted, we strongly
+recommend you use letsencrypt.  DaCHS has built-in support to update
+these certificates in time.
+
+Here's how to go about it::
+
+  # DaCHS internally calls a tool called acme-tiny; we much rather trust
+  # it than any crypto code we'd hack together
+  $ sudo apt install acme-tiny
+  # now create the directory with the key material; we'll do all of this
+  # as root; if you don't like this, at least make it a user distinct
+  # from gavo and gavoadmin
+  $ sudo bash
+  $ cd `gavo config rootDir`
+  $ mkdir hazmat
+  $ chmod 700 hazmat
+  $ cd hazmat
+  # generate an account key; this is what identifies you against
+  # letsencrypt
+  $ openssl genrsa 4096 > account.key
+  # Generate your secret key; these are the holy bits if you believe
+  # in https.
+  $ openssl genrsa 4096 > server.key
+  # now tell dachs to have the certificate signed; warning: this will
+  # restart the server
+  $ dachs serve updateCertificate
+  # Done -- hit ^D to exit the root shell.
+
+Letsencrypt certificates are only good for three months.  It's a good
+idea to renew them every two months.  And that won't fly if you don't
+automate it.  Automating it means your server will restart without
+manual intervention.  That's bad because it might be down for a
+significant time (namely if someone is doing a large download at that
+time).  As said below: HTTPS is an operational liability.
+
+Anyway, add the following to root's crontab:
+
+  21 4 1 1,3,5,7,9,11 * dachs serve updateCertificate
+
+-- adapt the time (here, 4:21 local time) to avoid times when it's
+likely you'll have many users.
+
+
+HTTP preferred
+--------------
+
+We strongly recommend to have an unencrypted HTTP endpoint, and 
+have that as the primary interface even when you support HTTPS in all
+but very rare cases.
+
+Here's the reasoning: HTTPS is largely ineffective against most privacy
+breaches: Almost all nation-states can issue certificates that almost
+all user systems will accept; companies or institutions wanting to
+eavesdrop on their employees can force http proxies and install their
+own CA certificates on their employee's machines; and of course most
+privacy violations are side effects of platforms executing loads of
+Javascript sailing into the browsers with valid certificates.
+
+On the other hand, networks become a lot more brittle with HTTPS: On the
+server side, the certificates need to be managed and regularly
+refreshed.  And that's even before operators employ secure key
+management (which would probably require extra hardware or at least the
+use of passphrases).  
+
+Worse, the client side needs to keep their CA bundles (that's
+essentially lists of private keys they trust) up to date.  With browsers
+that often carry these along and are updated quite regularly on most
+boxes, that's marginally manageable.  For the VO, clients as a rule are
+not browsers but tools like TOPCAT or Aladin that may use a CA bundle
+coming with the Java VM, which often is not as well maintained.  And
+once people start using curl or pyVO, the operating system's CA bundle
+is used, which on many systems is a mess.  The net effect is that a
+given service may appear to work in the browser and in a script, but not
+from TOPCAT.  Oh my.  I mention in passing that WebSAMP on https pages
+may very well be impossible, and it certainly doesn't work now (which is
+why DaCHS swallows the SAMP button when it knows it's delivering via
+HTTPS).
+
+Given the miniscule benefits and the serious operational implications,
+you should provide HTTP endpoints and register your those.  If HTTPS is
+available, DaCHS will tell clients via the Registry's mirrorURL feature.
+If clients think HTTPS is worth it, they in this way can learn about
+support for it and use that as they see fit.
+
+
 Configuration Settings
 ======================
 
@@ -807,9 +925,10 @@ for a public server would thus look like this::
   serverPort: 80
   serverURL: http://mydc.myvo.org
 
-Note that ``serverURL`` *must* include the port if it is not 80 (or 443
-for https).  If you actually kept the default and just put the machine
-on the net, your web section would need to include something like::
+Note that ``serverURL`` *must* include the port if it is not 80; for
+https, DaCHS does not support nonstandard URLs.  If you actually kept
+the default and just put the machine on the net, your web section would
+need to include something like::
 
   [web]
   bindAddress:

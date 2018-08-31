@@ -513,7 +513,9 @@ Subsubcommands
 ---------------
 
 * ``debug`` -- run a server and remain in the foreground, dumping all
-  kinds of stuff to the terminal
+  kinds of stuff to the terminal.  If you have an SSL certificate, this 
+  will try bind an https interface to port 40443; that's exclusively
+  for little experiments, do not use it for actual operations.
 * ``reload`` -- reload server configuration (incomplete)
 * ``restart`` -- restart the server
 * ``start`` -- start the server and put it in the background
