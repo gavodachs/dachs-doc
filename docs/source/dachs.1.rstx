@@ -372,8 +372,10 @@ Options
        data source name (DSN) to use to  connect  to  the future DaCHS
        database; the DSN must let DaCHS connect to the database as an
        administrator;  dbname, host,  and  port  get  copied  to  the
-       profile, if given; if you followed the  installation
-       instructions, you do not need this option
+       profile, if given; this is not required if the calling user
+       has superuser privileges on a database running on localhost.
+       Otherwise, the DSN has to look like "host=example.org dbname=mydb
+       user=superuser password=secret".
 
 --nodb
        inhibit  initialization  of  the database (you may
