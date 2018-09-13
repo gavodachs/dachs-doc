@@ -434,8 +434,8 @@ Synopsis::
 
        dachs mkrd [option] sample
 
-Rudimentary support for generating RDs from data.  This is probably not
-terribly useful in its current state.
+Rudimentary support for generating RDs from data.  This was probably
+a bad idea.  Rather use dachs limits to start and RD.
 
 Options
 -------
@@ -451,9 +451,9 @@ Options
 THE publish SUBCOMMAND
 ======================
 
-Synopsis:
+Synopsis::
 
-       dachs publish [option] rd-name
+        dachs pub [-h] [-a] [-m] [-k] [-u] rd [rd ...]
 
 This marks data and/or services contained in an RD as published; this
 will make them displayed in DaCHS' portal page or pushed to the VO
@@ -461,23 +461,37 @@ registry through DaCHS' OAI-PMH endpoint.  See the *Operator's Guide*
 for details.
 
 
+Arguments
+---------
+
+rd                   
+      RD id(s) to publish. (This can also reference files,
+      and the extension .rd is automatically added)
+
+
 Options
 -------
 
 -a, --all
-       search everything below inputsDir for publications
+      re-publish all RDs that have been published before
+      (this will cause a complete re-harvest of all your
+      resources).
+
+-m, --meta-too
+      update DaCHS-internal meta information, too (prefer dachs imp -m
+      here; this may go away).
 
 -k, --keep-timestamps
-       preserve the time stamp of the last record modification;  this
-       may  sometimes  be  desirable  with minor updates on an RD 
-       that don't justify a re-publication to the VO.
+      Preserve the time stamp of the last record modification. This may
+      sometimes be desirable with minor updates to an RD that don't
+      justify a re- publication to the VO.
 
--u, --unpublish
-       Unpublishes all services ever published from this RD.  Note that
-       this will in general create "deleted records", i.e., essentially
-       empty resource records only stating that the resource referenced
-       by an identifier is no longer available.  This is important for
-       functioning 
+-u, --unpublish       
+      Unpublish all resources coming from this RD Note that this will in
+      general create "deleted records", i.e., essentially empty resource
+      records only stating that the resource referenced by an identifier
+      is no longer available.  This is important for reliable operation
+      in the presence of incremental harvesting.
 
 
 THE purge SUBCOMMAND
@@ -714,7 +728,7 @@ Options
 THE adql SUBCOMMAND
 ===================
 
-Synopsis:
+Synopsis::
 
   dachs adql query
 

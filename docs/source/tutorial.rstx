@@ -3313,7 +3313,7 @@ page for your RD.  In this case, the URL would be
 http://localhost:8080/browse/k2c9vst/q (it's always ``browse`` and the
 RD id).  You'll see a link to the table, and you can see the columns.
 
-Then, in the table, write a view statment.  Always follow this pattern::
+Then, in the table, write a view statement.  Always follow this pattern::
 
   <table id="timeseries" onDisk="True">
     <mixin
@@ -3330,7 +3330,7 @@ Then, in the table, write a view statment.  Always follow this pattern::
             ...
         ) AS q
       )
-    </viewStatment>
+    </viewStatement>
   </table>
 
 This makes sure you're actually creating the view DaCHS is expecting
