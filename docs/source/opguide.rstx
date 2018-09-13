@@ -811,6 +811,14 @@ Anyway, add the following to root's crontab:
 -- adapt the time (here, 4:21 local time) to avoid times when it's
 likely you'll have many users.
 
+Finally, to register your https endpoints, add::
+
+  registerAlternative: True
+
+to the ``ivoa`` section in your ``/etc/gavo.rc``. To propagate the
+information, restart the server and then say ``dachs pub -a`` to make
+the registries re-harvest your site.
+
 
 HTTP preferred
 --------------
