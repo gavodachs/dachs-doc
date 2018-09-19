@@ -809,7 +809,11 @@ Anyway, add the following to root's crontab:
   21 4 1 1,3,5,7,9,11 * dachs serve updateCertificate
 
 -- adapt the time (here, 4:21 local time) to avoid times when it's
-likely you'll have many users.
+likely you'll have many users.  Also, make sure you receive mails from
+cron from the machine that does this, because there's a lot that can go
+wrong here, and DaCHS will just write error messages to stderr.  That's
+probably not a big additional liability, as you should teach the service
+mails also for DaCHS itself.
 
 Finally, to register your https endpoints, add::
 
@@ -819,6 +823,11 @@ to the ``ivoa`` section in your ``/etc/gavo.rc``. To propagate the
 information, restart the server and then say ``dachs pub -a`` to make
 the registries re-harvest your site.
 
+If your machine is reachable through different host names (or box in
+Heidelberg, for instance, is both dc.g-vo.org and
+dc.zah.uni-heidelberg.de), tell DaCHS by listing all the non-primary
+names (i.e., anything that's not in serverURL) in a comma-separated list
+in [web] alternateHostnames.
 
 HTTP preferred
 --------------
@@ -1019,71 +1028,72 @@ You can get an up-to-date version of this by running ``gavo config``.
 .. BEGIN CONFIG REFERENCE
    refresh by going one line below this comment in vi and saying
 
+
 Section [general]
 '''''''''''''''''
 
 Paths and other general settings.
 
-* cacheDir: path relative to rootDir;
+* cacheDir: path relative to rootDir; 
   defaults to 'cache' --
   Path to the DC's persistent scratch space
-* configDir: path relative to rootDir;
+* configDir: path relative to rootDir; 
   defaults to 'etc' --
   Path to the DC's non-ini configuration (e.g., DB profiles)
-* defaultProfileName: string;
+* defaultProfileName: string; 
   defaults to '' --
   Deprecated and ignored.
-* gavoGroup: string;
+* gavoGroup: string; 
   defaults to 'gavo' --
   Name of the unix group that administers the DC
-* group: string;
+* group: string; 
   defaults to 'gavo' --
   Name of the group that may write into the log directory
-* inputsDir: path relative to rootDir;
+* inputsDir: path relative to rootDir; 
   defaults to 'inputs' --
   Path to the DC's data holdings
-* logDir: path relative to rootDir;
+* logDir: path relative to rootDir; 
   defaults to 'logs' --
   Path to the DC's logs (should be local)
-* logLevel: value from the list info, debug, warning, error;
+* logLevel: value from the list info, debug, warning, error; 
   defaults to 'info' --
   How much should be logged?
-* maintainerAddress: string;
+* maintainerAddress: string; 
   defaults to '' --
   An e-mail address to send reports and warnings to; this could be the
   same as contact.email; in practice, it is shown in more technical
   circumstances, so it's adviable to have a narrower distribution here.
-* operator: string;
+* operator: string; 
   defaults to '' --
   Deprecated and ignored.  Use contact.email in defaultmeta.txt instead.
-* platform: string;
+* platform: string; 
   defaults to '' --
   Platform string (can be empty if inputsDir is only accessed by
   identical machines)
-* rootDir: string;
+* rootDir: string; 
   defaults to '/var/gavo' --
   Path to the root of the DC file (all other paths may be relative to
   this
-* sendmail: string;
+* sendmail: string; 
   defaults to 'sendmail -t' --
   Command that reads a mail from stdin, taking therecipient address from
   the mail header, and transfers the mail (this is for sending mails to
   the administrator). This command is processed by a shell (generally
   running as the server user), so you can do tricks if necessary.
-* stateDir: path relative to rootDir;
+* stateDir: path relative to rootDir; 
   defaults to 'state' --
   Path to the DC's state information (last imported,...)
-* tempDir: path relative to rootDir;
+* tempDir: path relative to rootDir; 
   defaults to 'tmp' --
   Path to the DC's scratch space (should be local)
-* uwsWD: path relative to rootDir;
+* uwsWD: path relative to rootDir; 
   defaults to 'state/uwsjobs' --
   Directory to keep uws jobs in.  This may need lots of space if your
   users do large queries
-* webDir: path relative to rootDir;
+* webDir: path relative to rootDir; 
   defaults to 'web' --
   Path to the DC's web related data (docs, css, js, templates...)
-* xsdclasspath: shell-type path;
+* xsdclasspath: shell-type path; 
   defaults to 'None' --
   Classpath necessary to validate XSD using an xsdval java class.  You
   want GAVO's VO schemata collection for this.  Deprecated, we're now
@@ -1092,41 +1102,47 @@ Paths and other general settings.
 Section [adql]
 ''''''''''''''
 
-Settings concerning the built-in ADQL core
+(ignored, only left for backward compatibility)
 
-* webDefaultLimit: integer;
+* webDefaultLimit: integer; 
   defaults to '2000' --
-  Default match limit for ADQL queries via a web form
+  (ignored, only present for backwards compatibility; use
+  [async]defaultMAXREC instead.
 
 Section [async]
 '''''''''''''''
 
 Settings concerning TAP, UWS, and friends
 
-* csvDialect: string;
+* csvDialect: string; 
   defaults to 'excel' --
   CSV dialect as defined by the python csv module used when writing CSV
   files.
-* defaultExecTime: integer;
+* defaultExecTime: integer; 
   defaults to '3600' --
   Default timeout for UWS jobs, in seconds
-* defaultExecTimeSync: integer;
+* defaultExecTimeSync: integer; 
   defaults to '60' --
   Default timeout for synchronous UWS jobs, in seconds
-* defaultLifetime: integer;
+* defaultLifetime: integer; 
   defaults to '172800' --
   Default time to destruction for UWS jobs, in seconds
-* defaultMAXREC: integer;
-  defaults to '2000' --
+* defaultMAXREC: integer; 
+  defaults to '20000' --
   Default match limit for ADQL queries via the UWS/TAP
-* hardMAXREC: integer;
+* hardMAXREC: integer; 
   defaults to '20000000' --
   Hard match limit (i.e., users cannot raise MAXREC or TOP beyond that)
   for ADQL queries via the UWS/TAP
-* maxTAPRunning: integer;
+* maxSlowPollWait: integer; 
+  defaults to '300' --
+  Maximal time a UWS 1.1-WAIT request will delay the response.  This
+  should be smaller than what you have as timeout on outgoing
+  connections.
+* maxTAPRunning: integer; 
   defaults to '2' --
   Maximum number of TAP jobs running at a time
-* maxUserUWSRunningDefault: integer;
+* maxUserUWSRunningDefault: integer; 
   defaults to '2' --
   Maximum number of user UWS jobs running at a time
 
@@ -1135,26 +1151,37 @@ Section [db]
 
 Settings concerning database access.
 
-* adqlProfiles: set of strings;
+* adqlProfiles: set of strings; 
   defaults to 'untrustedquery' --
   Name(s) of profiles that get access to tables opened for ADQL
-* defaultLimit: integer;
+* defaultLimit: integer; 
   defaults to '100' --
   Default match limit for DB queries
-* interface: string;
+* dumpSystemTables: boolean; 
+  defaults to 'False' --
+  Dump the tables from //users and //system to stateDir/system_tables
+  once a day?
+* indexWorkMem: integer; 
+  defaults to '2000' --
+  Megabytes of memory to give to postgres while making indices.  Set to
+  roughly half your RAM when you have big tables.
+* interface: string; 
   defaults to 'psycopg2' --
   Don't change
-* maintainers: set of strings;
+* maintainers: set of strings; 
   defaults to 'admin' --
   Name(s) of profiles that should have full access to gavo imp-created
   tables by default
-* msgEncoding: string;
+* managedExtensions: list of strings; 
+  defaults to 'pg_sphere' --
+  Name(s) of postgres extensions gavo upgrade -e should watch
+* msgEncoding: string; 
   defaults to 'utf-8' --
   Encoding of the messages coming from the database
-* profilePath: shell-type path;
+* profilePath: shell-type path; 
   defaults to '~/.gavo:$configDir' --
   Path for locating DB profiles
-* queryProfiles: set of strings;
+* queryProfiles: set of strings; 
   defaults to 'trustedquery' --
   Name(s) of profiles that should be able to read gavo imp-created
   tables by default
@@ -1164,26 +1191,34 @@ Section [ivoa]
 
 The interface to the Greater VO.
 
-* authority: string;
+* authority: string; 
   defaults to 'x-unregistred' --
   The authority id for this DC; this has *no* leading ivo://
-* dalDefaultLimit: integer;
+* dalDefaultLimit: integer; 
   defaults to '10000' --
   Default match limit on SCS/SSAP/SIAP queries
-* dalHardLimit: integer;
+* dalHardLimit: integer; 
   defaults to '1000000' --
   Hard match limit on SCS/SSAP/SIAP queries (be careful: due to the way
   these protocols work, the results cannot be streamed, and the results
   have to be kept in memory; 1e7 rows requiring 1k of memory each add up
   to 10 Gigs...)
-* oaipmhPageSize: integer;
+* oaipmhPageSize: integer; 
   defaults to '500' --
   Default number of records per page in the OAI-PMH interface
-* sdmVersion: value from the list 1, 2;
+* registerAlternative: boolean; 
+  defaults to 'False' --
+  Give access URLs for the alternative protocol (https when serverURL is
+  http and vice versa) as a mirrorURL?  If you're listening to HTTPS,
+  this is probably a good idea.
+* sdmVersion: value from the list 1, 2; 
   defaults to '1' --
-  Version of the spectral data model we generate our spectra as (unless
-  someone asks for another version explicitly).
-* votDefaultEncoding: value from the list binary, td;
+  Obsolete (SDM version 2 is shelved).  Don't use.
+* VOSITableDetail: value from the list max, min; 
+  defaults to 'max' --
+  Default level of detail to return on the VOSI endpoint (change to min
+  when you have more than 100 or tables).
+* votDefaultEncoding: value from the list binary, td; 
   defaults to 'binary' --
   Default 'encoding' for VOTables in many places (like the DAL
   responses; this can be user-overridden using the _TDENC local HTTP
@@ -1202,7 +1237,7 @@ Section [ui]
 
 Settings concerning the local user interface
 
-* outputEncoding: string;
+* outputEncoding: string; 
   defaults to 'iso-8859-1' --
   Encoding for system messages.  This should match what your terminal
   emulator is set to
@@ -1212,87 +1247,107 @@ Section [web]
 
 Settings related to serving content to the web.
 
-* adminpasswd: string;
+* adminpasswd: string; 
   defaults to '' --
   Password for online administration, leave empty to disable
-* adsMirror: string;
+* adsMirror: string; 
   defaults to 'http://ads.g-vo.org' --
   Root URL of ADS mirror to be used (without a trailing slash)
-* bindAddress: string;
+* alternateHostnames: list of strings; 
+  defaults to '' --
+  A comma-separated list of hostnames this server is also known under.
+  Only set this if you're running https. With this, you can handle a
+  situation where your data center can be reached as both example.org
+  and www.example.org.
+* bindAddress: string; 
   defaults to '127.0.0.1' --
   Interface to bind to
-* corsOriginPat: string;
+* corsOriginPat: string; 
   defaults to '' --
   A regular expression for URLs from which to authorise cross-origin
   requests. This is matched, i.e., the RE must account for the whole URL
   including the schema. Example: https?://example\.com/apps/.*.
-* enableTests: boolean;
+* enableTests: boolean; 
   defaults to 'False' --
   Enable test pages (don't if you don't know why)
-* favicon: path relative to webDir;
+* favicon: path relative to webDir; 
   defaults to 'None' --
   Webdir-relative path to a favicon
-* graphicMimes: list of strings;
-  defaults to 'image/fits,image/jpeg' --
+* graphicMimes: list of strings; 
+  defaults to 'image/fits,image/jpeg,application/x-votable+xml;content=datalink' --
   MIME types considered as graphics (for SIAP, mostly)
-* jsSource: boolean;
+* jsSource: boolean; 
   defaults to 'False' --
   If True, Javascript will not be minified on delivery (this is for
   debugging)
-* maxPreviewWidth: integer;
+* logFormat: value from the list default, combined; 
+  defaults to 'default' --
+  Log format to use.  Default doesn't log IPs, user agents, or referrers
+  and thus should be ok in terms of not processing personal data, which
+  in turn means you probably don't have to declare anything in EU
+  jurisdictions.
+* maxPreviewWidth: integer; 
   defaults to '300' --
   Ignored, only present for backward compatiblity
-* maxUploadSize: integer;
+* maxUploadSize: integer; 
   defaults to '20000000' --
   Maximal size of file uploads in bytes.
-* nevowRoot: path fragment;
+* nevowRoot: path fragment; 
   defaults to '/' --
   Path fragment to the server's root for operation off the server's
-  root; this must end with a slash (and, frankly, if you must use this
-  feature, you'll probably encounter some bugs. we want to fix those,
-  though.)
-* operatorCSS: string;
+  root; this must end with a slash (setting this will currently break
+  essentially the entire web interface. If you must use it, contact the
+  authors and we will fix things.)
+* operatorCSS: string; 
   defaults to '' --
   URL of an operator-specific CSS.  This is included as the last item
   and can therefore override rules in the distributed CSS.
-* preloadRDs: list of strings;
+* preloadRDs: list of strings; 
   defaults to '' --
   RD ids to preload at the server start (this is mainly for RDs that
   have execute children that should run regularly).
-* previewCache: path relative to webDir;
+* previewCache: path relative to webDir; 
   defaults to 'previewcache' --
   Webdir-relative directory to store cached previews in
-* realm: string;
+* realm: string; 
   defaults to 'X-Unconfigured' --
   Authentication realm to be used (currently, only one, server-wide, is
   supported)
-* serverPort: integer;
+* serverFDLimit: integer; 
+  defaults to '4000' --
+  A hard limit of the number of file handles DaCHS should try to set.
+  This will only take effect if DaCHS is started as root.  Otherwise,
+  DaCHS will just adjust its soft limit to the external limit
+  irrespective of this setting.
+* serverPort: integer; 
   defaults to '8080' --
-  Port to bind the server to
-* serverURL: string;
+  Port to bind the http port of the server to; https, if present at all,
+  is always on 443.
+* serverURL: string; 
   defaults to 'http://localhost:8080' --
   URL fragment used to qualify relative URLs where necessary.  Note that
   this must contain the port the server is accessible under from the
-  outside if that is not 80.
-* sitename: string;
+  outside if that is not 80; nonstandard ports are not supported for
+  https. If you offer both http and https, use your preferred protocol
+  here; for robustness, we recommend preferring http.
+* sitename: string; 
   defaults to 'Unnamed data center' --
   A short name for your site
-* sqlTimeout: integer;
+* sqlTimeout: integer; 
   defaults to '15' --
   Default timeout for db queries via the web
-* templateDir: path relative to webDir;
+* templateDir: path relative to webDir; 
   defaults to 'templates' --
   webDir-relative location of global nevow templates
-* user: string;
+* user: string; 
   defaults to 'gavo' --
   Run server as this user.
-* voplotCodeBase: URL fragment relative to the server's root;
+* voplotCodeBase: URL fragment relative to the server's root; 
   defaults to 'None' --
   Deprecated and ignored.
-* voplotUserman: URL fragment relative to the server's root;
+* voplotUserman: URL fragment relative to the server's root; 
   defaults to 'Deprecated and ignored' --
   URL to the documentation of VOPlot
-
 .. END CONFIG REFERENCE
 
 Managing Runtime Resources

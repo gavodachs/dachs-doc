@@ -422,6 +422,12 @@ can deal with.  You could, e.g., write::
     return datetime.datetime.utcnow()
   </customDF>
 
+You also see a nevow context within the function.  You can use that to
+access a query paramter ``order`` like this::
+
+  args = inevow.IRequest(ctx).args
+  sortOrder = args.get("order", ["authors"])
+
 May occur in `Element service`_.
 
 Atomic Children
@@ -1236,6 +1242,10 @@ Atomic Children
 * **original** (id reference; defaults to None) -- An id of an element
   to base the current one on.  This provides a simple inheritance
   method.  The general rules for advanced referencing in RDs apply.
+* **reexpand** (boolean; defaults to 'False') -- Force re-expansion of
+  macros; usually, when replaying, each string is only expanded once,
+  mainly to avoid overly long backslash-fences.  Set this to true to
+  force further expansion.
 * **source** (id reference; defaults to None) -- id of a stream to
   replay
 
@@ -1467,6 +1477,9 @@ Atomic Children
 * **namePath** (id reference; defaults to None) -- Reference to an
   element tried to satisfy requests for names in id references of this
   element's children.
+* **nrows** (integer; defaults to None) -- Approximate number of rows
+  in this table (usually, you want to use dachs limits to fill this
+  out; write <nrows>0</nrows> to enable that).
 * **onDisk** (boolean; defaults to 'False') -- Table in the database
   rather than in memory?
 * **original** (id reference; defaults to None) -- An id of an element
@@ -2483,6 +2496,9 @@ Atomic Children
 * **namePath** (id reference; defaults to None) -- Reference to an
   element tried to satisfy requests for names in id references of this
   element's children.
+* **nrows** (integer; defaults to None) -- Approximate number of rows
+  in this table (usually, you want to use dachs limits to fill this
+  out; write <nrows>0</nrows> to enable that).
 * **onDisk** (boolean; defaults to 'False') -- Table in the database
   rather than in memory?
 * **original** (id reference; defaults to None) -- An id of an element
@@ -2734,6 +2750,10 @@ values are available as macros for replayed values.
 Atomic Children
 ...............
 
+* **reexpand** (boolean; defaults to 'False') -- Force re-expansion of
+  macros; usually, when replaying, each string is only expanded once,
+  mainly to avoid overly long backslash-fences.  Set this to true to
+  force further expansion.
 * **source** (id reference; defaults to None) -- id of a stream to
   replay
 
@@ -2761,6 +2781,10 @@ that could want to expand the embedded macros.
 Atomic Children
 ...............
 
+* **reexpand** (boolean; defaults to 'False') -- Force re-expansion of
+  macros; usually, when replaying, each string is only expanded once,
+  mainly to avoid overly long backslash-fences.  Set this to true to
+  force further expansion.
 * **source** (id reference; defaults to None) -- id of a stream to
   replay
 
@@ -2795,6 +2819,10 @@ Atomic Children
 * **listItems** (unicode string; defaults to None) -- The items to
   loop over, as space-separated single items.  Each item will show up
   once, as 'item' macro.
+* **reexpand** (boolean; defaults to 'False') -- Force re-expansion of
+  macros; usually, when replaying, each string is only expanded once,
+  mainly to avoid overly long backslash-fences.  Set this to true to
+  force further expansion.
 * **source** (id reference; defaults to None) -- id of a stream to
   replay
 
@@ -11067,7 +11095,7 @@ process, and that can only have one current directory.
 
 Instead, in such situations, make a temporary directory and manually
 place your inputs in there.  The spacecore
-(https://svn.ari.uni-heidelberg.de/svn/gavo/hdinputs/sp_ace/res/spacecore.py)
+(http://svn.ari.uni-heidelberg.de/svn/gavo/hdinputs/sp_ace/res/spacecore.py)
 shows how this could look like, including  tearing the stuff down
 safely when done (the runSpace function).
 
@@ -13734,11 +13762,14 @@ that are immediately accessible in the namespace:
   import mod.
   
 
-*makeAbsoluteURL(path)*
+*makeAbsoluteURL(path, canonical=False)*
   returns a fully qualified URL for a rooted local part.
   
+  This will reflect the http/https access mode unless you pass
+  canonical=True, in which case [web]serverURL will be used unconditionally.
+  
 
-*makeProductLink(key, withHost=True)*
+*makeProductLink(key, withHost=True, useHost=None)*
   returns the URL at which a product can be retrieved.
   
   key can be an accref string or an RAccref
@@ -15262,9 +15293,12 @@ import mod.
 Function makeAbsoluteURL
 ........................
 
-Signature: ``makeAbsoluteURL(path)``
+Signature: ``makeAbsoluteURL(path, canonical=False)``
 
 returns a fully qualified URL for a rooted local part.
+
+This will reflect the http/https access mode unless you pass
+canonical=True, in which case [web]serverURL will be used unconditionally.
 
 
 Function makeData
@@ -15300,7 +15334,7 @@ rebuilds all data dependent on one of the DDs in the dds sequence.
 Function makeProductLink
 ........................
 
-Signature: ``makeProductLink(key, withHost=True)``
+Signature: ``makeProductLink(key, withHost=True, useHost=None)``
 
 returns the URL at which a product can be retrieved.
 
