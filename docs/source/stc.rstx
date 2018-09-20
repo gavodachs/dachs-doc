@@ -59,7 +59,7 @@ installation.  There are, however, alternatives, first and foremost a
 
 This library's setup is based on setuptools.  Thus, it will generally
 obtain all necessary dependencies from the net.  For this to be
-successful, you will have net access.
+successful, you will have to have net access.
 
 If all this bothers you, contact the authors.
 
@@ -439,6 +439,24 @@ Conforming also works for units::
   (2.1223187792285256, -0.8877243003685894)
 
 
+Transformation
+''''''''''''''
+
+For simple transformations, you can ask DaCHS to give you a function
+just turning simple positions into positions.  For instance,
+
+::
+
+  from gavo import stc
+
+  toICRS = stc.getSimple2Converter(
+	  stc.parseSTCS("Position FK4 B1900.0"),
+	  stc.parseSTCS("Position ICRS"))
+  print(toICRS(30, 40))
+
+shows how to build turn positions given in the B1900 equinox (don't
+sweat the reference system for data that old) to ICRS.
+
 
 Equivalence
 '''''''''''
@@ -570,7 +588,7 @@ it's present, and the system will do the right thing if it's not there::
       planetaryEphemeris=node.get("plEphemeris"))
 
 Let's test this; testing STC-S to AST parsing takes place in stctest.py,
-so let's add a method to ``CoordSysTest``:
+so let's add a method to ``CoordSysTest``::
 
 	def testPlanetaryEphemeris(self):
 		ast = stcsast.parseSTCS("Time TT TOPOCENTER JPL-DE200")
