@@ -171,6 +171,18 @@ from our (and your peers') answers, which is why we prefer the list to
 questions sent directly to gavo@ari.uni-heidelberg.de; these will of
 course still be answered.
 
+Citation
+========
+
+If you want or need to reference DaCHS, I suppose you should be citing
+`2014A&C.....7...27D`_.  If you can't bring yourself to boosting
+an Elsevier journal's impact factor, you have my sympathies, and you're
+welcome to cite the (less informative, more difficult for bibstyles)
+ASCL entry at `2018ascl.soft04005D`_.
+
+.. _2014A&C.....7...27D: http://adsabs.harvard.edu/abs/2014A&C.....7...27D
+.. _2018ascl.soft04005D: http://adsabs.harvard.edu/abs/2018ascl.soft04005D
+
 .. _DaCHS-users: http://lists.g-vo.org/cgi-bin/mailman/listinfo/dachs-users
 .. _DaCHS-support: http://lists.g-vo.org/cgi-bin/mailman/listinfo/dachs-support
 .. |date| date::
