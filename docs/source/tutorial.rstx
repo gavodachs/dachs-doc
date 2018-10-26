@@ -3382,6 +3382,9 @@ ObsTAP
 This will also declare support for the obscore DM in your TAP service's
 registry record.
 
+Obscore Derived from Typed Service Tables
+'''''''''''''''''''''''''''''''''''''''''
+
 ObsTAP is basically a single table, ivoa.ObsCore.  In DaCHS, this is a
 view generated from input tables.  To include the products within a
 table, you must use one of the mixins from the //obscore RD and fill out
@@ -3419,11 +3422,15 @@ obscore table::
   dachs imp -m path/to/my/rd
   dachs imp //obscore create
 
-For SSAP tables, there is an ``//obscore#publishSSAPHCD`` mixin that works
+For SSAP tables, there is an ``//obscore#publishSSAPMIXC`` mixin that works
 like its SIAP cousin (see the reference documentation of details).
 
+
+Pure Obscore Tables
+'''''''''''''''''''
+
 You can also have "pure" Obscore tables which do not build on protocol
-mixins.  A live example is the cubes table in the `califa/q2`_ RD within
+mixins.  A live example is the cubes table in the `califa/q3`_ RD within
 the GAVO data center.  Here's a brief explanation of how this works.
 
 For the non-constant parts of your data, re-use the metadata given in
@@ -4727,7 +4734,7 @@ data – see above for details on how to create users and groups.
 .. _PyPDS: https://github.com/RyanBalfanz/PyPDS
 .. _//epntap2#table-2_0: http://docs.g-vo.org/DaCHS/ref.html#the-epntap2-table-2-0-mixin
 .. _//epntap2#populate-2_0: http://docs.g-vo.org/DaCHS/ref.html#epntap2-populate-2-0
-.. _EPN-TAP proposed specification: https://voparis-confluence.obspm.fr/display/VES/EPN-TAP+V2.0+parameters
+.. _EPN-TAP proposed specification: https://voparis-confluence.obspm.fr/display/VES/EPN-TAP+v2+parameter+description
 .. _Mapping data: http://docs.g-vo.org/DaCHS/tutorial.html#mapping-data
 .. _pgsphere: http://pgsphere.projects.pgfoundry.org/
 .. _authority query: http://dc.g-vo.org/WIRR/?field0=ivorn&operator0=%3D&operand0=your.authority.here&MAXREC=20&OFFSET=0

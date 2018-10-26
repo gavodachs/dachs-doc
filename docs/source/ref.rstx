@@ -14310,9 +14310,9 @@ When constructing a DBTable, it will be created if necessary (unless
 ``create=False`` is passed), but indices or primary keys keys will only be
 created on a call to ``importFinished``.
 
-The constructor does not check if the schema of the table on disk matches the
-tableDef.  If you changed ``tableDef``, you will need to call the recreate
-method.
+The constructor does not check if the schema of the table on disk matches 
+the tableDef.  If the two diverge, all kinds of failures are conceivable;
+use ``dachs val -c``  to make sure on-disk structure match the RDs.
 
 You can pass a ``nometa`` boolean kw argument to suppress entering the table
 into the ``dc_tables`` table.

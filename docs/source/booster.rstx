@@ -331,7 +331,7 @@ machine's memory.  Fixing this would be fairly straightforward (patches
 are welcome, but we'll also fix this if you ask for it).
 
 FITS boostes can automatically  map column names for you. ``<mapKeys>
-raj2000:RA, dej2000:DEC </mapKeys> will map column named RA in your
+raj2000:RA, dej2000:DEC </mapKeys>`` will map column named RA in your
 sourcefile to column named raj2000 in your database table and
 analoguosly for DEC. If you don't do this, only column names from your
 DB table will be read and imported.

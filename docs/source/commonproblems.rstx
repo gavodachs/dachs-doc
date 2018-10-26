@@ -644,4 +644,52 @@ mixin if you don't want the obscore publication (which would be odd for
 production data) or, more typically, create the obscore table::
 
   dachs imp //obscore
+
+
+duplicate key value violates unique constraint "tables_pkey"
+============================================================
+
+This typically happens on ``dachs imp``.  The immediate reason is that
+``dachs imp`` tries to insert a metadata row for one of the tables it
+just created into the ``dc.tablemeta`` system table, but a row for that
+name is already present.  For instance, if you're importing into
+``arihip.main``, DaCHS would like to note that the new table's
+definition can be found at ``arihip/q#main``. Now, if ``dc.tablemeta``
+already says ``arihip.main`` was defined in ``quicktest/q#main``,
+there's a problem that DaCHS can't resolve by itself.
+
+90% of the time, the underlying reason is that you renamed an RD (or a
+resource directory).  Since the identifier of an RD (the RD id) is just
+is relative path of the RD to the inputs directory (minus the ``.rd``),
+and the RD id is used in many places in DaCHS, you have to be careful
+when you do that (essentially: ``dachs drop --all old/rd; mv old new;
+dachs imp new/rd``).
+
+If you're seeing the above message, it's already too late for that
+careful way.  The simple way to repair things nevertheless is to look
+for the table name (it should be given in the DETAILS of the error
+message) and simply tell DaCHS to forget all about that table::
+
+  dachs purge arigfh.main
+
+This might leave other traces of the renamed RD in the system, which
+might lead to trouble later.  If you want to be a bit more throrough,
+figure out the RD id of the vanished RD by running ``psql gavo`` and
+asking something like::
+
+  select sourcerd from dc.tablemeta where tablename='arihip.main'
+
+This will give you the RD id of the RD that magically vanished, and you
+can then say::
+
+  dachs drop -f old/rdid
+
+DaCHS will then hunt down all traces of the old RD and delete them.
+
+Don't do this without an acute need; such radical measures will clean up
+DaCHS' mind, but in a connected society, amnesia can be a strain on the
+rest of the society.  In the VO case, ``dachs drop -f`` might, for
+instance, cause stale registry records if you had registered services
+inside of the RD you force-drop.
+
 .. |date| date::
