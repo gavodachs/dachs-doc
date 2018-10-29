@@ -3507,7 +3507,7 @@ normal rowmaker; since the table contains products, don't forget the
 .. _Tody et al (2011): http://www.ivoa.net/Documents/ObsCore/index.html
 .. _//obscore#publishSIAP: ./ref.html#the-obscore-publishsiap-mixin
 .. _//obscore#publishSSAPHCD: ./ref.html#the-obscore-publishsiap-mixin
-.. _califa/q2: http://svn.ari.uni-heidelberg.de/svn/gavo/hdinputs/califa/q2.rd
+.. _califa/q3: http://svn.ari.uni-heidelberg.de/svn/gavo/hdinputs/califa/q3.rd
 .. _obscore table description: http://dc.g-vo.org/__system__/dc_tables/show/tableinfo/ivoa.ObsCore
 
 

@@ -244,6 +244,10 @@ Atomic Children
   generation (fixup="'\internallink{/this/svc}'+___"). It will *only*
   kick in when tuples are deserialized from the database, i.e., *not*
   for values taken from tables in memory.
+* **hidden** (boolean; defaults to 'False') -- Hide the column from
+  most of the user interface (specifically, you can't use it in TAP
+  queries or results, and it won't be in TAP_SCHEMA).  You typically
+  want this for internal, administrative columns.
 * **name** (a column name within an SQL table.  These have to match
   the SQL regular_identifier production.  In a desperate pinch, you
   can generate delimited identifiers (that can contain anything) by
@@ -1367,6 +1371,10 @@ Atomic Children
   for values taken from tables in memory.
 * **formatter** (unicode string; defaults to None) -- Function body to
   render this item to HTML.
+* **hidden** (boolean; defaults to 'False') -- Hide the column from
+  most of the user interface (specifically, you can't use it in TAP
+  queries or results, and it won't be in TAP_SCHEMA).  You typically
+  want this for internal, administrative columns.
 * **name** (a column name within an SQL table.  These have to match
   the SQL regular_identifier production.  In a desperate pinch, you
   can generate delimited identifiers (that can contain anything) by
@@ -1617,6 +1625,8 @@ Atomic Children
   generation (fixup="'\internallink{/this/svc}'+___"). It will *only*
   kick in when tuples are deserialized from the database, i.e., *not*
   for values taken from tables in memory.
+* **hidden** (boolean; defaults to 'False') -- Ignored on params, just
+  present for constructor compatibility with column
 * **name** (A name for a table or service parameter.  These have to
   match ``[A-Za-z_][A-Za-z0-9_]*$``.; defaults to <Undefined>) -- Name
   of the param
@@ -6058,7 +6068,7 @@ The //epntap2#table-2_0 Mixin
 
 
 This mixin defines a table suitable for publication via the
-EPN-TAP protocol.
+`EPN-TAP protocol`_.
 
 According to the standard definition, tables mixing this in
 should be called ``epn_core``.  The mixin already arranges
@@ -6079,6 +6089,8 @@ or None) keys in what's coming from your grammar.
 
 Use the `//epntap2#populate-2_0`_ apply in rowmakers
 feeding tables mixing this in.
+
+.. _EPN-TAP protocol:: https://voparis-confluence.obspm.fr/display/VES/EPN-TAP+v2+parameter+description
 
 
 This mixin has the following parameters:
@@ -7223,7 +7235,7 @@ complemented by the dlmeta renderer which allows retrieving metadata.
 The dlmeta Renderer
 '''''''''''''''''''
 
-*This renderer's parameter style is "clear".*
+*This renderer's parameter style is "dali".*
 
 A renderer for data processing by datalink cores.
 
@@ -7865,6 +7877,9 @@ Late parameter *time_max*
 Late parameter *time_min*
   defaults to ``None``;
   Acquisition start time (in JD)
+Late parameter *time_origin*
+  defaults to ``"UNKNOWN"``;
+  Reference position used for the various times. This is a string like TOPOCENTER, BARYCENTER, or HELIOCENTER, details are pending.
 Late parameter *time_sampling_step_max*
   defaults to ``None``;
   Sampling time for measurements of dynamical phenomena, upper limit
@@ -16543,6 +16558,9 @@ Schemas containing tables available for ADQL querying.
   (text) -- Brief description of the schema
 **utype**
   (text) -- utype if schema corresponds to a data model
+**schema_index**
+  (integer) -- Suggested position this schema should take in a sorted
+  list of schemas from this data center.
 
 tap_schema.supportedmodels
 ''''''''''''''''''''''''''
