@@ -2677,7 +2677,7 @@ functionality for FITS files, although the default
 (`//soda#fromStandardPubDID`_) would work here, too – is passed
 the pubDID and returns an instance of ``datalink.ProductDescriptor`` (or
 a derived class).  If a descriptor generator returns 
-None, the datalink request will be rejected with a 404.  
+None, the datalink request will be rejected with a 404.
 
 Whatever is returned by the descriptor generator is then available as
 ``descriptor`` to the remaining datalink procs (in this case, the meta
@@ -2731,6 +2731,77 @@ set on the descriptor (you can set that in a meta maker or the
 descriptor generator).
 
 For more information on the elements used here, see below.
+
+Embedded Datalink Descriptors
+'''''''''''''''''''''''''''''
+
+For certain renderers (currently, only ssap.xml, but we might do it for
+SIAP, too), DaCHS will add a direct SODA block if there's an
+``_associatedDatalinkService`` meta on the table it serves from and that
+datalink service has a dlget capability.  Here's how the datalink
+declarations could look like in such a case::
+
+  <RESOURCE name="links" type="meta" utype="adhoc:service">
+    <DESCRIPTION>...</DESCRIPTION>
+    <GROUP name="inputParams">
+      <PARAM arraysize="*" datatype="char" name="ID" ref="ssa_pubDID" 
+        ucd="meta.id;meta.main" value=""/>
+    </GROUP>
+    <PARAM arraysize="*" datatype="char" name="standardID" 
+      value="ivo://ivoa.net/std/DataLink#links-1.0"/>
+    <PARAM arraysize="*" datatype="char" name="accessURL" 
+      value="http://localhost:8080/gaia/q2/tsdl/dlmeta"/>
+  </RESOURCE>
+
+  <RESOURCE ID="proc_svc" name="proc_svc" type="meta" utype="adhoc:service">
+    <DESCRIPTION>...</DESCRIPTION>
+    <GROUP name="inputParams">
+      <PARAM arraysize="*" datatype="char" name="ID" ref="ssa_pubDID" 
+        ucd="meta.id;meta.main" value="">
+        <DESCRIPTION>The pubisher DID of the dataset of interest</DESCRIPTION>
+      </PARAM>
+      <PARAM arraysize="*" datatype="char" name="BANDPASS" value="">
+        <DESCRIPTION>Gaia bandpass to generate the time series 
+          for.</DESCRIPTION>
+        <VALUES>
+          <OPTION name="G" value="G"/>
+          <OPTION name="BP" value="BP"/>
+          <OPTION name="RP" value="RP"/>
+        </VALUES>
+      </PARAM>
+    </GROUP>
+    <PARAM arraysize="*" datatype="char" name="accessURL" 
+      ucd="meta.ref.url" value="http://localhost:8080/gaia/q2/tsdl/dlget"/>
+    <PARAM arraysize="*" datatype="char" name="standardID" 
+      value="ivo://ivoa.net/std/SODA#sync-1.0"/>
+  </RESOURCE>
+
+– the first block declares where to obtain full datalink documents by
+publisher DID from.
+
+The second block lets clients take a shortcut and call a processing service
+directly, without first retrieving the datalink document; it is
+essentially an anonymised version of the processing declaration fromt the
+datalink block.
+
+To generate these, DaCHS also calls the dlmeta procs, but with pubDID
+set to None.  Whenever you need a concrete pubDID in a dlmeta proc used
+with SSA, you should therefore add something like::
+
+  if descriptor.pubDID is None:
+    return
+
+Also note that in these cases, a special descriptor type is being used
+rather than whatever you put into your descriptor generator, and hence
+you can't use any special attributes you defined there.  On the other
+hand, you'll have a ``limits`` attribute with a dictionary giving ranges
+of values within the concrete (SSA) result.  This should be used to
+build ``Values`` objects tailored to the specific result.
+
+All this is admittedly painful; the shortcut SODA blocks that cause all
+that pain can probably count as a classic case of premature
+optimisation.
+
 
 Defining Processing Services
 ''''''''''''''''''''''''''''

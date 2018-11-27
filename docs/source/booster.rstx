@@ -330,11 +330,11 @@ means you cannot ingest FITS binary tables that do not fit into your
 machine's memory.  Fixing this would be fairly straightforward (patches
 are welcome, but we'll also fix this if you ask for it).
 
-FITS boostes can automatically  map column names for you. ``<mapKeys>
-raj2000:RA, dej2000:DEC </mapKeys>`` will map column named RA in your
-sourcefile to column named raj2000 in your database table and
-analoguosly for DEC. If you don't do this, only column names from your
-DB table will be read and imported.
+FITS boostes can automatically  map column names for you. 
+``<mapKeys> raj2000:RA, dej2000:DEC </mapKeys>`` 
+will map column named RA in your sourcefile to column named raj2000 in
+your database table and analoguosly for DEC. If you don't do this, only
+column names from your DB table will be read and imported.
 
 If you need to postprocess the items, we recommend you do that again in
 the ``getTuple`` function (note how that gets passed the row index) for
