@@ -2,9 +2,9 @@
   WARNING: GENERATED DOCUMENT.
   Edit this in refdoc.rstx or the DaCHS source code.
 
-========================================
-GAVO DC Software Reference Documentation
-========================================
+=============================
+DaCHS Reference Documentation
+=============================
 
 :Author: Markus Demleitner
 :Email: gavo@ari.uni-heidelberg.de
@@ -3096,6 +3096,7 @@ Atomic Children
   pipe the input through before passing it on to the grammar.
   Classical examples include zcat or bzcat, but you can commit
   arbitrary shell atrocities here.
+* **strip** (boolean; defaults to 'True') -- Strip all parsed strings?
 * **topIgnoredLines** (integer; defaults to '0') -- Skip this many
   lines at the top of each source file.
 
@@ -3426,7 +3427,8 @@ Atomic Children
   role, row rather than only rows)?
 * **notify** (boolean; defaults to 'False') -- Enable notification of
   begin/end of processing (as for other grammars; embedded grammars
-  often have odd source tokens for which you don't want that).
+  often have odd source tokens for which you don't want that).  Note
+  that the -M option of gavo imp will only work if you set it to true.
 * **original** (id reference; defaults to None) -- An id of an element
   to base the current one on.  This provides a simple inheritance
   method.  The general rules for advanced referencing in RDs apply.
@@ -6090,7 +6092,7 @@ or None) keys in what's coming from your grammar.
 Use the `//epntap2#populate-2_0`_ apply in rowmakers
 feeding tables mixing this in.
 
-.. _EPN-TAP protocol:: https://voparis-confluence.obspm.fr/display/VES/EPN-TAP+v2+parameter+description
+.. _EPN-TAP protocol: https://voparis-confluence.obspm.fr/display/VES/EPN-TAP+v2+parameter+description
 
 
 This mixin has the following parameters:
@@ -6369,145 +6371,6 @@ Parameter *title*
   defaults to ``imageTitle``;
   preset for SIAP
 
-The //obscore#publishSSAPHCD Mixin
-''''''''''''''''''''''''''''''''''
-
-
-Publish a table mixing in //ssap#hcd to ObsTAP.  Since //ssap#hcd
-is deprecated, this should not be used in new RDs, either.  For
-//ssap#mixc tables, use publishSSAPMIXC.
-
-This works like `the //obscore#publish mixin`_ except some defaults apply
-that copy fields that work analoguously in SSAP and in ObsTAP.
-
-The columns already set in SSAP are marked as UNDOCUMENTED in the
-parameter list below.  For special situations, you can, of course,
-override any of the parameters.  To find out what they actually mean,
-mean, refer to `the //obscore#publish mixin`_.
-
-Note that this mixin does *not* set coverage (obscore: s_region).
-This is because although we could make a circle from ssa_location
-and ssa_aperture, circles are not allowed in DaCHS' s_region (which
-has a fixed type of spoly).  The recommended solution to still
-have s_region is to add (and index) a custom field in the ssa table 
-and compute some sort of spolys for the coverage.
-
-Note: you must say ``dachs imp //obscore`` before anything 
-obscore-related will work.
-
-
-This mixin has the following parameters:
-
-
-Parameter *accessURL*
-  defaults to ``accref``;
-  URL at which the product can be obtained. Leave as is for tables mixing in products.
-Parameter *calibLevel*
-  defaults to ``0``;
-  Calibration level of data, a number between 0 and 3; for details, see http://dc.g-vo.org/tableinfo/ivoa.obscore#note-calib
-Parameter *collectionName*
-  defaults to ``\sqlquote{\getParam{ssa_collection}{NULL}}``;
-   UNDOCUMENTED
-Parameter *coverage*
-  defaults to ``NULL``;
-  Use ssa_region when the table also mixes in //ssap#simpleCoverage
-Parameter *creatorDID*
-  defaults to ``ssa_creatorDID``;
-   UNDOCUMENTED
-Parameter *dec*
-  defaults to ``degrees(lat(ssa_location))``;
-   UNDOCUMENTED
-Parameter *did*
-  defaults to ``$COMPUTE``;
-  Global identifier of the data set. Leave $COMPUTE for tables mixing in products.
-Parameter *emMax*
-  defaults to ``ssa_specend``;
-   UNDOCUMENTED
-Parameter *emMin*
-  defaults to ``ssa_specstart``;
-   UNDOCUMENTED
-Parameter *emResPower*
-  defaults to ``NULL``;
-  Spectral resolution as lambda/delta lambda
-Parameter *emUCD*
-  defaults to ``\sqlquote{\getParam{ssa_spectralucd}}``;
-   UNDOCUMENTED
-Parameter *emXel*
-  defaults to ``NULL``;
-  Number of samples along the spectral axis
-Parameter *expTime*
-  defaults to ``ssa_timeExt``;
-   UNDOCUMENTED
-Parameter *facilityName*
-  defaults to ``NULL``;
-  The institute or observatory at which the data was produced
-Parameter *fov*
-  defaults to ``ssa_aperture``;
-   UNDOCUMENTED
-Parameter *instrumentName*
-  defaults to ``\sqlquote{\getParam{ssa_instrument}{NULL}}``;
-   UNDOCUMENTED
-Parameter *mime*
-  defaults to ``mime``;
-  The MIME type of the product file. Only touch if you do not mix in products.
-Parameter *oUCD*
-  defaults to ``\sqlquote{\getParam{ssa_fluxucd}}``;
-   UNDOCUMENTED
-Parameter *obsId*
-  defaults to ``accref``;
-  Identifier of the data set. Only change this when you do not mix in products.
-Parameter *polStates*
-  defaults to ``NULL``;
-  List of polarization states present in the data; if you give something, use the convention of choosing the appropriate from {I Q U V RR LL RL LR XX YY XY YX POLI POLA} and write them *in alphabetical order* with / separators, e.g. /I/Q/XX/.
-Parameter *polXel*
-  defaults to ``NULL``;
-  Number of polarisation states in this product
-Parameter *productSubtype*
-  defaults to ``NULL``;
-  File subtype. Details pending
-Parameter *productType*
-  defaults to ``'spectrum'``;
-   UNDOCUMENTED
-Parameter *ra*
-  defaults to ``degrees(long(ssa_location))``;
-   UNDOCUMENTED
-Parameter *sPixelScale*
-  defaults to ``NULL``;
-  Size of a spatial pixel (in arcsec)
-Parameter *sResolution*
-  defaults to ``\getParam{ssa_spaceRes}{NULL}/3600.``;
-   UNDOCUMENTED
-Parameter *sXel1*
-  defaults to ``NULL``;
-  Number of pixels along the first spatial axis
-Parameter *sXel2*
-  defaults to ``NULL``;
-  Number of pixels along the second spatial axis
-Parameter *size*
-  defaults to ``accsize/1024``;
-  The estimated size of the product in kilobytes. Only touch when you do not mix in products#table.
-Parameter *tMax*
-  defaults to ``ssa_dateObs+ssa_timeExt/43200.``;
-   UNDOCUMENTED
-Parameter *tMin*
-  defaults to ``ssa_dateObs-ssa_timeExt/43200.``;
-   UNDOCUMENTED
-Parameter *tResolution*
-  defaults to ``NULL``;
-  Temporal resolution
-Parameter *tXel*
-  defaults to ``NULL``;
-  Number of samples along the time axis
-Parameter *targetClass*
-  defaults to ``ssa_targclass``;
-   UNDOCUMENTED
-Parameter *targetName*
-  defaults to ``ssa_targname``;
-   UNDOCUMENTED
-Parameter *title*
-  defaults to ``ssa_dstitle``;
-   UNDOCUMENTED
-
 The //obscore#publishSSAPMIXC Mixin
 '''''''''''''''''''''''''''''''''''
 
@@ -6763,142 +6626,18 @@ hence the name basic.  We'd do "advanced", too, if there's demand.
 Use the `//slap#fillBasic`_ procDef to populate such tables.
 
 
-The //ssap#hcd Mixin
-''''''''''''''''''''
+The //ssap#plainlocation Mixin
+''''''''''''''''''''''''''''''
 
 
-Do not use this in new RDs.  Use mixc instead.
+A mixin that adds ssa_location column to a table.
 
-This mixin is for "homogeneous" data collections, where homogeneous
-means that all values in hcd_outpars are constant for all datasets
-in the collection.  This is usually the case if they all come
-from one instrument.
+You probably want this in the source tables for //ssap#view tables.
+This will also index the column.  Normally, you will also want
+to mix in //ssap#simpleCoverage if you mix this in.
 
-Rowmakers for tables using this mixin should use the `//ssap#setMeta`_
-proc application.
+Use the //ssap#fill-plainlocation apply to feed these.
 
-Do not forget to call the `//products#define`_ row filter in grammars
-feeding tables mixing this in.  At the very least, you need to
-say::
-
-  <rowfilter procDef="//products#define">
-    <bind name="table">"mySchema.myTableName"</bind>
-  </rowfilter>
-
-
-This mixin has the following parameters:
-
-
-Parameter *collection*
-  defaults to ``__NULL__``;
-  ivo id of the originating collection; ssa:DataID.Collection
-Parameter *creationType*
-  defaults to ``__NULL__``;
-  Process used to produce the data (zero or more of archival, cutout, filtered, mosaic, projection, spectralExtraction, catalogExtraction); ssa:DataID.CreationType
-Parameter *creator*
-  defaults to ``__NULL__``;
-  Creator designation; ssa:DataID.Creator
-Parameter *dataSource*
-  defaults to ``__NULL__``;
-  Generation type (typically, one survey, pointed, theory, custom, artificial); ssa:DataID.DataSource
-Parameter *fluxCalibration*
-  Type of flux calibration (one of ABSOLUTE, RELATIVE, NORMALIZED, or UNCALIBRATED); ssa:Char.FluxAxis.Calibration
-Parameter *fluxSI*
-  defaults to ``__NULL__``;
-  SI conversion factor for fluxes in the spectrum instance (not the SSA metadata) in Osuna-Salgado convention; ssa:Dataset.FluxSI (you probably want to leave this empty)
-Parameter *fluxUCD*
-  defaults to ``phot.flux.density;em.wl``;
-  ucd of the flux column, like phot.count, phot.flux.density, etc. Default is for flux over wavelength; ssa:Char.FluxAxis.Ucd
-Parameter *fluxUnit*
-  Flux unit used by the spectra and in SSA char metadata. This must be a VOUnit string (use a single blank if your spectrum is not calibrated).
-Parameter *instrument*
-  defaults to ``__NULL__``;
-  Instrument or code used to produce these datasets; ssa:DataID.Instrument
-Parameter *publisher*
-  defaults to ``\metaString{publisherID}``;
-  Publisher IVO (by default taken from the DC config); ssa:Curation.Publisher
-Parameter *reference*
-  defaults to ``__NULL__``;
-  URL or bibcode of a publication describing this data; ssa:Curation.Reference
-Parameter *spectralCalibration*
-  defaults to ``__NULL__``;
-  Type of wavelength Calibration (one of ABSOLUTE, RELATIVE, NORMALIZED, or UNCALIBRATED); ssa:Char.SpectralAxis.Calibration
-Parameter *spectralResolution*
-  defaults to ``NaN``;
-  Resolution on the spectral axis; you must give this as FWHM wavelength in meters here. Approximate as necessary; ssa:Char.SpectralAxis.Resolution
-Parameter *spectralSI*
-  defaults to ``__NULL__``;
-  SI conversion factor of frequency or wavelength in the spectrum instance (not the SSA metadata, they are all in meters); ssa:Dataset.SpectralSI (you probably want to leave this empty)
-Parameter *spectralUCD*
-  defaults to ``em.wl``;
-  ucd of the spectral column, like em.freq or em.energy; default is wavelength; ssa:Char.SpectralAxis.Ucd
-Parameter *spectralUnit*
-  Spectral unit used by the spectra (SSA char metadata always is wavelength in meters). This must be a VOUnit string (use a single blank if your spectrum is not calibrated).
-Parameter *statFluxError*
-  defaults to ``__NULL__``;
-  Statistical error in flux; ssa:Char.FluxAxis.Accuracy.StatError
-Parameter *statSpaceError*
-  defaults to ``__NULL__``;
-  Statistical error in position in degrees; ssa:Char.SpatialAxis.Accuracy.StatError
-Parameter *statSpectError*
-  defaults to ``__NULL__``;
-  Statistical error in wavelength (units of specralSI); ssa:Char.SpectralAxis.Accuracy.StatError
-Parameter *sysFluxError*
-  defaults to ``__NULL__``;
-  Systematic error in flux; ssa:Char.FluxAxis.Accuracy.SysError
-Parameter *sysSpectError*
-  defaults to ``__NULL__``;
-  Systematic error in wavelength (in m); ssa:Char.SpectralAxis.Accuracy.SysError
-Parameter *timeSI*
-  defaults to ``__NULL__``;
-  SI conversion factor for times in Osuna-Salgado convention; ssa:DataSet.TimeSI (you probably want to leave this empty)
-
-The //ssap#mixc Mixin
-'''''''''''''''''''''
-
-
-This mixin provides the columns and params for a common SSA service.
-
-Rowmakers for tables using this mixin should use the `//ssap#setMeta`_
-and the `//ssap#setMixcMeta`_ proc applications.
-
-There are some limitations to the variability; in particular, all
-spectra must have the same types of axes (i.e., frequency, wavelength,
-or energy) with identical units.  If you don't have that,
-either leave the respective metadata empty or homogenize it
-before ingestion.
-
-Do not forget to call the `//products#define`_ row filter in grammars
-feeding tables mixing this in.  At the very least, you need to
-say::
-
-  <rowfilter procDef="//products#define">
-    <bind name="table">"schema.table"</bind>
-  </rowfilter>
-
-
-This mixin has the following parameters:
-
-
-Parameter *fluxSI*
-  defaults to ``__NULL__``;
-  SI conversion factor for fluxes in the spectrum instance (not the SSA metadata) in Osuna-Salgado convention; ssa:Dataset.FluxSI (you probably want to leave this empty)
-Parameter *fluxUCD*
-  defaults to ``phot.flux.density;em.wl``;
-  ucd of the flux column, like phot.count, phot.flux.density, etc. Default is for flux over wavelength; ssa:Char.FluxAxis.Ucd
-Parameter *fluxUnit*
-  Flux unit used by the spectra and in SSA char metadata. This must be a VOUnit string (use a single blank if your spectrum is not calibrated).
-Parameter *spectralSI*
-  defaults to ``__NULL__``;
-  SI conversion factor of frequency or wavelength in the spectrum instance (not the SSA metadata, they are all in meters); ssa:Dataset.SpectralSI (you probably want to leave this empty)
-Parameter *spectralUCD*
-  defaults to ``em.wl``;
-  ucd of the spectral column, like em.freq or em.energy; default is wavelength; ssa:Char.SpectralAxis.Ucd
-Parameter *spectralUnit*
-  Spectral unit used by the spectra (SSA char metadata always is wavelength in meters). This must be a VOUnit string (use a single blank if your spectrum is not calibrated).
-Parameter *timeSI*
-  defaults to ``__NULL__``;
-  SI conversion factor for times in Osuna-Salgado convention; ssa:DataSet.TimeSI (you probably want to leave this empty)
 
 The //ssap#sdm-instance Mixin
 '''''''''''''''''''''''''''''
@@ -6944,29 +6683,196 @@ Parameter *spectralUnitOverride*
 Parameter *ssaTable*
   The SSAP (HCD) instance table to take the params from
 
-The //ssap#simpleCoverage Mixin
-'''''''''''''''''''''''''''''''
+The //ssap#view Mixin
+'''''''''''''''''''''
 
 
-A mixin furnishes a table with an ssa_region column giving 
-a polygonal coverage.  For SSA, that's unnecessary, but it's
-highly recommended if you have data with positional and aperture
-data and will publish it via obscore, too (which in turn is highly
-recommended).
+This mixin produces an SSA-ready relation as a view.
 
-The column will be filled with a hexagon approximating the aperture
-by //ssap#setMeta, so usually you're set with this mixin.  We also
-create an index for the ssa_region field.
+The idea is that you import your spectra into a table suitable for your
+particular data collection (but mixing in `//products#define`_).  You
+then fill the columns for an SSA response giving in each mixin parameter
+here either with a column reference (as a simple column name) or with a
+SQL literals (put strings into single quotes – sourcetable is the 
+exception here).
 
-To make it visible in obscore, however, you must bind the
-``coverage`` mixin par of //obscore#publishSSAPHCD to ``ssa_region``.
+If you have positions for your spectra, you probably want to also mix in
+`the //ssap#plainlocation mixin`_ in the origial table in order to have
+indexed positions in a way suitable for SSA queries.
+
+In general, you will have to generate indices on the source table; 
+postgres doesn't support indices on views.  If you can't use the
+plainlocation mixin, please not that the the SSA engine expects
+spoints as the location (and these would be indexed like
+<index columns="loc_col" method="GIST"/>).
+
+
+This mixin has the following parameters:
+
+
+Parameter *accref*
+  defaults to ``accref``;
+  Access key for the data
+Parameter *accsize*
+  defaults to ``accsize``;
+  Size of the data in bytes
+Parameter *embargo*
+  defaults to ``embargo``;
+  Date the data will become/became public
+Parameter *mime*
+  defaults to ``mime``;
+  MIME type of the file served
+Parameter *owner*
+  defaults to ``owner``;
+  Owner of the data
+Parameter *sourcetable*
+  Name of the table to build the view upon (i.e., the table with the metadata of your spectra).
+Parameter *ssa_aperture*
+  Angular diameter of aperture
+Parameter *ssa_bandpass*
+  Bandpass (i.e., rough spectral location) of this dataset; this should be the most appropriate term from the values of VODataService vs:Waveband.
+Parameter *ssa_binSize*
+  defaults to ``NULL``;
+  Bin size in wavelength
+Parameter *ssa_cdate*
+  defaults to ``NULL``;
+  Processing/Creation date
+Parameter *ssa_collection*
+  A short handle naming the collection this spectrum belongs to.
+Parameter *ssa_creationtype*
+  Process used to produce the data (archival, cutout, filtered, mosaic, projection, spectralExtraction, or catalogExtraction)
+Parameter *ssa_creator*
+  defaults to ``NULL``;
+  Creator of the datasets included here.
+Parameter *ssa_creatorDID*
+  defaults to ``NULL``;
+  Dataset identifier assigned by the creator
+Parameter *ssa_csysName*
+  defaults to ``'ICRS'``;
+  System RA and Dec are given in
+Parameter *ssa_cversion*
+  defaults to ``NULL``;
+  Creator assigned version for this dataset (will be incremented when this particular item is changed).
+Parameter *ssa_datasource*
+  defaults to ``NULL``;
+  Method of generation for the data (one of survey, pointed, theory, custom, artificial).
+Parameter *ssa_dateObs*
+  Midpoint of exposure
+Parameter *ssa_dstitle*
+  A compact and descriptive designation of the dataset.
+Parameter *ssa_dstype*
+  defaults to ``'spectrum'``;
+  Type of data (spectrum, time series, etc)
+Parameter *ssa_fluxSI*
+  defaults to ``NULL``;
+  Flux/magnitude conversion factor in Osuna-Salgado convention
+Parameter *ssa_fluxStatError*
+  defaults to ``NULL``;
+  Statistical error in flux
+Parameter *ssa_fluxSysError*
+  defaults to ``NULL``;
+  Systematic error in flux
+Parameter *ssa_fluxcalib*
+  Type of flux calibration (ABSOLUTE, CALIBRATED, RELATIVE, NORMALIZED, or UNCALIBRATED).
+Parameter *ssa_fluxucd*
+  defaults to ``'phot.flux.density;em.wl'``;
+  UCD of the flux column
+Parameter *ssa_fluxunit*
+  defaults to ``NULL``;
+  Unit of the flux column
+Parameter *ssa_instrument*
+  defaults to ``NULL``;
+  Instrument or code used to produce these datasets
+Parameter *ssa_length*
+  Number of points in the spectrum
+Parameter *ssa_location*
+  ICRS location of aperture center
+Parameter *ssa_model*
+  defaults to ``'Spectrum-1.0'``;
+  Data model name and version
+Parameter *ssa_pdate*
+  defaults to ``\sqlquote{\today}``;
+  Date last published.
+Parameter *ssa_pubDID*
+  defaults to ``NULL``;
+  Dataset identifier assigned by the publisher
+Parameter *ssa_publisher*
+  defaults to ``\sqlquote{\metaString{publisher}}``;
+  Publisher of the datasets included here.
+Parameter *ssa_redshift*
+  defaults to ``NULL``;
+  Redshift of target object
+Parameter *ssa_reference*
+  defaults to ``\sqlquote{\metaString{source}}``;
+  URL or bibcode of a publication describing this data.
+Parameter *ssa_region*
+  defaults to ``base.NotGiven``;
+  A region covered by the observation for this spectrum; this will be ``ssa_region`` when you mix //ssap#simpleCoverage into the original table. You'll probably want to leave this at the default otherwise.
+Parameter *ssa_snr*
+  defaults to ``NULL``;
+  Signal-to-noise ratio estimated for this dataset
+Parameter *ssa_spaceCalib*
+  defaults to ``NULL``;
+  Type of calibration in spatial coordinates
+Parameter *ssa_spaceError*
+  defaults to ``NULL``;
+  Statistical error in position
+Parameter *ssa_spaceRes*
+  defaults to ``NULL``;
+  Spatial resolution of data
+Parameter *ssa_speccalib*
+  defaults to ``NULL``;
+  Type of wavelength calibration
+Parameter *ssa_specend*
+  defaults to ``NULL``;
+  Upper value of spectral coordinate
+Parameter *ssa_specext*
+  defaults to ``NULL``;
+  Width of the spectrum
+Parameter *ssa_specmid*
+  defaults to ``NULL``;
+  Midpoint of region covered in this dataset
+Parameter *ssa_specres*
+  Resolution on the spectral axis
+Parameter *ssa_specstart*
+  defaults to ``NULL``;
+  Lower value of spectral coordinate
+Parameter *ssa_spectStatError*
+  defaults to ``NULL``;
+  Statistical error in wavelength
+Parameter *ssa_spectSysError*
+  defaults to ``NULL``;
+  Systematic error in wavelength
+Parameter *ssa_spectralSI*
+  defaults to ``NULL``;
+  Spectral conversion factor in Osuna-Salgado convention
+Parameter *ssa_spectralucd*
+  defaults to ``'em.wl;obs.atmos'``;
+  UCD of the spectral column in the spectra served; when you have wavelengths, use em.wl for vacuum wavelengths, em.wl;obs.atmos for air wavelengths.
+Parameter *ssa_spectralunit*
+  Unit of the spectral column
+Parameter *ssa_targclass*
+  defaults to ``NULL``;
+  Object class (star, QSO,...; use Simbad object classification http://simbad.u-strasbg.fr/simbad/sim-display?data=otypes if at all possible)
+Parameter *ssa_targetpos*
+  defaults to ``NULL``;
+  Equatorial (ICRS) position of the target object.
+Parameter *ssa_targname*
+  defaults to ``NULL``;
+  Common name of object observed.
+Parameter *ssa_timeExt*
+  defaults to ``NULL``;
+  Exposure duration
+Parameter *ssa_timeSI*
+  defaults to ``NULL``;
+  Time conversion factor in Osuna-Salgado convention.
 
 
 
 Triggers
 ========
 
-In the context of the GAVO DC, triggers are conditions on rows -- either
+In DaCHS,  triggers are conditions on rows -- either
 the raw rows emitted by grammars if they are used within grammars, or
 the rows about to be shipped to a table if they are used within
 tables.  Triggers may be used recursively, i.e., triggers may contain
@@ -8223,6 +8129,25 @@ All this probably only makes sense in parmakers when making tables
 mixing in //ssap#sdm-instance in data children of sdmCores.
 
 
+//ssap#fill-plainlocation
+.........................
+
+
+This mixin fills the columns added by the plainlocation mixin
+with values generated from ra, dec, and aperture.
+
+
+Setup parameters for the procedure are:
+
+
+Late parameter *aperture*
+  defaults to ``None``;
+  Size of the aperture in degrees; if you leave this at None, no ssa_region will be generated.
+Late parameter *dec*
+  ICRS Dec of aperture center
+Late parameter *ra*
+  ICRS RA of aperture center
+
 //ssap#setMeta
 ..............
 
@@ -8298,69 +8223,6 @@ Late parameter *targname*
 Late parameter *timeExt*
   defaults to ``None``;
   exposure time (in seconds); ssa:Char.TimeAxis.Coverage.Bounds.Extent
-
-//ssap#setMixcMeta
-..................
-
-
-Sets metadata for an SSA data set from mixed sources.  This will
-only work sensibly in cooperation with setMeta
-
-As with setMeta, the values are left in vars; if you did as recommended
-with setMeta, you'll have this covered as well.
-
-
-Setup parameters for the procedure are:
-
-
-Late parameter *binSize*
-  defaults to ``None``;
-  Bin size on the spectral axis in m
-Late parameter *collection*
-  defaults to ``None``;
-  IOVA id of the originating data collection (leave empty if you don't know what this is about)
-Late parameter *creationType*
-  defaults to ``None``;
-  Process used to produce the data (zero or more of archival, cutout, filtered, mosaic, projection, spectralExtraction, catalogExtraction, concatenated by commas); ssa:DataID.CreationType
-Late parameter *creator*
-  defaults to ``"Take from RD"``;
-  Creator/Author
-Late parameter *dataSource*
-  defaults to ``None``;
-  Generation type (typically, one survey, pointed, theory, custom, artificial); ssa:DataID.DataSource
-Late parameter *dstype*
-  defaults to ``"spectrum"``;
-  Type of data. The only defined value currently is Spectrum, but you may get away with TimeSeries; ssa:Dataset.Type
-Late parameter *fluxCalib*
-  defaults to ``None``;
-  Type of flux calibration (one of ABSOLUTE, RELATIVE, NORMALIZED, or UNCALIBRATED); ssa:Char.FluxAxis.Calibration
-Late parameter *fluxStatError*
-  defaults to ``None``;
-  Statistical error for flux in units of fluxUnit
-Late parameter *fluxSysError*
-  defaults to ``None``;
-  Systematic error for flux in units of fluxUnit
-Late parameter *instrument*
-  defaults to ``"Take from RD"``;
-  Instrument or code used to produce this dataset; ssa:DataID.Instrument
-Late parameter *publisher*
-  defaults to ``"Take from RD"``;
-  Publisher IVO; ssa:Curation.Publisher
-Late parameter *reference*
-  defaults to ``"Take from RD"``;
-  URL or bibcode of a publication describing this data.
-Late parameter *specCalib*
-  defaults to ``None``;
-  Type of wavelength Calibration (one of ABSOLUTE, RELATIVE, NORMALIZED, or UNCALIBRATED); ssa:Char.SpectralAxis.Calibration
-Late parameter *specres*
-  defaults to ``None``;
-  Resolution on the spectral axis; you must give this as FWHM wavelength in meters here. This will default to binSize if not given; ssa:Char.SpectralAxis.Resolution
-Late parameter *spectStatError*
-  defaults to ``None``;
-  Statistical error for the spectral coordinate in m
-Late parameter *spectSysError*
-  defaults to ``None``;
-  Systematic error for the spectral coordinate in m
 
 
 
@@ -8711,6 +8573,9 @@ Late parameter *descriptorClass*
   The SSA descriptor class to use. You'll need to override this if the dc.products path doesn't actually lead to the file (see `custom generators <#custom-product-descriptor-generators>`_). This class must have an fromSSAResult constructor.
 Parameter *ssaTD*
   Full reference (like path/rdname#id) to the SSA table the spectrum's PubDID can be found in.
+Parameter *useAccref*
+  defaults to ``True``;
+  By default, this genDesc will parse the pubDID passed in and match with the accref, which in DaCHS typically is indexed. This don't work if you have exotic pubDID schemes; in that case, set this to False
 
 //soda#trivialFormatter
 .......................
@@ -9334,7 +9199,7 @@ Metadata must work in registry records as well as in HTML pages and
 possibly in other places.  Thus, it should ideally be given in formats
 that can be sensibly transformed into the various formats.
 
-The GAVO DC software knows four input formats:
+DaCHS knows four input formats:
 
 literal
   The textual content of the element will not be touched.  In
@@ -11930,7 +11795,7 @@ functionality for FITS files, although the default
 (`//soda#fromStandardPubDID`_) would work here, too – is passed
 the pubDID and returns an instance of ``datalink.ProductDescriptor`` (or
 a derived class).  If a descriptor generator returns 
-None, the datalink request will be rejected with a 404.  
+None, the datalink request will be rejected with a 404.
 
 Whatever is returned by the descriptor generator is then available as
 ``descriptor`` to the remaining datalink procs (in this case, the meta
@@ -11984,6 +11849,77 @@ set on the descriptor (you can set that in a meta maker or the
 descriptor generator).
 
 For more information on the elements used here, see below.
+
+Embedded Datalink Descriptors
+'''''''''''''''''''''''''''''
+
+For certain renderers (currently, only ssap.xml, but we might do it for
+SIAP, too), DaCHS will add a direct SODA block if there's an
+``_associatedDatalinkService`` meta on the table it serves from and that
+datalink service has a dlget capability.  Here's how the datalink
+declarations could look like in such a case::
+
+  <RESOURCE name="links" type="meta" utype="adhoc:service">
+    <DESCRIPTION>...</DESCRIPTION>
+    <GROUP name="inputParams">
+      <PARAM arraysize="*" datatype="char" name="ID" ref="ssa_pubDID" 
+        ucd="meta.id;meta.main" value=""/>
+    </GROUP>
+    <PARAM arraysize="*" datatype="char" name="standardID" 
+      value="ivo://ivoa.net/std/DataLink#links-1.0"/>
+    <PARAM arraysize="*" datatype="char" name="accessURL" 
+      value="http://localhost:8080/gaia/q2/tsdl/dlmeta"/>
+  </RESOURCE>
+
+  <RESOURCE ID="proc_svc" name="proc_svc" type="meta" utype="adhoc:service">
+    <DESCRIPTION>...</DESCRIPTION>
+    <GROUP name="inputParams">
+      <PARAM arraysize="*" datatype="char" name="ID" ref="ssa_pubDID" 
+        ucd="meta.id;meta.main" value="">
+        <DESCRIPTION>The pubisher DID of the dataset of interest</DESCRIPTION>
+      </PARAM>
+      <PARAM arraysize="*" datatype="char" name="BANDPASS" value="">
+        <DESCRIPTION>Gaia bandpass to generate the time series 
+          for.</DESCRIPTION>
+        <VALUES>
+          <OPTION name="G" value="G"/>
+          <OPTION name="BP" value="BP"/>
+          <OPTION name="RP" value="RP"/>
+        </VALUES>
+      </PARAM>
+    </GROUP>
+    <PARAM arraysize="*" datatype="char" name="accessURL" 
+      ucd="meta.ref.url" value="http://localhost:8080/gaia/q2/tsdl/dlget"/>
+    <PARAM arraysize="*" datatype="char" name="standardID" 
+      value="ivo://ivoa.net/std/SODA#sync-1.0"/>
+  </RESOURCE>
+
+– the first block declares where to obtain full datalink documents by
+publisher DID from.
+
+The second block lets clients take a shortcut and call a processing service
+directly, without first retrieving the datalink document; it is
+essentially an anonymised version of the processing declaration fromt the
+datalink block.
+
+To generate these, DaCHS also calls the dlmeta procs, but with pubDID
+set to None.  Whenever you need a concrete pubDID in a dlmeta proc used
+with SSA, you should therefore add something like::
+
+  if descriptor.pubDID is None:
+    return
+
+Also note that in these cases, a special descriptor type is being used
+rather than whatever you put into your descriptor generator, and hence
+you can't use any special attributes you defined there.  On the other
+hand, you'll have a ``limits`` attribute with a dictionary giving ranges
+of values within the concrete (SSA) result.  This should be used to
+build ``Values`` objects tailored to the specific result.
+
+All this is admittedly painful; the shortcut SODA blocks that cause all
+that pain can probably count as a classic case of premature
+optimisation.
+
 
 Defining Processing Services
 ''''''''''''''''''''''''''''
@@ -13178,7 +13114,7 @@ define the data item defined below.
 sdmCores, while potentially useful with common services, are intended to
 be used by the product renderer for dcc product table paths.  They
 contain a data item that must yield a primary table that is basically
-sdm compliant.  Most of this is done by the //ssap#feedSSAToSDM apply
+sdm compliant.  Most of this is done by the ``//ssap#feedSSAToSDM`` apply
 proc, but obviously you need to yield the spectral/flux pairs (plus
 potentially more stuff like errors, etc, if your spectrum table has more
 columns.  This comes from the data item's grammar, which probably must
@@ -14902,6 +14838,8 @@ For convenience, None is returned as None
 '2015-10-20T12:34:22Z'
 >>> formatISODT(datetime.datetime(1815, 10, 20, 12, 34, 22, 250))
 '1815-10-20T12:34:22Z'
+>>> formatISODT(datetime.datetime(2018, 9, 21, 23, 59, 59, 640000))
+'2018-09-22T00:00:00Z'
 
 
 Function genLimitKeys
@@ -16295,7 +16233,7 @@ datasets within this datacenter.
   (double precision) -- Upper bound of times represented in the data
   set, as MJD
 **t_exptime**
-  (real) -- Total exporure time
+  (real) -- Total exposure time
 **t_resolution**
   (real) -- Minimal significant time interval along the time axis
 **em_min**
@@ -16408,7 +16346,7 @@ internally, and sometimes for tricky queries.
   (double precision) -- Upper bound of times represented in the data
   set, as MJD
 **t_exptime**
-  (real) -- Total exporure time
+  (real) -- Total exposure time
 **t_resolution**
   (real) -- Minimal significant time interval along the time axis
 **em_min**

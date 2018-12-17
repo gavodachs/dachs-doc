@@ -164,8 +164,10 @@ of ``<key>: <value>``.
   give credit, please complain") or just contact.name if you produce
   resources yourself.
 * creator.logo – A URL for a logo to use when none is given in the
-  resource metadata. Use a small PNG here.  DaCHS has a scaled version
-  of your logo that might be suitable at <your-DaCHS-url>/favicon.png.
+  resource metadata. Use a small PNG here; if you've put in a
+  logo_medium.png (see `Simple Web Resources`_), just use
+  <your-DaCHS-url>/favicon.png, which is a suitably scaled version
+  of that provided by DaCHS.
 * site.description – A description of your site (i.e., "data center")
   Example: ``The GAVO data center provides VO publication services to
   all interested parties on behalf of the German Astrophysical Virtual

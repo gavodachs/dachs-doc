@@ -1,6 +1,6 @@
-========================================
-GAVO DC Software Reference Documentation
-========================================
+=============================
+DaCHS Reference Documentation
+=============================
 
 :Author: Markus Demleitner
 :Email: gavo@ari.uni-heidelberg.de
@@ -155,10 +155,11 @@ feeding the tables mixing in a given mixin.
 
 .. replaceWithResult getMixinDocs(docStructure, [
   "//products#table", "//scs#positions", "//scs#q3cindex",
-  "//siap#pgs", "//ssap#hcd", "//ssap#simpleCoverage", "//obscore#publish",
+  "//siap#pgs", "//ssap#view", "//ssap#plainlocation",
+  "//obscore#publish",
   "//obscore#publishSIAP", "//slap#basic",
-  "//ssap#sdm-instance", "//ssap#mixc",
-  "//obscore#publishSSAPHCD", "//obscore#publishSSAPMIXC", 
+  "//ssap#sdm-instance",
+  "//obscore#publishSSAPMIXC", 
   "//epntap2#table-2_0",
   "//epntap2#localfile-2_0"])
 
@@ -166,7 +167,7 @@ feeding the tables mixing in a given mixin.
 Triggers
 ========
 
-In the context of the GAVO DC, triggers are conditions on rows -- either
+In DaCHS,  triggers are conditions on rows -- either
 the raw rows emitted by grammars if they are used within grammars, or
 the rows about to be shipped to a table if they are used within
 tables.  Triggers may be used recursively, i.e., triggers may contain
@@ -212,7 +213,7 @@ Procedures available for rowmaker/parmaker apply
     "//siap#computePGS",
     "//siap#setMeta", "//ssap#setMeta",
     "//siap#getBandFromFilter", 
-    "//ssap#setMixcMeta", "//ssap#feedSSAToSDM",
+    "//ssap#fill-plainlocation", "//ssap#feedSSAToSDM",
     "//slap#fillBasic",
     "//epntap2#populate-2_0",
     "//epntap2#populate-localfile-2_0",
@@ -674,7 +675,7 @@ Metadata must work in registry records as well as in HTML pages and
 possibly in other places.  Thus, it should ideally be given in formats
 that can be sensibly transformed into the various formats.
 
-The GAVO DC software knows four input formats:
+DaCHS knows four input formats:
 
 literal
   The textual content of the element will not be touched.  In
@@ -3996,7 +3997,7 @@ define the data item defined below.
 sdmCores, while potentially useful with common services, are intended to
 be used by the product renderer for dcc product table paths.  They
 contain a data item that must yield a primary table that is basically
-sdm compliant.  Most of this is done by the //ssap#feedSSAToSDM apply
+sdm compliant.  Most of this is done by the ``//ssap#feedSSAToSDM`` apply
 proc, but obviously you need to yield the spectral/flux pairs (plus
 potentially more stuff like errors, etc, if your spectrum table has more
 columns.  This comes from the data item's grammar, which probably must

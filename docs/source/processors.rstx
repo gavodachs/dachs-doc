@@ -535,7 +535,7 @@ A somewhat silly example could look like this::
 
   class SillyProcessor(api.HeaderProcessor):
     def _isProcessed(self, srcName):
-      return self.getPrimaryHeader(srcName).has_key("NUMPIXELS")
+      return "NUMPIXELS" in self.getPrimaryHeader(srcName)
 
     def _mungeHeader(self, srcName, hdr):
       hdr.set("NUMPIXELS", hdr["NAXIS1"]*hdr["NAXIS2"])
@@ -544,9 +544,8 @@ A somewhat silly example could look like this::
   if __name__=="__main__":
     api.procmain(SillyProcessor, "testdata/theRD", "sillyData")
 
-Processors are expected  to have an addOptions static method receiving
-an optparser.OptionParser instance and adding options it wants to see.
-Call --help on the program above to see FileProcessor's options.  Things
+Call --help on the program above to see FileProcessor's options (if you
+want to add more, see `Processor Command Line`_.  Things
 are arranged like this (check out the process and _makeCache methods in
 the source code), where proc stands of the name of the ingesting program:
 
@@ -640,21 +639,62 @@ Scanned Plates
 
 For scanned plates, the `plate archive standard`_ proposes a fairly
 large and standardised set of headers.  DaCHS supports you in generating
-those with its FITS header template system; this lacks proper
-documentation right now – see the docstrings in gavo.helpers.fitstricks
-in the meantime.
+those with its FITS header template system (that's designed to enable
+other such templates; see gavo.helpers.fitstricks for how to write
+these; see also ``registerTemplate`` in there if you make new templates).
 
-For scanned plates, there is the canned WFPDB_TEMPLATE.  In usage, it
-is fairly simple; essentially, you say::
+The central funtion is the ``makeHeaderFromTemplate`` function from
+``gavo.helpers.fitstricks``.  This receives
+
+* a template, which is essentially a sequence of card definitions,
+* optionally the ``originalHeader``; cards not managed by the template
+  occurring this header will be appended to the new, templated header.
+* keyword arguments corresponding to the header values.
+
+The plate archive standard is suppported through ``WFPDB_TEMPLATE``.  A
+processor using it could look like this::
 
   from gavo.helpers import fitstricks
-  hdr = fitstricks.makeHeaderFromTemplate(fitstricks.WFPDB_TEMPLATE,
-    OBJECT = "some star",
-    SITELAT = 0.0,
-    ...
-   )
+  from gavo import api
 
-– and then use the header as you otherwise would.
+  class PAHeaderAdder(api.HeaderProcessor):
+    
+    def _createAuxiliaries(self, dd):
+      # read the observation log from somewher in the resdir
+      # it's usually a good idea to use a DaCHS parser for that, but
+      # let's keep this example straightforward.
+      self.platemeta = {}
+      colLabels = ["plateid", "epoch", "emulsion", "observer", "object"]
+
+      with open(os.path.join(dd.rd.resdir, "data", "platecat.tsv") as f:
+        for ln in f:
+          rec = dict(zip(colLabels, [s.strip() for s in ln.split("\t")]))
+        self.platemeta[rec["plateid"] = rec
+
+    def _isProcessed(self, srcName):
+      # typically, check for a header that's not in your input files
+      return "OBSERVER" in self.getPrimaryHeader(srcName)
+  
+    def _mungeHeader(self, srcName, hdr):
+      plateid = hdr["PLATEID"] # more typically: grab it from srcName
+      thismeta = self.platemeta["plateid"]
+
+      # you'll usually want to drop some junky headers from hdr
+      del hdr["BROKEN"]
+
+      return fitstricks.makeHeaderFromTemplate(
+        fitstricks.WFPDB_TEMPLATE,
+        originalHeader=hdr,
+        DATEORIG=api.jYearToDateTime(float(thismeta["epoch"])).isoformat(),
+        EMULISON=thismeta["epoch"],
+        OBSERVER=thismeta["observer"],
+        OBJECT=thismeta["object"],
+        ORIGIN="Contant")
+
+– and so on with the whole host of headers defined by the `plate archive
+standard`_; just just the header names as given there, replacing dashes
+with underscores (e.g., ``RA-DEG`` becomes ``RA_DEG`` for the keyword
+argument).
 
 .. _plate archive standard: https://www.plate-archive.org/wiki/index.php/FITS_header_format
 
