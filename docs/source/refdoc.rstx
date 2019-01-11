@@ -155,7 +155,9 @@ feeding the tables mixing in a given mixin.
 
 .. replaceWithResult getMixinDocs(docStructure, [
   "//products#table", "//scs#positions", "//scs#q3cindex",
-  "//siap#pgs", "//ssap#view", "//ssap#plainlocation",
+  "//siap#pgs", 
+  "//ssap#mixc", "//ssap#hcd",
+  "//ssap#view", "//ssap#plainlocation",
   "//obscore#publish",
   "//obscore#publishSIAP", "//slap#basic",
   "//ssap#sdm-instance",
@@ -211,7 +213,7 @@ Procedures available for rowmaker/parmaker apply
     "//procs#simpleSelect", "//procs#resolveObject",
     "//procs#mapValue", "//procs#fullQuery", "//procs#dictMap", 
     "//siap#computePGS",
-    "//siap#setMeta", "//ssap#setMeta",
+    "//siap#setMeta", "//ssap#setMeta", "//ssap#setMixcMeta",
     "//siap#getBandFromFilter", 
     "//ssap#fill-plainlocation", "//ssap#feedSSAToSDM",
     "//slap#fillBasic",
@@ -2599,8 +2601,8 @@ You generally declare datalink services on the table(s) that contain the
 identifiers the datalink service accepts.  For that, you include
 two pieces of metadata: The identifier of the datalink service (which
 can be a cross-RD id with a hash; use the
-``_associatedDatalinkSvc.serviceId`` meta key) and the column name
-within the table (use the ``_associatedDatalinkSvc.idColumn`` meta key).
+``_associatedDatalinkService.serviceId`` meta key) and the column name
+within the table (use the ``_associatedDatalinkService.idColumn`` meta key).
 Both items will only be checked at run time, and broken links will be
 reported as warnings.  If the following doesn't give you the datalink
 resources in results involving the tables, be sure to check the
@@ -2613,11 +2615,11 @@ taken from a (hypothetical) ``doires/q`` RD, would work on the ``doi``
 column::
 
   <table id="datasets" onDisk="True">
-    <meta name="_associatedDatalinkSvc">
+    <meta name="_associatedDatalinkService">
       <meta name="serviceId">dlsvc</meta>
       <meta name="idColumn">accref</meta>
     </meta>
-    <meta name="_associatedDatalinkSvc">
+    <meta name="_associatedDatalinkService">
       <meta name="serviceId">doires/q#doidl</meta>
       <meta name="idColumn">doi</meta>
     </meta>
