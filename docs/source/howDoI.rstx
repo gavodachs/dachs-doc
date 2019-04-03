@@ -1506,6 +1506,8 @@ adapt the example to other situations.
 
 Still assuming you're on a Debian-derived apache, run::
 
+  $ sudo a2enmod proxy
+  $ sudo a2enmod proxy_http
   $ sudo a2ensite voproxy
   $ sudo service apache reload
 

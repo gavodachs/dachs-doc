@@ -806,7 +806,8 @@ manual intervention.  That's bad because it might be down for a
 significant time (namely if someone is doing a large download at that
 time).  As said below: HTTPS is an operational liability.
 
-Anyway, add the following to root's crontab:
+Anyway, add the following to root's crontab (if you installed DaCHS from
+source, you'll probably have to add /usr/local/bin/dachs here)::
 
   21 4 1 1,3,5,7,9,11 * dachs serve updateCertificate
 

@@ -157,8 +157,8 @@ feeding the tables mixing in a given mixin.
   "//products#table", "//scs#positions", "//scs#q3cindex",
   "//siap#pgs", 
   "//ssap#mixc", "//ssap#hcd",
-  "//ssap#view", "//ssap#plainlocation",
-  "//obscore#publish",
+  "//ssap#view", "//ssap#plainlocation", "//ssap#simpleCoverage",
+  "//obscore#publish", "//obscore#publishObscoreLike",
   "//obscore#publishSIAP", "//slap#basic",
   "//ssap#sdm-instance",
   "//obscore#publishSSAPMIXC", 
@@ -2051,10 +2051,6 @@ in the procApp's namespace::
       </code>
     </coreProc>
   </pythonCore>
-
-As an additional service, DaCHS executes your python cores in a sandbox
-directory, so you can create temporary files to your heart's
-delight; they will be torn down once the core is finished.
 
 
 Regression Testing
@@ -4382,7 +4378,7 @@ begin transactions in SQL scripts as long as Postgres  does not support
 nested transactions.
 
 You can use table macros in the SQL scripts to parametrize them; the
-most useful among those probably is ``\curtable`` containing the fully
+most useful among those probably is ``\qName`` containing the fully
 qualified name of the table being processed.
 
 Python scripts
@@ -4449,7 +4445,7 @@ When a table containing "products" is dropped, the corresponding entries
 in the products table are deleted::
 
   <script type="beforeDrop" lang="SQL" name="clean product table">
-    DELETE FROM products WHERE sourceTable='\curtable'
+    DELETE FROM products WHERE sourceTable='\qName'
   </script>
 
 Note that this is actually quite hazardous because if the table is
@@ -4459,7 +4455,7 @@ housekeeping.  Rules are typically set in postCreation scripts::
 
   <script type="postCreation" lang="SQL">
     CREATE OR REPLACE RULE cleanupProducts AS 
-      ON DELETE TO \curtable DO ALSO
+      ON DELETE TO \qName DO ALSO
       DELETE FROM products WHERE key=OLD.accref
   </script>
 
