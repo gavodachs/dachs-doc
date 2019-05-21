@@ -300,7 +300,7 @@ PPMXL in the vicinity of a detection of a neutrino::
 Sync Querying
 -------------
 
-TAP also supports a synchronous querying mode; for simple, quick
+TAP also supports a synchronous querying mode; for fast-running
 queries, this is simpler and has less overhead.  So, if you are certain
 that your query will run quickly and the result set is small, you can
 use the ADQLSyncJob.  This works mostly like the ADQLTAPJob, except of

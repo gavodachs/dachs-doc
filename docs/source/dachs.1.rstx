@@ -538,6 +538,14 @@ Subsubcommands
 * ``stop`` -- stop a running server
 
 
+The ``start`` subcommand accepts a ``--foreground`` option.  If you pass
+it, the server will not double-detach and not redirect stderr to a log
+file and instead stay in the foreground.  In contrast to ``debug``, it 
+will change users, etc., and not put the DaCHS into debug mode.  Use
+this option together in systemd units.
+
+
+
 THE start SUBCOMMAND
 ====================
 
