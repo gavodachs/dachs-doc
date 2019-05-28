@@ -45,13 +45,17 @@ server doesn't try to bind to a privileged port (lower than 1025).
 
 All this can and should be packed into a startup script or the
 equivalent entity for the init systme of your choice.  Our Debian
-package provides a System V-style init script; it is available from
-http://svn.ari.uni-heidelberg.de/svn/debian-package/gavodachs/trunk/debian/gavodachs-server.dachs.init
-and should be installed to /etc/init.d/dachs (of course, if you
-installed the Debian package, the system has already done this for you).
+package provides both a `System V-style init script`_ and a `systemd
+unit`_.  They would typically be installed to /etc/init.d/dachs or
+/etc/systemd/system/dachs (but this might, of course, be different if
+you're running non-Debian systems).
 
 For development work or to see what is going on, you can run ``gavo
-serve debug``; this does not detach and does not change users.
+serve debug``; this does not detach and does not change users, and it
+also gives a lot more tracebacks in the logs.
+
+.. _System V-style init script: https://salsa.debian.org/debian-astro-team/gavodachs/blob/gavo/debian/gavodachs-server.dachs.init
+.. _systemd unit: https://salsa.debian.org/debian-astro-team/gavodachs/blob/gavo/debian/gavodachs-server.dachs.service
 
 
 Publication
@@ -1351,6 +1355,7 @@ Settings related to serving content to the web.
 * voplotUserman: URL fragment relative to the server's root; 
   defaults to 'Deprecated and ignored' --
   URL to the documentation of VOPlot
+
 .. END CONFIG REFERENCE
 
 Managing Runtime Resources
