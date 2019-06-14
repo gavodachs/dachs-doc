@@ -506,6 +506,11 @@ Atomic Children
 * **original** (id reference; defaults to None) -- An id of an element
   to base the current one on.  This provides a simple inheritance
   method.  The general rules for advanced referencing in RDs apply.
+* **remakeOnDataChange** (boolean; defaults to 'False') -- If this
+  data is made as a dependent of some other, remake it even if the
+  other just has data updates?  You generally want to keep this at the
+  default for data that just makes views and the like.  You'd want
+  this true when the data produces some statistics or the like.
 * **updating** (boolean; defaults to 'False') -- Keep existing tables
   on import?  You usually want this False unless you have some kind of
   sources management, e.g., via a sources ignore specification.
@@ -828,7 +833,7 @@ individual sets.
 
 fromdbUpdating is a bit special in that the query must return
 UTC timestamps of the file's mtime during the last ingest in addition 
-to the accrefs (see the tutorial for an example).
+to the accrefs (see the reference documentation for an example).
 
 Macros are expanded in the RD.
 
@@ -13278,6 +13283,9 @@ external preview::
     <bind key="preview_mime">@preview_mime</bind>
   </rowfilter>
 
+Precomputed Previews
+''''''''''''''''''''
+
 More commonly, however, you'll have local previews.  If they already
 exist, use a static renderer and enter full local URLs as above.
 
@@ -13323,6 +13331,90 @@ c) actually compute the previews.  This is usually not defined in the RD
 
 .. _precomputing previews: http://docs.g-vo.org/DaCHS/processors.html#precomputing-previews
 
+
+Previews on the Fly
+'''''''''''''''''''
+
+When you keep the data you want to preview in the database – as is
+sensible for shortish spectra or time series – it hurts to create files
+for what otherwise would be neatly in arrays in the database, much more
+so since such collections are often large, and thus the overwhelming
+majority of generated files would probably never be retrieved.
+
+So, we would much rather generate the images on the fly.  DaCHS can do
+this, too.  The major ingredient is `the qp renderer`_, which lets you
+write a service taking a single argument from the URL path.  This keeps
+preview URLs tidy.
+
+Here is an example for a preview generating service reading spectral and
+flux points from the database::
+
+  <service id="preview" allowed="qp">
+    <meta name="title">DFBS spectra preview maker"</meta>
+    <property name="queryField">specid</property>
+    <pythonCore>
+      <inputTable>
+        <inputKey name="specid" type="text" required="True"
+          description="ID of the spectrum to produce a preview for"/>
+      </inputTable>
+      <coreProc>
+        <setup>
+          <code>
+            from gavo.helpers.processing import SpectralPreviewMaker
+            from gavo import svcs
+          </code>
+        </setup>
+        <code>
+          with base.getTableConn() as conn:
+            res = list(conn.query("SELECT spectral, flux"
+              " FROM \schema.spectra"
+              " WHERE specid=%(specid)s",
+              inputTable.args))
+
+          if not res:
+            raise svcs.UnknownURI("No such spectrum known here")
+
+          return ("image/png", SpectralPreviewMaker.get2DPlot(
+            zip(res[0][0], res[0][1]), linear=True))
+        </code>
+      </coreProc>
+    </pythonCore>
+  </service>
+
+Essentially, we define a service that sticks the rest of a query path
+pointing to it into a field ``specid`` in the input table.  For
+instance, when the query path coming in is
+``myspecs/q/preview/qp/foo/bar`` and the thing sits in the RD
+``myspecs/q``, then ``specid`` will be ``foo/bar``.
+
+The python core fetches this specid and does a database query to pull
+the spectral and flux points out of the database table; if there is an
+accref in the table, it is probably a good idea to just use that for
+what specid does here.
+
+Finally, we use the SpectralPreviewMaker mentioned above; this has a
+static method doing a 2D plot or (x,y) tuples (see the source if you
+have to) and returning a PNG in a string.
+
+When a core returns a 2-tuple, most DaCHS renderers will interpret the
+first element as a media type and the second as a byte string to
+deliver; qp certainly does, and so the last line simply ensures the data
+is handed back to the client as an image/png.
+
+What's left to do is tell DaCHS where to find the previews.  That you'll
+do in the ``products#define`` rowfilter.  In all likelihood, you'll be
+building some artificial accref in such cases.  Right now, you will have
+to repeat such expressions when declaring the URL at which the preview
+is found, perhaps like this::
+
+  <rowfilter procDef="//products#define">
+     <bind name="table">"\schema.spectra"</bind>
+     <bind key="accref">"\rdId/%s-%s"%(@plate, @objectid[5:])</bind>
+     <bind name="path">[...]</bind>
+     <bind name="preview_mime">"image/png"</bind>
+     <bind name="preview">makeAbsoluteURL("\rdId/preview/qp/%s-%s"%(
+       @plate, @objectid[5:]))</bind>
+  </rowfilter>
 
 
 
@@ -14436,10 +14528,10 @@ The table object currently processed is accessible as table.  In
 particular, you can use this to issue queries using 
 ``table.query(query, arguments)`` (parallel to dbapi.execute) and to
 delete rows using ``table.deleteMatching(condition, pars)``.  The
-current RD is accessible as ``table.rd``, so you can access items from
-the RD as ``table.rd.getById("some_id")``, and the recommended way to
+current RD is accessible as ``table.tableDef.rd``, so you can access items from
+the RD as ``table.tableDef.rd.getById("some_id")``, and the recommended way to
 read stuff from the resource directory is
-``table.rd.openRes("res/some_file)``.
+``table.tableDef.rd.openRes("res/some_file)``.
 
 Some types of scripts may have additional names available.  Currently:
 
@@ -15610,7 +15702,7 @@ Signature: ``getTableDefForTable(connection, tableName)``
 
 returns a TableDef object for a SQL table name.
 
-connection needs to be TableConnection of higher.
+connection needs to be TableConnection or something with higher privileges.
 
 This really has little to do with resolving identifiers, but
 this module already has getRDs and similar, so it seemed the least
@@ -15801,7 +15893,7 @@ makes sense if you want to, e.g., add some meta information up front.
 Function makeDependentsFor
 ..........................
 
-Signature: ``makeDependentsFor(dds, parseOptions, connection)``
+Signature: ``makeDependentsFor(dds, parseOptions, connection, sysCatChanged)``
 
 rebuilds all data dependent on one of the DDs in the dds sequence.
 
