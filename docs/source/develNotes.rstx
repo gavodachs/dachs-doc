@@ -92,7 +92,7 @@ Error handling, logging
 
 
 Exception classes
-+++++++++++++++++
+-----------------
 
 It is the goal that all errors that can be triggered from the web or
 from within resource descriptors yield sensible error messages with,
@@ -121,7 +121,7 @@ keyword.
 
 
 The events subsystem
-++++++++++++++++++++
+--------------------
 
 All proper DC code (i.e. above base) should do user interaction
 through base.ui.notify<something>.  In base and below, you can use
@@ -167,7 +167,7 @@ Most logging is done in user.logui; if you want logging, say::
 
 
 Catching exceptions
-+++++++++++++++++++
+-------------------
 
 In the DC software, is is frequently desirable to ignore the first rule
 of exception handling, viz., leave them alone as much as possible.
@@ -207,7 +207,7 @@ out why resource generation fails and fix it.
 
 
 XSD validation
-++++++++++++++
+--------------
 
 XML Schema is a pain all around, and given that we don't want to hit W3C
 and IVOA with requests for schema files every time someone needs schema
@@ -259,7 +259,7 @@ or similar.
 
 
 Setting package installs up for testing
-+++++++++++++++++++++++++++++++++++++++
+---------------------------------------
 
 The debian package does not contain unit tests.  If you want to
 nevertheless run them, check out the release corresponding to your
@@ -268,7 +268,7 @@ Again, see the ``tests`` subdirectory in your checkout.
 
 
 Test framework
-++++++++++++++
+--------------
 
 All unit tests must import gavo.helpers.testhelpers before importing
 anything else from the gavo namespace.  This is because testhelpers
@@ -305,7 +305,7 @@ executed.
 
 
 Regression testing of data
-++++++++++++++++++++++++++
+--------------------------
 
 For certain kinds of data, unit testing is useful, too.  Since it's
 always possible that server code changes may break such tests, it makes
@@ -328,7 +328,7 @@ testhelpers.  This is conveniently done in python, like this::
 
 
 pyflakes
-++++++++
+--------
 
 Not really testing, but static code checking using pyflakes should
 regularly be done, and result in no warnings eventually (right now, more
@@ -355,8 +355,24 @@ Also note that flake_all hardcodes that modules from imp are not
 checked.
 
 
+Coverage
+--------
+
+There's a shell script ``genCov.sh`` in tests that runs all unit tests
+and all regression tests.  It then combines the coverage from all these
+runs to ``.coverage``.  So, after running this, just running
+``python3-coverage report -i`` or ``python3-coverage html -i`` should do
+the right thing.  
+
+You need the ``-i`` flag because during testing a lot of generated or
+extracted code will be executed, and there's no sane way I can think of
+to include that with the testing.  For RD-embedded code it might still
+work, but I won't tackle this any time soon (though, sure, there's
+probably a severe lack of testing for all the code in the system RDs).
+
+
 Test Plan
-+++++++++
+---------
 
 (This is somewhat specific to Markus' setup; something similar is
 recommended for everyone, though)
@@ -481,7 +497,7 @@ children.
 
 
 Getting Metadata
-++++++++++++++++
+----------------
 
 Metadata are accessed by name (or "key", if you will).
 
@@ -510,7 +526,7 @@ method that returns whatever the builder's getResult method returns.
 
 
 Setting Metadata
-++++++++++++++++
+----------------
 
 You can programmatically set metadata on any metadata container by
 calling its method ``addMeta(key, value)``, where both key and value are
@@ -613,17 +629,12 @@ accessing /test/exit on a debug server.
 Debugging
 =========
 
-For anything outside of the server, lines like::
+Just insert lines like::
 
-  import code; code.interact(local=locals())
+  import pdb;pdb.Pdb(nosigint=True).set_trace()
 
-(for getting a python prompt to look around and introspect, e.g., using
-``dir()``; exit to let the program continue) and::
-
-  import pdb;pdb.set_trace()
-
-(which dumps you into the debugger and lets you single-step, etc) are
-your friends.
+whereever required to have python dump you into the debugger and let
+you look around, single-step, etc.
 
 When you want to inspect what's going on within the server, in
 particular when something only manifests itself after a long time, you
@@ -638,7 +649,7 @@ res/page1.html.  You can edit both files "live", they will both be
 reloaded as necessary.
 
 Debugging memory leaks
-++++++++++++++++++++++
+----------------------
 
 Sometimes one is careless and leaves a reference somewhere, perhaps in
 an RD.  Since this really only matters in the server, such situations
@@ -913,7 +924,7 @@ setting to take effect.
 
 
 gavo.js
-+++++++
+-------
 
 The commonhead renderer that's applied to almost all pages pulls in the
 javascript from resources/web/js/gavo.js.  This includes some utility
@@ -1000,20 +1011,20 @@ the images necessary in ``resources/web/img``.
 
 
 samp.js
-+++++++
+-------
 
 This is Mark Taylor's samp.js, checked out from
 https://github.com/astrojs/sampjs.git.
 
 
 jquery.flot.js
-++++++++++++++
+--------------
 
 That's the plotting code.  We got it from http://www.flotcharts.org/
 
 
 Building jquery-gavo.js
-+++++++++++++++++++++++
+-----------------------
 
 * Go to a temporary directory
 * Go to http://jqueryui.com/download and make yourself a jquery-ui
@@ -1037,10 +1048,6 @@ gavo.imp has some external dependencies of DaCHS.  Shortly after release
 1.0, many were dropped in favour of their packaged/native counterparts
 (argparse, pyparsing...).  What's currently left is:
 
-* formal -- the framework for HTML form widgets DaCHS uses.  This stuff
-  is long abandoned now by upstream.  We'll probably keep it until
-  at least version 2.0 because parts of formal leak into DaCHS'
-  interface
 * rjsmin -- Debian packaged, and the Debian version will be picked up
   automatically if installed (so, this should not go into the Debian
   package)
@@ -1146,7 +1153,7 @@ Random Stuff
 ============
 
 Tracing imports
-+++++++++++++++
+---------------
 
 Sometimes it's nice to see what gets imported when.  Futzing with PEP
 302-style import hooks is a pain, and indeed a simple shell line
@@ -1155,7 +1162,7 @@ produces more useful output than naive hooks::
   strace gavo imp -h 2>&1 | grep 'open' | grep -v ENOENT | grep -v "pyc" | sed -e 's/.*"\(.*\)".*/\1/'
 
 matplotlib
-++++++++++
+----------
 
 To use matplotlib and pyplot within renderers or some other server
 context, use the following import pattern::

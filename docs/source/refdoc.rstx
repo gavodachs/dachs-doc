@@ -274,6 +274,7 @@ Other Streams
 .. replaceWithResult getStreamsDoc(
     ["//procs#license-cc0", "//procs#license-cc-by", 
      "//procs#license-cc-by-sa"]
+    +[//pql#"+id for id in ["DALIPars", "DALIUpload"]
     +['//obscore#obscore-columns']
     +['//ssap#'+id for id in ["hcd_condDescs", "atomicCoords"]]
     +['//echelle#'+id for id in ["ssacols"]]
@@ -2271,13 +2272,16 @@ RegTest Tests
 
 Since regression tests are just procDefs, the actual assertions are
 contained in the ``code`` child of the ``regTest``.  The code in there
-sees the test itself in self, and it can access ``self.data`` (the
-response content), ``self.headers`` (a sequence of header name, value
-pairs; note that you should match the names case-insensitively here),
-and ``self.status`` (the HTTP response code), as well as the URL
-actually retrieved in ``self.url.httpURL`` (incidentally, that name is
-right; the regression framework only supports http, and it's not
-terribly likely that we'll change that).
+sees the test itself in self, and it can access 
+
+* ``self.data`` (the response content as a byte string), 
+* ``self.headers`` (a sequence of header name, value pairs; note that you 
+   should match the names case-insensitively here),
+* ``self.status`` (the HTTP response code), and 
+* the URL actually retrieved in ``self.url.httpURL``.
+
+Incidentally, that last name is right; the regression framework only
+supports http, and it's not terribly likely that we'll change that.
 
 You should probably only access those attributes in a pinch and instead
 use the pre-defined assertions, which are methods on the test objects as
@@ -2624,7 +2628,7 @@ column::
     <column name="doi" type="text".../>
   </table>
 
-  <service id="dlsvc" allowed="dlmeta,deget">
+  <service id="dlsvc" allowed="dlmeta,dlget">
     <meta name="dlget.description">A service for 
       slicing and dicing.</meta>
     ...
