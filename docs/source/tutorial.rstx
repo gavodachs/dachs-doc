@@ -335,7 +335,7 @@ See `More on Metadata`_ for more information on what is what here.
 A special thing in two respects is the STREAM in the above fragment.
 For one, it's an example of DaCHS metaprogramming, which we'll later
 look into.  For now, suffice it to say that this element sets a number
-of metadata items (actually, rights, rights.rightsURI, and copyright)
+of metadata items (actually, rights and rights.rightsURI)
 and thus puts your data under a definite license.  This may seem a bit
 legalistic, but see `Licensing`_ on why it's nevertheless a good idea to
 include, if you can, either license-cc-by or license-cc0 in the above
@@ -2115,13 +2115,12 @@ called licenses.
 
 In DaCHS, three meta items are used for licensing:
 
-* copyright – this is free text displayed on web pages, including the
-  service info.  This can be verbose and state acknowledgements,
-  funding information, and the like.
-* rights – this is transmitted to the registry and should be a very
-  terse phrase specifying the absolute minimum necessary to assess
-  usage conditions (something like “Free to use”, “CC-BY”, etc).  This
-  should not contain funding info, acknowledgements, and the like.
+* rights – this is free text transmitted to the registry that should
+  state the conditions under which the data can be used, shared, etc.
+  This can include requests for acknowledgement, but don't be overly
+  verbose here; if, for instance, you'd like to acknowledge all your
+  contributors, rather put that into _longdoc and reference that from
+  rights.
 * rightsURI – a URI of a common license; this is so machines can figure
   out conditions if necessary.  We'll link a list of such URIs if we
   find one.
@@ -2141,9 +2140,9 @@ into the RD and give a ``what`` attribute saying what is licensed
   <STREAM source="//procs#license-cc-by" what="ARIHIP"/>
 
 Sometimes you want an additional acknowleding clause.  In that case,
-just add another copyright meta item::
+just add another rights meta item::
 
-  <meta name="copyright" format="rst">If you use this data, please
+  <meta name="rights" format="rst">If you use this data, please
     acknowledge: "This work made use of the HDAP which was produced at
     Landessternwarte Heidelberg-Königstuhl under grant No. 00.071.2005
     of the Klaus-Tschira-Foundation."

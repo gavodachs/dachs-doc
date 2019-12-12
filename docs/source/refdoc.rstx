@@ -742,9 +742,6 @@ start with an underscore.  Among those are:
   above the seach form.
 * _bottominfo -- used by the standard HTML template for explanatory text
   below the seach form.
-* _copyright -- used by the standard HTML template for copyright-related
-  information (there's also copyright in RMI; the one with the
-  underscore is intended to be less formal).
 * _related -- used in the standard HTML template for links to related
   services.  As listed above, this is a link, i.e., you can give a
   title attribute.
@@ -799,7 +796,9 @@ renderers -- include:
 * subject -- as noted in the explanatory leaflet, these should be taken
   from the `IVOA Vocabulary Explorer
   <http://explicator.dcs.gla.ac.uk/WebVocabularyExplorer/>`_.
-* copyright -- freetext copyright notice.
+* rights -- freetext copyright notice.
+* rightsURI -- machine readable license URI.  There's no formal list of
+  acknowledged URIs yet, but the common CC URIs are a good start.
 * source -- bibcodes will be expanded to ADS links here.
 * referenceURL -- again, a link, so you can give a title for
   presentation purposes.  If you give no referenceURL, the service's

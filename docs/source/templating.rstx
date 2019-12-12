@@ -411,9 +411,9 @@ replaced by the value of the named key in the mapping.
 
 One last new thing is a bit further down::
 
-  <n:invisible n:render="ifmeta copyright">
+  <n:invisible n:render="ifmeta rights">
     <h2>Copyright, License, Acknowledgements</h2>
-    <p n:render="metahtml">copyright</p>
+    <p n:render="metahtml">rights</p>
   </n:invisible>
 
 Here, the render attribute contains a blank.  Nevow interprets that as a
