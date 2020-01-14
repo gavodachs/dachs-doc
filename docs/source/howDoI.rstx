@@ -1174,6 +1174,46 @@ cleaner.  On the other hand, we could add PRUNE to mixins should this really
 become a bother.
 
 
+...figure out why an obscore query is slow?
+-------------------------------------------
+
+In DaCHS, ivoa.obscore is a view over potentially many underlying
+tables.  Some of these tables may be large, and then when an obscore
+query comes in and a single large table can't use an index, the whole
+obscore query is slow.  The trouble is: You don't know which table is
+the culprit.
+
+To figure that out, write a minimal slow query and write an ``EXPLAIN
+ANALYZE`` in front of it; this will make postgres report actual
+execution times in a query plan.  However, since the view typically is
+rather large, so is the query plan.  Hence, save it to a file for closer
+inspection::
+
+  psql gavo -c "EXPLAIN ANALYZE SELECT obs_id \
+    FROM ivoa.obscore WHERE q3c_join(s_ra, s_dec, 10, 10, 0.001)" \
+    > plan.txt
+
+(this is for q3c-based positional searches) or::
+
+  psql gavo -c "EXPLAIN ANALYZE SELECT obs_id \
+    FROM ivoa.obscore WHERE spoint(0.1, 0.1) <@ s_region" > plan.txt
+
+(for pgsphere-based positional searches) – other conditions that may be
+slow translate essentially 1:1 to SQL; you can also pull translated
+queries from /var/gavo/logs/dcInfos.
+
+Inspect the resulting file, which is going to be large if all goes well,
+because the plan is complex when indices are begin used (as they
+should).  Watch out for “Seq Scan” – if these happen on large tables,
+things will we slow.  For small tables (a couple of thousand records,
+perhaps), on the other hand, it doesn't really matter.
+
+You'll know where your query time went by looking at the “actual time“
+part of these lines; the numbers are in microseconds, so you don't need
+to worry about anything if there's something like 100 there.  Hunt down
+the ones having a few thousand, and then strategically add indexes.
+
+
 Operations
 ==========
 
