@@ -234,7 +234,7 @@ Procedures available for grammar rowfilters
 Procedures available for datalink cores
 '''''''''''''''''''''''''''''''''''''''
 
-.. replaceWithResult _makeProcsDocumenter(["//soda#"+ s for s in 
+.. replaceWithResult _makeProcsDocumenter(["//soda#"+s for s in [
     "fromStandardPubDID", 
     "trivialFormatter",
     "generateProduct",
@@ -247,7 +247,7 @@ Procedures available for datalink cores
     "fits_formatHDUs",
     "fits_makeBANDSlice",
     "fits_makeBANDMeta",
-    ])(docStructure)
+    ]])(docStructure)
 
 
 Predefined Streams
@@ -274,7 +274,7 @@ Other Streams
 .. replaceWithResult getStreamsDoc(
     ["//procs#license-cc0", "//procs#license-cc-by", 
      "//procs#license-cc-by-sa"]
-    +[//pql#"+id for id in ["DALIPars", "DALIUpload"]
+    +["//pql#"+id for id in ["DALIPars", "DALIUpload"]]
     +['//obscore#obscore-columns']
     +['//ssap#'+id for id in ["hcd_condDescs", "atomicCoords"]]
     +['//echelle#'+id for id in ["ssacols"]]
