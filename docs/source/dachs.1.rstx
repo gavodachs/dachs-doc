@@ -7,8 +7,8 @@ data publishing infrastructure for the Virtual Observatory (VO)
 ---------------------------------------------------------------
 
 :Author: Markus Demleitner <gavo@ari.uni-heidelberg.de>
-:Version: 1.0
-:Date: 2017-01-18
+:Version: 2.0
+:Date: 2019-01-23
 :Manual section: 1
 
 SYNOPSIS
@@ -111,8 +111,10 @@ Subsubcommands
   helpMsg to the requesting user as error message.
 * ``updateTAPSchema`` -- Update the TAP_SCHEMA metadata for all RDs
   mentioned in TAP_SCHEMA.
-* ``declaredel`` -- declare  an identifier as deleted (for when you've
-  removed the RD but the identifier still floats  on some registries.
+* ``makedelrec ivoid`` -- create a registry record of ivoid saying
+  the resource is removed.  This is only necessary when recovering
+  from disasters that made you lose records from DaCHS' internal
+  tables.
 * ``indexStatements tableRef`` -- show the statements to create the 
   indices on a table.  The tableRef has the format RD-id#table-id; it
   is *not* a database table reference.

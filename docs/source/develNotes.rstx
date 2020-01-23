@@ -214,7 +214,7 @@ and IVOA with requests for schema files every time someone needs schema
 validation (which includes RD validation and unit tests), DaCHS goes to
 some lengths to use its own schema files.
 
-The standard way these days is the LXML-based validator from
+The main engine here is the LXML-based validator from
 gavo.helpers.testtricks; the rocket science part of this is to make LXML
 use the plethora of schema files we have locally.
 
@@ -227,35 +227,16 @@ should probably just pull in ``*.xsd`` at some point).
 
 With this, run ``gavo admin xsdVal`` to XSD-validate a VO file.
 
-*If uncertain*, you can also fall back so a xerces-based validator we
-used to use. Here, you first need xerces itself, which on debian is the
-package ``libxerces2-java``, and you'll also need
-``libxerces2-java-doc`` (really).  These packages will dump the
-necessary jars (``xercesImpl.jar`` and ``xmlParserAPIs.jar``) in
-``/usr/share/java``; if you have a different setup, you'll need to edit
-``xsdclasspath`` in ``tests/test_data/test-gavorc`` within your checkout
-and curse java's classpath construct.
+In case you'd like some external truth, here's how you can run xerces as
+a validating parser on a Debian system::
 
-You can then manually build the legacy validator by going to
-``schemata`` subdirectory and saying ``python makeValidator.py``.  This
-will use leave the validator as ``xsdval.class`` in the cache directory
-(/var/gavo/cache by default).
+  export CLASSPATH=/usr/share/doc/libxerces2-java-doc/examples/xercesSamples.jar:/usr/share/java/xercesImpl.jar:/usr/share/java/xmlParserAPIs.jar
+  exec java dom.Counter -n -v -s -f $@
 
-To run this legacy validator, you could change::
-
-  getXSDErrors = getXSDErrorsLXML
-
-in gavo.helpers.testtricks to
-
-  getXSDErrors = getXSDErrorsXerces
-
-– but it's probably better to just run this one-off with a commandline
-like::
-
-  classpath=/usr/share/doc/libxerces2-java-doc/examples/xercesSamples.jar:/usr/share/java/xercesImpl.jar:/usr/share/java/xmlParserAPIs.jar
-  java -cp `gavo config cacheDir`/xsdval.class:$classpath xsdval -n -v -s -f to_validate.xml
-
-or similar.
+This will only work if the schemaLocation attributes are present
+whereever new namespaces are introduced.  For DaCHS' VOResource output,
+that is the case.  We don't do that in VOTables and serveral other
+places.
 
 
 Setting package installs up for testing
