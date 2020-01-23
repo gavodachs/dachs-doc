@@ -1035,6 +1035,8 @@ You can get an up-to-date version of this by running ``gavo config``.
 .. BEGIN CONFIG REFERENCE
    refresh by going one line below this comment in vi and saying
 
+   :.,/.. END CONFIG/!dachs config
+
 
 Section [general]
 '''''''''''''''''
@@ -1218,7 +1220,7 @@ The interface to the Greater VO.
   Give access URLs for the alternative protocol (https when serverURL is
   http and vice versa) as a mirrorURL?  If you're listening to HTTPS,
   this is probably a good idea.
-* sdmVersion: value from the list 1, 2; 
+* sdmVersion: value from the list 2, 1; 
   defaults to '1' --
   Obsolete (SDM version 2 is shelved).  Don't use.
 * VOSITableDetail: value from the list max, min; 
@@ -1231,29 +1233,21 @@ The interface to the Greater VO.
   responses; this can be user-overridden using the _TDENC local HTTP
   parameter.
 
-Magic Section [profiles]
-''''''''''''''''''''''''
-
-Ignored and deprecated, only here for backward compatibility.  The items
-in this section are all of type profile name.  You can add keys as
-required.
-
-
 Section [ui]
 ''''''''''''
 
 Settings concerning the local user interface
 
-* outputEncoding: string; 
-  defaults to 'iso-8859-1' --
-  Encoding for system messages.  This should match what your terminal
-  emulator is set to
 
 Section [web]
 '''''''''''''
 
 Settings related to serving content to the web.
 
+* adaptProtocol: boolean; 
+  defaults to 'True' --
+  Adapt internal absolute links to http/https by request method used.
+  You must switch this off if running behind a reverse proxy.
 * adminpasswd: string; 
   defaults to '' --
   Password for online administration, leave empty to disable
@@ -1279,7 +1273,8 @@ Settings related to serving content to the web.
   Enable test pages (don't if you don't know why)
 * favicon: path relative to webDir; 
   defaults to 'None' --
-  Webdir-relative path to a favicon
+  Webdir-relative path to a favicon; this overrides the default of a
+  scaled version of the logo.
 * graphicMimes: list of strings; 
   defaults to 'image/fits,image/jpeg,application/x-votable+xml;content=datalink' --
   MIME types considered as graphics (for SIAP, mostly)
@@ -1296,9 +1291,13 @@ Settings related to serving content to the web.
 * maxPreviewWidth: integer; 
   defaults to '300' --
   Ignored, only present for backward compatiblity
+* maxSyncUploadSize: integer; 
+  defaults to '500000' --
+  Maximal size of file uploads for synchronous TAP in bytes.
 * maxUploadSize: integer; 
   defaults to '20000000' --
-  Maximal size of file uploads in bytes.
+  Maximal size of (mainly TAP) file uploads in async requests in bytes;
+  sync requests use maxSyncUploadSize.
 * nevowRoot: path fragment; 
   defaults to '/' --
   Path fragment to the server's root for operation off the server's
@@ -1309,10 +1308,17 @@ Settings related to serving content to the web.
   defaults to '' --
   URL of an operator-specific CSS.  This is included as the last item
   and can therefore override rules in the distributed CSS.
+* preloadPublishedRDs: boolean; 
+  defaults to 'False' --
+  Preload all RDs of services you've published.  This is mainly helpful
+  when code in such RDs might, for instance, lock and such failures
+  don't suddenly occur in operation.
 * preloadRDs: list of strings; 
   defaults to '' --
-  RD ids to preload at the server start (this is mainly for RDs that
-  have execute children that should run regularly).
+  RD ids to preload at the server start.  Load time of RDs listed here
+  goes against startup time, so only do this for RDs that have execute
+  children that should run regularly.  For everything else consider
+  preloadPublishedRDs.
 * previewCache: path relative to webDir; 
   defaults to 'previewcache' --
   Webdir-relative directory to store cached previews in
@@ -1355,8 +1361,6 @@ Settings related to serving content to the web.
 * voplotUserman: URL fragment relative to the server's root; 
   defaults to 'Deprecated and ignored' --
   URL to the documentation of VOPlot
-
-.. END CONFIG REFERENCE
 
 Managing Runtime Resources
 ==========================
