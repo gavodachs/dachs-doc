@@ -15,6 +15,13 @@ A library to query TAP servers
   :class: toc
 
 
+**Please note**: gavo.votable.tapquery was a stopgap module until other
+libraries supported TAP properly.  Today, pyvo.dal.tap is a perfectly
+fine TAP library for python (and has inherited much of this library's
+code), and hence this library isn't necessary any more.  Consider it
+*deprecated* (in the sense of: As long as it's not broken, we'll
+distribute it.  If it breaks, we probably will rather drop than fix it).
+
 TAP is a relatively complex protocol to execute potentially long-running
 (ADQL) queries on remote servers.  As a part of the GAVO VOTable
 library, we provide a shallow client that speaks TAP.  It is the
