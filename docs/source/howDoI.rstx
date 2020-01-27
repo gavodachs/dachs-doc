@@ -1611,4 +1611,94 @@ purx-harvested URL right now, either.
 If you're using one of the browser-based publishing registries (at ESAC
 or STScI), you'll have to re-upload your registry records there.
 
+...go from DaCHS 1 to DaCHS 2?
+------------------------------
+
+Starting 2020, DaCHS operators ought to upgrade to DaCHS 2; don't be
+scared by the major version jump – unless you're doing higher magic, you
+will not need to change much (if anything).  We have dropped some exotic
+legacy, though, and in particular DaCHS 2 is Python 3 only (whereas
+DaCHS 1 in Python 2 only).  So, if any Python code you may have in or
+around your RDs is not Python 3-ready, fix that before upgrading.
+
+
+Updating the Software
+---------------------
+
+If you run from package, upgrading should be as simple as::
+
+  apt install dachs2
+
+The two packages conflict, and thus this will remove the old dachs
+package(s).
+
+If you use some other means to install DaCHS, please not the the
+dependencies have changed; in Debian terms, we're now requiring
+python3-astropy, python3-setuptools, python3-all, python3-docutils,
+python3-lxml, python3-pkg-resources, python3-matplotlib, and it'd be
+great if you had (some less important parts of DaCHS won't work if you
+don't have them) python3-healpy, python3-pil, python3-testresources
+[#soap]_
+
+Also, if you install via setup.py, note that you must run setup.py with
+python3, not with python (which is Python 2 on all systems I've seen so
+far).
+
+Then restart your server and run::
+
+  dachs test ALL
+
+If you have `defined regression tests`_, this should show you 
+troublesome spots.  If you don't have regression tests, gnash your teeth
+and perhaps see if ``dachs val`` points you to problems.
+
+
+Updates to RDs and Similar
+''''''''''''''''''''''''''
+
+Most code within RDs should be ok.  However, of course, you'll have to
+port that to Python 3.  The following points turned up while porting
+GAVO DC RDs:
+
+* ``urllib.quote`` is now ``urllib.parse.quote`` (the latter is in the
+  rowmaker namespace)
+* int/int now is a float.  Well, DaCHS should always have future-imported
+  division, but alas it hasn't.  Whenever you want integer divistion,
+  write //.
+* ``dict.has_key(k)`` no longer exists.  Write ``k in dict`` instead.
+* ``except Ex, x:`` is verboten.  Use ``except Ex as x:`` instead.
+
+If you use text-base grammars (columnGrammar, reGrammar, ...) and your
+inputs contain non-ASCII chars, you could previously get away with it
+under some circumstances.  You will not any longer (but since that only
+breaks on import, I figured it's not so bad).  To fix things, add
+``enc="e"`` attributes to the grammar elements (where ``e`` will typically 
+be one of iso-8859-1 or utf-8).
+
+That's about it as long as you didn't venture into the land of
+service/@customPage.  This let you include code that directly used the
+web framework nevow, which DaCHS was previously built on.  Nevow has not
+been ported to Python 3, and, having tried it, I don't expect it ever
+will.  DaCHS is now built directly on twisted web, but since several
+aspects of nevow were part of DaCHS' UI for non-adventurous users, we've
+created a thin emulation layer that lets you get away with your old
+templates, render functions, and such.  If you don't shout and we'll
+probably fix it.
+
+Except for customPage and the custom renderer.  If you went there,
+you'll have some nasty work ahead of you, as our emulation layer doesn't
+reach there.  You will, at the very least, now have to inherit from
+gavo.nevowc.TemplatedPage (rather than rend.Page), and renderHTTP(self,
+ctx) now needs to be render(self, request), with all usage of the
+context somehow replaced.  Similarly, render and data functions need to
+accept a request rather than a context.  There is a very rough porting
+guide in gavo.formal.README.  Let us know if you need it, and we'll try
+to improve it.
+
+
+.. #soap: If you can get your hands on python3-soappy and python3-zsi
+   *and* you'd like to run SOAP services (which I doubt), you can
+   install these as well.  They're not currently in Debian, though.
+
+
 .. |date| date::
