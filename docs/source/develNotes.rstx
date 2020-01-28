@@ -1159,3 +1159,29 @@ missing DISPLAYs.
 I *guess* we'll soon properly depend on matplotlib and to that
 initialization in a good place in utils, but don't hold your breath.
 
+Making a New Version of VOTable the Default
+-------------------------------------------
+
+The default VOTable is currently encoded in too many places.  Until we
+clean that up, here's what you need to do when making new VOTable
+version default (assuming the namespace stays constant, as it should).
+
+* Pull the new schema into resources/schemata.  As long as the namespace
+  is constant, you can drop the pervious version.
+* In formats/votablewrite.py: Change the default in VOTableContext's
+  constructor.  Check the predefined formats at the foot if anything
+  should be updated there; as a rule, I'd suggest there's no reason
+  to define a format for the old version; 1.1 and 1.2 are special cases
+  because we got some things pretty wrong for them.
+* In formats/votablewrite.py's makeVOTable: See that the new version
+  is mapped to V.VOTABLE; you probably want to reject attempts to
+  generate the previous version.
+* In votable/model.py, add the new version to the NAMESPACES mapping.
+* In votable/model.py, change the schemaURL in the registerPrefix line
+  (just overwrite the previous value; you've dropped the old schema
+  above).
+* In votable/model.py, in the VOTABLE element definition, change
+  the version attribute (it's still overwritten for the legacy
+  versions).
+* Then run tests; a few actually test for the the VOTable version spit
+  out; fix these.  All others shouldn't be affected.

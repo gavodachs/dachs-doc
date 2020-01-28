@@ -148,9 +148,9 @@ Atomic Children
   method.  The general rules for advanced referencing in RDs apply.
 * **procDef** (id reference; defaults to <Not given/empty>) --
   Reference to the procedure definition to apply
-* **type** (One of: iterator, pargetter, regTest, rowfilter,
-  dataFunction, descriptorGenerator, metaMaker, phraseMaker,
-  mixinProc, dataFormatter, sourceFields, apply, t_t; defaults to
+* **type** (One of: apply, dataFormatter, dataFunction,
+  descriptorGenerator, iterator, metaMaker, mixinProc, pargetter,
+  phraseMaker, regTest, rowfilter, sourceFields, t_t; defaults to
   None) -- The type of the procedure definition.  The procedure
   applications will in general require certain types of definitions.
 
@@ -170,7 +170,7 @@ A binding of a procedure definition parameter to a concrete value.
 The value to set is contained in the binding body in the form of
 a python expression.  The body must not be empty.
 
-May occur in `Element iterator`_, `Element rowfilter`_, `Element apply`_, `Element job`_, `Element processLate`_, `Element dataFormatter`_, `Element regTest`_, `Element coreProc`_, `Element dataFunction`_, `Element sourceFields`_, `Element metaMaker`_, `Element phraseMaker`_, `Element descriptorGenerator`_, `Element processEarly`_, `Element pargetter`_.
+May occur in `Element phraseMaker`_, `Element apply`_, `Element job`_, `Element processEarly`_, `Element processLate`_, `Element regTest`_, `Element rowfilter`_, `Element sourceFields`_, `Element iterator`_, `Element pargetter`_, `Element dataFormatter`_, `Element dataFunction`_, `Element descriptorGenerator`_, `Element metaMaker`_, `Element coreProc`_.
 
 Atomic Children
 ...............
@@ -268,11 +268,11 @@ Atomic Children
   put into table headers for this column
 * **type** (a type name; the internal type system is similar to SQL's
   with some restrictions and extensions.  The known atomic types
-  include: unicode, pql-float, text, spoly, char, raw, vexpr-mjd,
-  boolean, file, smallint, vexpr-string, scircle, vexpr-float, vexpr-
-  date, pql-string, smoc, real, spoint, pql-int, timestamp, pql-date,
-  int4range, date, integer, box, pql-upload, double precision, sbox,
-  bigint, time, bytea; defaults to 'real') -- datatype for the column
+  include: smallint, integer, bigint, real, boolean, double precision,
+  text, char, unicode, date, timestamp, time, spoint, scircle, spoly,
+  sbox, smoc, bytea, raw, file, box, vexpr-mjd, vexpr-string, vexpr-
+  float, vexpr-date, pql-string, pql-float, pql-int, pql-date, pql-
+  upload, int4range; defaults to 'real') -- datatype for the column
   (SQL-like type system)
 * **ucd** (unicode string; defaults to '') -- UCD of the column
 * **unit** (unicode string; defaults to '') -- Unit of the values
@@ -335,7 +335,7 @@ A query specification for cores talking to the database.
 CondDescs define inputs as a sequence of InputKeys (see `Element InputKey`_).
 Internally, the values in the InputKeys can be translated to SQL.
 
-May occur in `Element scsCore`_, `Element siapCutoutCore`_, `Element resource`_, `Element productCore`_, `Element dbCore`_, `Element fancyQueryCore`_, `Element ssapCore`_.
+May occur in `Element resource`_, `Element dbCore`_, `Element fancyQueryCore`_, `Element productCore`_, `Element scsCore`_, `Element siapCutoutCore`_, `Element ssapCore`_.
 
 Atomic Children
 ...............
@@ -395,10 +395,10 @@ Atomic Children
 * **spatial** (unicode string; defaults to <Not given/empty>) -- A MOC
   in ASCII representation giving the ICRS coverage of the resource
 * **spectral** (A sequence of intervals (a space-separated pair of
-  floats; defaults to u'[]') -- Interval(s) of spectral coverage, in
-  meters of BARYCENTER vacuum wavelength.
+  floats; defaults to '[]') -- Interval(s) of spectral coverage, in
+  Joules of BARYCENTER vacuum messenger particle energy.
 * **temporal** (A sequence of intervals (a space-separated pair of
-  floats; defaults to u'[]') -- Interval(s) of temporal coverage, in
+  floats; defaults to '[]') -- Interval(s) of temporal coverage, in
   MJD (for TT BARYCENTER).
 
 Structure Children
@@ -417,8 +417,10 @@ to Nevow templates.  Thus, their definition usually only makes sense with
 custom templates, though you could, in principle, override built-in
 render functions.
 
-In the data functions, you have the names ctx for nevow's context and
-data for whatever data the template passes to the renderer. 
+In the data functions, you have the names ctx for a context and
+data for the "current data" (i.e., what's last been set using n:data).
+In ctx, only use ctx.tag (the tag on which the n:render attribute
+sits) and, if necessary ctx.request (the t.w request object).
 
 You can access the embedding service as service, the embedding
 RD as service.rd.
@@ -430,11 +432,12 @@ can deal with.  You could, e.g., write::
     return datetime.datetime.utcnow()
   </customDF>
 
-You also see a nevow context within the function.  You can use that to
-access a query paramter ``order`` like this::
+You can use the request to fetch request parameters.  Within DaCHS,
+in addition to the clumsy request.args (mapping bytes to bytes), there
+is also request.strargs (mapping strings to strings).  So, access a 
+query paramter ``order`` like this::
 
-  args = inevow.IRequest(ctx).args
-  sortOrder = args.get("order", ["authors"])
+  sortOrder = ctx.request.strargs.get("order", ["authors"])
 
 May occur in `Element service`_.
 
@@ -442,10 +445,13 @@ Atomic Children
 ...............
 
 * Character content of the element (defaulting to '') -- Function body
-  of the renderer; the arguments are named ctx and data.
+  of the renderer or data function; the arguments are named
+  ``request`` and ``tag``, but you can also use legacy ctx.tag and
+  ctx.request.  If data has been set on a tag, you will see it as
+  ``data``.
 * **name** (unicode string; defaults to <Undefined>) -- Name of the
-  render function (use this in the n:render or n:data attribute in
-  custom templates).
+  render or data function (use this in the n:render or n:data
+  attribute in custom templates).
 
 Element customRF
 ''''''''''''''''
@@ -457,8 +463,10 @@ to Nevow templates.  Thus, their definition usually only makes sense with
 custom templates, though you could, in principle, override built-in
 render functions.
 
-In the render functions, you have the names ctx for nevow's context and
-data for whatever data the template passes to the renderer. 
+In the render functions, you have the names ctx for a context and
+data for the "current data" (i.e., what's last been set using n:data).
+In ctx, only use ctx.tag (the tag on which the n:render attribute
+sits) and, if necessary ctx.request (the t.w request object).
 
 You can return anything that can be in a stan DOM.  Usually, this will be
 a string.  To return HTML, use the stan DOM available under the T namespace.
@@ -476,10 +484,13 @@ Atomic Children
 ...............
 
 * Character content of the element (defaulting to '') -- Function body
-  of the renderer; the arguments are named ctx and data.
+  of the renderer or data function; the arguments are named
+  ``request`` and ``tag``, but you can also use legacy ctx.tag and
+  ctx.request.  If data has been set on a tag, you will see it as
+  ``data``.
 * **name** (unicode string; defaults to <Undefined>) -- Name of the
-  render function (use this in the n:render or n:data attribute in
-  custom templates).
+  render or data function (use this in the n:render or n:data
+  attribute in custom templates).
 
 Element data
 ''''''''''''
@@ -501,7 +512,7 @@ Atomic Children
 * **auto** (boolean; defaults to 'True') -- Import this data set if
   not explicitly mentioned on the command line?
 * **dependents** (Zero or more unicode string-typed *recreateAfter*
-  elements; defaults to u'[]') -- A data ID to recreate when this
+  elements; defaults to '[]') -- A data ID to recreate when this
   resource is remade; use # syntax to reference in other RDs.
 * **original** (id reference; defaults to None) -- An id of an element
   to base the current one on.  This provides a simple inheritance
@@ -518,13 +529,13 @@ Atomic Children
 Structure Children
 ..................
 
-* grammar (contains one of dictlistGrammar, voTableGrammar,
-  rowsetGrammar, binaryGrammar, keyValueGrammar, csvGrammar,
-  directGrammar, freeREGrammar, reGrammar, fitsProdGrammar,
-  contextGrammar, columnGrammar, embeddedGrammar, pdsGrammar,
-  xmlGrammar, cdfHeaderGrammar, transparentGrammar, customGrammar,
-  fitsTableGrammar, odbcGrammar, nullGrammar, mySQLDumpGrammar) --
-  Grammar used to parse this data set.
+* grammar (contains one of binaryGrammar, cdfHeaderGrammar,
+  columnGrammar, contextGrammar, customGrammar, dictlistGrammar,
+  directGrammar, embeddedGrammar, fitsProdGrammar, freeREGrammar,
+  keyValueGrammar, mySQLDumpGrammar, nullGrammar, transparentGrammar,
+  odbcGrammar, pdsGrammar, reGrammar, rowsetGrammar, voTableGrammar,
+  csvGrammar, fitsTableGrammar, xmlGrammar) -- Grammar used to parse
+  this data set.
 * makes (contains `Element make`_ and may be repeated zero or more
   times) -- Specification of a target table and the rowmaker to feed
   them.
@@ -560,7 +571,7 @@ In STREAMs and NXSTREAMs, DEFAULTS let you specify values filled into
 macros when a FEED doesn't given them.  Macro names are attribute names
 (or element names, if you insist), defaults are their values.
 
-May occur in `Element NXSTREAM`_, `Element EDIT`_, `Element STREAM`_, `Element lateEvents`_, `Element events`_.
+May occur in `Element EDIT`_, `Element events`_, `Element lateEvents`_, `Element NXSTREAM`_, `Element STREAM`_.
 
 Element dm
 ''''''''''
@@ -569,7 +580,7 @@ an annotation of a table in terms of data models.
 
 The content of this element is a Simple Instance Language clause.
 
-May occur in `Element outputTable`_, `Element table`_.
+May occur in `Element table`_, `Element outputTable`_.
 
 Atomic Children
 ...............
@@ -586,7 +597,7 @@ When replaying a stream in the presence of EDITs, the elements are
 are continually checked against ref.  If an element matches, the
 children of edit will be played back into it.
 
-May occur in `Element LFEED`_, `Element LOOP`_, `Element mixinDef`_, `Element FEED`_.
+May occur in `Element mixinDef`_, `Element FEED`_, `Element LFEED`_, `Element LOOP`_.
 
 Atomic Children
 ...............
@@ -611,7 +622,7 @@ Element events
 
 An event stream as a child of another element.
 
-May occur in `Element LFEED`_, `Element LOOP`_, `Element mixinDef`_, `Element FEED`_.
+May occur in `Element mixinDef`_, `Element FEED`_, `Element LFEED`_, `Element LOOP`_.
 
 Atomic Children
 ...............
@@ -695,7 +706,7 @@ Element foreignKey
 A description of a foreign key relation between this table and another
 one.
 
-May occur in `Element outputTable`_, `Element table`_.
+May occur in `Element table`_, `Element outputTable`_.
 
 Atomic Children
 ...............
@@ -736,7 +747,7 @@ One application for this is grouping input keys for the form renderer.
 For such groups, you probably want to give the label property (and
 possibly cssClass).
 
-May occur in `Element inputTable`_, `Element outputTable`_, `Element table`_, `Element condDesc`_.
+May occur in `Element condDesc`_, `Element table`_, `Element outputTable`_, `Element inputTable`_.
 
 Atomic Children
 ...............
@@ -784,8 +795,8 @@ Atomic Children
 
 * Character content of the element (defaulting to '') -- Inline data
   to be uploaded (conflicts with source)
-* **fileName** (unicode string; defaults to None) -- Remote file name
-  for the uploaded file.
+* **fileName** (unicode string; defaults to 'upload.dat') -- Remote
+  file name for the uploaded file.
 * **name** (unicode string; defaults to <Undefined>) -- Name of the
   upload parameter
 * **source** (unicode string; defaults to <Not given/empty>) -- Path
@@ -799,7 +810,7 @@ A condition on a row that, if true, causes the row to be dropped.
 Here, you can set bail to abort an import when the condition is met
 rather than just dropping the row.
 
-May occur in `Element voTableGrammar`_, `Element rowmaker`_, `Element reGrammar`_, `Element contextGrammar`_, `Element columnGrammar`_, `Element xmlGrammar`_, `Element cdfHeaderGrammar`_, `Element fitsTableGrammar`_, `Element rowsetGrammar`_, `Element binaryGrammar`_, `Element fitsProdGrammar`_, `Element pdsGrammar`_, `Element customGrammar`_, `Element odbcGrammar`_, `Element mySQLDumpGrammar`_, `Element freeREGrammar`_, `Element dictlistGrammar`_, `Element keyValueGrammar`_, `Element csvGrammar`_, `Element embeddedGrammar`_, `Element transparentGrammar`_, `Element nullGrammar`_.
+May occur in `Element rowmaker`_, `Element binaryGrammar`_, `Element cdfHeaderGrammar`_, `Element columnGrammar`_, `Element contextGrammar`_, `Element csvGrammar`_, `Element customGrammar`_, `Element dictlistGrammar`_, `Element embeddedGrammar`_, `Element fitsProdGrammar`_, `Element fitsTableGrammar`_, `Element freeREGrammar`_, `Element keyValueGrammar`_, `Element mySQLDumpGrammar`_, `Element nullGrammar`_, `Element odbcGrammar`_, `Element pdsGrammar`_, `Element reGrammar`_, `Element rowsetGrammar`_, `Element transparentGrammar`_, `Element voTableGrammar`_, `Element xmlGrammar`_.
 
 Atomic Children
 ...............
@@ -814,7 +825,7 @@ Structure Children
 ..................
 
 * triggers (contains any of
-  and,keyPresent,keyNull,keyIs,keyMissing,not and may be repeated zero
+  keyPresent,keyMissing,keyNull,keyIs,not,and and may be repeated zero
   or more times) -- One or more conditions joined by an implicit
   logical or.  See Triggers_ for information on what can stand here.
 
@@ -853,9 +864,11 @@ Atomic Children
   `Using fromdbUpdating on ignoreSources`_
 * **fromfile** (unicode string; defaults to None) -- A name of a file
   containing blacklisted source paths, one per line.  Empty lines and
-  lines beginning with a hash are ignored.
+  lines beginning with a hash are ignored.  If you have foolishly used
+  non-ASCII in your filenames: The names in this file are interpreted
+  as utf-8.
 * **patterns** (Zero or more unicode string-typed *pattern* elements;
-  defaults to u'[]') -- Shell patterns to ignore.  Slashes are treated
+  defaults to '[]') -- Shell patterns to ignore.  Slashes are treated
   like any other character, i.e., patterns do not know about paths.
 
 Element index
@@ -896,7 +909,7 @@ in the metadata; writing::
 
 is sufficent for that.
 
-May occur in `Element outputTable`_, `Element table`_.
+May occur in `Element table`_, `Element outputTable`_.
 
 Atomic Children
 ...............
@@ -947,7 +960,7 @@ Properties evaluated:
 * onlyForRenderer -- a renderer name for which this inputKey will be 
   preserved; it will be dropped for all others.
 
-May occur in `Element inputTable`_, `Element contextGrammar`_, `Element condDesc`_, `Element service`_, `Element datalinkCore`_.
+May occur in `Element condDesc`_, `Element service`_, `Element contextGrammar`_, `Element inputTable`_, `Element datalinkCore`_.
 
 Atomic Children
 ...............
@@ -976,7 +989,7 @@ Atomic Children
   values are given), forced-single to have an atomic value and raise
   an exception if multiple values come in, or multiple to receive
   lists.  On the form renderer, this is ignored, and the values are
-  what nevow formal passes in. If not given, it is single unless there
+  what gavo.formal passes in. If not given, it is single unless there
   is a values element with options, in which case it's multiple.
 * **name** (A name for a table or service parameter.  These have to
   match ``[A-Za-z_][A-Za-z0-9_]*$``.; defaults to <Undefined>) -- Name
@@ -996,11 +1009,11 @@ Atomic Children
   put into table headers for this column
 * **type** (a type name; the internal type system is similar to SQL's
   with some restrictions and extensions.  The known atomic types
-  include: unicode, pql-float, text, spoly, char, raw, vexpr-mjd,
-  boolean, file, smallint, vexpr-string, scircle, vexpr-float, vexpr-
-  date, pql-string, smoc, real, spoint, pql-int, timestamp, pql-date,
-  int4range, date, integer, box, pql-upload, double precision, sbox,
-  bigint, time, bytea; defaults to 'real') -- datatype for the column
+  include: smallint, integer, bigint, real, boolean, double precision,
+  text, char, unicode, date, timestamp, time, spoint, scircle, spoly,
+  sbox, smoc, bytea, raw, file, box, vexpr-mjd, vexpr-string, vexpr-
+  float, vexpr-date, pql-string, pql-float, pql-int, pql-date, pql-
+  upload, int4range; defaults to 'real') -- datatype for the column
   (SQL-like type system)
 * **ucd** (unicode string; defaults to '') -- UCD of the column
 * **unit** (unicode string; defaults to '') -- Unit of the values
@@ -1085,9 +1098,9 @@ Atomic Children
   method.  The general rules for advanced referencing in RDs apply.
 * **procDef** (id reference; defaults to <Not given/empty>) --
   Reference to the procedure definition to apply
-* **type** (One of: iterator, pargetter, regTest, rowfilter,
-  dataFunction, descriptorGenerator, metaMaker, phraseMaker,
-  mixinProc, dataFormatter, sourceFields, apply, t_t; defaults to
+* **type** (One of: apply, dataFormatter, dataFunction,
+  descriptorGenerator, iterator, metaMaker, mixinProc, pargetter,
+  phraseMaker, regTest, rowfilter, sourceFields, t_t; defaults to
   None) -- The type of the procedure definition.  The procedure
   applications will in general require certain types of definitions.
 
@@ -1160,7 +1173,7 @@ Atomic Children
   parmaker.
 * **role** (unicode string; defaults to None) -- The role of the
   embedded table within the data set
-* **rowSource** (One of: rows, parameters; defaults to 'rows') --
+* **rowSource** (One of: parameters, rows; defaults to 'rows') --
   Source for the raw rows processed by this rowmaker.
 * **rowmaker** (id reference; defaults to <Not given/empty>) -- The
   rowmaker (i.e., mapping rules from grammar keys to table columns)
@@ -1340,8 +1353,8 @@ specific to certain cores.
 The optional formatter overrides the standard formatting code in HTML
 (which is based on units, ucds, and displayHints).  You receive
 the item from the database as data and must return a string or
-nevow stan.  In addition to the standard `Functions available for
-row makers`_ you have queryMeta and nevow's tags in T.
+t.w.template stan.  In addition to the standard `Functions available for
+row makers`_ you have queryMeta and t.w.template's tags in T.
 
 Here's an example for generating a link to another service using this
 facility::
@@ -1410,11 +1423,11 @@ Atomic Children
   put into table headers for this column
 * **type** (a type name; the internal type system is similar to SQL's
   with some restrictions and extensions.  The known atomic types
-  include: unicode, pql-float, text, spoly, char, raw, vexpr-mjd,
-  boolean, file, smallint, vexpr-string, scircle, vexpr-float, vexpr-
-  date, pql-string, smoc, real, spoint, pql-int, timestamp, pql-date,
-  int4range, date, integer, box, pql-upload, double precision, sbox,
-  bigint, time, bytea; defaults to 'real') -- datatype for the column
+  include: smallint, integer, bigint, real, boolean, double precision,
+  text, char, unicode, date, timestamp, time, spoint, scircle, spoly,
+  sbox, smoc, bytea, raw, file, box, vexpr-mjd, vexpr-string, vexpr-
+  float, vexpr-date, pql-string, pql-float, pql-int, pql-date, pql-
+  upload, int4range; defaults to 'real') -- datatype for the column
   (SQL-like type system)
 * **ucd** (unicode string; defaults to '') -- UCD of the column
 * **unit** (unicode string; defaults to '') -- Unit of the values
@@ -1466,7 +1479,7 @@ To use the output table also through VO protocols (and when producing
 VOTables, FITS files, and the like), you need to set the service's
 votableRespectsOutputTable property to True.
 
-May occur in `Element resource`_, `Element service`_.
+May occur in `Element service`_, `Element resource`_.
 
 Atomic Children
 ...............
@@ -1478,14 +1491,14 @@ Atomic Children
   contributing to a published view.  Warning: adql=hidden is
   incompatible with setting readProfiles manually.
 * **allProfiles** (Comma separated list of profile names.; defaults to
-  u'admin, msdemlei') -- A (comma separated) list of profile names
+  'msdemlei, admin') -- A (comma separated) list of profile names
   through which the object can be written or administred (oh, and the
   default is not admin, msdemlei but is the value of [db]maintainers)
 * **autoCols** (Comma-separated list of strings; defaults to '') --
   Column names obtained from fromTable; you can use shell patterns
   into the output table's parent table (in a table core, that's the
   queried table; in a service, it's the core's output table) here.
-* **dupePolicy** (One of: drop, check, overwrite, dropOld; defaults to
+* **dupePolicy** (One of: check, drop, dropOld, overwrite; defaults to
   'check') -- Handle duplicate rows with identical primary keys
   manually by raising an error if existing and new rows are not
   identical (check), dropping the new one (drop), updating the old one
@@ -1509,7 +1522,7 @@ Atomic Children
 * **primary** (Comma-separated list of strings; defaults to '') --
   Comma separated names of columns making up the primary key.
 * **readProfiles** (Comma separated list of profile names.; defaults
-  to u'trustedquery') -- A (comma separated) list of profile names
+  to 'trustedquery') -- A (comma separated) list of profile names
   through which the object can be read.
 * **system** (boolean; defaults to 'False') -- Is this a system table?
   If it is, it will not be dropped on normal imports, and accesses to
@@ -1594,7 +1607,7 @@ This is like a column, except that it conceptually applies to all
 rows in the table.  In VOTables, params will be rendered as
 PARAMs.  
 
-While we validate the values passed using the DC default parsers,
+While we validate the values passed using the DaCHS default parsers,
 at least the VOTable params will be literal copies of the string
 passed in.
 
@@ -1616,7 +1629,7 @@ NULLs apart; for internal usage, there is a little hack: __EMPTY__ as literal
 does set an empty string.  This is to allow defaulting of empty strings -- in
 VOTables, these cannot be distinguished from "true" NULLs.
 
-May occur in `Element group`_, `Element outputTable`_, `Element table`_, `Element data`_.
+May occur in `Element group`_, `Element table`_, `Element data`_, `Element outputTable`_.
 
 Atomic Children
 ...............
@@ -1654,11 +1667,11 @@ Atomic Children
   put into table headers for this column
 * **type** (a type name; the internal type system is similar to SQL's
   with some restrictions and extensions.  The known atomic types
-  include: unicode, pql-float, text, spoly, char, raw, vexpr-mjd,
-  boolean, file, smallint, vexpr-string, scircle, vexpr-float, vexpr-
-  date, pql-string, smoc, real, spoint, pql-int, timestamp, pql-date,
-  int4range, date, integer, box, pql-upload, double precision, sbox,
-  bigint, time, bytea; defaults to 'real') -- datatype for the column
+  include: smallint, integer, bigint, real, boolean, double precision,
+  text, char, unicode, date, timestamp, time, spoint, scircle, spoly,
+  sbox, smoc, bytea, raw, file, box, vexpr-mjd, vexpr-string, vexpr-
+  float, vexpr-date, pql-string, pql-float, pql-int, pql-date, pql-
+  upload, int4range; defaults to 'real') -- datatype for the column
   (SQL-like type system)
 * **ucd** (unicode string; defaults to '') -- UCD of the column
 * **unit** (unicode string; defaults to '') -- Unit of the values
@@ -1772,9 +1785,9 @@ Atomic Children
   method.  The general rules for advanced referencing in RDs apply.
 * **procDef** (id reference; defaults to <Not given/empty>) --
   Reference to the procedure definition to apply
-* **type** (One of: iterator, pargetter, regTest, rowfilter,
-  dataFunction, descriptorGenerator, metaMaker, phraseMaker,
-  mixinProc, dataFormatter, sourceFields, apply, t_t; defaults to
+* **type** (One of: apply, dataFormatter, dataFunction,
+  descriptorGenerator, iterator, metaMaker, mixinProc, pargetter,
+  phraseMaker, regTest, rowfilter, sourceFields, t_t; defaults to
   None) -- The type of the procedure definition.  The procedure
   applications will in general require certain types of definitions.
 
@@ -1819,9 +1832,9 @@ Atomic Children
 * **original** (id reference; defaults to None) -- An id of an element
   to base the current one on.  This provides a simple inheritance
   method.  The general rules for advanced referencing in RDs apply.
-* **type** (One of: iterator, pargetter, regTest, rowfilter,
-  dataFunction, descriptorGenerator, metaMaker, phraseMaker,
-  mixinProc, dataFormatter, sourceFields, apply, t_t; defaults to
+* **type** (One of: apply, dataFormatter, dataFunction,
+  descriptorGenerator, iterator, metaMaker, mixinProc, pargetter,
+  phraseMaker, regTest, rowfilter, sourceFields, t_t; defaults to
   None) -- The type of the procedure definition.  The procedure
   applications will in general require certain types of definitions.
 
@@ -1866,9 +1879,9 @@ Atomic Children
   method.  The general rules for advanced referencing in RDs apply.
 * **procDef** (id reference; defaults to <Not given/empty>) --
   Reference to the procedure definition to apply
-* **type** (One of: iterator, pargetter, regTest, rowfilter,
-  dataFunction, descriptorGenerator, metaMaker, phraseMaker,
-  mixinProc, dataFormatter, sourceFields, apply, t_t; defaults to
+* **type** (One of: apply, dataFormatter, dataFunction,
+  descriptorGenerator, iterator, metaMaker, mixinProc, pargetter,
+  phraseMaker, regTest, rowfilter, sourceFields, t_t; defaults to
   None) -- The type of the procedure definition.  The procedure
   applications will in general require certain types of definitions.
 
@@ -1914,9 +1927,9 @@ Atomic Children
   method.  The general rules for advanced referencing in RDs apply.
 * **procDef** (id reference; defaults to <Not given/empty>) --
   Reference to the procedure definition to apply
-* **type** (One of: iterator, pargetter, regTest, rowfilter,
-  dataFunction, descriptorGenerator, metaMaker, phraseMaker,
-  mixinProc, dataFormatter, sourceFields, apply, t_t; defaults to
+* **type** (One of: apply, dataFormatter, dataFunction,
+  descriptorGenerator, iterator, metaMaker, mixinProc, pargetter,
+  phraseMaker, regTest, rowfilter, sourceFields, t_t; defaults to
   None) -- The type of the procedure definition.  The procedure
   applications will in general require certain types of definitions.
 
@@ -1943,7 +1956,7 @@ of the specified conditions.
 This only works if the items to be matched are true XML attributes
 (i.e., not written as children).
 
-May occur in `Element LFEED`_, `Element LOOP`_, `Element mixinDef`_, `Element FEED`_.
+May occur in `Element mixinDef`_, `Element FEED`_, `Element LFEED`_, `Element LOOP`_.
 
 Element publish (data)
 ''''''''''''''''''''''
@@ -1957,7 +1970,7 @@ per such element.
 Data registrations may refer to published services that make their
 data available.
 
-May occur in `Element outputTable`_, `Element table`_, `Element data`_.
+May occur in `Element table`_, `Element data`_, `Element outputTable`_.
 
 Atomic Children
 ...............
@@ -1986,7 +1999,7 @@ A specification of how a service should be published.
 This contains most of the metadata for what is an interface in
 registry speak.
 
-May occur in `Element service`_, `Element resRec`_.
+May occur in `Element resRec`_, `Element service`_.
 
 Atomic Children
 ...............
@@ -2072,9 +2085,9 @@ Atomic Children
 * **title** (whitespace normalized unicode string; defaults to
   <Undefined>) -- A short, human-readable phrase describing what this
   test is exercising.
-* **type** (One of: iterator, pargetter, regTest, rowfilter,
-  dataFunction, descriptorGenerator, metaMaker, phraseMaker,
-  mixinProc, dataFormatter, sourceFields, apply, t_t; defaults to
+* **type** (One of: apply, dataFormatter, dataFunction,
+  descriptorGenerator, iterator, metaMaker, mixinProc, pargetter,
+  phraseMaker, regTest, rowfilter, sourceFields, t_t; defaults to
   None) -- The type of the procedure definition.  The procedure
   applications will in general require certain types of definitions.
 
@@ -2104,11 +2117,11 @@ Atomic Children
 ...............
 
 * **allProfiles** (Comma separated list of profile names.; defaults to
-  u'admin, msdemlei') -- A (comma separated) list of profile names
+  'msdemlei, admin') -- A (comma separated) list of profile names
   through which the object can be written or administred (oh, and the
   default is not admin, msdemlei but is the value of [db]maintainers)
 * **readProfiles** (Comma separated list of profile names.; defaults
-  to u'trustedquery') -- A (comma separated) list of profile names
+  to 'trustedquery') -- A (comma separated) list of profile names
   through which the object can be read.
 * **require** (unicode string; defaults to None) -- Import the named
   gavo module (for when you need something registred)
@@ -2126,9 +2139,9 @@ Structure Children
 
 * condDescs (contains `Element condDesc`_ and may be repeated zero or
   more times) -- Global condition descriptors for later reference
-* cores (contains any of siapCutoutCore,scsCore,pythonCore,registryCor
-  e,dbCore,fancyQueryCore,fixedQueryCore,adqlCore,debugCore,datalinkCo
-  re,uploadCore,productCore,tapCore,customCore,ssapCore,nullCore and
+* cores (contains any of adqlCore,customCore,datalinkCore,dbCore,debug
+  Core,fancyQueryCore,fixedQueryCore,nullCore,productCore,pythonCore,r
+  egistryCore,scsCore,siapCutoutCore,ssapCore,tapCore,uploadCore and
   may be repeated zero or more times) -- Cores available in this
   resource.
 * coverage (contains `Element coverage`_) -- STC coverage of this
@@ -2241,7 +2254,7 @@ you can refer to the grammar input as vars["name"] or, shorter @name.
 To add output keys, use map or, in apply bodies, add keys to the
 result dictionary.
 
-May occur in `Element resource`_, `Element data`_.
+May occur in `Element data`_, `Element resource`_.
 
 Atomic Children
 ...............
@@ -2288,14 +2301,14 @@ for housekeeping scripts).
 
 See `Scripting`_.
 
-May occur in `Element resource`_, `Element make`_.
+May occur in `Element make`_, `Element resource`_.
 
 Atomic Children
 ...............
 
 * Character content of the element (defaulting to '') -- The script
   body.
-* **lang** (One of: python, AC_SQL, SQL; defaults to <Undefined>) --
+* **lang** (One of: AC_SQL, SQL, python; defaults to <Undefined>) --
   Language of the script.
 * **name** (unicode string; defaults to 'anonymous') -- A human-
   consumable designation of the script.
@@ -2304,8 +2317,8 @@ Atomic Children
 * **original** (id reference; defaults to None) -- An id of an element
   to base the current one on.  This provides a simple inheritance
   method.  The general rules for advanced referencing in RDs apply.
-* **type** (One of: postCreation, newSource, beforeDrop, sourceDone,
-  preCreation, preImport, preIndex; defaults to <Undefined>) -- Point
+* **type** (One of: beforeDrop, newSource, postCreation, preCreation,
+  preImport, preIndex, sourceDone; defaults to <Undefined>) -- Point
   of time at which script is to run.
 
 Element service
@@ -2323,15 +2336,13 @@ an index on the corresponding column.
 
 Properties evaluated:
 
-* defaultSort -- a key to sort on by default with the form renderer.  
-  This differs from the dbCore's sortKey in that this does not suppress the
-  widget itself, it just sets a default for its value.  Don't use this unless
-  you have to; the combination of sort and limit can have disastrous effects
-  on the run time of queries.
 * votableRespectsOutputTable -- usually, VOTable output puts in
   all columns from the underlying database table with low enough
   verbLevel (essentially).  When this property is "True" (case-sensitive),
   that's not done and only the service's output table is evaluated.
+* superseded-url -- if you leave a "carcass" service around, you can
+  set this property to the URL of its successor.  This will produce
+  a 404 page with a link to the new service.
 
 May occur in `Element resource`_.
 
@@ -2405,13 +2416,13 @@ Caution: Macros are expanded within the code; this means you
 need double backslashes if you want a single backslash in python
 code.
 
-May occur in `Element iterator`_, `Element rowfilter`_, `Element apply`_, `Element procDef`_, `Element job`_, `Element processLate`_, `Element dataFormatter`_, `Element regTest`_, `Element coreProc`_, `Element dataFunction`_, `Element sourceFields`_, `Element metaMaker`_, `Element phraseMaker`_, `Element descriptorGenerator`_, `Element processEarly`_, `Element pargetter`_.
+May occur in `Element phraseMaker`_, `Element apply`_, `Element job`_, `Element processEarly`_, `Element processLate`_, `Element procDef`_, `Element regTest`_, `Element rowfilter`_, `Element sourceFields`_, `Element iterator`_, `Element pargetter`_, `Element dataFormatter`_, `Element dataFunction`_, `Element descriptorGenerator`_, `Element metaMaker`_, `Element coreProc`_.
 
 Atomic Children
 ...............
 
 * **codeFrags** (Zero or more unicode string-typed *code* elements;
-  defaults to u'[]') -- Python function bodies setting globals for the
+  defaults to '[]') -- Python function bodies setting globals for the
   function application.  Macros are expanded in the context of the
   procedure's parent.
 * **original** (id reference; defaults to None) -- An id of an element
@@ -2443,7 +2454,7 @@ Atomic Children
 * Character content of the element (defaulting to '') -- A single file
   name (this is for convenience)
 * **items** (Zero or more unicode string-typed *item* elements;
-  defaults to u'[]') -- String literals to pass to grammars.  In
+  defaults to '[]') -- String literals to pass to grammars.  In
   contrast to patterns, they are not interpreted as file names but
   passed to the grammar verbatim.  Normal grammars do not like this.
   It is mainly intended for use with custom or null grammars.
@@ -2451,7 +2462,7 @@ Atomic Children
   to base the current one on.  This provides a simple inheritance
   method.  The general rules for advanced referencing in RDs apply.
 * **patterns** (Zero or more unicode string-typed *pattern* elements;
-  defaults to u'[]') -- Paths to the source files.  You can use shell
+  defaults to '[]') -- Paths to the source files.  You can use shell
   patterns here.
 * **recurse** (boolean; defaults to 'False') -- Search for pattern(s)
   recursively in their directory part(s)?
@@ -2468,7 +2479,7 @@ Element stc
 
 A definition of a space-time coordinate system using STC-S.
 
-May occur in `Element outputTable`_, `Element table`_.
+May occur in `Element table`_, `Element outputTable`_.
 
 Atomic Children
 ...............
@@ -2494,7 +2505,7 @@ Properties for tables:
 If you give multiple data model names or URIs, the sequences of names and 
 URIs must be identical (in particular, each name needs a URI).
 
-May occur in `Element resource`_, `Element data`_.
+May occur in `Element data`_, `Element resource`_.
 
 Atomic Children
 ...............
@@ -2506,10 +2517,10 @@ Atomic Children
   contributing to a published view.  Warning: adql=hidden is
   incompatible with setting readProfiles manually.
 * **allProfiles** (Comma separated list of profile names.; defaults to
-  u'admin, msdemlei') -- A (comma separated) list of profile names
+  'msdemlei, admin') -- A (comma separated) list of profile names
   through which the object can be written or administred (oh, and the
   default is not admin, msdemlei but is the value of [db]maintainers)
-* **dupePolicy** (One of: drop, check, overwrite, dropOld; defaults to
+* **dupePolicy** (One of: check, drop, dropOld, overwrite; defaults to
   'check') -- Handle duplicate rows with identical primary keys
   manually by raising an error if existing and new rows are not
   identical (check), dropping the new one (drop), updating the old one
@@ -2533,7 +2544,7 @@ Atomic Children
 * **primary** (Comma-separated list of strings; defaults to '') --
   Comma separated names of columns making up the primary key.
 * **readProfiles** (Comma separated list of profile names.; defaults
-  to u'trustedquery') -- A (comma separated) list of profile names
+  to 'trustedquery') -- A (comma separated) list of profile names
   through which the object can be read.
 * **system** (boolean; defaults to 'False') -- Is this a system table?
   If it is, it will not be dropped on normal imports, and accesses to
@@ -2636,6 +2647,9 @@ Atomic Children
 * **httpAuthKey** (unicode string; defaults to <Not given/empty>) -- A
   key into ~/.gavo/test.creds to find a user/password pair for this
   request.
+* **httpChunkSize** (integer; defaults to None) -- If there are
+  uploads, upload them in chunks of this many bytes using chunked
+  encoding.
 * **httpHonorRedirects** (boolean; defaults to 'False') -- Follow 30x
   redirects instead of just using status, headers, and payload of the
   initial request.
@@ -2684,7 +2698,7 @@ Hence, the main utility of values is metadata declaration, both
 in the form renderer (where they become placeholders) and in datalink
 (where they are communicated as VOTable values).
 
-May occur in `Element param`_, `Element column`_, `Element inputKey`_, `Element outputField`_.
+May occur in `Element param`_, `Element inputKey`_, `Element column`_, `Element outputField`_.
 
 Atomic Children
 ...............
@@ -3013,7 +3027,7 @@ May occur in `Element binaryGrammar`_.
 Atomic Children
 ...............
 
-* **binfmt** (One of: big, little, packed, native; defaults to
+* **binfmt** (One of: big, little, native, packed; defaults to
   'native') -- Binary format of the input data; big and little stand
   for msb first and lsb first, and packed is like native except no
   alignment takes place.
@@ -3148,9 +3162,9 @@ Element contextGrammar
 A grammar for web inputs.
 
 The source tokens for context grammars are dictionaries; these
-are either typed dictionaries from nevow formal, where the values
+are either typed dictionaries from gavo.formal, where the values
 usually are atomic, or, preferably, the dictionaries of lists
-from request.args.
+from request.strargs.
 
 ContextGrammars never yield rows, so they're probably fairly useless
 in normal cirumstances.
@@ -3391,7 +3405,7 @@ Atomic Children
   this is the maximum length of an input line.
 * **splitChar** (unicode string; defaults to '|') -- For split
   boosters, use this as the separator.
-* **type** (One of: bin, fits, col, split; defaults to 'col') -- Make
+* **type** (One of: bin, col, fits, split; defaults to 'col') -- Make
   code for a booster parsing by column indices (col), by splitting
   along separators (split), by reading fixed-length binary records
   (bin), for from FITS binary tables (fits).
@@ -3681,9 +3695,9 @@ Atomic Children
   method.  The general rules for advanced referencing in RDs apply.
 * **procDef** (id reference; defaults to <Not given/empty>) --
   Reference to the procedure definition to apply
-* **type** (One of: iterator, pargetter, regTest, rowfilter,
-  dataFunction, descriptorGenerator, metaMaker, phraseMaker,
-  mixinProc, dataFormatter, sourceFields, apply, t_t; defaults to
+* **type** (One of: apply, dataFormatter, dataFunction,
+  descriptorGenerator, iterator, metaMaker, mixinProc, pargetter,
+  phraseMaker, regTest, rowfilter, sourceFields, t_t; defaults to
   None) -- The type of the procedure definition.  The procedure
   applications will in general require certain types of definitions.
 
@@ -3764,7 +3778,7 @@ mapping can force proper names.
 mapKeys could also be used to make incoming names more suitable for
 matching with shell patterns (like in rowmaker idmaps).
 
-May occur in `Element cdfHeaderGrammar`_, `Element directGrammar`_, `Element fitsProdGrammar`_, `Element pdsGrammar`_, `Element keyValueGrammar`_, `Element csvGrammar`_.
+May occur in `Element cdfHeaderGrammar`_, `Element csvGrammar`_, `Element directGrammar`_, `Element fitsProdGrammar`_, `Element keyValueGrammar`_, `Element pdsGrammar`_.
 
 Atomic Children
 ...............
@@ -3970,9 +3984,9 @@ Atomic Children
   method.  The general rules for advanced referencing in RDs apply.
 * **procDef** (id reference; defaults to <Not given/empty>) --
   Reference to the procedure definition to apply
-* **type** (One of: iterator, pargetter, regTest, rowfilter,
-  dataFunction, descriptorGenerator, metaMaker, phraseMaker,
-  mixinProc, dataFormatter, sourceFields, apply, t_t; defaults to
+* **type** (One of: apply, dataFormatter, dataFunction,
+  descriptorGenerator, iterator, metaMaker, mixinProc, pargetter,
+  phraseMaker, regTest, rowfilter, sourceFields, t_t; defaults to
   None) -- The type of the procedure definition.  The procedure
   applications will in general require certain types of definitions.
 
@@ -4128,7 +4142,7 @@ Here, you can only access whatever comes from the grammar.  You can
 access grammar keys in late parameters as row[key] or, if key is 
 like an identifier, as @key.
 
-May occur in `Element voTableGrammar`_, `Element reGrammar`_, `Element contextGrammar`_, `Element columnGrammar`_, `Element xmlGrammar`_, `Element cdfHeaderGrammar`_, `Element fitsTableGrammar`_, `Element rowsetGrammar`_, `Element binaryGrammar`_, `Element fitsProdGrammar`_, `Element pdsGrammar`_, `Element customGrammar`_, `Element odbcGrammar`_, `Element mySQLDumpGrammar`_, `Element freeREGrammar`_, `Element dictlistGrammar`_, `Element keyValueGrammar`_, `Element csvGrammar`_, `Element embeddedGrammar`_, `Element transparentGrammar`_, `Element nullGrammar`_.
+May occur in `Element binaryGrammar`_, `Element cdfHeaderGrammar`_, `Element columnGrammar`_, `Element contextGrammar`_, `Element csvGrammar`_, `Element customGrammar`_, `Element dictlistGrammar`_, `Element embeddedGrammar`_, `Element fitsProdGrammar`_, `Element fitsTableGrammar`_, `Element freeREGrammar`_, `Element keyValueGrammar`_, `Element mySQLDumpGrammar`_, `Element nullGrammar`_, `Element odbcGrammar`_, `Element pdsGrammar`_, `Element reGrammar`_, `Element rowsetGrammar`_, `Element transparentGrammar`_, `Element voTableGrammar`_, `Element xmlGrammar`_.
 
 Atomic Children
 ...............
@@ -4149,9 +4163,9 @@ Atomic Children
   method.  The general rules for advanced referencing in RDs apply.
 * **procDef** (id reference; defaults to <Not given/empty>) --
   Reference to the procedure definition to apply
-* **type** (One of: iterator, pargetter, regTest, rowfilter,
-  dataFunction, descriptorGenerator, metaMaker, phraseMaker,
-  mixinProc, dataFormatter, sourceFields, apply, t_t; defaults to
+* **type** (One of: apply, dataFormatter, dataFunction,
+  descriptorGenerator, iterator, metaMaker, mixinProc, pargetter,
+  phraseMaker, regTest, rowfilter, sourceFields, t_t; defaults to
   None) -- The type of the procedure definition.  The procedure
   applications will in general require certain types of definitions.
 
@@ -4223,7 +4237,7 @@ passed in as sourceToken.  When parsing from files, this simply is the file
 name.  The data the rows will be delivered to is available as "data", which
 is useful for adding or retrieving meta information.
 
-May occur in `Element voTableGrammar`_, `Element reGrammar`_, `Element contextGrammar`_, `Element columnGrammar`_, `Element xmlGrammar`_, `Element cdfHeaderGrammar`_, `Element fitsTableGrammar`_, `Element rowsetGrammar`_, `Element binaryGrammar`_, `Element fitsProdGrammar`_, `Element pdsGrammar`_, `Element customGrammar`_, `Element odbcGrammar`_, `Element mySQLDumpGrammar`_, `Element freeREGrammar`_, `Element dictlistGrammar`_, `Element keyValueGrammar`_, `Element csvGrammar`_, `Element embeddedGrammar`_, `Element transparentGrammar`_, `Element nullGrammar`_.
+May occur in `Element binaryGrammar`_, `Element cdfHeaderGrammar`_, `Element columnGrammar`_, `Element contextGrammar`_, `Element csvGrammar`_, `Element customGrammar`_, `Element dictlistGrammar`_, `Element embeddedGrammar`_, `Element fitsProdGrammar`_, `Element fitsTableGrammar`_, `Element freeREGrammar`_, `Element keyValueGrammar`_, `Element mySQLDumpGrammar`_, `Element nullGrammar`_, `Element odbcGrammar`_, `Element pdsGrammar`_, `Element reGrammar`_, `Element rowsetGrammar`_, `Element transparentGrammar`_, `Element voTableGrammar`_, `Element xmlGrammar`_.
 
 Atomic Children
 ...............
@@ -4244,9 +4258,9 @@ Atomic Children
   method.  The general rules for advanced referencing in RDs apply.
 * **procDef** (id reference; defaults to <Not given/empty>) --
   Reference to the procedure definition to apply
-* **type** (One of: iterator, pargetter, regTest, rowfilter,
-  dataFunction, descriptorGenerator, metaMaker, phraseMaker,
-  mixinProc, dataFormatter, sourceFields, apply, t_t; defaults to
+* **type** (One of: apply, dataFormatter, dataFunction,
+  descriptorGenerator, iterator, metaMaker, mixinProc, pargetter,
+  phraseMaker, regTest, rowfilter, sourceFields, t_t; defaults to
   None) -- The type of the procedure definition.  The procedure
   applications will in general require certain types of definitions.
 
@@ -4475,9 +4489,9 @@ Atomic Children
   method.  The general rules for advanced referencing in RDs apply.
 * **procDef** (id reference; defaults to <Not given/empty>) --
   Reference to the procedure definition to apply
-* **type** (One of: iterator, pargetter, regTest, rowfilter,
-  dataFunction, descriptorGenerator, metaMaker, phraseMaker,
-  mixinProc, dataFormatter, sourceFields, apply, t_t; defaults to
+* **type** (One of: apply, dataFormatter, dataFunction,
+  descriptorGenerator, iterator, metaMaker, mixinProc, pargetter,
+  phraseMaker, regTest, rowfilter, sourceFields, t_t; defaults to
   None) -- The type of the procedure definition.  The procedure
   applications will in general require certain types of definitions.
 
@@ -4578,9 +4592,9 @@ Atomic Children
   method.  The general rules for advanced referencing in RDs apply.
 * **procDef** (id reference; defaults to <Not given/empty>) --
   Reference to the procedure definition to apply
-* **type** (One of: iterator, pargetter, regTest, rowfilter,
-  dataFunction, descriptorGenerator, metaMaker, phraseMaker,
-  mixinProc, dataFormatter, sourceFields, apply, t_t; defaults to
+* **type** (One of: apply, dataFormatter, dataFunction,
+  descriptorGenerator, iterator, metaMaker, mixinProc, pargetter,
+  phraseMaker, regTest, rowfilter, sourceFields, t_t; defaults to
   None) -- The type of the procedure definition.  The procedure
   applications will in general require certain types of definitions.
 
@@ -4652,9 +4666,9 @@ Atomic Children
   method.  The general rules for advanced referencing in RDs apply.
 * **procDef** (id reference; defaults to <Not given/empty>) --
   Reference to the procedure definition to apply
-* **type** (One of: iterator, pargetter, regTest, rowfilter,
-  dataFunction, descriptorGenerator, metaMaker, phraseMaker,
-  mixinProc, dataFormatter, sourceFields, apply, t_t; defaults to
+* **type** (One of: apply, dataFormatter, dataFunction,
+  descriptorGenerator, iterator, metaMaker, mixinProc, pargetter,
+  phraseMaker, regTest, rowfilter, sourceFields, t_t; defaults to
   None) -- The type of the procedure definition.  The procedure
   applications will in general require certain types of definitions.
 
@@ -4865,9 +4879,9 @@ Atomic Children
   method.  The general rules for advanced referencing in RDs apply.
 * **procDef** (id reference; defaults to <Not given/empty>) --
   Reference to the procedure definition to apply
-* **type** (One of: iterator, pargetter, regTest, rowfilter,
-  dataFunction, descriptorGenerator, metaMaker, phraseMaker,
-  mixinProc, dataFormatter, sourceFields, apply, t_t; defaults to
+* **type** (One of: apply, dataFormatter, dataFunction,
+  descriptorGenerator, iterator, metaMaker, mixinProc, pargetter,
+  phraseMaker, regTest, rowfilter, sourceFields, t_t; defaults to
   None) -- The type of the procedure definition.  The procedure
   applications will in general require certain types of definitions.
 
@@ -4987,7 +5001,7 @@ give you one value when a parameter has been given multiple times.
 Instead, use the output of the contextGrammar (inputParams in condDescs).
 Only there you will have the correct multiplicities.
 
-May occur in `Element scsCore`_, `Element siapCutoutCore`_, `Element customCore`_, `Element nullCore`_, `Element tapCore`_, `Element productCore`_, `Element adqlCore`_, `Element pythonCore`_, `Element registryCore`_, `Element dbCore`_, `Element fancyQueryCore`_, `Element debugCore`_, `Element datalinkCore`_, `Element fixedQueryCore`_, `Element uploadCore`_, `Element ssapCore`_.
+May occur in `Element adqlCore`_, `Element customCore`_, `Element datalinkCore`_, `Element dbCore`_, `Element debugCore`_, `Element fancyQueryCore`_, `Element fixedQueryCore`_, `Element nullCore`_, `Element productCore`_, `Element pythonCore`_, `Element registryCore`_, `Element scsCore`_, `Element siapCutoutCore`_, `Element ssapCore`_, `Element tapCore`_, `Element uploadCore`_.
 
 Atomic Children
 ...............
@@ -5037,6 +5051,11 @@ structures.  Hence, a metaMaker returning an InputKey could look like this::
 (of course, you should give more metadata -- ucds, better description,
 etc) in production).
 
+Note that MetaMakers cannot rely on descriptor.pubDID to actually have 
+a value; in particular SSA may construct cores to produce "direct"
+processing datalink descriptors.  When you need a pubDID, just return if
+descriptor.pubDID is None.
+
 It's ok to yield None; this will suppress a Datalink and is convenient
 when some component further down figures out that a link doesn't exist
 (e.g., because a file isn't there).  Note that in many cases, it's
@@ -5073,9 +5092,9 @@ Atomic Children
   method.  The general rules for advanced referencing in RDs apply.
 * **procDef** (id reference; defaults to <Not given/empty>) --
   Reference to the procedure definition to apply
-* **type** (One of: iterator, pargetter, regTest, rowfilter,
-  dataFunction, descriptorGenerator, metaMaker, phraseMaker,
-  mixinProc, dataFormatter, sourceFields, apply, t_t; defaults to
+* **type** (One of: apply, dataFormatter, dataFunction,
+  descriptorGenerator, iterator, metaMaker, mixinProc, pargetter,
+  phraseMaker, regTest, rowfilter, sourceFields, t_t; defaults to
   None) -- The type of the procedure definition.  The procedure
   applications will in general require certain types of definitions.
 
@@ -5526,6 +5545,9 @@ CC-0.
 This only works in reStructured text (though it's still almost
 readable as source).
 
+You'll probably want to use the `//procs#license-cc0`_ stream
+instead of this, as that also sets the rights URI.
+
 Available in `Element resource`_
 
 Macro RSTccby
@@ -5541,6 +5563,9 @@ CC-BY.
 This only works in reStructured text (though it's still almost
 readable as source).
 
+You'll probably want to use the `//procs#license-cc-by`_ stream
+instead of this, as that also sets the rights URI.
+
 Available in `Element resource`_
 
 Macro RSTccbysa
@@ -5555,6 +5580,9 @@ CC-BY-SA.
 
 This only works in reStructured text (though it's still almost
 readable as source).
+
+You'll probably want to use the `//procs#license-cc-by-sa`_ stream
+instead of this, as that also sets the rights URI.
 
 Available in `Element resource`_
 
@@ -7395,7 +7423,7 @@ Structure Children
 ..................
 
 * triggers (contains any of
-  and,keyPresent,keyNull,keyIs,keyMissing,not and may be repeated zero
+  keyPresent,keyMissing,keyNull,keyIs,not,and and may be repeated zero
   or more times) -- One or more conditions joined by an implicit
   logical or.  See Triggers_ for information on what can stand here.
 
@@ -7487,7 +7515,7 @@ Structure Children
 ..................
 
 * triggers (contains any of
-  and,keyPresent,keyNull,keyIs,keyMissing,not and may be repeated zero
+  keyPresent,keyMissing,keyNull,keyIs,not,and and may be repeated zero
   or more times) -- One or more conditions joined by an implicit
   logical or.  See Triggers_ for information on what can stand here.
 
@@ -7593,8 +7621,8 @@ A renderer defined in a python module.
 To define a custom renderer write a python module and define a
 class MainPage inheriting from gavo.web.ServiceBasedPage.
 
-This class basically is a nevow resource, i.e., you can define
-docFactory, locateChild, renderHTTP, and so on.
+This class basically is a nevowc TemplatedPage, i.e., you can define
+loader, getChild, render, and so on.
 
 To use it, you have to define a service with the resdir-relative path
 to the module in the customPage attribute and probably a nullCore.  You
@@ -7606,8 +7634,8 @@ class method isBrowseable(cls, service) returning true.  This is
 for the generation of links like "use this service from your browser"
 only; it does not change the service's behaviour with your renderer.
 
-There should really be a bit more docs on this, but alas, there's
-none as yet.
+In general, avoid custom renderers.  If you can't see the upstream
+twisted documentation on twisted.web.resource for how to write them.
 
 
 The dlasync Renderer
@@ -7644,21 +7672,6 @@ This renderer will return the links and services applicable to
 one or more pubDIDs.
 
 See `Datalink and SODA`_ for more information.
-
-
-The docform Renderer
-''''''''''''''''''''
-
-*This renderer's parameter style is "form".*
-
-A renderer displaying a form and delivering core's result as
-a document.
-
-The core must return a pair of mime-type and content; on errors,
-the form is redisplayed.
-
-This is mainly useful with custom cores doing weird things.  This
-renderer will not work with dbBasedCores and similar.
 
 
 The edition Renderer
@@ -7818,17 +7831,6 @@ With a valid authorization header, this emits a 401 unauthorized,
 without one, it displays a logout page.
 
 
-The mimg.jpeg Renderer
-''''''''''''''''''''''
-
-*This renderer's parameter style is "form".*
-
-A machine version of the JpegRenderer -- no vizier expressions,
-hardcoded parameters, plain text errors.
-
-This should not have been part of DaCHS proper.  It will be removed.
-
-
 The mupload Renderer
 ''''''''''''''''''''
 
@@ -7975,13 +7977,20 @@ There's two mandatory metadata items for these:
 The soap Renderer
 '''''''''''''''''
 
-*This renderer's parameter style is "clear".*
+*This renderer's parameter style is "pql".*
 
-A renderer that receives and formats SOAP messages.
+A renderer for the simple line access protocol SLAP.
 
-This is for remote procedure calls.  In particular, the renderer takes
-care that you can obtain a WSDL definition of the service by
-appending ?wsdl to the access URL.
+For registration, you must set the following metadata on services 
+using the slap.xml renderer:
+
+There's two mandatory metadata items for these:
+
+- slap.dataSource -- one of observational/astrophysical, 
+  observational/laboratory, or theoretical 
+- slap.testQuery -- parameters that lead to a non-empty response.
+  The way things are written in DaCHS, MAXREC=1 should in general
+  work.
 
 
 The ssap.xml Renderer
@@ -9279,7 +9288,7 @@ Other Streams
 
 Include this stream with a @what (a short phrase saying what 
 is licensed) to make your resource licensed under Creative 
-Commons-0 (a.k.a. public domain).  This will generate the copyright, 
+Commons-0 (a.k.a. public domain).  This will generate the 
 rights and rightsURI metadata items.  It needn to live in the
 toplevel /resource element.
 
@@ -9294,7 +9303,7 @@ Example::
 
 Include this stream with a @what (a short phrase saying what 
 is licensed) to make your resource licensed under Creative 
-Commons Attribution (CC-BY).  This will generate the copyright, 
+Commons Attribution (CC-BY).  This will generate the 
 rights and rightsURI metadata items.  It needs to live in the
 toplevel /resource element.
 
@@ -9310,12 +9319,32 @@ Example::
 Include this stream with a @what (a short phrase saying what 
 is licensed) to make your resource licensed under Creative 
 Commons Attribution Share Alike (CC-BY-SA).  This will generate 
-the copyright, rights and rightsURI metadata items.  It needs
+the rights and rightsURI metadata items.  It needs
 to live in the toplevel /resource element.
 
 Example::
 
   <FEED source="//procs#license-cc-by-sa" what="the HSOY catalogue"/>
+
+
+//pql#DALIPars
+..............
+
+
+This stream includes the standard DALI service parameters
+(RESPONSEFORMAT, MAXREC, VERB).  For services available through
+IVOA-standard protocols (renderers scs.xml, siap.xml, ssap.xml,
+and also api), this is included automatically, so you will
+not usually have to manually FEED this.
+
+
+//pql#DALIUpload
+................
+
+
+This stream includes a DALI UPLOAD parameter.  This is purely
+declarative for now, as the interpretation is done anyway
+for VO renderers and not at all otherwise.
 
 
 //obscore#obscore-columns
@@ -10359,9 +10388,6 @@ start with an underscore.  Among those are:
   above the seach form.
 * _bottominfo -- used by the standard HTML template for explanatory text
   below the seach form.
-* _copyright -- used by the standard HTML template for copyright-related
-  information (there's also copyright in RMI; the one with the
-  underscore is intended to be less formal).
 * _related -- used in the standard HTML template for links to related
   services.  As listed above, this is a link, i.e., you can give a
   title attribute.
@@ -10416,7 +10442,9 @@ renderers -- include:
 * subject -- as noted in the explanatory leaflet, these should be taken
   from the `IVOA Vocabulary Explorer
   <http://explicator.dcs.gla.ac.uk/WebVocabularyExplorer/>`_.
-* copyright -- freetext copyright notice.
+* rights -- freetext copyright notice.
+* rightsURI -- machine readable license URI.  There's no formal list of
+  acknowledged URIs yet, but the common CC URIs are a good start.
 * source -- bibcodes will be expanded to ADS links here.
 * referenceURL -- again, a link, so you can give a title for
   presentation purposes.  If you give no referenceURL, the service's
@@ -11889,13 +11917,16 @@ RegTest Tests
 
 Since regression tests are just procDefs, the actual assertions are
 contained in the ``code`` child of the ``regTest``.  The code in there
-sees the test itself in self, and it can access ``self.data`` (the
-response content), ``self.headers`` (a sequence of header name, value
-pairs; note that you should match the names case-insensitively here),
-and ``self.status`` (the HTTP response code), as well as the URL
-actually retrieved in ``self.url.httpURL`` (incidentally, that name is
-right; the regression framework only supports http, and it's not
-terribly likely that we'll change that).
+sees the test itself in self, and it can access 
+
+* ``self.data`` (the response content as a byte string), 
+* ``self.headers`` (a sequence of header name, value pairs; note that you 
+   should match the names case-insensitively here),
+* ``self.status`` (the HTTP response code), and 
+* the URL actually retrieved in ``self.url.httpURL``.
+
+Incidentally, that last name is right; the regression framework only
+supports http, and it's not terribly likely that we'll change that.
 
 You should probably only access those attributes in a pinch and instead
 use the pre-defined assertions, which are methods on the test objects as
@@ -11912,6 +11943,9 @@ Here's a list of assertion methods defined right now:
 
 *assertHasStrings(self, *strings)*
   checks that all its arguments are found within content.
+  
+  If string arguments are passed, they are utf-8 encoded before
+  comparison.  If that's not what you want, pass bytes yourself.
   
 
 *assertHeader(self, key, value)*
@@ -14182,7 +14216,7 @@ that are immediately accessible in the namespace:
   ValueError: Invalid dms value with sepChar None: 'junk'
   
 
-*getAccrefFromStandardPubDID(pubdid, authBase=u'ivo://org.gavo.dc/~?')*
+*getAccrefFromStandardPubDID(pubdid, authBase='ivo://org.gavo.dc/~?')*
   returns an accref from a standard DaCHS PubDID.
   
   This is basically the inverse of getStandardPubDID.  It will raise
@@ -14348,10 +14382,7 @@ that are immediately accessible in the namespace:
   
 
 *loadPythonModule(fqName, relativeTo=None)*
-  imports fqName and returns the module with a module description.
-  
-  The module description is what what find_module returns; you may
-  need this for reloading and similar.
+  imports fqName and returns the (module, spec).
   
   Do not use this function to import DC-internal modules; this may
   mess up singletons since you could bypass python's mechanisms
@@ -14411,8 +14442,8 @@ that are immediately accessible in the namespace:
   you can pass a sepChar (default: split at blanks) that lets you
   specify what separates hours/degrees, minutes, and seconds.
   
-  >>> str(parseAngle("23 59 59.95", "hms"))
-  '359.999791667'
+  >>> "%.8f"%(parseAngle("23 59 59.95", "hms"))
+  '359.99979167'
   >>> "%10.5f"%parseAngle("-20:31:05.12", "dms", sepChar=":")
   ' -20.51809'
   >>> "%010.6f"%parseAngle("21.0209556", "fracHour")
@@ -14446,7 +14477,7 @@ that are immediately accessible in the namespace:
   >>> parseFloat("  ")
   >>> parseFloat("wobbadobba")
   Traceback (most recent call last):
-  ValueError: could not convert string to float: wobbadobba
+  ValueError: could not convert string to float: 'wobbadobba'
   
 
 *parseISODT(literal)*
@@ -14490,13 +14521,13 @@ that are immediately accessible in the namespace:
   ``!!decimalHours`` or a strptime-like spec using the H, M, and S codes.
   
   >>> parseTime("89930", "!!secondsSinceMidnight")
-  datetime.timedelta(1, 3530)
+  datetime.timedelta(days=1, seconds=3530)
   >>> parseTime("23.4", "!!decimalHours")
-  datetime.timedelta(0, 84240)
+  datetime.timedelta(seconds=84240)
   >>> parseTime("3.4:5", "%H.%M:%S")
-  datetime.timedelta(0, 11045)
+  datetime.timedelta(seconds=11045)
   >>> parseTime("20:04", "%H:%M")
-  datetime.timedelta(0, 72240)
+  datetime.timedelta(seconds=72240)
   
 
 *parseTimestamp(literal, format='%Y-%m-%dT%H:%M:%S')*
@@ -14950,17 +14981,17 @@ The main attributes (with API guarantees) include:
 Constant DEG
 ............
 
-A constant, valued 0.0174532925199
+A constant, valued 0.017453292519943295
 
 Constant DEG_ARCSEC
 ...................
 
-A constant, valued 0.000277777777778
+A constant, valued 0.0002777777777777778
 
 Constant DEG_MAS
 ................
 
-A constant, valued 2.77777777778e-07
+A constant, valued 2.7777777777777776e-07
 
 Class Data
 ..........
@@ -15208,6 +15239,29 @@ They are essentially like WebRedirect, except they put out a 303
 instead of a 301.
 
 
+Class ServiceBasedPage
+......................
+
+the base class for renderers turning service-based info into
+character streams.
+
+You will need to provide some way to give nevowc.TemplatedPage templates,
+either by supplying a loader or (usually preferably) mixing in
+CustomTemplateMixin -- or just override renderHTTP to make do
+without templates.
+
+You can set an attribute checkedRenderer=False for renderers that
+are "generic" and do not need to be enumerated in the allowed
+attribute of the underlying service ("meta renderers").
+
+You can set a class attribute openRenderer=True to make a renderer
+work even on restricted services (which may make sense for stuff like 
+logout and maybe for metadata inspection).
+
+This class overrides t.w.template's renderer so renderers defined
+in the service (e.g., via an RD) are found, too.
+
+
 Class SkipThis
 ..............
 
@@ -15394,6 +15448,78 @@ WebRedirectes are constructed with the destination URL that can be
 relative (to webRoot) or absolute (starting with http).
 
 
+__cached__
+..........
+
+str(object='') -> str
+str(bytes_or_buffer[, encoding[, errors]]) -> str
+
+Create a new string object from the given object. If encoding or
+errors is specified, then the object must expose a data buffer
+that will be decoded using the given encoding and error handler.
+Otherwise, returns the result of object.__str__() (if defined)
+or repr(object).
+encoding defaults to sys.getdefaultencoding().
+errors defaults to 'strict'.
+
+__loader__
+..........
+
+Concrete implementation of SourceLoader using the file system.
+
+__spec__
+........
+
+The specification for a module, used for loading.
+
+A module's spec is the source for information about the module.  For
+data associated with the module, including source, use the spec's
+loader.
+
+`name` is the absolute name of the module.  `loader` is the loader
+to use when loading the module.  `parent` is the name of the
+package the module is in.  The parent is derived from the name.
+
+`is_package` determines if the module is considered a package or
+not.  On modules this is reflected by the `__path__` attribute.
+
+`origin` is the specific location used by the loader from which to
+load the module, if that information is available.  When filename is
+set, origin will match.
+
+`has_location` indicates that a spec's "origin" reflects a location.
+When this is True, `__file__` attribute of the module is set.
+
+`cached` is the location of the cached bytecode file, if any.  It
+corresponds to the `__cached__` attribute.
+
+`submodule_search_locations` is the sequence of path entries to
+search when importing submodules.  If set, is_package should be
+True--and False otherwise.
+
+Packages are simply modules that (may) have submodules.  If a spec
+has a non-None value in `submodule_search_locations`, the import
+system will consider modules loaded from the spec as packages.
+
+Only finders (see importlib.abc.MetaPathFinder and
+importlib.abc.PathEntryFinder) should modify ModuleSpec instances.
+
+
+
+__version__
+...........
+
+str(object='') -> str
+str(bytes_or_buffer[, encoding[, errors]]) -> str
+
+Create a new string object from the given object. If encoding or
+errors is specified, then the object must expose a data buffer
+that will be decoded using the given encoding and error handler.
+Otherwise, returns the result of object.__str__() (if defined)
+or repr(object).
+encoding defaults to sys.getdefaultencoding().
+errors defaults to 'strict'.
+
 Function bYearToDateTime
 ........................
 
@@ -15402,6 +15528,14 @@ Signature: ``bYearToDateTime(bYear)``
 returns a datetime.datetime instance for a fractional Besselian year.
 
 This uses the formula given by Lieske, J.H., A&A 73, 282 (1979).
+
+
+Function bytify
+...............
+
+Signature: ``bytify(s)``
+
+returns s utf-8 encoded if it is a string, unmodified otherwise.
 
 
 Function computeMean
@@ -15512,7 +15646,11 @@ an identical string).
 
 The behaviour of this function for timezone-aware datetimes is undefined.
 
-For convenience, None is returned as None
+For convenience, None is returned as None.
+
+Also for convenience, you can pass in a string; this will then be parsed
+first, which provides both some basic format validation and guranteed
+DALI-compliant serialisation.
 
 >>> formatISODT(datetime.datetime(2015, 10, 20, 12, 34, 22, 250))
 '2015-10-20T12:34:22Z'
@@ -15539,7 +15677,7 @@ Don't use this function any more.  It will go away soon.
 Function getAccrefFromStandardPubDID
 ....................................
 
-Signature: ``getAccrefFromStandardPubDID(pubdid, authBase=u'ivo://org.gavo.dc/~?')``
+Signature: ``getAccrefFromStandardPubDID(pubdid, authBase='ivo://org.gavo.dc/~?')``
 
 returns an accref from a standard DaCHS PubDID.
 
@@ -15805,6 +15943,8 @@ Signature: ``getXMLTree(xmlString, debug=False)``
 returns an ``libxml2`` etree for ``xmlString``, where, for convenience,
 all namespaces on elements are nuked.
 
+This will only accept strings.
+
 The libxml2 etree lets you do xpath searching using the ``xpath`` method.
 
 Nuking namespaces is of course not a good idea in general, so you
@@ -15900,10 +16040,7 @@ Function loadPythonModule
 
 Signature: ``loadPythonModule(fqName, relativeTo=None)``
 
-imports fqName and returns the module with a module description.
-
-The module description is what what find_module returns; you may
-need this for reloading and similar.
+imports fqName and returns the (module, spec).
 
 Do not use this function to import DC-internal modules; this may
 mess up singletons since you could bypass python's mechanisms
@@ -16022,6 +16159,17 @@ Beware: This loses a couple of significant digits due to transformation
 to jd.
 
 
+Function originalOrIdentity
+...........................
+
+Signature: ``originalOrIdentity(soup)``
+
+returns soup.original or soup if there is no original attribute.
+
+This is for cooperation with BinaryItem coming in from the web into
+ContextGrammars.
+
+
 Function parseAngle
 ...................
 
@@ -16033,8 +16181,8 @@ format is one of hms, dms, fracHour.  For sexagesimal/time angles,
 you can pass a sepChar (default: split at blanks) that lets you
 specify what separates hours/degrees, minutes, and seconds.
 
->>> str(parseAngle("23 59 59.95", "hms"))
-'359.999791667'
+>>> "%.8f"%(parseAngle("23 59 59.95", "hms"))
+'359.99979167'
 >>> "%10.5f"%parseAngle("-20:31:05.12", "dms", sepChar=":")
 ' -20.51809'
 >>> "%010.6f"%parseAngle("21.0209556", "fracHour")
@@ -16071,8 +16219,8 @@ made out, the function is happy.
 (3.75, -12.125)
 >>> parseCooPair("3 25,-12 30")
 (51.25, -12.5)
->>> map(str, parseCooPair("12 15 30.5 +52 18 27.5"))
-['183.877083333', '52.3076388889']
+>>> ["{:.9f}".format(v) for v in parseCooPair("12 15 30.5 +52 18 27.5")]
+['183.877083333', '52.307638889']
 >>> parseCooPair("3.39 -12 39")
 Traceback (most recent call last):
 ValueError: Invalid time with sepChar None: '3.39'
@@ -16112,7 +16260,7 @@ Temporarily, this includes a hack to work around a bug in psycopg2.
 >>> parseFloat("  ")
 >>> parseFloat("wobbadobba")
 Traceback (most recent call last):
-ValueError: could not convert string to float: wobbadobba
+ValueError: could not convert string to float: 'wobbadobba'
 
 
 Function parseFromString
@@ -16198,13 +16346,13 @@ For format, you can the magic values ``!!secondsSinceMidnight``,
 ``!!decimalHours`` or a strptime-like spec using the H, M, and S codes.
 
 >>> parseTime("89930", "!!secondsSinceMidnight")
-datetime.timedelta(1, 3530)
+datetime.timedelta(days=1, seconds=3530)
 >>> parseTime("23.4", "!!decimalHours")
-datetime.timedelta(0, 84240)
+datetime.timedelta(seconds=84240)
 >>> parseTime("3.4:5", "%H.%M:%S")
-datetime.timedelta(0, 11045)
+datetime.timedelta(seconds=11045)
 >>> parseTime("20:04", "%H:%M")
-datetime.timedelta(0, 72240)
+datetime.timedelta(seconds=72240)
 
 
 Function parseTimestamp
@@ -16273,6 +16421,18 @@ If ``key`` is a string, it is quoted as a naked accref so it's usable
 as the path part of an URL.  If it's an ``RAccref``, it is just stringified.
 The result is something that can be used after getproduct in URLs
 in any case.
+
+
+Function renderDCErrorPage
+..........................
+
+Signature: ``renderDCErrorPage(flr, request)``
+
+renders a resource a twisted failure.
+
+This finishes request itself.  It returns t.w.server.NOT_DONE_YET 
+because of that, so you can write return renderDCErrorPage from
+a render method (or similar).
 
 
 Function requireValue
@@ -17340,4 +17500,3 @@ originating service).
 .. [IVOA Identifiers] Demleitner, M., et al, "IVOA Identifiers",
    http://ivoa.net/Documents/IVOAIdentifiers/index.html
 .. |date| date::
-

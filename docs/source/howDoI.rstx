@@ -1618,12 +1618,13 @@ Starting 2020, DaCHS operators ought to upgrade to DaCHS 2; don't be
 scared by the major version jump – unless you're doing higher magic, you
 will not need to change much (if anything).  We have dropped some exotic
 legacy, though, and in particular DaCHS 2 is Python 3 only (whereas
-DaCHS 1 in Python 2 only).  So, if any Python code you may have in or
-around your RDs is not Python 3-ready, fix that before upgrading.
+DaCHS 1 in Python 2 only).  It's quite likely that if you need to change
+your RDs at all, it'll be about Python 3 rather than DaCHS 2 (see
+below).
 
 
-Updating the Software
----------------------
+Upgrading the Software
+''''''''''''''''''''''
 
 If you run from package, upgrading should be as simple as::
 
@@ -1638,7 +1639,7 @@ python3-astropy, python3-setuptools, python3-all, python3-docutils,
 python3-lxml, python3-pkg-resources, python3-matplotlib, and it'd be
 great if you had (some less important parts of DaCHS won't work if you
 don't have them) python3-healpy, python3-pil, python3-testresources
-[#soap]_
+[#soap]_ .
 
 Also, if you install via setup.py, note that you must run setup.py with
 python3, not with python (which is Python 2 on all systems I've seen so
@@ -1676,7 +1677,7 @@ breaks on import, I figured it's not so bad).  To fix things, add
 be one of iso-8859-1 or utf-8).
 
 That's about it as long as you didn't venture into the land of
-service/@customPage.  This let you include code that directly used the
+``service/@customPage``.  This let you include code that directly used the
 web framework nevow, which DaCHS was previously built on.  Nevow has not
 been ported to Python 3, and, having tried it, I don't expect it ever
 will.  DaCHS is now built directly on twisted web, but since several
@@ -1696,7 +1697,8 @@ guide in gavo.formal.README.  Let us know if you need it, and we'll try
 to improve it.
 
 
-.. #soap: If you can get your hands on python3-soappy and python3-zsi
+.. _defined regression tests: http://docs.g-vo.org/DaCHS/ref.html#regression-testing
+.. [#soap] If you can get your hands on python3-soappy and python3-zsi
    *and* you'd like to run SOAP services (which I doubt), you can
    install these as well.  They're not currently in Debian, though.
 
