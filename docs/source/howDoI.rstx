@@ -1614,9 +1614,10 @@ or STScI), you'll have to re-upload your registry records there.
 ...go from DaCHS 1 to DaCHS 2?
 ------------------------------
 
-Starting 2020, DaCHS operators ought to upgrade to DaCHS 2; don't be
+Starting mid-2020, DaCHS operators ought to upgrade to DaCHS 2; don't be
 scared by the major version jump – unless you're doing higher magic, you
-will not need to change much (if anything).  We have dropped some exotic
+will not need to change much (if anything) in your RDs.  
+We have dropped some exotic
 legacy, though, and in particular DaCHS 2 is Python 3 only (whereas
 DaCHS 1 in Python 2 only).  It's quite likely that if you need to change
 your RDs at all, it'll be about Python 3 rather than DaCHS 2 (see
@@ -1626,9 +1627,13 @@ below).
 Upgrading the Software
 ''''''''''''''''''''''
 
-If you run from package, upgrading should be as simple as::
+Important: DaCHS wants at least python 3.7; in Debian terms, that's
+buster and above.
 
-  apt install dachs2
+If you run from package, upgrading should be as simple as `adding the
+beta repository`_ and then running::
+
+  apt install gavodachs2-server
 
 The two packages conflict, and thus this will remove the old dachs
 package(s).
@@ -1636,6 +1641,7 @@ package(s).
 If you use some other means to install DaCHS, please not the the
 dependencies have changed; in Debian terms, we're now requiring
 python3-astropy, python3-setuptools, python3-all, python3-docutils,
+python3-twisted, python3-psycopg2,
 python3-lxml, python3-pkg-resources, python3-matplotlib, and it'd be
 great if you had (some less important parts of DaCHS won't work if you
 don't have them) python3-healpy, python3-pil, python3-testresources
@@ -1661,13 +1667,22 @@ Most code within RDs should be ok.  However, of course, you'll have to
 port that to Python 3.  The following points turned up while porting
 GAVO DC RDs:
 
+* strings vs. bytes throughout – you can't sensibly compare them or mix
+  them, and you can only write strings to encoding-aware files and bytes
+  to binary files, so every open is suspicous.  Our advice from Python 2
+  days has been: Whenever any text comes in, turn it into strings as
+  soon as possible, and encode just before writing (that of course
+  doesn't apply when you're actually dealing with binary data).
 * ``urllib.quote`` is now ``urllib.parse.quote`` (the latter is in the
   rowmaker namespace)
 * int/int now is a float.  Well, DaCHS should always have future-imported
-  division, but alas it hasn't.  Whenever you want integer divistion,
+  division, but alas it hasn't.  Whenever you want integer division,
   write //.
 * ``dict.has_key(k)`` no longer exists.  Write ``k in dict`` instead.
 * ``except Ex, x:`` is verboten.  Use ``except Ex as x:`` instead.
+* Well, and then there's the thing with print no longer being a
+  statement.  But then you probably don't have a lot of print in your RD
+  code.
 
 If you use text-base grammars (columnGrammar, reGrammar, ...) and your
 inputs contain non-ASCII chars, you could previously get away with it
@@ -1677,16 +1692,16 @@ breaks on import, I figured it's not so bad).  To fix things, add
 be one of iso-8859-1 or utf-8).
 
 That's about it as long as you didn't venture into the land of
-``service/@customPage``.  This let you include code that directly used the
-web framework nevow, which DaCHS was previously built on.  Nevow has not
-been ported to Python 3, and, having tried it, I don't expect it ever
-will.  DaCHS is now built directly on twisted web, but since several
-aspects of nevow were part of DaCHS' UI for non-adventurous users, we've
-created a thin emulation layer that lets you get away with your old
-templates, render functions, and such.  If you don't shout and we'll
-probably fix it.
+``service/@customPage``.  If you don't know it: it lets you include code
+that directly uses the web framework.  DaCHS was previously built on
+newow, which has not been ported to Python 3, and, having tried it, I
+don't expect it ever will.  Instead, DaCHS is now built directly on
+twisted web, but since several aspects of nevow were part of DaCHS' UI
+even for non-adventurous users, we've created a thin emulation layer
+that lets you get away with your old templates, render functions, and
+such.  If you don't, shout and we'll probably fix it.
 
-Except for customPage and the custom renderer.  If you went there,
+Well, except for customPage and the custom renderer.  If you went there,
 you'll have some nasty work ahead of you, as our emulation layer doesn't
 reach there.  You will, at the very least, now have to inherit from
 gavo.nevowc.TemplatedPage (rather than rend.Page), and renderHTTP(self,
@@ -1698,6 +1713,7 @@ to improve it.
 
 
 .. _defined regression tests: http://docs.g-vo.org/DaCHS/ref.html#regression-testing
+.. _adding the beta repository: http://soft.g-vo.org/repo#beta
 .. [#soap] If you can get your hands on python3-soappy and python3-zsi
    *and* you'd like to run SOAP services (which I doubt), you can
    install these as well.  They're not currently in Debian, though.
