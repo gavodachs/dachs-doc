@@ -278,7 +278,7 @@ Other Streams
     +['//obscore#obscore-columns']
     +['//ssap#'+id for id in ["hcd_condDescs", "atomicCoords"]]
     +['//echelle#'+id for id in ["ssacols"]]
-    +['//scs#'+id for id in ["coreDescs", ]])
+    +['//scs#'+id for id in ["coreDescs", "splitPosIndex"]])
 
 
 Data Descriptors

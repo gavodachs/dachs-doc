@@ -188,6 +188,10 @@ LoggingUI only logs the information on old exceptions when base.DEBUG is
 true.  You can set this from your code, or by passing the ``--debug``
 option to gavo.
 
+This should probably be phased out now that python3 monitors and exposes
+exception mutation itself.
+
+
 
 Testing
 =======
@@ -541,6 +545,46 @@ This can look like this:
 m.addMeta("info", meta.makeMetaValue("content", type="info",
   infoName="someInfo", infoValue="GIVEN"))
 
+
+Managed Date-like Metadata
+--------------------------
+
+As almost everywhere, date-like metadata is a pain; it's not so much
+because of Babylonian formats (whenever you give a civil date in DaCHS,
+it should understand plain, basic DALI-flavoured ISO a.k.a.
+YYYY-MM-DDThh:mm:ss) but because there's so many dates around a
+resource and a resource descriptor, for instance:
+
+* Date of RD creation
+* Date of first publication (should that be the "creation date"?)
+* Date of most recent ``dachs pub``
+* Date of last change to RD (the mtime on the RD file)
+* Date of last change to underlying data
+* Date of most recent import
+
+and much more.
+
+Dates like these you're communicating to the registry.  This has
+
+* Resource/@created -- in DaCHS, that's the manually managed creationDate
+  meta.
+* Resource/@updated -- in DaCHS, that's datetimeUpdated; see below
+* Resource/date -- _news meta are turned into role="updated" dates.
+  Plus, the datetimeUpdated meta is made into a date, too.  Finally,
+  you can manually create date meta items (with role children) that
+  are just copied into VOResource date.
+
+DaCHS keeps the the following date-like metadata on RDs (warning: could
+still be wrong; this is a plan as of now).
+
+* creationData -- manually defined in RDs
+* dataUpdated -- the date the last time any dachs imp was run on this RD
+* rdUpdated -- the mtime of the RD source file (or "about now" for RDs
+  that don't come from files)
+* datetimeUpdated -- the newer of dataUpdated and rdUpdated
+* date -- manually defined in RDs.
+* rectimestamp -- this only exists for published data and not as 
+  metadata on the RD but only in the dc.resources table.
 
 
 Memoization
