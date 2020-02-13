@@ -1384,7 +1384,7 @@ somewhat like this::
   We're currently upgrading our database and cannot properly respond to
   requests.
 
-  We expect to be back online late afternoon UTC, 2015-08-11.
+  We expect to be back online late afternoon UTC, 2025-08-11.
   EOF
 
 Then say::
@@ -1421,19 +1421,30 @@ one was.
 
 You can now probably run your services again, so, remove MAINT in the
 stateDir, restart the DaCHS server and run your regression tests (you
-wrote some, didn't you?).  However, quite typically the table stats are
-wrong or ununderstandable to the new version.  It is therefore highly
-recommended to run::
+wrote some, didn't you?).  
 
-  psql gavo -c "VACUUM ANALYZE"
+However, quite typically the table stats are wrong or ununderstandable
+to the new version, so for large tables you may see timeouts and the
+like.  Starting around version 10, pg_upgradecluster helpfully provides
+a script that does all that's required to update the stats and make
+things fast again.  It is kept together with the upgrade log which you
+will find by going to ``/var/log/postgresql``, saying ``ls -lr
+--sort=time``.  The last directory shown ought to be your upgrade
+directory.
 
-(which can run in parallel to normal operations; you could use the
-opportunity of a downtime to run a VACUUM FULL ANALYZE, too, but that
-may take ages).
+In there, start a ``screen`` (the script can take a long while, and it's
+good if you can detach the screen with ^ADD and the it keeps running
+while you're going home) and run it like this::
 
-If all looks well, drop the old cluster.  pg_upgradecluster prints the
-respective command last thing it does.  And deinstall the old binaries
-to avoid confusion.
+  sudo -u postgres sh ./analyze_new_cluster.sh
+
+Finally, pg_upgrade has printed a command that will remove the old
+cluster; execute it, and finally deinstall the old postgres packages to
+avoid confusion – locate them somehow like::
+
+  dpkg -l | grep "postgres.*$OLDVER"
+
+When that's all done, take a deep breath and relax.
 
 Possible Issues during upgrade
 ''''''''''''''''''''''''''''''
