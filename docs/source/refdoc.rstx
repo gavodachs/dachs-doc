@@ -2276,7 +2276,9 @@ sees the test itself in self, and it can access
 * ``self.data`` (the response content as a byte string), 
 * ``self.headers`` (a sequence of header name, value pairs; note that you 
    should match the names case-insensitively here),
-* ``self.status`` (the HTTP response code), and 
+* ``self.status`` (the HTTP response code), 
+* ``self.requestTime`` (the time the URI request actually took; this
+    will be None for failed requests), and
 * the URL actually retrieved in ``self.url.httpURL``.
 
 Incidentally, that last name is right; the regression framework only
