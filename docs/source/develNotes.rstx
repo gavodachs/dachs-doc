@@ -558,7 +558,7 @@ resource and a resource descriptor, for instance:
 * Date of RD creation
 * Date of first publication (should that be the "creation date"?)
 * Date of most recent ``dachs pub``
-* Date of last change to RD (the mtime on the RD file)
+* The mtime on the RD file
 * Date of last change to underlying data
 * Date of most recent import
 
@@ -574,17 +574,17 @@ Dates like these you're communicating to the registry.  This has
   you can manually create date meta items (with role children) that
   are just copied into VOResource date.
 
-DaCHS keeps the the following date-like metadata on RDs (warning: could
-still be wrong; this is a plan as of now).
+DaCHS keeps the the following date-like (i.e., values are ISO strings)
+metadata on RDs (warning: could still be wrong; this is a plan as of
+now).
 
 * creationData -- manually defined in RDs
-* dataUpdated -- the date the last time any dachs imp was run on this RD
-* rdUpdated -- the mtime of the RD source file (or "about now" for RDs
-  that don't come from files)
-* datetimeUpdated -- the newer of dataUpdated and rdUpdated
-* date -- manually defined in RDs.
-* rectimestamp -- this only exists for published data and not as 
-  metadata on the RD but only in the dc.resources table.
+* _dataUpdated -- the date the last time any dachs imp was run on this RD
+* _metadataUpdated -- on the RD, this is the mtime of the RD source file
+  (if it exists; otherwise that meta is missing).  On published items,
+  it's the time of the last dachs pub.  This latter rule is so the
+  dataUpdated on the registry record remains meaningful.
+* date -- manually defined in RDs; this is for VOResource's data item.
 
 
 Memoization
@@ -895,14 +895,37 @@ Schema updates
 
 If you need to change the on-disk schema, you must provide an updater in
 gavo.user.upgrade.  See the docstring on Upgrade on what you can and
-should do in there.
+should do in there, and read on.
 
-The ``version`` attribute of your new upgrader must be the value of 
+The basic idea is that each upgrade step is written as a class
+inheriting Upgrader.  Its ``version`` attribute must be the value of 
 ``upgrader.CURRENT_SCHEMAVERSION`` (defined near the top) when you start
 working.  After you have defined your upgrader, increase
 CURRENT_SCHEMAVERSION by one.
 
-At Heidelberg, the next step would be to try the upgrader using::
+The upgrader has attributes and class methods with magic names; if these
+are string-values, they are directly executed, if they are methods, they
+are called with a connection argument.  Do not use any other connections
+in upgraders or you'll break the atomicity of the upgrades.
+
+The magic names can either be ``u_<nn>_<name>`` or ``s_<nn>_<name>``.
+use ``nn`` to determine the action sequence.  The difference between u
+and s is that when upgrading over multiple versions, all s methods are
+being executed before the first u method.  The idea is that
+schema-changing changes should be in s methods, content updates and
+similar should be in u methods.
+
+When defining upgrades, it pays to make sure upgraders don't break if
+what they're doing has been done already; that reduces the requirements
+on upgrade atomicity and prevents upgrade crashes (which are always
+ugly) when people do odd things.  For this, use the
+``relationExists(tableName, connection)`` and
+``getColumnNamesFor(rdTableId), connection)`` methods to figure things
+out.  There's also ``_updateTAP_SCHEMA(connection)``, which you should
+use on anything influencing TAP_SCHEMA (which might include, say,
+changes in column serialisation).
+
+At Heidelberg, once an upgrade is defined, the upgrader using::
 
   testgavo upgrade
 
@@ -922,8 +945,6 @@ to re-set the schema version to the initial value, but that doesn't
 really help when changes are already in the database.  During
 development, it pays to keep a quick backup of current database files so
 it's easy to entirely roll back if the upgrade hasn't quite worked.
-
-
 
 
 Javascript

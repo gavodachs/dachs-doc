@@ -154,7 +154,8 @@ grammar rowfilters) that should be used in grammars and/or rowmakers
 feeding the tables mixing in a given mixin.
 
 .. replaceWithResult getMixinDocs(docStructure, [
-  "//products#table", "//scs#positions", "//scs#q3cindex",
+  "//products#table", 
+  "//scs#positions", "//scs#q3cindex", "//scs#pgs-pos-index",
   "//siap#pgs", 
   "//ssap#mixc", "//ssap#hcd",
   "//ssap#view", "//ssap#plainlocation", "//ssap#simpleCoverage",
@@ -278,7 +279,8 @@ Other Streams
     +['//obscore#obscore-columns']
     +['//ssap#'+id for id in ["hcd_condDescs", "atomicCoords"]]
     +['//echelle#'+id for id in ["ssacols"]]
-    +['//scs#'+id for id in ["coreDescs", "splitPosIndex"]])
+    +['//scs#'+id for id in ["coreDescs", "splitPosIndex",
+      "spoint-index-def"]])
 
 
 Data Descriptors
