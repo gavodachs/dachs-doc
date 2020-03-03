@@ -646,7 +646,7 @@ If you want to profile server actions, try a script like this::
 After running, you can use pstats on the file profile.data.
 
 To profile actually running DaCHS operations, use the --profile-to <profile
-file> option of the gavo program.  For the server, you must make sure
+file> option of the dachs program.  For the server, you must make sure
 in cleanly exists in order to have meaningful stats.  Do this by
 accessing /test/exit on a debug server.
 
@@ -716,6 +716,13 @@ references are harmless -- in particular, this function will hold a
 reference to the object in question, so you'll need some experience to
 figure out where to look.
 
+Core dumps
+----------
+
+If you're desperate and need to get core dumps out of a crashing
+operational server (core dumps from dachs serve debug should just work
+as normal), you need to install the python3-prctl package.  The core
+dumps will be in stateDir.
 
 
 Delimited SQL identifiers
@@ -1205,7 +1212,7 @@ Sometimes it's nice to see what gets imported when.  Futzing with PEP
 302-style import hooks is a pain, and indeed a simple shell line
 produces more useful output than naive hooks::
 
-  strace gavo imp -h 2>&1 | grep 'open' | grep -v ENOENT | grep -v "pyc" | sed -e 's/.*"\(.*\)".*/\1/'
+  strace dachs imp -h 2>&1 | grep 'open' | grep -v ENOENT | grep -v "pyc" | sed -e 's/.*"\(.*\)".*/\1/'
 
 matplotlib
 ----------
