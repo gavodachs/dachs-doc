@@ -1076,7 +1076,7 @@ search cone and a pgsphere geometry called ``origin_est``::
     <phraseMaker original="//scs#humanSCSPhrase">
       <setup original="//scs#scsSetup" id="proxQuery">
         <code><![CDATA[
-          def genQuery(inPars, outPars):
+          def genQuery(td, inPars, outPars):
             return ("scircle(spoint(radians(%%(%s)s), radians(%%(%s)s)),"
               " radians(%%(%s)s)) && origin_est")%(
               base.getSQLKey("RA", inPars["RA"], outPars),
@@ -1108,7 +1108,7 @@ looks like this::
       <phraseMaker original="//scs#humanSCSPhrase">
         <setup original="//scs#scsSetup" id="proxQuery">
           <code><![CDATA[
-            def genQuery(inPars, outPars):
+            def genQuery(td, inPars, outPars):
               return ("scircle(spoint(radians(%%(%s)s), radians(%%(%s)s)),"
                 " radians(%%(%s)s)) && origin_est")%(
                 base.getSQLKey("RA", inPars["RA"], outPars),
@@ -1124,6 +1124,10 @@ looks like this::
       </phraseMaker>
     </condDesc>
   </scsCore>
+
+Incidentally, the first argument to genQuery is the table definition of
+the table queried, which sometimes comes in handy.  DaCHS 1 didn't have
+that argument, so old RDs may need an update if they used this recipe.
 
 ...change a single param of ssap#hcd to being a column?
 -------------------------------------------------------
