@@ -795,6 +795,11 @@ renderers -- include:
   characters or less.
 * creationDate -- Use ISO format with time, UTC only, like this: 
   2007-10-04T12:00:00Z
+* _dataUpdated -- The timestamp of the last successful ``dachs imp``,
+  again in DALI/ISO format.
+* _metadataUpdated -- Timestamp when the metadata was last updated.  On
+  RDs, that's the timestamp of the RD source, on published things,
+  it's the timestamp of the last ``dachs pub``.
 * subject -- as noted in the explanatory leaflet, these should be taken
   from the `IVOA Vocabulary Explorer
   <http://explicator.dcs.gla.ac.uk/WebVocabularyExplorer/>`_.
@@ -805,10 +810,6 @@ renderers -- include:
 * referenceURL -- again, a link, so you can give a title for
   presentation purposes.  If you give no referenceURL, the service's
   info page will be used.
-* dateUpdated -- an ISO date.  Do not set this.  This is determined
-  from timestamps in DaCHS's state directory.  There is also
-  datetimeUpdated that you would have to keep in sync with dateUpdated
-  if you were to change it.
 * creator.name -- this should be the name of the "author" of the data
   set.  See below for multiple creators.  If you set this, you may want
   to override creator.logo as well.
@@ -831,8 +832,8 @@ renderers -- include:
   (which at least means you know how to make DaCHS declare an authority
   and claim it).  If you do override the identifier of a service that's
   already published, make sure you run 
-  ``gavo admin makeDeletedRecord <previous identifier>`` (before or
-  after the ``gavo pub`` on the resource, or the registries will have
+  ``dachs admin makeDeletedRecord <previous identifier>`` (before or
+  after the ``dachs pub`` on the resource, or the registries will have
   two copies of your record, one of which will not be updated any more;
   and that would suck for Registry users.
 * mirrorURL – add these on publication to declare mirrors for a service.
@@ -2159,15 +2160,15 @@ Here are some hints on development:
 
 1) Give the test you're just developing an id; at the GAVO DC, we're
    usually using cur; that way, we run variations of 
-   ``gavo test rdId#cur``, and only the test in question is run.
+   ``dachs test rdId#cur``, and only the test in question is run.
 2) After defining the url, just put an ``assert False`` into the test
-   code.  Then run ``gavo test -Devidence.xml rdId#cur`` or similar.
+   code.  Then run ``dachs test -Devidence.xml rdId#cur`` or similar.
    Then investigate ``evidence.xml`` (possibly after piping through
    ``xmlstarlet fo``) for stable and strong indicators that things are
    working.
 3) If you get a BadCode for a test you're just writing, the message may
    not always be terribly helpful.  To see what's actually bugging
-   python, run ``gavo --debug test ...`` and check dcInfos.
+   python, run ``dachs --debug test ...`` and check dcInfos.
 
 RegTest URLs
 ''''''''''''
@@ -2199,7 +2200,7 @@ form renderer is performed – our form library nevow formal has some
 hidden parameters that you don't want to repeat in every URL.  
 
 To easily translate URLs taken from a browser's address bar or the form
-renderer's result link, you can run ``gavo totesturl`` and paste the
+renderer's result link, you can run ``dachs totesturl`` and paste the
 URLs there.  Note that totesturl fails for values with embedded quotes,
 takes only the first value of repeated parameters and is a over-quick
 hack all around.  Patches are gratefully accepted.
@@ -2328,14 +2329,14 @@ tabs.  We've thrown in a column skeleton on gn as well::
 Running Tests
 '''''''''''''
 
-The first mode to run the regression tests is through ``gavo val``.  If
+The first mode to run the regression tests is through ``dachs val``.  If
 you give it a ``-t`` flag, it will collect regression tests from all the
 RDs it touches and run them.  It will then output a brief report listing
 the RDs that had failed tests for closer inspection.
 
 It is recommended to run something like::
   
-  gavo val -tv ALL
+  dachs val -tv ALL
 
 before committing changes into your inputs repository.  That way,
 regressions should be caught.
@@ -2347,15 +2348,15 @@ actually test the changes you made.
 
 There is also a dedicated gavo sub-command ``test`` for executing the
 tests.  This is what you should be using for developing tests or
-investigating failures flagged with ``gavo val``.  On its command line,
+investigating failures flagged with ``dachs val``.  On its command line,
 you can give on of an RD id or a cross-rd reference to a test suite,
 or a cross-rd reference to an individual test.  For example,
 
 ::
 
-  gavo test res1/q 
-  gavo test res2/q#suite1 
-  gavo test res2/q#test45
+  dachs test res1/q 
+  dachs test res2/q#suite1 
+  dachs test res2/q#test45
 
 would run all the tests given in the RD ``res1/q``, the tests in
 the regSuite with the ``id`` suite1 in ``res2/q``, and a test with
@@ -2364,9 +2365,9 @@ the regSuite with the ``id`` suite1 in ``res2/q``, and a test with
 To traverse inputs and run tests from all RDs found there, as well as
 tests from the built-in RDs, run::
 
-  gavo test ALL
+  dachs test ALL
 
-``gavo test`` by default has a very terse output.  To see which tests
+``dachs test`` by default has a very terse output.  To see which tests
 are failing and what they gave as reasons, run it with the '-v' option.
 
 To debug failing regression tests (or maybe to come up with good things
@@ -2381,7 +2382,7 @@ configuration item.  So,
 
 ::
 
-  gavo test -u http://production.example.com ALL
+  dachs test -u http://production.example.com ALL
 
 is what might help your night's sleep.
 
@@ -2565,7 +2566,7 @@ reasons), the pubDIDs used by DaCHS are formed as::
   <authority>/~?<accref>
 
 where the accref usually is the inputsDir-relative path to the file.  If
-you use datalinks of that form, you should at some point run ``gavo pub
+you use datalinks of that form, you should at some point run ``dachs pub
 //products``; this will register the products deliverer as
 ``<authority>/~``, which means that pubDIDs of this form are compliant
 with [IVOA Identifiers]_
@@ -2898,7 +2899,7 @@ support for TIME and POL yet, but if you have such data, we'll be glad
 to add it), and some additional ones.
 
 If you need extended functionality, it is a good idea to start from this
-STREAM.  Copy it from ``gavo adm dumpDF //soda`` and hack from there.
+STREAM.  Copy it from ``dachs adm dumpDF //soda`` and hack from there.
 
 SDM processing
 ..............
@@ -3022,7 +3023,7 @@ but as said above that is suboptimal as no accrefPrefix constrains what
 the service will run on.
 
 The easiest way to furnish your descriptors with additional information
-is to grab that code (use ``gavo adm dumpDF //soda``) and just add
+is to grab that code (use ``dachs adm dumpDF //soda``) and just add
 attributes to the ``ProductDescriptor`` generated in this way.
 
 The default ``ProductDescriptor`` class exposes as attributes 
@@ -3146,7 +3147,7 @@ and if possible choose one of the terms given at
 http://www.ivoa.net/rdf/datalink/core
 
 You can inspect the definition of the datalinks table active in your
-system by saying ``gavo admin dumpDF //datalink | less``
+system by saying ``dachs admin dumpDF //datalink | less``
 (the table definition is right at the top).
 
 When returning link definitions, the tricky part mostly is to come up
@@ -3817,7 +3818,7 @@ few things to keep in mind.
 (1) You'll need to prepare your database to keep track of your custom
 jobs (just once)::
   
-  gavo imp //uws enable_useruws
+  dachs imp //uws enable_useruws
 
 (2) You'll have to allow the ``uws.xml`` renderer on the service in
 question.
@@ -3889,12 +3890,12 @@ pull the file from the UWS working directory::
     ...
 
 
-Hint on debugging: ``gavo uwsrun`` doesn't check the state the job is
+Hint on debugging: ``dachs uwsrun`` doesn't check the state the job is
 in, it will just try to execute it anyway.  So, if your job went into
 error and you want to investicate why, just take its id and execute
 something like::
 
-  gavo --traceback uwsrun i1ypYX
+  dachs --traceback uwsrun i1ypYX
 
 
 Custom Pages
@@ -4186,7 +4187,7 @@ support this, there are three hooks in obscore that you can exploit.
 The hooks are in ``userconfig.rd`` (see `Userconfig RD in
 the operator's guide`_ to where it is and how to get started with it)
 It helps to have a brief look at the ``//obscore`` RD (e.g., using
-``gavo admin dumpDF //obscore``) to get an idea what these hooks do.
+``dachs admin dumpDF //obscore``) to get an idea what these hooks do.
 
 Within the template ``userconfig.rd``, there are already three STREAMs
 with ids starting with obscore.; these are referenced from within the
@@ -4255,7 +4256,7 @@ you the effort of touching a potentially sizeable number of RDs, there's
 a data element in //obscore that does that for you; so, after every
 change just run::
 
-  gavo imp //obscore refreshAfterSchemaUpdate
+  dachs imp //obscore refreshAfterSchemaUpdate
 
 This may fail if you didn't clean up properly after deleting a resource
 that once contributed to ivoa.obscore.  In that case you'll see an error
@@ -4265,7 +4266,7 @@ message like::
 
 In that case, just tell DaCHS to forget the offending table::
 
-  gavo purge whatever.main
+  dachs purge whatever.main
 
 Another problem can arise when a table once was published to obscore but
 now no longer is while still existing.  DaCHS in that case will still
@@ -4288,7 +4289,7 @@ Writing Custom Grammars
 
 A custom grammar simply is a python module located within a resource
 directory defining a row iterator class derived from
-``gavo.grammars.customgrammar.CustomRowIterator``. This class must be called
+``dachs.grammars.customgrammar.CustomRowIterator``. This class must be called
 ``RowIterator``.  You want to override the ``_iterRows`` method.  It will have
 to yield row dictionaries, i.e., dictionaries mapping string keys to
 something (preferably strings, but you will usually get away with
@@ -4723,12 +4724,12 @@ tables without going through those.
 
 Having said that, here's a list of the system tables together with brief
 descriptions of their role and the columns contained.  Note that your
-installation might not have all of those; some only appear after a ``gavo
-imp`` of the RD they are defined in -- which you of course only should
+installation might not have all of those; some only appear after a
+``dachs imp`` of the RD they are defined in -- which you of course only should
 do if you know you want to enable the functionality provided.
 
 The documentation given here is extracted from the resource descriptors,
-which, again, you can read in source using ``gavo admin dumpDF
+which, again, you can read in source using ``dachs admin dumpDF
 //<rd-name>``.
 
 .. replaceWithResult makeSystemTablesList(docStructure)

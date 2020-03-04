@@ -447,12 +447,12 @@ runs the server in this mode.  You can also use ``install`` instead of
 ``develop``; in that case, you will have to rerun setup.py everytime
 you update the source.
 
-**Note**: If running from SVN, do not forget to run ``gavo upgrade``
+**Note**: If running from SVN, do not forget to run ``dachs upgrade``
 *after* an ``svn update``.  The on-disk structures of DaCHS sometimes
-change, and ``gavo upgrade`` makes sure they are properly updated if
+change, and ``dachs upgrade`` makes sure they are properly updated if
 necessary.  Technically, you would only need to run gavo upgrade if, in
 gavo --version, the two numbers behind “Schema” are different, but since
-``gavo upgrade`` is smart enough to figure out when there's no need to
+``dachs upgrade`` is smart enough to figure out when there's no need to
 do anything, just make it a routine to run it.
 
 **Note**: ``python setup.py install`` and friends do not install DaCHS'
@@ -484,7 +484,7 @@ below should create:
 * A user  that the server will run as (by default gavo).
 * A unix account for you that should not be root (in particular not if
   you're using setup.py develop on an SVN checkout).  This should be in
-  the gavo group (for when you're running ``gavo serve debug``) and will
+  the gavo group (for when you're running ``dachs serve debug``) and will
   usually own resource directories and the like.
 
 On the database side, the following must be ascertained:
@@ -509,7 +509,7 @@ and a group for running DC-related processes in::
 
 (or similar, depending on your environment). This user should not be
 able to log in, but it should have a home directory.  Everyone that may
-issue a ``gavo serve debug`` must be in the group created (this is
+issue a ``dachs serve debug`` must be in the group created (this is
 because the log directory will be writable by this group); in
 particular, you should add yourself::
 
@@ -605,7 +605,7 @@ Initial Account Setup
 '''''''''''''''''''''
 
 At least during setup, you also need superuser privileges on the
-database.  For ``gavo init`` below to work, your normal account must
+database.  For ``dachs init`` below to work, your normal account must
 have such privileges.  On Debian systems, you can simply say::
 
   sudo -u postgres createuser -s `id -nu`
@@ -654,7 +654,7 @@ with ``/var/gavo``::
 as /etc/gavo.rc.
 
 Whatever ``rootDir`` is, it must exist and be writable by you, or you
-must have sufficient privileges to create it.  Do *not* run ``gavo
+must have sufficient privileges to create it.  Do *not* run ``dachs
 init`` as root, since the files and directories it creates will be owned
 by whoever ran the program.  In the typical situation in which you may
 not write to ``rootDir``'s parent, do something like::
@@ -664,21 +664,21 @@ not write to ``rootDir``'s parent, do something like::
 
 You can now let DaCHS create its file system hierarchy::
 
-  gavo init
+  dachs init
 
-``gavo init`` will spit out a warning about a missing file
+``dachs init`` will spit out a warning about a missing file
 ``defaultmeta.txt`` on the first run.  On that first run, you can ignore
 the warning; the missing file will be created by DaCHS.
 
 If your database server is not on the same machine as your web server
 (which is not recommended for a test setup), you have to pass a complete
-DSN that lets DaCHS connect as a superuser to ``gavo init``.  A DSN
+DSN that lets DaCHS connect as a superuser to ``dachs init``.  A DSN
 ("Data Source Name") is a sequence of key-values pairs as used  by ODBC
 or Postgres itself (with keys discussed in `Database Connection Control
 Functions in the postgres documentation`_).  You would say something
 like::
 
-  gavo init --dsn "host=myhost.xy port=5546 user=super password=secret dbname=wisdom"
+  dachs init --dsn "host=myhost.xy port=5546 user=super password=secret dbname=wisdom"
 
 – make sure you give at least dbname and whatever role DaCHS ends up
 using has superuser privileges during setup (that role is not used
@@ -695,7 +695,7 @@ directories if you changed locations in ``gavo.rc``.
 The init script
 ===============
 
-Though you can operate the server manually through ``gavo serve
+Though you can operate the server manually through ``dachs serve
 (start|stop|reload)``, you will probably want to install an init script
 to ``/etc/init.d`` (or your system's equivalent place).  More
 information on this is in `Starting and Stopping the Server in the
@@ -711,7 +711,7 @@ read on if you're curious and/or courageous.
 Manual Database Preparation
 ===========================
 
-Normally, the following steps are done by ``gavo init``.  So, on a
+Normally, the following steps are done by ``dachs init``.  So, on a
 normal install you can stop reading here.
 
 However, if you want to play tricks (e.g., remote database server), the
@@ -762,7 +762,7 @@ database; you do this using the command line interface to postgres::
     -c "GRANT ALL ON DATABASE gavo TO gavoadmin"
 
 For the individual tables, rights to gavo and untrusted are granted by
-``gavo imp``, so you do not need to specify any rights for them.
+``dachs imp``, so you do not need to specify any rights for them.
 
 
 Owner-only DB setup
@@ -803,12 +803,12 @@ things work.
 
 So, in this sequence, run::
 
-  gavo imp --system //dc_tables
-  gavo imp --system //services
-  gavo imp --system //users
-  gavo imp --system //products
-  gavo imp --system //adql
-  gavo imp --system //tap
+  dachs imp --system //dc_tables
+  dachs imp --system //services
+  dachs imp --system //users
+  dachs imp --system //products
+  dachs imp --system //adql
+  dachs imp --system //tap
 
 Output of the type ``Columns affected: 0`` is ok for these commands.
 
@@ -820,9 +820,9 @@ with DaCHS.
 If you get error messages, add a ``--hints`` after the gavo command,
 like this::
 
-  gavo --hints imp --system //dc_tables
+  dachs --hints imp --system //dc_tables
 
-This will (for the ``gavo`` command in general) give additional error
+This will (for the ``dachs`` command in general) give additional error
 info where available.
 
 You should now be able to run the examples in the tutorial.

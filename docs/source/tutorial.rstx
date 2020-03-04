@@ -891,8 +891,8 @@ index_ element, which is a child of ``table``::
 This is the simplest, but mostly sufficient, form of defining an index;
 for advanced usage, please refer to the `reference documentation`_.  If
 you decide to add an index to a table later on, or to initiate
-re-indexing after a lot of data changed, see the ``-I`` option of ``gavo
-imp``.
+re-indexing after a lot of data changed, see the ``-I`` option of
+``dachs imp``.
 
 The ``pos.eq`` UCDs in the SCS ``condDescs`` are hardcoded; this is
 because the standard simple cone search protocol specifies that the
@@ -1131,7 +1131,7 @@ General Hints
 * The dachs command takes a ``--hints`` switch.  With it, error messages
   are frequently accompanied with – you guessed it – hints on what might
   cause the problem and possible solutions.  Note that ``--hints``, like
-  the other debugging switches, goes between ``gavo`` and the subcommand
+  the other debugging switches, goes between ``dachs`` and the subcommand
   name, as in ``dachs --hints serve``.
 * Validate your RD.  This is, in general, a good idea before doing
   anything with the RD, since it will allow you to more easily catch errors
@@ -1144,12 +1144,12 @@ General Hints
 * Check the logs.  They are in /var/gavo/logs by default, and there's
   dcErrors and dcInfos (you'll want to look at both).
 * When hunting bugs, it's usually a good idea to enable the logging of
-  (many) tracebacks by passing the ``--debug`` flag to ``gavo``.
+  (many) tracebacks by passing the ``--debug`` flag to ``dachs``.
 * If you're trying to figure out server behaviour, don't run the
   server daemonized but use ``dachs serve debug`` instead; this won't
   detach and log to stdout.
 * With this (or the problem is in normally-running DaCHS code in the
-  first place), the python debugger is your friend.  The ``gavo``
+  first place), the python debugger is your friend.  The ``dachs``
   command has an option ``--enable-pdb`` that will dump you into the
   debugger where an uncaught exception happened (as the server should
   never let an uncaught exception through, that's not useful with
@@ -1185,7 +1185,7 @@ in the bowels of a complex system, with timeouts, threads, and all kinds
 of nastyness involved.  The first adivce is: Pull whatever is mysterious
 into your development system and run ``dachs serve debug``.  You can even
 do the ``import pdb;pdb.set_trace()`` trick then.  It's a bit tricky to
-communicate with the debugger in between the log messages of ``gavo
+communicate with the debugger in between the log messages of ``dachs
 serve debug``, and there's no readline support since pdb doesn't think
 it's running within a terminal there, but it's definitely doable.
 
@@ -1467,7 +1467,7 @@ the rawdict dumped into a file, join all the lines, remove the
 ``parser_`` key-value pair (the content of which cannot be represented
 as a string), assign it to a name and then manipulate it in the rest of
 the file using python statements.  You can have a similar effect by
-giving ``--enable-pdb`` as a ``gavo`` main option; this will dump you in
+giving ``--enable-pdb`` as a ``dachs`` main option; this will dump you in
 a debugger at the place of the problem.
 
 Undo all changes to the arihip RD to continue.
@@ -3786,7 +3786,7 @@ like::
 
 
 Within the data element you need one make each for each table you want
-in ADQL; it would cause the tables to be created on a plain ``gavo
+in ADQL; it would cause the tables to be created on a plain ``dachs
 imp``, in the present context, it just says something like "put the
 table metadata into DaCHS' internal catalogs".
 

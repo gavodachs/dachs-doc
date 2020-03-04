@@ -139,7 +139,7 @@ to have Tkinter interfaces or whatever, and they should have a fair
 chance to control the user interaction of a program.
 
 The actual action on events is done by observers; these are ususally
-defined in ``user``, and some can be selected from the ``gavo`` command
+defined in ``user``, and some can be selected from the ``dachs`` command
 line.  For convenience, you should derive your Observer classes from
 base.ObserverBase.  This lets you stuff like::
 
@@ -229,7 +229,7 @@ validation, you also need to add the filename to
 in gavo/schema that the validator should not be bothered with; still, we
 should probably just pull in ``*.xsd`` at some point).
 
-With this, run ``gavo admin xsdVal`` to XSD-validate a VO file.
+With this, run ``dachs admin xsdVal`` to XSD-validate a VO file.
 
 In case you'd like some external truth, here's how you can run xerces as
 a validating parser on a Debian system::
@@ -369,7 +369,7 @@ recommended for everyone, though)
 * ``python flake_all.py`` (which does some static code checking)
 * ``python runAllTests.py`` (which arranges for doctests, pyunit tests,
   trial tests, and data unit tests to be run)
-* run ``gavo val -tv ALL`` (which, apart from validating the RDs, also
+* run ``dachs val -tv ALL`` (which, apart from validating the RDs, also
   runs the RD-defined regression tests against the server running
   locally)
 * go to ``$checkout``
@@ -379,7 +379,7 @@ recommended for everyone, though)
 
 *After a checkout on the production server*, do:
 
-* ``gavo test -t bigserver -u http://dc.g-vo.org/ ALL`` (which runs
+* ``dachs test -t bigserver -u http://dc.g-vo.org/ ALL`` (which runs
   all tests defined in the local RDs, even for the production server,
   against the production server; this does what it's supposed to da as 
   the repo for the RDs is the same on development and production).
@@ -578,13 +578,12 @@ DaCHS keeps the the following date-like (i.e., values are ISO strings)
 metadata on RDs (warning: could still be wrong; this is a plan as of
 now).
 
-* creationData -- manually defined in RDs
+* creationDate -- manually defined in RDs
 * _dataUpdated -- the date the last time any dachs imp was run on this RD
 * _metadataUpdated -- on the RD, this is the mtime of the RD source file
   (if it exists; otherwise that meta is missing).  On published items,
   it's the time of the last dachs pub.  This latter rule is so the
   dataUpdated on the registry record remains meaningful.
-* date -- manually defined in RDs; this is for VOResource's data item.
 
 
 Memoization
@@ -592,7 +591,7 @@ Memoization
 
 The base.caches module should be the central point for all kinds of
 memoization/caching tasks; in particular, if you use base.caches,
-your caches will automatically be cleared on ``gavo serve reload``.  To
+your caches will automatically be cleared on ``dachs serve reload``.  To
 keep dependencies and risks of recursive imports low, it is the
 providing modules' responsibility to register caching functions.  The
 idea is that, e.g., rscdesc wants a cache of resource descriptors.
@@ -705,7 +704,7 @@ in something like::
     testtricks.debugReferenceChain(ob)
 
 after the print (of course, this only makes sense if you're running
-``gavo serve debug``, as the actual server detaches from its tty).  This
+``dachs serve debug``, as the actual server detaches from its tty).  This
 lets you go through the objects referring to the first struct left over
 by hitting Return.  
 
@@ -1190,8 +1189,8 @@ tarball and the main SVN, in order to encourage external contributions
 copy now is at https://github.com/chbrandt/dachs-doc.git.
 
 When authoring, you can use some extra RST features (the price: stock
-rst2pdf and friends don't work properly; use ``gavo gendoc latex`` or
-``gavo gendoc html``, or a special sphinx configuration).  These
+rst2pdf and friends don't work properly; use ``dachs gendoc latex`` or
+``dachs gendoc html``, or a special sphinx configuration).  These
 include:
 
 * dachsref: Give a reference documentation heading (as in
