@@ -3397,6 +3397,14 @@ If you want to drop obscore again, you will have to say::
 
   dachs drop --system //obscore
 
+Internally, the ivoa.obscore table is implemented as a view.  If this
+view contains bad SQL or tables that have been dropped, working with
+obscore can result in rather confusing messages.  If that happens, try::
+
+  dachs imp //obscore recover
+
+This should remove the bad content from the view statement.
+
 
 Obscore Derived from Typed Service Tables
 '''''''''''''''''''''''''''''''''''''''''

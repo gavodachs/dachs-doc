@@ -199,9 +199,28 @@ Testing
 In an installed checkout of DaCHS, you can go to the ``tests``
 subdirectory and run::
 
-  python runAllTests.py
+  python3 runAllTests.py
 
 for a fairly extensive set of unit tests.
+
+This needs to create a test database, and that will only work if whoever
+runs this is postgres superuser.  dachsroot from the Debian package
+already is.  If you want to run tests as another user, you'll have to
+make yourself a suitable account, typically with::
+
+  sudo -u postgres createuser -s `id -nu`
+
+The suite will not tear down and build up everything each time it's
+called.  To make it rebuild everything, remove ``~/_gavo_test`` and
+``dropdb dachstest``.
+
+Also, you'll need the extra package ``python3-testresource`` (which the
+dachs packages don't declare as a dependency), and you'll need
+``build-essentials`` as well as libcfitsio-dev
+
+I'm testing against concrete error messages, and DaCHS sometimes hands
+through messages from the database.  Hence, some tests will fail
+when ``lc_messages`` in ``postgresql.conf`` isn't ``C``.
 
 This uses some management of test scaffolds; when something is severely
 wrong, generating these scaffolds can fail and the execution of the
