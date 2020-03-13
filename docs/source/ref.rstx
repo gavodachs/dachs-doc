@@ -924,6 +924,15 @@ Atomic Children
   specifying an expression the table should be indexed for.  If not
   given, the expression will be generated from columns (which is what
   you usually want).
+* **kind** (unicode string; defaults to 'straight') -- A tag on the
+  index; this is used by the ADQL translation engine in some
+  situations.  Consider it a DaCHS implemenation detail and ignore it
+  for now.
+* **metaOnly** (unicode string; defaults to False) -- Do not tell the
+  database to actually create the index, just declare it in the
+  metadata. This is for when you want to tell users of the ADQL engine
+  that columns in, say, a view are indexed when the database cannot
+  actually create the index but the underlying tables provide one.
 * **method** (unicode string; defaults to None) -- The indexing
   method, like an index type.  In the 8.x, series of postgres, you
   need to set method=GIST for indices over pgsphere columns;
@@ -1491,7 +1500,7 @@ Atomic Children
   contributing to a published view.  Warning: adql=hidden is
   incompatible with setting readProfiles manually.
 * **allProfiles** (Comma separated list of profile names.; defaults to
-  'msdemlei, admin') -- A (comma separated) list of profile names
+  'admin, msdemlei') -- A (comma separated) list of profile names
   through which the object can be written or administred (oh, and the
   default is not admin, msdemlei but is the value of [db]maintainers)
 * **autoCols** (Comma-separated list of strings; defaults to '') --
@@ -2056,6 +2065,9 @@ Element regTest
 
 A regression test.
 
+Tests are defined through url and code elements.  See `Regression Testing`_
+for more information.
+
 May occur in `Element regSuite`_.
 
 Atomic Children
@@ -2117,7 +2129,7 @@ Atomic Children
 ...............
 
 * **allProfiles** (Comma separated list of profile names.; defaults to
-  'msdemlei, admin') -- A (comma separated) list of profile names
+  'admin, msdemlei') -- A (comma separated) list of profile names
   through which the object can be written or administred (oh, and the
   default is not admin, msdemlei but is the value of [db]maintainers)
 * **readProfiles** (Comma separated list of profile names.; defaults
@@ -2392,8 +2404,9 @@ Other Children
 * **template** (mapping; the value is the element content, the key is
   in the  'key' (or, equivalently, key) attribute) -- Custom nevow
   templates for this service; use key "form" to replace the Form
-  renderer's standard template.  Start the path with two slashes to
-  access system templates.
+  renderer's standard template; qp uses resulttable and resultline
+  depending on whether there's many result lines or just one.  Start
+  the path with two slashes to access system templates.
 
 Macros predefined here: `Macro RSTservicelink`_, `Macro RSTtable`_, `Macro decapitalize`_, `Macro getConfig`_, `Macro internallink`_, `Macro lower`_, `Macro magicEmpty`_, `Macro metaSeq`_, `Macro metaString`_, `Macro quote`_, `Macro rdId`_, `Macro rdIdDotted`_, `Macro reSub`_, `Macro schema`_, `Macro sql_standardPubDID`_, `Macro sqlquote`_, `Macro tablesForTAP`_, `Macro test`_, `Macro today`_, `Macro upper`_, `Macro urlquote`_
 
@@ -2517,7 +2530,7 @@ Atomic Children
   contributing to a published view.  Warning: adql=hidden is
   incompatible with setting readProfiles manually.
 * **allProfiles** (Comma separated list of profile names.; defaults to
-  'msdemlei, admin') -- A (comma separated) list of profile names
+  'admin, msdemlei') -- A (comma separated) list of profile names
   through which the object can be written or administred (oh, and the
   default is not admin, msdemlei but is the value of [db]maintainers)
 * **dupePolicy** (One of: check, drop, dropOld, overwrite; defaults to
@@ -3181,6 +3194,9 @@ forced-single are just values, multiple are lists.  The content are
 Since most VO protocols require case-insensitive matching of parameter
 names, matching of input key names and the keys of the input dictionary
 is attempted first literally, then disregarding case.
+
+Since ContextGrammars can be parents of inputKeys and thus are a
+bit table-like, they can also carry metadata.
 
 
 Atomic Children
@@ -5854,6 +5870,10 @@ you give a default.  It will also raise an error if metaKey is not
 atomic (i.e., single-valued).  Use metaSeq for meta items that
 may have multiple values.
 
+Because it's sometimes useful, if the expander itself doesn't
+have metadat, this goes up in the RD tree until it finds something
+that has metadata.
+
 Available in `Element FEED`_, `Element LFEED`_, `Element LOOP`_, `Element binaryGrammar`_, `Element cdfHeaderGrammar`_, `Element columnGrammar`_, `Element contextGrammar`_, `Element csvGrammar`_, `Element customGrammar`_, `Element dictlistGrammar`_, `Element embeddedGrammar`_, `Element fitsProdGrammar`_, `Element fitsTableGrammar`_, `Element freeREGrammar`_, `Element inputTable`_, `Element keyValueGrammar`_, `Element mixinDef`_, `Element mySQLDumpGrammar`_, `Element nullGrammar`_, `Element odbcGrammar`_, `Element outputTable`_, `Element pdsGrammar`_, `Element reGrammar`_, `Element resRec`_, `Element resource`_, `Element rowmaker`_, `Element rowsetGrammar`_, `Element service`_, `Element table`_, `Element transparentGrammar`_, `Element voTableGrammar`_, `Element xmlGrammar`_
 
 Macro nameForUCD
@@ -6489,10 +6509,10 @@ Parameter *em_min*
   Minimal wavelength represented within the data set
 Parameter *em_res_power*
   defaults to ``em_res_power``;
-  Spectral resolving power delta lambda/lamda
+  Spectral resolving power lambda/delta lamda
 Parameter *em_ucd*
   defaults to ``em_ucd``;
-  Nature of the product's spectral axis
+  Nature of the product's spectral axis (typically, em.freq, em.wl, or em.energy)
 Parameter *em_xel*
   defaults to ``em_xel``;
   Number of elements (typically pixels) along the spectral axis.
@@ -6901,33 +6921,26 @@ In addition, the mixin arranges for the products to be added to the
 system table products, which is important when delivering the files.
 
 Tables mixing this in should be fed from grammars using the 
-//products#define row filter.
+`//products#define`_ row filter.
 
 
 
-The //scs#positions Mixin
-'''''''''''''''''''''''''
+The //scs#pgs-pos-index Mixin
+'''''''''''''''''''''''''''''
 
 
-A mixin adding standardized columns for equatorial positions to the
-table.
+A mixin adding a pgsphere index to the main spherical position for
+tables with separate RA and Dec columns.
 
-It consists of the fields alphaFloat, deltaFloat (float angles
-in degrees, J2000.0) and c_x, c_y, c_z (intersection of the radius
-vector to alphaFloat, deltaFloat with the unit sphere).
+You have to designate exactly one column with the ucds pos.eq.ra;meta.main
+pos.eq.dec;meta.main, respectively.  These columns receive the
+positional index.
 
-You will usually use it in conjunction with the //scs#eqFloat procDef that
-preparse these fields for you.
+This should be used instead of q3cindex on new tables; it's
+a bit slower than q3c, but it's less funky, too.
 
-Thus, you could say::
-
-  <proc procDef="//scs#eqFloat">
-    <arg name="alpha">alphaSrc</arg>
-    <arg name="delta">deltaSrc</arg>
-  </proc>
-
-Note, however, that it's usually much better to not mess with the
-table structure and handle positions using the q3cindex mixin.
+If you'd like an index on other sorts of long/lat pairs, see the
+//scs#spoint-index-def STREAM.
 
 
 The //scs#q3cindex Mixin
@@ -6935,6 +6948,9 @@ The //scs#q3cindex Mixin
 
 
 A mixin adding an index to the main equatorial positions.
+
+In new RDs, use pgs-pos-index instead; we'd like to stop q3c support
+at some point.
 
 This is what you usually want if your input data already has
 "sane" (i.e., ICRS or at least J2000) positions or you convert
@@ -6955,16 +6971,16 @@ A table mixin for simple support of SIAP.
 
 The columns added into the tables include
 
-  - (certain) FITS WCS headers 
-  - imageTitle (interpolateString should come in handy for these)
-  - instId -- some id for the instrument used
-  - dateObs -- MJD of the "characteristic" observation time
-  - the bandpass* values.  You're on your own with them...
-  - the values of the product mixin.  
-  - mimetype -- the mime type of the product.
-  - the coverage, centerAlpha and centerDelta, nAxes, 
-    pixelSize, pixelScale, wcs* fields calculated by the 
-    computePGS macro.   
+- (certain) FITS WCS headers 
+- imageTitle (interpolateString should come in handy for these)
+- instId -- some id for the instrument used
+- dateObs -- MJD of the "characteristic" observation time
+- the bandpass* values.  You're on your own with them...
+- the values of the product mixin.  
+- mimetype -- the mime type of the product.
+- the coverage, centerAlpha and centerDelta, nAxes, 
+  pixelSize, pixelScale, wcs* fields calculated by the 
+  computePGS macro.   
 
 (their definition is in the siap system RD)
 
@@ -7039,7 +7055,7 @@ Parameter *instrument*
   defaults to ``__NULL__``;
   Instrument or code used to produce these datasets; ssa:DataID.Instrument
 Parameter *publisher*
-  defaults to ``\metaString{publisherID}``;
+  defaults to ``\metaString{publisherID}{\metaString{publisher}}``;
   Publisher IVO (by default taken from the DC config); ssa:Curation.Publisher
 Parameter *reference*
   defaults to ``__NULL__``;
@@ -7174,13 +7190,17 @@ This mixin has the following parameters:
 Parameter *fluxDescription*
   defaults to ``The dependent variable of this spectrum (see the ucd for its physical meaning)``;
   Description for the flux column
+Parameter *fluxUCDOverride*
+  Force UCD of the spectral column (don't use this; fix your SSA table instead)
+Parameter *fluxUnitOverride*
+  Force unit of the spectral column (don't use this; fix your SSA table instead)
 Parameter *spectralDescription*
   defaults to ``The independent variable of this spectrum (see its ucd to figure out whether it's a wavelength, frequency, or energy)``;
   Description for the spectral column
 Parameter *spectralUCDOverride*
   Force UCD of the spectral column (don't use this)
 Parameter *spectralUnitOverride*
-  Force unit of the spectral column (don't use this)
+  Force unit of the spectral column (don't use this; fix your SSA table instead)
 Parameter *ssaTable*
   The SSAP (HCD) instance table to take the params from
 
@@ -8008,6 +8028,9 @@ for the ssap.xml renderer:
  - ssap.dataSource -- survey, pointed, custom, theory, artificial
  - ssap.testQuery -- a query string that returns some data; REQUEST=queryData
    is added automatically
+ - productType -- the term(s) from http://www.ivoa.net/rdf/product-type
+   that describe the type of data served through the service.  Will
+   usually by ``spectrum``, but ``timeseries`` is a realistic option.
 
 Other SSA metadata includes:
 
@@ -9425,6 +9448,22 @@ Examples::
 * cluster: 'True'
 * columns: ''
 
+//scs#spoint-index-def
+......................
+
+
+Definition of an index over spoint(ra, dec); give this
+parameters long and lat naming the corresponding columns (in degrees).  
+
+Or use the spoint-index mixin.
+
+This will also cluster the table according to this index, which
+is almost always what you want.
+
+This needs to be replayed within a table (or something that
+defines a tablename macro).
+
+
 
 
 Data Descriptors
@@ -9866,6 +9905,13 @@ While generally the DC software does not care what you put into meta
 items and views them all as strings, certain keys are treated
 specially.  The following meta keys trigger some special behaviour:
 
+_dataUpdated
+  A meta value representing a timestamp.
+  
+  Accessing it, you will get a formatted ISO/DALI string.  You
+  can construct them with both strings (that we'll try to parse and
+  bomb if that's not possible) and datetime.datetime objects.
+  
 _example
   A MetaValue to keep VOSI examples in.
   
@@ -9883,6 +9929,13 @@ _example
   
       .. _docs: http://docs.g-vo.org
     </meta>
+  
+_metadataUpdated
+  A meta value representing a timestamp.
+  
+  Accessing it, you will get a formatted ISO/DALI string.  You
+  can construct them with both strings (that we'll try to parse and
+  bomb if that's not possible) and datetime.datetime objects.
   
 _news
   A meta value representing a "news" items.
@@ -9970,6 +10023,13 @@ continues
   ``servedBy`` and ``serviceFor`` are somewhat special cases, as
   the service attribute of data publications automatically takes care 
   of them; so, you shouldn't usually need to bother with these two manually.
+  
+creationDate
+  A meta value representing a timestamp.
+  
+  Accessing it, you will get a formatted ISO/DALI string.  You
+  can construct them with both strings (that we'll try to parse and
+  bomb if that's not possible) and datetime.datetime objects.
   
 creator.logo
   A MetaValue corresponding to a small image.
@@ -10470,6 +10530,11 @@ renderers -- include:
   characters or less.
 * creationDate -- Use ISO format with time, UTC only, like this: 
   2007-10-04T12:00:00Z
+* _dataUpdated -- The timestamp of the last successful ``dachs imp``,
+  again in DALI/ISO format.
+* _metadataUpdated -- Timestamp when the metadata was last updated.  On
+  RDs, that's the timestamp of the RD source, on published things,
+  it's the timestamp of the last ``dachs pub``.
 * subject -- as noted in the explanatory leaflet, these should be taken
   from the `IVOA Vocabulary Explorer
   <http://explicator.dcs.gla.ac.uk/WebVocabularyExplorer/>`_.
@@ -10480,10 +10545,6 @@ renderers -- include:
 * referenceURL -- again, a link, so you can give a title for
   presentation purposes.  If you give no referenceURL, the service's
   info page will be used.
-* dateUpdated -- an ISO date.  Do not set this.  This is determined
-  from timestamps in DaCHS's state directory.  There is also
-  datetimeUpdated that you would have to keep in sync with dateUpdated
-  if you were to change it.
 * creator.name -- this should be the name of the "author" of the data
   set.  See below for multiple creators.  If you set this, you may want
   to override creator.logo as well.
@@ -10506,8 +10567,8 @@ renderers -- include:
   (which at least means you know how to make DaCHS declare an authority
   and claim it).  If you do override the identifier of a service that's
   already published, make sure you run 
-  ``gavo admin makeDeletedRecord <previous identifier>`` (before or
-  after the ``gavo pub`` on the resource, or the registries will have
+  ``dachs admin makeDeletedRecord <previous identifier>`` (before or
+  after the ``dachs pub`` on the resource, or the registries will have
   two copies of your record, one of which will not be updated any more;
   and that would suck for Registry users.
 * mirrorURL – add these on publication to declare mirrors for a service.
@@ -11834,15 +11895,15 @@ Here are some hints on development:
 
 1) Give the test you're just developing an id; at the GAVO DC, we're
    usually using cur; that way, we run variations of 
-   ``gavo test rdId#cur``, and only the test in question is run.
+   ``dachs test rdId#cur``, and only the test in question is run.
 2) After defining the url, just put an ``assert False`` into the test
-   code.  Then run ``gavo test -Devidence.xml rdId#cur`` or similar.
+   code.  Then run ``dachs test -Devidence.xml rdId#cur`` or similar.
    Then investigate ``evidence.xml`` (possibly after piping through
    ``xmlstarlet fo``) for stable and strong indicators that things are
    working.
 3) If you get a BadCode for a test you're just writing, the message may
    not always be terribly helpful.  To see what's actually bugging
-   python, run ``gavo --debug test ...`` and check dcInfos.
+   python, run ``dachs --debug test ...`` and check dcInfos.
 
 RegTest URLs
 ''''''''''''
@@ -11874,7 +11935,7 @@ form renderer is performed – our form library nevow formal has some
 hidden parameters that you don't want to repeat in every URL.  
 
 To easily translate URLs taken from a browser's address bar or the form
-renderer's result link, you can run ``gavo totesturl`` and paste the
+renderer's result link, you can run ``dachs totesturl`` and paste the
 URLs there.  Note that totesturl fails for values with embedded quotes,
 takes only the first value of repeated parameters and is a over-quick
 hack all around.  Patches are gratefully accepted.
@@ -11953,7 +12014,9 @@ sees the test itself in self, and it can access
 * ``self.data`` (the response content as a byte string), 
 * ``self.headers`` (a sequence of header name, value pairs; note that you 
    should match the names case-insensitively here),
-* ``self.status`` (the HTTP response code), and 
+* ``self.status`` (the HTTP response code), 
+* ``self.requestTime`` (the time the URI request actually took; this
+    will be None for failed requests), and
 * the URL actually retrieved in ``self.url.httpURL``.
 
 Incidentally, that last name is right; the regression framework only
@@ -12033,6 +12096,14 @@ Here's a list of assertion methods defined right now:
   issue) also honor _DBOPTIONS_ORDER).
   
 
+*getUnique(self, seq)*
+  returns seq[0], asserting at the same time that len(seq) is 1.
+  
+  The idea is that you can say row = self.getUnique(self.getVOTableRows())
+  and have a nice test on the side -- and no ugly IndexError on an
+  empty respone.
+  
+
 *getVOTableRows(self)*
   parses the first table in a result VOTable and returns the contents
   as a sequence of dictionaries.
@@ -12076,14 +12147,14 @@ tabs.  We've thrown in a column skeleton on gn as well::
 Running Tests
 '''''''''''''
 
-The first mode to run the regression tests is through ``gavo val``.  If
+The first mode to run the regression tests is through ``dachs val``.  If
 you give it a ``-t`` flag, it will collect regression tests from all the
 RDs it touches and run them.  It will then output a brief report listing
 the RDs that had failed tests for closer inspection.
 
 It is recommended to run something like::
   
-  gavo val -tv ALL
+  dachs val -tv ALL
 
 before committing changes into your inputs repository.  That way,
 regressions should be caught.
@@ -12095,15 +12166,15 @@ actually test the changes you made.
 
 There is also a dedicated gavo sub-command ``test`` for executing the
 tests.  This is what you should be using for developing tests or
-investigating failures flagged with ``gavo val``.  On its command line,
+investigating failures flagged with ``dachs val``.  On its command line,
 you can give on of an RD id or a cross-rd reference to a test suite,
 or a cross-rd reference to an individual test.  For example,
 
 ::
 
-  gavo test res1/q 
-  gavo test res2/q#suite1 
-  gavo test res2/q#test45
+  dachs test res1/q 
+  dachs test res2/q#suite1 
+  dachs test res2/q#test45
 
 would run all the tests given in the RD ``res1/q``, the tests in
 the regSuite with the ``id`` suite1 in ``res2/q``, and a test with
@@ -12112,9 +12183,9 @@ the regSuite with the ``id`` suite1 in ``res2/q``, and a test with
 To traverse inputs and run tests from all RDs found there, as well as
 tests from the built-in RDs, run::
 
-  gavo test ALL
+  dachs test ALL
 
-``gavo test`` by default has a very terse output.  To see which tests
+``dachs test`` by default has a very terse output.  To see which tests
 are failing and what they gave as reasons, run it with the '-v' option.
 
 To debug failing regression tests (or maybe to come up with good things
@@ -12129,7 +12200,7 @@ configuration item.  So,
 
 ::
 
-  gavo test -u http://production.example.com ALL
+  dachs test -u http://production.example.com ALL
 
 is what might help your night's sleep.
 
@@ -12313,7 +12384,7 @@ reasons), the pubDIDs used by DaCHS are formed as::
   <authority>/~?<accref>
 
 where the accref usually is the inputsDir-relative path to the file.  If
-you use datalinks of that form, you should at some point run ``gavo pub
+you use datalinks of that form, you should at some point run ``dachs pub
 //products``; this will register the products deliverer as
 ``<authority>/~``, which means that pubDIDs of this form are compliant
 with [IVOA Identifiers]_
@@ -12392,6 +12463,17 @@ An older way to associate datalink services with tables is to give
 certain services (most notably, SSA ones) a ``datalink`` property.  This
 is deprecated now.  If you see it in examples, please tell us so we can
 fix it.
+
+Sometimes it makes sense to directly have datalinks in table columns.
+To help clients notice that that is what they are, declare a target type
+by adding::
+
+  <property name="targetType"
+    >application/x-votable+xml;content=datalink</property>
+  <property name="targetTitle">Datalink</property>
+
+into the element (``column`` or ``outputField``) content.   In VOTables,
+this will be turned into LINK elements.
 
 
 Making Datalinks
@@ -12646,7 +12728,7 @@ support for TIME and POL yet, but if you have such data, we'll be glad
 to add it), and some additional ones.
 
 If you need extended functionality, it is a good idea to start from this
-STREAM.  Copy it from ``gavo adm dumpDF //soda`` and hack from there.
+STREAM.  Copy it from ``dachs adm dumpDF //soda`` and hack from there.
 
 SDM processing
 ..............
@@ -12770,7 +12852,7 @@ but as said above that is suboptimal as no accrefPrefix constrains what
 the service will run on.
 
 The easiest way to furnish your descriptors with additional information
-is to grab that code (use ``gavo adm dumpDF //soda``) and just add
+is to grab that code (use ``dachs adm dumpDF //soda``) and just add
 attributes to the ``ProductDescriptor`` generated in this way.
 
 The default ``ProductDescriptor`` class exposes as attributes 
@@ -12894,7 +12976,7 @@ and if possible choose one of the terms given at
 http://www.ivoa.net/rdf/datalink/core
 
 You can inspect the definition of the datalinks table active in your
-system by saying ``gavo admin dumpDF //datalink | less``
+system by saying ``dachs admin dumpDF //datalink | less``
 (the table definition is right at the top).
 
 When returning link definitions, the tricky part mostly is to come up
@@ -13565,7 +13647,7 @@ few things to keep in mind.
 (1) You'll need to prepare your database to keep track of your custom
 jobs (just once)::
   
-  gavo imp //uws enable_useruws
+  dachs imp //uws enable_useruws
 
 (2) You'll have to allow the ``uws.xml`` renderer on the service in
 question.
@@ -13637,12 +13719,12 @@ pull the file from the UWS working directory::
     ...
 
 
-Hint on debugging: ``gavo uwsrun`` doesn't check the state the job is
+Hint on debugging: ``dachs uwsrun`` doesn't check the state the job is
 in, it will just try to execute it anyway.  So, if your job went into
 error and you want to investicate why, just take its id and execute
 something like::
 
-  gavo --traceback uwsrun i1ypYX
+  dachs --traceback uwsrun i1ypYX
 
 
 Custom Pages
@@ -13934,7 +14016,7 @@ support this, there are three hooks in obscore that you can exploit.
 The hooks are in ``userconfig.rd`` (see `Userconfig RD in
 the operator's guide`_ to where it is and how to get started with it)
 It helps to have a brief look at the ``//obscore`` RD (e.g., using
-``gavo admin dumpDF //obscore``) to get an idea what these hooks do.
+``dachs admin dumpDF //obscore``) to get an idea what these hooks do.
 
 Within the template ``userconfig.rd``, there are already three STREAMs
 with ids starting with obscore.; these are referenced from within the
@@ -14003,7 +14085,7 @@ you the effort of touching a potentially sizeable number of RDs, there's
 a data element in //obscore that does that for you; so, after every
 change just run::
 
-  gavo imp //obscore refreshAfterSchemaUpdate
+  dachs imp //obscore refreshAfterSchemaUpdate
 
 This may fail if you didn't clean up properly after deleting a resource
 that once contributed to ivoa.obscore.  In that case you'll see an error
@@ -14013,7 +14095,7 @@ message like::
 
 In that case, just tell DaCHS to forget the offending table::
 
-  gavo purge whatever.main
+  dachs purge whatever.main
 
 Another problem can arise when a table once was published to obscore but
 now no longer is while still existing.  DaCHS in that case will still
@@ -14036,7 +14118,7 @@ Writing Custom Grammars
 
 A custom grammar simply is a python module located within a resource
 directory defining a row iterator class derived from
-``gavo.grammars.customgrammar.CustomRowIterator``. This class must be called
+``dachs.grammars.customgrammar.CustomRowIterator``. This class must be called
 ``RowIterator``.  You want to override the ``_iterRows`` method.  It will have
 to yield row dictionaries, i.e., dictionaries mapping string keys to
 something (preferably strings, but you will usually get away with
@@ -15000,8 +15082,8 @@ The main attributes (with API guarantees) include:
 * tableDef -- the defining tableDef
 * getFeeder() -- returns a function you can call with rowdicts to 
   insert them into the table.
-* importFinished() -- must be called after you've fed all rows when
-  importing data.
+* importFinished(nImported) -- must be called after you've fed all rows when
+  importing data; pass the number of rows fed in.
 * drop() -- drops the table in the database
 * recreate() -- drops the table and generates a new empty one.
 * getTableForQuery(...) -- returns a Table instance built from a query
@@ -15042,6 +15124,24 @@ Class DataError
 is raised when something is wrong with a data set.
 
 When facing the web, these yield HTTP status 406.
+
+
+Class EqualingRE
+................
+
+A value that compares equal based on RE matches.
+
+This is a helper mainly for GetHasXPathsTests.  Use an instance of
+this class to check against an RE rather than a plain string.
+
+>>> EqualingRE("(ab)+") == "ababab"
+True
+>>> EqualingRE("(ab)+$") == "ababa"
+False
+>>> EqualingRE("(ab)+$") != "ababa$"
+True
+>>> "ababa" == EqualingRE("(ab)+$")
+False
 
 
 Class Error
@@ -15420,8 +15520,6 @@ Documented ones include:
 * getColumnsFromDB(tableName)
 * getTableType(tableName) -- this will return None for non-existing tables,
   which is DaCHS' official way to determine table existence.
-* getTimeout() -- returns the current query timeout in seconds
-* setTimeout(timeout) -- sets a timeout in seconds.
 
 
 Class VOTableContext
@@ -15594,6 +15692,35 @@ writes a DaCHS dump of tableIds to destFile.
 
 tableIds is a list of rd-id#table-id identifiers (all must resolve),
 destFile is a file object opened for writing.
+
+
+Function cutoutFITS
+...................
+
+Signature: ``cutoutFITS(hdu, *cuts)``
+
+returns a cutout of hdu restricted to cuts.
+
+hdu is a primary FITS hdu.  cuts is a list of cut specs, each of which is
+a triple (axis, lower, upper).  axis is between 1 and naxis, lower and
+upper a 1-based pixel coordinates of the limits, and "border" pixels
+are included.  Specifications outside of the image are legal and will 
+be cropped back.  Open limits are supported via a specification of
+None.
+
+If an axis would vanish (i.e. length 0 or less), the function fudges
+things such that the axis gets a length of 1.
+
+axis is counted here in the FORTRAN/FITS sense, *not* in the C sense,
+i.e., axis=1 cuts along NAXIS1, which is the *last* index in a numpy
+array.
+
+WCS CRPIXes in hdu's header will be updated.  Axes and specified will
+not be touched.  It is an error to specifiy cuts for an axis twice 
+(behaviour is undefined).
+
+Note that this will lose all extensions the orginal FITS file might have
+had.
 
 
 Function dateTimeToJYear
@@ -16125,6 +16252,12 @@ which case even a successful import will not be committed)..
 You can pass in a data instance created by yourself in data.  This
 makes sense if you want to, e.g., add some meta information up front.
 
+makeData will ususally iterate over the sources given in dd.  You
+can override this with forceSource, which can contain a single
+source passed to a grammar.  If you need to pass in multiple
+sources, use a MultiForcedSources object (or anything that has
+an iterSources(dbConnection) method).
+
 
 Function makeDependentsFor
 ..........................
@@ -16229,6 +16362,27 @@ returns a python boolean from some string.
 
 Boolean literals are strings like True, false, on, Off, yes, No in
 some capitalization.
+
+
+Function parseBytes
+...................
+
+Signature: ``parseBytes(literal)``
+
+returns bytes from a literal.
+
+This will interpret hex and octal byte escapes, and it'll support lists
+of integer-like things; not sure if that's actually more harmful than good.
+But then people can always override the default behaviour.
+>>> parseBytes("abc")
+b'abc'
+>>> parseBytes(r"\xab\000")
+b'\xab\x00'
+>>> parseBytes([123, 231, 23])
+b'{\xe7\x17'
+>>> parseBytes([10002])
+Traceback (most recent call last):
+ValueError: bytes must be in range(0, 256)
 
 
 Function parseCooPair
@@ -16508,6 +16662,19 @@ Each table is handled in a separate transaction, we do not stop if a single
 restore has failed.
 
 
+Function safeReplaced
+.....................
+
+Signature: ``safeReplaced(*args, **kwds)``
+
+opens fName for "safe replacement".
+
+Safe replacement means that you can write to the object returned, and
+when everything works out all right, what you have written replaces
+the old content of fName, where the old mode is preserved if possible.  
+When there are errors, however, the old content remains.
+
+
 Function scale
 ..............
 
@@ -16588,12 +16755,12 @@ tables without going through those.
 
 Having said that, here's a list of the system tables together with brief
 descriptions of their role and the columns contained.  Note that your
-installation might not have all of those; some only appear after a ``gavo
-imp`` of the RD they are defined in -- which you of course only should
+installation might not have all of those; some only appear after a
+``dachs imp`` of the RD they are defined in -- which you of course only should
 do if you know you want to enable the functionality provided.
 
 The documentation given here is extracted from the resource descriptors,
-which, again, you can read in source using ``gavo admin dumpDF
+which, again, you can read in source using ``dachs admin dumpDF
 //<rd-name>``.
 
 dc.authors
@@ -16743,9 +16910,9 @@ Defined in //products
 The products table keeps information on "products", i.e. datasets
 delivered to the users.
 
-It is normally fed through the products#define rowfilter and a mixin
-like products#table (or other mixins using it like siap#pgs or
-ssap#mixc).
+It is normally fed through the `products#define`_ rowfilter and a
+mixin like `//products#table`_ (or other mixins using it like
+`//siap#pgs`_ or `//ssap#mixc`_).
 
 /getproducts inspects this table before handing out data to enforce
 embargoes and similar restrictions, and this is also where it figures
@@ -16771,6 +16938,30 @@ out where to go for previews.
   (text) -- Legacy column. Don't use this.
 **preview_mime**
   (text) -- MIME type of a preview (if any)
+
+dc.rdmeta
+'''''''''
+
+Defined in //rds
+
+This table lists the RDs DaCHS has imported or otherwise manipulated.
+
+Additionally, on import, we add the schema and whether there's ADQL
+tables in the RD; this helps when several RDs share a single schema.
+
+**sourceRD**
+  (text) -- Identifier (i.e., inputs-relative path, without .rd) of
+  the RD
+**data_updated**
+  (timestamp) -- UTC of last execution of dachs imp on this RD. This
+  is NULL for RDs without data or when they have never been imported.
+  This is *not* reset on drop.
+**schema_name**
+  (text) -- Name of the schema managed by this RD when it was last
+  touched.
+**adql**
+  (boolean) -- True if the RD had TAP-published tables when it was
+  last touched.
 
 dc.res_dependencies
 '''''''''''''''''''
@@ -17021,6 +17212,8 @@ or gavo purge (for single tables).
   (text) -- Description of the resource this table is part of
 **adql**
   (boolean) -- True if this table may be accessed using ADQL
+**nrows**
+  (bigint) -- Estimated number of rows in the table.
 
 dc.users
 ''''''''
@@ -17110,7 +17303,7 @@ datasets within this datacenter.
   (double precision) -- Maximal wavelength represented within the data
   set
 **em_res_power**
-  (double precision) -- Spectral resolving power delta lambda/lamda
+  (double precision) -- Spectral resolving power lambda/delta lamda
 **o_ucd**
   (text) -- UCD for the product's observable
 **pol_states**
@@ -17138,7 +17331,8 @@ datasets within this datacenter.
   (double precision) -- Sampling period in world coordinate units
   along the spatial axis
 **em_ucd**
-  (text) -- Nature of the product's spectral axis
+  (text) -- Nature of the product's spectral axis (typically, em.freq,
+  em.wl, or em.energy)
 **preview**
   (text) -- URL of a preview (low-resolution, quick-to-retrieve
   representation) of the data.
@@ -17235,7 +17429,7 @@ internally, and sometimes for tricky queries.
   (double precision) -- Maximal wavelength represented within the data
   set
 **em_res_power**
-  (double precision) -- Spectral resolving power delta lambda/lamda
+  (double precision) -- Spectral resolving power lambda/delta lamda
 **o_ucd**
   (text) -- UCD for the product's observable
 **pol_states**
@@ -17263,7 +17457,8 @@ internally, and sometimes for tricky queries.
   (double precision) -- Sampling period in world coordinate units
   along the spatial axis
 **em_ucd**
-  (text) -- Nature of the product's spectral axis
+  (text) -- Nature of the product's spectral axis (typically, em.freq,
+  em.wl, or em.energy)
 **preview**
   (text) -- URL of a preview (low-resolution, quick-to-retrieve
   representation) of the data.

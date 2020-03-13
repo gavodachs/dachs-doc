@@ -155,7 +155,7 @@ feeding the tables mixing in a given mixin.
 
 .. replaceWithResult getMixinDocs(docStructure, [
   "//products#table", 
-  "//scs#positions", "//scs#q3cindex", "//scs#pgs-pos-index",
+  "//scs#q3cindex", "//scs#pgs-pos-index",
   "//siap#pgs", 
   "//ssap#mixc", "//ssap#hcd",
   "//ssap#view", "//ssap#plainlocation", "//ssap#simpleCoverage",
@@ -2645,6 +2645,17 @@ An older way to associate datalink services with tables is to give
 certain services (most notably, SSA ones) a ``datalink`` property.  This
 is deprecated now.  If you see it in examples, please tell us so we can
 fix it.
+
+Sometimes it makes sense to directly have datalinks in table columns.
+To help clients notice that that is what they are, declare a target type
+by adding::
+
+  <property name="targetType"
+		>application/x-votable+xml;content=datalink</property>
+	<property name="targetTitle">Datalink</property>
+
+into the element (``column`` or ``outputField``) content.   In VOTables,
+this will be turned into LINK elements.
 
 
 Making Datalinks
