@@ -500,12 +500,22 @@ Here's an example for a simple ImmediateHeaderProcessor::
         after="FILENAME")
       hdr.set("FN-PRE", "%s/jpegs/%s.jpg"%(self.staticBase, baseName),
         after="FN-WEDGE")
+      api.addHistoryCard(hdr,
+        "Adding wedge and jpeg links",
+        "wedge and jpeg")
 
 
   if __name__=="__main__":
       res = api.procmain(LinkAdder, "kapteyn/q", "import")
 
-With HeaderProcessors, you will rather to override the
+The ``addHistoryCard`` funciton here is used to add us to the file's
+provenance.  ``addHistoryCard`` will overwrite an existing history card
+in which its last argument is found.  This is to prevent cruft from
+accumulating when you re-process files.  Since there are no “long”
+history cards with pyfits, you can only have up to 61 characters (72
+minus the datestamp) in such a history entry right now.
+
+With ``HeaderProcessor``-s, you will rather to override the
 ``_isProcessed(srcName) -> boolean`` method and one of
 
 * ``_mungeHeader(srcName, header) -> pyfits hdr`` or
@@ -525,9 +535,9 @@ exception if it cannot generate a header (e.g., missing catalogue entry,
 nonsensical input data).  If you return None from either _mungeHeader or 
 _getHeader, a generic CannotComputeHeader exception will be raised.
 
-Note again that you have to return a *complete* header, i.e., including all
-cards you want to keep from the original header (but see 
-`Header Selection`_).
+Note again that you have to return a *complete* header when you override
+``_getHeader``, i.e., including all cards you want to keep from the
+original header (but see `Header Selection`_).
 
 A somewhat silly example could look like this::
 
@@ -539,6 +549,10 @@ A somewhat silly example could look like this::
 
     def _mungeHeader(self, srcName, hdr):
       hdr.set("NUMPIXELS", hdr["NAXIS1"]*hdr["NAXIS2"])
+      api.addHistoryCard(hdr,
+        "Adding NUMPIXELS header",
+        "NUMPIXELS")
+
       return hdr
 
   if __name__=="__main__":

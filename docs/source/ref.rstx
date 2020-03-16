@@ -16910,9 +16910,8 @@ Defined in //products
 The products table keeps information on "products", i.e. datasets
 delivered to the users.
 
-It is normally fed through the `products#define`_ rowfilter and a
-mixin like `//products#table`_ (or other mixins using it like
-`//siap#pgs`_ or `//ssap#mixc`_).
+It is normally fed through the `//products#define`_ rowfilter
+something like `the //products#table mixin`_ .
 
 /getproducts inspects this table before handing out data to enforce
 embargoes and similar restrictions, and this is also where it figures
