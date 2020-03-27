@@ -221,7 +221,7 @@ dump create
 
 Synopsis::
 
-      dachs dump create [-h] dumpFile ids [ids ...]
+      dachs dump create [options] dumpFile ids [ids ...]
 
 Dump one or more tables to DaCHS' dump format.  When you pass in RD ids,
 all onDisk-tables defined in the RD will be dumped.
@@ -229,9 +229,18 @@ all onDisk-tables defined in the RD will be dumped.
 Positional arguments:
 
 dumpFile 
-  Name of a file to write the dump to; use - to dump to stderr.
+          Name of a file to write the dump to; use - to dump to stderr.
+
 ids 
-  ids of table definitions (as in myres/q#main) or RDs to dump.
+          ids of table definitions (as in myres/q#main) or RDs to dump.
+
+
+Options:
+
+--text
+        write dumps in text format.  You need that when objects in the
+        tables have no binary representation.  At least in 2020, that is
+        true for all pgsphere objects.
 
 
 dump load
@@ -270,7 +279,7 @@ The import SUBCOMMAND
 
 Synopsis::
 
-       import [option] rd-name [data-id] 
+       import [options] rd-name [data-id] 
 
 This subcommand is used to ingest data described by an RD.  For special
 applications, ingestion can be restricted to specific data items within
