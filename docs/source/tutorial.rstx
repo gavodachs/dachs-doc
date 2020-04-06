@@ -12,12 +12,17 @@ GAVO DaCHS Tutorial
   :backlinks: entry
   :class: toc
 
+..
+  
+  Headline sequence: = - '
 
 ..
 
   plan for the rewrite:
 
   High-level overview 
+
+    Invoking DaCHS
 
     What's where I
 
@@ -127,43 +132,38 @@ an challenge for backwards compatiblity.  Since it didn't seem a big
 deal to us, we didn't do it.  Still, apologies for the confusion.
 
 
+High-level overview
+===================
+
 Invoking DaCHS
-==============
+--------------
 
 
 All DaCHS functionality is invoked through a
 program called ``dachs``.  Multiple functions are integrated and selected
-through the first argument; run ``dachs help`` to see what's available;
-realistically, the functions most operators will be confronted with are
-``start``,
-``import``, ``serve``, ``publish``, and ``test``.  Also make sure you at
-least once skim the man page.
+through the first argument; run ``dachs help`` (or, for perhaps less
+cryptic output, ``man dachs``) to see what's available; realistically,
+the functions most operators will be confronted with are ``start``,
+``import``, ``debug``, ``publish``, ``test``, and perhaps adm.
 
-DaCHS has some global options (that go in front of the subcommand name).
-Most subcommands take options and/or arguments, which then have to be
-after the subcommand name.
+DaCHS has some global options (that go in front of the subcommand name),
+which mostly are useful for `Debugging`_.  Most subcommands take options
+and/or arguments, which then have to be after the subcommand name.  If
+you've ever used git: Same deal, except we're aiming for less cryptic
+man pages.
 
-Most of DaCHS's global options have to do with debugging_; it is
-sometimes useful go say::
+For a brief overview what the individual functions are, use the built-in
+help, as in::
 
-  dachs --ui stingy ...
+  $ dachs imp --help
+  Usage: dachs imp [options] <rd-name> {<data-id>}
 
-to reduce the program's chattiness.
+  imports all (or just the selected) data from an RD into the database.
 
-For a brief overview what the individual functions are, see the man
-page or use the built-in help, as in::
-
-  $ dachs limits --help
-  usage: dachs limits [-h] itemId
-
-  Updates existing values min/max items in a referenced table or RD.
-
-  positional arguments:
-    itemId      Cross-RD reference of a table or RD to update, as in ds/q or
-                ds/q#mytable; only RDs in inputsDir can be updated.
-
-  optional arguments:
-    -h, --help  show this help message and exit
+  Options:
+    -h, --help            show this help message and exit
+    -n, --updateRows      Use UPDATE on primary key rather than INSERT with rows
+  [and so on]
 
 
 Building a Catalog Service
