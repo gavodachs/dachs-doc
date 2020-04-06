@@ -43,7 +43,9 @@ GAVO DaCHS Tutorial
     Datalink
 
   Defining your site
-   
+  
+    on-disk layout
+
     Take a lot out of opguide to here
 
     mention root.html dumping
@@ -66,6 +68,10 @@ GAVO DaCHS Tutorial
 
     Restricting access
 
+
+Introduction
+============
+
 This tutorial intends to guide you through ingestion of data and setting
 up of services.  Even if you plan to only publish images or spectra, you
 should work through the first part; it explains a lot about DaCHS'
@@ -73,17 +79,21 @@ central concept, the resource descriptor (RD), recommended directory
 layouts, the basics of metadata and services, and debugging.
 
 
+Notation
+--------
+
+*DaCHS* is the name of the software package (it's an acronym for Data
+Center Helper Suite and happens to mean “Badger” in German).  The unix
+command is called ``dachs``.  The default paths and the python package
+are called ``gavo`` – that's the name of the project within which DaCHS
+was born, and changing these names to dachs afterwards would have been
+an challenge for backwards compatiblity.  Since it didn't seem a big
+deal to us, we didn't do it.  Still apologies for the confusion.
+
 
 Invoking DaCHS
 ==============
 
-**Note**: Before version 1.0 (planned release July 2017), dachs had to
-be called as ``gavo``.  While this will still be possible during the 1.0
-series for DaCHS, we recommend using ``dachs`` as the entry point.  This
-tutorial and other examples are migrating towards the new command name,
-so: If you're running DaCHS <1.0, you'll have to write ``gavo`` when
-there's either “gavo” or “dachs” in DaCHS documentation, newer
-installations should just use ``dachs``.
 
 All DaCHS functionality is invoked through a
 program called ``dachs``.  Multiple functions are integrated and selected
