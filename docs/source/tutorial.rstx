@@ -12,6 +12,60 @@ GAVO DaCHS Tutorial
   :backlinks: entry
   :class: toc
 
+
+..
+
+  plan for the rewrite:
+
+  High-level overview (what's where)
+
+  Quick start 
+
+    but: you have to look at "defining your site" before this becomes
+    publishable
+
+  Publishing data
+
+    Common Metadata
+
+    Testing
+
+    Publishing tables
+
+    Publishing Images
+
+    Publishing spectra and time series
+
+    Publishing anything to obscore
+
+    Publishing anything to epntap
+
+    Datalink
+
+  Defining your site
+   
+    Take a lot out of opguide to here
+
+    mention root.html dumping
+
+  Special Topics (perhaps some ought to go to ref?)
+
+    Times
+
+    Common Grammar types
+
+    On services
+
+      ...over views
+
+    On cores
+
+    Active Tags
+
+    Writing examples
+
+    Restricting access
+
 This tutorial intends to guide you through ingestion of data and setting
 up of services.  Even if you plan to only publish images or spectra, you
 should work through the first part; it explains a lot about DaCHS'
