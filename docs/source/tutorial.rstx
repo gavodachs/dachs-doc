@@ -17,7 +17,11 @@ GAVO DaCHS Tutorial
 
   plan for the rewrite:
 
-  High-level overview (what's where)
+  High-level overview 
+
+    What's where I
+
+    An RD
 
   Quick start 
 
@@ -72,23 +76,37 @@ GAVO DaCHS Tutorial
 Introduction
 ============
 
-This tutorial intends to guide you through ingestion of data and setting
-up of services.  Even if you plan to only publish images or spectra, you
-should work through the first part; it explains a lot about DaCHS'
-central concept, the resource descriptor (RD), recommended directory
-layouts, the basics of metadata and services, and debugging.
+DaCHS is an integrated suite for publishing astronomical data to the
+`Virtual Observatory`_, with support for services operated through web
+browsers, too.  If you are not sure what the Virtual Observatory is:
+Technically, it is a set of APIs and a registry in which these API URLs
+are associated with a bunch of relatively formalised metadata.  What
+that actually means is probably best illustrated by trying some of the
+tutorials involving TOPCAT or Aladin from VOTT_.
+
+The tutorial supplants the DaCHS documentation, in particular the
+`Installation Guide`_, the `Operators's Guide`_, and the `Reference
+Documentation`_.  The goal is that the tutorial provides just enough
+information to let users prublish simple and plain data in the most
+typcial scenarios.  Anything more complicated will probably require
+perusal of the other pieces of documentation.
+
+In order to have some basic understanding of what all this is about, our
+good advice is to linearly read and follow the `high-level overview`_
+and the `quick start`_, as well as `Common metadata`_.  Anything else
+can probably wait until you actually need it.
 
 
 Notation
 --------
 
 *DaCHS* is the name of the software package (it's an acronym for Data
-Center Helper Suite and happens to mean “Badger” in German).  The unix
+Center Helper Suite and happens to mean “badger” in German).  The unix
 command is called ``dachs``.  The default paths and the python package
 are called ``gavo`` – that's the name of the project within which DaCHS
 was born, and changing these names to dachs afterwards would have been
 an challenge for backwards compatiblity.  Since it didn't seem a big
-deal to us, we didn't do it.  Still apologies for the confusion.
+deal to us, we didn't do it.  Still, apologies for the confusion.
 
 
 Invoking DaCHS
@@ -4777,55 +4795,57 @@ embargo period is over.  What you give as ``owner`` is a group name; if
 someone can authenticate as the member of a group, she can access the
 data – see above for details on how to create users and groups.
 
-.. _reGrammar: http://docs.g-vo.org/DaCHS/ref.html#element-regrammar
-.. _var: http://docs.g-vo.org/DaCHS/ref.html#element-var
-.. _map: http://docs.g-vo.org/DaCHS/ref.html#element-map
-.. _apply: http://docs.g-vo.org/DaCHS/ref.html#element-apply
-.. _sources: http://docs.g-vo.org/DaCHS/ref.html#element-sources
-.. _make: http://docs.g-vo.org/DaCHS/ref.html#element-make
-.. _dispatching grammars: http://docs.g-vo.org/DaCHS/ref.html#dispatching-grammars
-.. _grammars available: http://docs.g-vo.org/DaCHS/ref.html#grammars-available
-.. _chapter on scripting in the reference: http://docs.g-vo.org/DaCHS/ref.html#scripting
-.. _rowmaker functions: http://docs.g-vo.org/DaCHS/ref.html#functions-available-for-row-makers
-.. _DaCHS' public mixins: http://docs.g-vo.org/DaCHS/ref.html#mixins
-.. _index: http://docs.g-vo.org/DaCHS/ref.html#element-index
-.. _reference documentation: http://docs.g-vo.org/DaCHS/ref.html
-.. _renderer chapter: http://docs.g-vo.org/DaCHS/ref.html#renderers-available
-.. _dbCore: http://docs.g-vo.org/DaCHS/ref.html#element-dbcore
-.. _cores available: http://docs.g-vo.org/DaCHS/ref.html#cores-available
-.. _write your own core: http://docs.g-vo.org/DaCHS/ref.html#writing-custom-cores
-.. _scs.xml: http://docs.g-vo.org/DaCHS/ref.html#the-scs-xml-renderer
-.. _ESAVO registry: http://esavo.esa.int/registry/index.jsp
-.. _VAO registry: http://nvo.stsci.edu/vor10/index.aspx
-.. _IVOA identifiers: http://www.ivoa.net/documents/IVOAIdentifiers/20150709/index.html
-.. _RofR: http://rofr.ivoa.net/
-.. _OAI-PMH: http://www.openarchives.org/OAI/openarchivesprotocol.html
-.. _operator's guide: http://docs.g-vo.org/DaCHS/opguide.html
-.. _registry section in the operator's guide: opguide.html#registry-matters
-.. _Resource Metadata for the Virtual Observatory: http://www.ivoa.net/Documents/latest/RM.html
-.. _products#define: ref.html#products-define
-.. _procs#mapValue: ref.html#procs-mapvalue
-.. _ssap#setMeta: ref.html#ssap-setmeta
-.. _fancyQueryCore: ref.html#element-fancyquerycore
-.. _customization info in the operators' guide: http://docs.g-vo.org/opguide.html#adapting-dachs-for-your-site
-.. _RMI-Style Metadata in the reference: http://docs.g-vo.org/DaCHS/ref.html#rmi-style-metadata
-.. _reStructuredText: http://docutils.sourceforge.net/rst.html
-.. _vounits: http://www.ivoa.net/documents/VOUnits/index.html
-.. _topcat: http://www.star.bris.ac.uk/~mbt/topcat/
-.. _gavo's adql short course: http://www.g-vo.org/adql
-.. _gavo ucd resolver: http://dc.g-vo.org/ucds/ui/ui/form
-.. _hints on common problems: http://docs.g-vo.org/commonproblems.html
-.. _stc-s definition: http://www.ivoa.net/Documents/Notes/STC-S/STC-S-20090527.html
-.. _RD element reference: http://docs.g-vo.org/DaCHS/elemref.html
-.. _aladin: http://aladin.u-strasbg.fr/aladin.gml
-.. _splat: http://star-www.dur.ac.uk/~pdraper/splat/splat-vo
-.. _PyPDS: https://github.com/RyanBalfanz/PyPDS
-.. _//epntap2#table-2_0: http://docs.g-vo.org/DaCHS/ref.html#the-epntap2-table-2-0-mixin
 .. _//epntap2#populate-2_0: http://docs.g-vo.org/DaCHS/ref.html#epntap2-populate-2-0
+.. _//epntap2#table-2_0: http://docs.g-vo.org/DaCHS/ref.html#the-epntap2-table-2-0-mixin
+.. _DaCHS' public mixins: http://docs.g-vo.org/DaCHS/ref.html#mixins
 .. _EPN-TAP proposed specification: https://voparis-confluence.obspm.fr/display/VES/EPN-TAP+v2+parameter+description
+.. _ESAVO registry: http://esavo.esa.int/registry/index.jsp
+.. _IVOA identifiers: http://www.ivoa.net/documents/IVOAIdentifiers/20150709/index.html
 .. _Mapping data: http://docs.g-vo.org/DaCHS/tutorial.html#mapping-data
-.. _pgsphere: http://pgsphere.projects.pgfoundry.org/
+.. _OAI-PMH: http://www.openarchives.org/OAI/openarchivesprotocol.html
+.. _PyPDS: https://github.com/RyanBalfanz/PyPDS
+.. _RD element reference: http://docs.g-vo.org/DaCHS/elemref.html
+.. _RMI-Style Metadata in the reference: http://docs.g-vo.org/DaCHS/ref.html#rmi-style-metadata
+.. _Resource Metadata for the Virtual Observatory: http://www.ivoa.net/Documents/latest/RM.html
+.. _RofR: http://rofr.ivoa.net/
+.. _VAO registry: http://nvo.stsci.edu/vor10/index.aspx
+.. _Virtual Observatory: http://ivoa.net
+.. _VOTT: http://dc.g-vo.org/VOTT
+.. _aladin: http://aladin.u-strasbg.fr/aladin.gml
+.. _apply: http://docs.g-vo.org/DaCHS/ref.html#element-apply
 .. _authority query: http://dc.g-vo.org/WIRR/?field0=ivorn&operator0=%3D&operand0=your.authority.here&MAXREC=20&OFFSET=0
+.. _chapter on scripting in the reference: http://docs.g-vo.org/DaCHS/ref.html#scripting
+.. _cores available: http://docs.g-vo.org/DaCHS/ref.html#cores-available
+.. _customization info in the operators' guide: http://docs.g-vo.org/opguide.html#adapting-dachs-for-your-site
+.. _dbCore: http://docs.g-vo.org/DaCHS/ref.html#element-dbcore
+.. _dispatching grammars: http://docs.g-vo.org/DaCHS/ref.html#dispatching-grammars
+.. _fancyQueryCore: ref.html#element-fancyquerycore
+.. _gavo ucd resolver: http://dc.g-vo.org/ucds/ui/ui/form
+.. _gavo's adql short course: http://www.g-vo.org/adql
+.. _grammars available: http://docs.g-vo.org/DaCHS/ref.html#grammars-available
+.. _hints on common problems: http://docs.g-vo.org/commonproblems.html
+.. _index: http://docs.g-vo.org/DaCHS/ref.html#element-index
+.. _make: http://docs.g-vo.org/DaCHS/ref.html#element-make
+.. _map: http://docs.g-vo.org/DaCHS/ref.html#element-map
+.. _operator's guide: http://docs.g-vo.org/DaCHS/opguide.html
+.. _pgsphere: http://pgsphere.projects.pgfoundry.org/
+.. _procs#mapValue: ref.html#procs-mapvalue
+.. _products#define: ref.html#products-define
+.. _reGrammar: http://docs.g-vo.org/DaCHS/ref.html#element-regrammar
+.. _reStructuredText: http://docutils.sourceforge.net/rst.html
+.. _reference documentation: http://docs.g-vo.org/DaCHS/ref.html
+.. _registry section in the operator's guide: opguide.html#registry-matters
+.. _renderer chapter: http://docs.g-vo.org/DaCHS/ref.html#renderers-available
+.. _rowmaker functions: http://docs.g-vo.org/DaCHS/ref.html#functions-available-for-row-makers
+.. _scs.xml: http://docs.g-vo.org/DaCHS/ref.html#the-scs-xml-renderer
+.. _sources: http://docs.g-vo.org/DaCHS/ref.html#element-sources
+.. _splat: http://star-www.dur.ac.uk/~pdraper/splat/splat-vo
+.. _ssap#setMeta: ref.html#ssap-setmeta
+.. _stc-s definition: http://www.ivoa.net/Documents/Notes/STC-S/STC-S-20090527.html
+.. _topcat: http://www.star.bris.ac.uk/~mbt/topcat/
+.. _var: http://docs.g-vo.org/DaCHS/ref.html#element-var
+.. _vounits: http://www.ivoa.net/documents/VOUnits/index.html
+.. _write your own core: http://docs.g-vo.org/DaCHS/ref.html#writing-custom-cores
 
 .. [#binding] This assumes you're doing this on your local machine (which
    were recommend to get started.  If you do this on a remote machine,
