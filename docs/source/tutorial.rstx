@@ -96,6 +96,24 @@ good advice is to linearly read and follow the `high-level overview`_
 and the `quick start`_, as well as `Common metadata`_.  Anything else
 can probably wait until you actually need it.
 
+Installation
+------------
+
+Unless you are sure you know what you are doing, to install DaCHS, get a
+machine running Debian stable and type::
+
+  apt install gavodachs-server
+
+At least as of Debian buster, you still have to ``manually add our
+repository`_.
+
+DaCHS can be installed and run in many other ways, as detailed in the
+`Installation Guide`_.  But since it involves communication with a
+database server and the network, it is certainly a good idea to start
+out with a simple, one-server communication on a platform that many
+other use and that therefore has a rather low likeihood of odd
+surprises.
+
 
 Notation
 --------
@@ -4825,7 +4843,9 @@ data – see above for details on how to create users and groups.
 .. _grammars available: http://docs.g-vo.org/DaCHS/ref.html#grammars-available
 .. _hints on common problems: http://docs.g-vo.org/commonproblems.html
 .. _index: http://docs.g-vo.org/DaCHS/ref.html#element-index
+.. _installation guide: http://docs.g-vo.org/DaCHS/install.html
 .. _make: http://docs.g-vo.org/DaCHS/ref.html#element-make
+.. _manually add our repository: http://soft.g-vo.org/repo
 .. _map: http://docs.g-vo.org/DaCHS/ref.html#element-map
 .. _operator's guide: http://docs.g-vo.org/DaCHS/opguide.html
 .. _pgsphere: http://pgsphere.projects.pgfoundry.org/
