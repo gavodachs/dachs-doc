@@ -59,6 +59,8 @@ GAVO DaCHS Tutorial
 
     mention root.html dumping
 
+    logging
+
   Special Topics (perhaps some ought to go to ref?)
 
     Times
@@ -164,6 +166,53 @@ help, as in::
     -h, --help            show this help message and exit
     -n, --updateRows      Use UPDATE on primary key rather than INSERT with rows
   [and so on]
+
+
+DaCHS on Disk
+-------------
+
+In the default configuration, almost everything DaCHS is concerned with
+is below its ``rootDir``, which by default is ``/var/gavo``.  There are
+three exceptions to this rule:
+
+* ``/etc/gavo.rc`` -- global, ini-style configuration,
+* ``~/.gavorc`` -- per-user, ini-style configuration (you probably only
+  want this on development machines),
+* and of course anything DaCHS has put into the database.
+
+To change ``rootDir`` (or any of the other directory-like locations),
+change the corresponding parameter in the general section of
+``/etc/gavo.rc`` (creating it if ncessary), perhaps (see the `operator's
+guide`_ for a list directories DaCHS deals with):
+
+  [general]
+  rootDir: /srv/dachs
+  inputsDir: /home/dachsroot/inputs
+
+The ``inputsDir`` set here, defaulting to ``/var/gavo/inputs``, is where
+most of a DaCHS operator's work is done.  It is where the services are
+configured, where metadata and tabular data is fed from into the
+database, and where bulk data is served from.
+
+Three of the other directories in there are relevant for the casual
+user:
+
+* ``/var/gavo/etc`` contains various extra configuration like some
+  default metadata, the database access profiles (which is nontrivial in
+  DaCHS because of privilege control), and `the userconfig resource
+  descriptor`_.
+* ``/var/gavo/logs`` contains access, error, and info logs.  In
+  particular, dcErrors and dcInfos deserve a look whenever DaCHS splits
+  out errors; in particular when you called ``dachs`` with the
+  ``--debug`` global flag, it will dump tracebacks there that aren't
+  visible in the main output.
+* ``/var/gavo/web`` a subdirectory ``nv_static`` in which you can dump
+  files that then become visible at ``<serverurl>/static``; this also
+  lets you override distributed files (like the logo) you want to
+  replace with customised versions.  There is also templates, where you
+  can put HTML templates of override distributed ones.  One template you
+  will quite certainly want to override is root.html as discussed in
+  `Definiting Your Site`_.
 
 
 Building a Catalog Service
