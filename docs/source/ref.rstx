@@ -422,6 +422,11 @@ data for the "current data" (i.e., what's last been set using n:data).
 In ctx, only use ctx.tag (the tag on which the n:render attribute
 sits) and, if necessary ctx.request (the t.w request object).
 
+Also, the active renderer is visible as self; the one thing you
+might want to see from there is self.queryMeta, which contains,
+for instance, the input parameters.
+
+
 You can access the embedding service as service, the embedding
 RD as service.rd.
 
@@ -467,6 +472,10 @@ In the render functions, you have the names ctx for a context and
 data for the "current data" (i.e., what's last been set using n:data).
 In ctx, only use ctx.tag (the tag on which the n:render attribute
 sits) and, if necessary ctx.request (the t.w request object).
+
+Also, the active renderer is visible as self; the one thing you
+might want to see from there is self.queryMeta, which contains,
+for instance, the input parameters.
 
 You can return anything that can be in a stan DOM.  Usually, this will be
 a string.  To return HTML, use the stan DOM available under the T namespace.
@@ -1500,7 +1509,7 @@ Atomic Children
   contributing to a published view.  Warning: adql=hidden is
   incompatible with setting readProfiles manually.
 * **allProfiles** (Comma separated list of profile names.; defaults to
-  'admin, msdemlei') -- A (comma separated) list of profile names
+  'msdemlei, admin') -- A (comma separated) list of profile names
   through which the object can be written or administred (oh, and the
   default is not admin, msdemlei but is the value of [db]maintainers)
 * **autoCols** (Comma-separated list of strings; defaults to '') --
@@ -1508,13 +1517,17 @@ Atomic Children
   into the output table's parent table (in a table core, that's the
   queried table; in a service, it's the core's output table) here.
 * **dupePolicy** (One of: check, drop, dropOld, overwrite; defaults to
-  'check') -- Handle duplicate rows with identical primary keys
-  manually by raising an error if existing and new rows are not
-  identical (check), dropping the new one (drop), updating the old one
+  None) -- Handle duplicate rows with identical primary keys manually
+  by raising an error if existing and new rows are not identical
+  (check), dropping the new one (drop), updating the old one
   (overwrite), or dropping the old one and inserting the new one
-  (dropOld)?
-* **forceUnique** (boolean; defaults to 'False') -- Enforce dupe
-  policy for primary key (see dupePolicy)?
+  (dropOld)?  Note that if you change this, you will have to re-create
+  the table to make it take effect.  The default is to have no special
+  handling (which, if a primary key is there at all, is like check,
+  except an error will be raised even if new and old row are
+  identical).
+* **forceUnique** (boolean; defaults to 'False') -- Ignored legacy
+  attribute.
 * A mixin reference, typically to support certain protocol.  See
   Mixins_.
 * **namePath** (id reference; defaults to None) -- Reference to an
@@ -2129,7 +2142,7 @@ Atomic Children
 ...............
 
 * **allProfiles** (Comma separated list of profile names.; defaults to
-  'admin, msdemlei') -- A (comma separated) list of profile names
+  'msdemlei, admin') -- A (comma separated) list of profile names
   through which the object can be written or administred (oh, and the
   default is not admin, msdemlei but is the value of [db]maintainers)
 * **readProfiles** (Comma separated list of profile names.; defaults
@@ -2530,17 +2543,21 @@ Atomic Children
   contributing to a published view.  Warning: adql=hidden is
   incompatible with setting readProfiles manually.
 * **allProfiles** (Comma separated list of profile names.; defaults to
-  'admin, msdemlei') -- A (comma separated) list of profile names
+  'msdemlei, admin') -- A (comma separated) list of profile names
   through which the object can be written or administred (oh, and the
   default is not admin, msdemlei but is the value of [db]maintainers)
 * **dupePolicy** (One of: check, drop, dropOld, overwrite; defaults to
-  'check') -- Handle duplicate rows with identical primary keys
-  manually by raising an error if existing and new rows are not
-  identical (check), dropping the new one (drop), updating the old one
+  None) -- Handle duplicate rows with identical primary keys manually
+  by raising an error if existing and new rows are not identical
+  (check), dropping the new one (drop), updating the old one
   (overwrite), or dropping the old one and inserting the new one
-  (dropOld)?
-* **forceUnique** (boolean; defaults to 'False') -- Enforce dupe
-  policy for primary key (see dupePolicy)?
+  (dropOld)?  Note that if you change this, you will have to re-create
+  the table to make it take effect.  The default is to have no special
+  handling (which, if a primary key is there at all, is like check,
+  except an error will be raised even if new and old row are
+  identical).
+* **forceUnique** (boolean; defaults to 'False') -- Ignored legacy
+  attribute.
 * A mixin reference, typically to support certain protocol.  See
   Mixins_.
 * **namePath** (id reference; defaults to None) -- Reference to an
@@ -5079,13 +5096,14 @@ more helpful to client components to handle such situations by
 yielding a DatalinkFault.NotFoundFault.
 
 In addition to the usual names available to ProcApps, meta makers have:
-  - MS -- function to make DaCHS structures
-  - InputKey -- the class to make for input parameters
-  - Values -- the class to make for input parameters' values attributes
-  - Options -- used by Values
-  - LinkDef -- a class to define further links within datalink services.
-  - DatalinkFault -- a container of datalink error generators
-  - soda -- the soda module.
+
+- MS -- function to make DaCHS structures
+- InputKey -- the class to make for input parameters
+- Values -- the class to make for input parameters' values attributes
+- Options -- used by Values
+- LinkDef -- a class to define further links within datalink services.
+- DatalinkFault -- a container of datalink error generators
+- soda -- the soda module.
 
 May occur in `Element datalinkCore`_.
 
@@ -5108,6 +5126,12 @@ Atomic Children
   method.  The general rules for advanced referencing in RDs apply.
 * **procDef** (id reference; defaults to <Not given/empty>) --
   Reference to the procedure definition to apply
+* **semantics** (unicode string; defaults to
+  'http://dc.g-vo.org/datalink#other') -- For link-generating
+  metaMakers, the semantics makeLink or makeLinkFromFile will use
+  unless given something else.  This is also what will be used if the
+  meta maker exceptions out.  Note that the default is not good and is
+  only set for backwards compatibility.  You should override this.
 * **type** (One of: apply, dataFormatter, dataFunction,
   descriptorGenerator, iterator, metaMaker, mixinProc, pargetter,
   phraseMaker, regTest, rowfilter, sourceFields, t_t; defaults to
@@ -10465,7 +10489,7 @@ semicolons, and for each substring a creator item with the respective
 name is generated.  This may sound complicated but really does about
 what your would expect when you write::
 
-  <meta name="creator">Last, J; First, B; Middle, I.</meta>
+  <meta name="creator">Last, J.; First, B.; Middle, I.</meta>
 
 
 Metadata in Standard Renderers
@@ -11483,7 +11507,7 @@ follow that rule because it wants to expand VizieR expressions, which
 normal services probably won't do.
 
 DaCHS expects the custom core under the name ``Core``.  Thus, the
-centerpiece of the module is:
+centerpiece of the module is::
 
   from gavo import api
 
@@ -12494,7 +12518,7 @@ Here is an example, adapted from :samplerd:`boydende/q.rd`::
 
     <datalinkCore>
       <descriptorGenerator procDef="//soda#fits_genDesc"/>
-      <metaMaker>
+      <metaMaker semantics="#isMetadataFor">
         <code>
           svc = rd.getById("dl")
           basename = descriptor.accref.split("/")[-1].split(".")[0]
@@ -12502,8 +12526,7 @@ Here is an example, adapted from :samplerd:`boydende/q.rd`::
 
           yield descriptor.makeLinkFromFile(
             envPath,
-            description="Scan of the plate envelope",
-            semantics="#isMetadataFor")
+            description="Scan of the plate envelope")
         </code>
       </metaMaker>
     </datalinkCore>
@@ -12528,15 +12551,22 @@ must ``yield`` ``LinkDef`` instances that describe additional data
 products; a single meta maker may yield zero or more of these.  An
 example where multiple ``LinkDef`` instances are yielded from a single
 ``metaMaker``  can be found in the ``dl`` service of
-:samplerd:`cars/q`.
+:samplerd:`cars/q`.  
+
+Meta makers returning links must have a ``semantics`` attribute giving
+the semantics of links they return (this is a lie, but it's a
+benevolent one).  Take the value for that attribute from the controlled
+vocabulary at http://www.ivoa.net/rdf/datalink/core (and complain to
+the semantics working group if you can't find an appropriate term in
+there).  In a pinch, you can pass a semantics argument to ``makeLink``,
+but, really, a single meta maker should only return links with identical
+semantics.
 
 When the links, as is quite common, correspond to simple files, the
 easiest way to generate them is through the descriptor's
-``makeLinkFromFile`` method, that takes the source path, a description,
-and semantics (which should be taken from a controlled vocabulary at
-http://www.ivoa.net/rdf/datalink/core).  
-File size and media type type, which otherwise should be given
-when constructing a ``LinkDef``, then default to what's inferrable from
+``makeLinkFromFile`` method.  That takes the source path and a description,
+with file size and media type type, which otherwise should be given
+when constructing a ``LinkDef``, defaulting to what's inferrable from
 the file (name).
 
 ``makeLinkFromFile`` will create ``NotFoundFault`` error links if the
@@ -12545,7 +12575,9 @@ expected file was not there.  When missing files are expectable and
 should not cause diagnostics, pass a ``suppressMissing=True`` to
 ``makeLinkFromFile``.
 
-Another recommended pattern is used in the example: the datalink service
+To make this work, DaCHS will have to know how the file can be accessed
+from the web to be able to produce the link.  The recommended pattern is
+shown in the example: the datalink service
 itself is used to deliver the static, non-product files.  This is
 effected by declaring the service embedding the core somewhat like
 this::
@@ -12956,7 +12988,9 @@ description
   A human-readable short information on what's behind the link
 semantics
   A term from a controlled-vocabulary describing what's behind the link
-  (see below)
+  (see below); you will usually define this in the semantics attribute
+  on the meta maker itself, as it should be constant for all links
+  produced by a single meta maker.
 contentType
   An (advisory) media type of whatever this link points to.  Please make
   sure it's consistent with what the server actually returns if the
@@ -12968,12 +13002,7 @@ contentLength
 ``makeLinkFromFile`` additionally allows an argument service (see below).
 
 With the exception of semantics, all auxillary data defaults to None if
-not given, and it's legal to leave it at that.  Semantics must be
-non-NULL, even if an error message is generated.  To make sure that's
-true, DaCHS inserts a non-informational URL, which preferentially
-shouldn't escape to the user.  Hence, please set semantics on LinkDefs,
-and if possible choose one of the terms given at 
-http://www.ivoa.net/rdf/datalink/core
+not given, and it's legal to leave it at that.
 
 You can inspect the definition of the datalinks table active in your
 system by saying ``dachs admin dumpDF //datalink | less``
@@ -12984,15 +13013,18 @@ with the URLs.  Use the ``makeAbsoluteURL`` rowmaker function to make
 them from relative URLs; the rest just depends on your URL scheme.  An
 example could look like this::
 
-  <metaMaker>
+  <metaMaker semantics="#error">
     <code>
       yield descriptor.makeLink(
         makeAbsoluteURL("get/"+descriptor.accref[:-5]+".err.fits"),
-        contentType="image/fits", semantics="#error",
+        contentType="image/fits",
         description="Errors for this dataset")
+    </code>
+  <metaMaker semantics="#progenitor">
+    <code>
       yield descriptor.makeLink(
         "http://foo.bar/raw/"+descriptor.accref.split("/")[-1],
-        contentType="image/fits", semantics="#progenitor",
+        contentType="image/fits",
         description="Un-flatfielded, uncalibrated source data")
     </code>
   </metaMaker>
@@ -15649,6 +15681,29 @@ or repr(object).
 encoding defaults to sys.getdefaultencoding().
 errors defaults to 'strict'.
 
+Function addHistoryCard
+.......................
+
+Signature: ``addHistoryCard(header, entry, recognizer)``
+
+adds a history card to header, overwriting a previous version if
+it's present.
+
+This will reject entries longer than 72 characters, as these would
+create cruft on overwriting.  Since we always prepend today's date to entry,
+the net payload size is 61 characters.
+
+regcognizer is a string that is searched within the history string.  If
+it is found, entry is put into the card.  If none such card is found,
+a new history card is written.
+
+This is mainly for processors; in particular during development,
+but quite likely also when reprocessing, you don't want extra
+history entries each time the processor runs (yeah, there are
+situations when you *would* want to know about reprocessing, but
+weight these against the horrible cruft, I know what I want.
+
+
 Function bYearToDateTime
 ........................
 
@@ -15686,7 +15741,7 @@ datetime.datetime(2000, 10, 12, 12, 0)
 Function createDump
 ...................
 
-Signature: ``createDump(tableIds, destFile)``
+Signature: ``createDump(tableIds, destFile, binary=True)``
 
 writes a DaCHS dump of tableIds to destFile.
 
@@ -16073,6 +16128,16 @@ this module already has getRDs and similar, so it seemed the least
 unnatural place.
 
 
+Function getTemplateForName
+...........................
+
+Signature: ``getTemplateForName(templateName)``
+
+returns the FITS template sequence for templateName.
+
+A NotFoundError is raised if no such template exists.
+
+
 Function getWCSAxis
 ...................
 
@@ -16265,6 +16330,28 @@ Function makeDependentsFor
 Signature: ``makeDependentsFor(dds, parseOptions, connection, sysCatChanged)``
 
 rebuilds all data dependent on one of the DDs in the dds sequence.
+
+
+Function makeHeaderFromTemplate
+...............................
+
+Signature: ``makeHeaderFromTemplate(template, originalHeader=None, **values)``
+
+returns a new pyfits.Header from template with values filled in.
+
+template usually is the name of a template previously registered with
+registerTemplate, or one of DaCHS predefined template names (currently,
+minimal and wfpdb).  In a pinch, you can also pass in an immediate 
+headers.
+
+originalHeader can be a pre-existing header; the history and comment
+cards are copied over from it, and if any of its other cards have not
+yet been added to the header, they will be added in the order that they 
+apprear there.
+
+values for which no template item is given are added in random order
+after the template unless an originalHeader is passed.  In that case,
+they are assumed to originate there and are ignored.
 
 
 Function makeProductLink
@@ -16723,6 +16810,24 @@ is the central event dispatcher.
 
 Events are posted by using notify* methods.  Various handlers can
 then attach to them.
+
+
+Function updateTemplatedHeader
+..............................
+
+Signature: ``updateTemplatedHeader(hdr, templateName=None, **kwargs)``
+
+return hdr updated with kwargs.
+
+hdr is assumed to have been created with makeHeaderFromTemplate
+and contain the template name in a history entry.  
+
+You can pass in templateName to keep DaCHS from trying to get things
+from the header.
+
+[It is probably better to use makeHeaderFromTemplate directly, passing
+in the orginalHeader; that preserves the order of non-templated
+headers].
 
 
 Function writeAsVOTable

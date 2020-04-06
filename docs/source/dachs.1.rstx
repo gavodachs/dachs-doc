@@ -197,7 +197,7 @@ Synopsis::
 This is an interface to dumping database tables and inspecting and
 restoring the generated dumps.
 
-This is mainly intended for small- to medium tables that are just kept
+This is mainly intended for small to medium tables that are just kept
 in the database, e.g., DaCHS' administrative tables and the like.  For
 normal user tables, built from science data, doing re-imports is the
 recommended way to deal with data loss.
@@ -208,10 +208,16 @@ the individual dumps are kept in memory during creation (but not during
 loading).
 
 Before loading, the target tables are dropped if they are already
-present; not that this will also drop any views they might be part of.
-After loading, indices and primary keys on the restored tables will be
+present; note that this will also drop any views they might be part of,
+as well as any rows that have foreign keys on this table.  After
+loading, indices and primary keys on the restored tables will be
 recreated, but no scripts or similar are run.  Hence, you will have to
-manually re-create any dependent resources after a restore.
+manually re-create any dependent resources after a restore.  
+
+This also means that, for example, restoring a table with products
+without also restoring //products#products will lose the products that
+previously were in the restored table from the products table.
+
 
 Subsubcommands
 --------------
