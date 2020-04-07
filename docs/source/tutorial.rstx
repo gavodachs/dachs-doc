@@ -12,13 +12,11 @@ GAVO DaCHS Tutorial
   :backlinks: entry
   :class: toc
 
-..
+.. Headline sequence
   
-  Headline sequence: = - '
+  = - '
 
-..
-
-  plan for the rewrite:
+.. plan for the rewrite:
 
   High-level overview 
 
@@ -92,7 +90,7 @@ that actually means is probably best illustrated by trying some of the
 tutorials involving TOPCAT or Aladin from VOTT_.
 
 The tutorial supplants the DaCHS documentation, in particular the
-`Installation Guide`_, the `Operators's Guide`_, and the `Reference
+`Installation Guide`_, the `Operator's Guide`_, and the `Reference
 Documentation`_.  The goal is that the tutorial provides just enough
 information to let users prublish simple and plain data in the most
 typcial scenarios.  Anything more complicated will probably require
@@ -100,25 +98,25 @@ perusal of the other pieces of documentation.
 
 In order to have some basic understanding of what all this is about, our
 good advice is to linearly read and follow the `high-level overview`_
-and the `quick start`_, as well as `Common metadata`_.  Anything else
-can probably wait until you actually need it.
+and the `quick start with DaCHS`_, as well as `Common metadata`_.
+Anything else can probably wait until you actually need it.
 
 Installation
 ------------
 
-Unless you are sure you know what you are doing, to install DaCHS, get a
-machine running Debian stable and type::
+Unless you have truly overriding reasons to try something else, to try
+out and learn DaCHS, get a machine running Debian stable and type::
 
   apt install gavodachs-server
 
-At least as of Debian buster, you still have to ``manually add our
+At least as of Debian buster, you still have to `manually add our
 repository`_.
 
 DaCHS can be installed and run in many other ways, as detailed in the
-`Installation Guide`_.  But since it involves communication with a
+`Installation Guide`_.  But since DaCHS involves communication with a
 database server and the network, it is certainly a good idea to start
 out with a simple, one-server communication on a platform that many
-other use and that therefore has a rather low likeihood of odd
+others use and that therefore has a rather low likeihood of odd
 surprises.
 
 
@@ -127,11 +125,17 @@ Notation
 
 *DaCHS* is the name of the software package (it's an acronym for Data
 Center Helper Suite and happens to mean “badger” in German).  The unix
-command is called ``dachs``.  The default paths and the python package
-are called ``gavo`` – that's the name of the project within which DaCHS
+command is called ``dachs``.  The default paths, the python package,
+and the default database are called ``gavo`` (though you could configure
+it differently if you wanted) – that's the name of the project within 
+which DaCHS
 was born, and changing these names to dachs afterwards would have been
 an challenge for backwards compatiblity.  Since it didn't seem a big
 deal to us, we didn't do it.  Still, apologies for the confusion.
+
+In the following, we call people running DaCHS *operators* (so, if
+you're reading this, that's you), people consuming your services
+*users*.
 
 
 High-level overview
@@ -215,187 +219,51 @@ user:
   `Definiting Your Site`_.
 
 
-Building a Catalog Service
-==========================
+The Resource Descriptor
+-----------------------
 
-Quick start
------------
+When publishing data, what you do in DaCHS is write a resource
+descriptor.  That's a piece of XML (the serious ones at the GAVO data
+center are between 100 and 2000 lines containing almost all you (and
+DaCHS) need to know about a service.  This is by design: DaCHS tries to
+avoid spreading information on a single resource over multiple files
+(and I wish I had been similarly strict with DaCHS' configuration info).
+There are exceptions (e.g., C-language boosters, custom grammars and
+pages, etc.), but for publishing of well-behaved data operators should
+not need those: Essentially, a service is the upstream data plus the RD.
 
-To do anything useful with DaCHS, you will have to write a resource
-descriptor (RD), and you'll probably have to have some data.  Both must
-reside within some subdirectory of DaCHS' input directory (unless you
-configured otherwise, that's /var/gavo/inputs; we assume that in the
-following).
+This section will introduce an example RD for a simple service (we will
+use it in the `Quick Start with DaCHS`_) publishing a simple
+astrometrical catalogue.  To follow the exposition below, have a look at
+the XML by by fetching
+http://svn.ari.uni-heidelberg.de/svn/gavo/hdinputs/arihip/q.rd (use
+HTTP, not HTTPS, as the latter requires authentication) and opening the
+resulting file q.rd in a text editor.
 
-Since both astronomical data and VO services tend to be complex, you can
-do a lot of things in an RD.  However, the publication of a certain
-data type (e.g., catalogue, spectra or image collection) often follows a
-pattern.  DaCHS comes with a library of such patterns, and when starting
-a service, you will usually do something like::
+This file comes from the colleciton of RDs active at GAVO's Heidelberg
+Data Center (https://dc.g-vo.org), which you can inspect at
+http://svn.ari.uni-heidelberg.de/svn/gavo/hdinputs – in particular,
+you're welcome to copy as much as you want.  To locate examples for
+concrete elements, meta items, and such, have a look at our `RD element
+reference`_ for these.
 
-  cd /var/gavo/inputs
-  mkdir <collection-name>
-  cd <collection-name>
-  dachs start <data-type-tag>
+Our example RD starts out with...
 
-To see something quickly, however, we will look at an existing data set
-first, a catalog called ARIHIP catalog – this is a
-re-reduction of the Hipparcos result catalog
-with particularly careful solutions for proper
-motion.  It has a column-based input and probably a few more columns
-than your average catalog these days.  It hence is simple in principle
-but let us demonstrate a few advanced concepts, too.
+Global Metadata
+'''''''''''''''
 
-You can run the following under any user id, as long as
-you wisely manage the permissions.  For testing, however, we recommend
-doing it as the data center administrative account (for the Debian
-package, that's gavoadmin, if you did the setup manually, it's whatever
-user did the ``dachs init``).
-
-To get a quick start, just pull in the RD in use by GAVO's data center::
-
-  cd /var/gavo/inputs
-  mkdir arihip
-  cd arihip
-  curl -O http://svn.ari.uni-heidelberg.de/svn/gavo/hdinputs/arihip/q.rd
-
-The directory name ("arihip" in this case) will (normally) appear in
-URLs, so it's a good idea to choose something descriptive and short.
-The directory created here is ususally called the resource directory in
-DaCHS lingo.
-
-The resource descriptor name also appears in URLs.  At GAVO's data
-center, we usually call it ``q.rd`` as that looks nicely query-ish (to
-our tastes).
-
-Next, get the raw data.  We recommend keeping data in a subdirectory of
-resource directory (and suggest to call that subdirectory ``data``).  At
-the GAVO DC we usually keep everything in the resource directory under
-version control except for that data directory (which tends to be large,
-full of binary files, and either versioned by upstream or not at all)::
-
-  mkdir data
-  cd data
-  curl -O http://dc.g-vo.org/arihip/q/cone/static/data.txt.gz
-
-At this point, we're ready for ingestion.  All commands to DaCHS go
-through the ``dachs`` program that has several sub-commands; in this
-case, we need the ``import`` sub-command.  The sub-commands can be
-abbreviated as long as the abbreviation is unambiguous::
-
-  cd ..
-  dachs imp q
-
-This should run for a while, reporting the number of ingested rows now
-and then, and finally say something like "Rows affected: XY".  With this,
-the data is in the database and is ready for querying.
-
-Let us mention in passing that ``dachs imp`` tries to interpret its first
-argument first as a file system path.  If that fails, it tries to
-interpret it as an RD identifier, i.e., the inputsDir-relative path of
-the RD with the extension stripped.  Our example RD thus has the RD id
-*arihip/q*, and you could have said::
-
-  dachs imp arihip/q
-
-from anywhere in the file system.
-
-After you have imported a table, it is a good idea to run ``dachs info``
-with the DaCHS identifier of the freshly imported table, e.g.,::
-
-  dachs info arihip/q#main
-
-The DaCHS identifier of the table consists of the RD id as introduced
-above, the hash (inspired by the URL fragment identifier), and the id of
-the table.
-
-This will output several properties (min, max, avg) of numeric columns
-that may help spot import errors.  Also note that for each column, the
-presence of NULLs is given.  When you import data, it is a good idea to
-check whether these correspond to your expectations, and to consider
-declaring columns as required when they do not indeed contain NULLs.
-
-Now start the server; if you installed from the Debian package, it is
-already running; stop it first for this tutorial::
-
-  sudo service dachs stop  # only if installed from package
-  dachs serve debug
-
-(if the last command fails with permission problems, add yourself to the
-gavo group, say ``newgrp gavo`` (or log out and in again) and try again).
-
-The RD sets up a form-based service you can operate from a web browser;
-open the URL http://localhost:8080/arihip/q/cone/form [#binding]_
-and play around a
-bit.  Note the small links behind some query fields – DaCHS supports
-VizieR-like expressions in those fields.
-
-Briefly have a look at the URL; apart from the host name and port (see
-the `operator's guide`_ on how to change those), there is the path to the
-RD (without the file extension), then the id of the service element (see
-below) and a “renderer name”.  That essentially defines the physical
-interface of the service, i.e., which protocol it is accessed through.
-In this case, it's ``form`` for an HTML form.
-
-Another renderer supported by this service is ``scs.xml``, which
-implements the IVOA Simple Cone Search (SCS) protocol.  A client that supports
-this is TOPCAT_; to try it out, in TOPCAT select VO/Cone Search and fill
-out the Cone URL field in the lower part of the window to be
-``http://localhost:8080/arihip/q/cone/scs.xml``.  Enter some object name
-and a sufficiently large search radius (e.g., Aldebaran and 0.5
-degrees), and you'll see the results coming in.
-
-Incidentally, cone search does not (yet) have a usable interface to
-discover additional parameters, and hence TOPCAT restricts you to those
-mandatory for every SCS service.  For instance, as delivered, arihip
-admits an ``mv`` parameter.  DaCHS supports a special syntax for
-“free” parameters of cone searches as defined by the spectral access
-protocol SSAP; to say ”everything brighter than 6th magnitude”, the
-parameter setting would be ``/6``; to use this constraint within TOPCAT,
-the access URL needs to be amended like this:
-``http://localhost:8080/arihip/q/cone/scs.xml?mv=/6``.
-
-Finally, the RD opens the arihip table for the IVOA Table Access
-Protocol TAP, which allows queries in a dialect of SQL.  Again, TOPCAT
-has a nice client for TAP built in.  To try it, select VO/TAP Query,
-enter ``http://localhost:8080/tap`` in the TAP URL field near the bottom
-of the window, and hit "Enter Query".  In the resulting dialog, you can
-browse the table's metadata and then enter queries like::
-
-  SELECT * from arihip.main where sqrt(pmde*pmde+pmra*pmra)>2/3600.
-
-For more information on what fancy things you can do here, see `GAVO's
-ADQL short course`_
-
-
-The anatomy of the RD
----------------------
-
-Now have a look at the RD by bringing up q.rd in your favourite editor.
-It starts out with::
+The root element of an RD always is ``resource``, and you should
+immediately define the database schema anything you import will end up
+in::
 
   <resource schema="arihip">
 
 RDs are normal XML files (meaning that you could, e.g., add an XML
-declaration if you want an encoding other than utf-8), and thus they
-need a root element.  Hopefully unsurprisingly, this is called resource
-for RDs.  DaCHS typically does not distinguish attributes and elements
-with atomic content, which means that you could also have written the
-fragment above as::
+declaration if you want an encoding other than utf-8).
 
-  <resource>
-    <schema>arihip</schema>
-
-This notational freedom sometimes allows clearer notation, and it helps
-with defining `active tags`_.  Multiple specifications of the same
-property make up multiple values where the property is sequence-like (in
-the `reference documentation`_ this is indicated by phrases like "zero
-or more" or "list of" in the properties descriptions).  For atomic
-properties, later specifications overwrite earlier ones.
-
-The ``schema`` attribute on resource gives the (database) schema that
-tables for this resource will turn up in.  You should, in general, use
-the name of the resource directory here.  If you don't, you have to give
+DaCHS assumes the schema name to be identical to the resource directory,
+which again is a child of inputsDir.  If you have a string reason do
+deviate from that convention, you must give 
 the subdirectory name in the resource element's ``resdir`` attribute –
 either way, this is then used to build absolute paths within the RD,
 e.g., for the sources element discussed below.
@@ -407,16 +275,24 @@ importing a table, the schema access rights are adapted.  If you have
 one RD A defining an ADQL-queriable table in schema X and another RD B
 that has no ADQL-queriable table, importing A will make schema X
 readable to untrusted queries, whereas importing B will make it
-unreadable again; this would lead to query failures (which could, in
-this case, fixed by adding untrusted to B's readRoles manually, but you
-get the idea).
+unreadable again; this would lead to query failures.
 
-Another hint: There's a fairly large body of RDs at
-http://svn.ari.uni-heidelberg.de/svn/gavo/hdinputs, and most of them are
-free for inspection and blatant stealing (if you need a license on any
-of this, let us know).  These RDs can be seen live on
-http://dc.g-vo.org.  To locate examples for concrete elements, meta
-items, and such, have a look at our `RD element reference`_ for these.
+.. sidebar:: Attributes and Elements in DaCHS
+
+  DaCHS almost never distinguishes between attributes and elements
+  with atomic content, which means that you could also have written the
+  opening tag of the root element as::
+
+    <resource>
+      <schema>arihip</schema>
+
+  This notational freedom sometimes allows clearer statements, and it helps
+  with defining `active tags`_.  Multiple specifications of the same
+  property make up multiple values where the property is sequence-like (in
+  the `reference documentation`_ this is indicated by phrases like “zero
+  or more“ or “list of“ in the properties descriptions).  For atomic
+  properties, later specifications overwrite earlier ones.
+
 
 The RD goes on to give metadata applying to everything within the RD::
 
@@ -468,7 +344,7 @@ some of it turns up in service responses.  If you have a look at the
 HTML form you opened above, you will find quite a bit of it in the
 sidebar.
 
-Metadata elements have a ``name`` attribute that gives the "kind" of
+Metadata elements have a ``name`` attribute that gives the “kind“ of
 metadata contained, and sometimes also determine a specific type.
 Metadata can be hierarchical, where hierarchy elements are separated by
 dots, and metadata can come in various formats as determined by the
@@ -515,7 +391,7 @@ for delimited identifiers as table names.
 Be sure to always specify ``onDisk="True"`` unless you're going for
 special effects – without it, the table will end up only in memory.
 The ``adql`` attribute says that TAP queries should be allowed on the
-table; leave it out for tables not suitable for "raw" consumption by your
+table; leave it out for tables not suitable for “raw” consumption by your
 clients.
 
 For the ``mixin`` attribute, see `Indices and Mixins`_.
@@ -602,7 +478,7 @@ valid SQL datatypes.  The DC software knows how to handle
 * ``smallint`` – typically a 16-bit integer
 * ``timestamp`` – a combination of date and time.  While postgres can
   process a very large range of dates, the DC stores timestamps in
-  datetime.datetime objects, which means that for "astronomical" times
+  datetime.datetime objects, which means that for “astronomical” times
   (like 10000 B.C. or 10000 A.D. you may need to use custom
   representations. Also, the DC assumes all times to be without time
   zones.  Further time metadata (like distinguishing TT from UT) is
@@ -636,7 +512,7 @@ Futher metadata on columns includes:
         response function of our sage 3000 hyper-detector.</description>
     </column>
 * ``ucd`` – a Unified Content Descriptor as defined by IVOA.  To figure out
-  "good" UCDs, the `GAVO UCD resolver`_ can help.  An easy way to come
+  “good” UCDs, the `GAVO UCD resolver`_ can help.  An easy way to come
   up with them is also to leave them out initially and then run
   ``dachs admin suggestucds`` (it's what we do these days).
 * ``required`` – True if value must be set in order for the record to be
@@ -646,8 +522,8 @@ Futher metadata on columns includes:
   will be raised when a value is missing.  In HTTP service interfaces,
   missing required parameters will lead to a 400 invalid parameters HTTP
   response.
-* ``verbLevel`` – A measure for the "importance" of the column.  Various
-  protocols have the notion of "verbosity", where higher verbosity means
+* ``verbLevel`` – A measure for the “importance” of the column.  Various
+  protocols have the notion of “verbosity”, where higher verbosity means
   you get to see more columns with more esoteric content.  Within DaCHS,
   verbLevel is a number between (usefully) 1 and 30, with columns with
   verbLevel 1 always given and those with verbLevel 30 only given if
@@ -679,7 +555,7 @@ column, like this::
 
 The output of ``dachs info`` (see above) can help you to choose suitable
 NULL values.  To help people spot them when metadata is missing, it's
-usually wise to choose "conspicuous" null values (like -1, 9999, or
+usually wise to choose “conspicuous” null values (like -1, 9999, or
 similar).
 
 Table elements may contain metadata.  You do not need to repeat metadata
@@ -692,7 +568,7 @@ and ``description`` metas.
 Scrolling a bit further down in the arihip RD, you'll notice some LOOP
 constructs.  These are discussed below under `active tags`_.
 
-At the end of the table element, there are meta elements called "note";
+At the end of the table element, there are meta elements called “note”;
 for those, see Notes_.
 
 
@@ -738,17 +614,17 @@ Now have a look at the input file::
   zless data/data.txt.gz
 
 You'll see that we have a plain ASCII file with aligned columns, header
-lines, and even a cell separator ("|").  That's still a fairly common
+lines, and even a cell separator (``|``).  That's still a fairly common
 format for raw data, but by no means the only one.  To give DaCHS the
 flexibility to deal with anything upstream cares to throw at you, DaCHS
 has the concept of a grammar.
 
 There are many grammars defined, e.g., for getting values from FITS
 files, VOTables, or using column-based formats; you can also write
-specialized grammars in python.   All grammars read "something" and emit
+specialized grammars in python.   All grammars read “something” and emit
 a mapping from names to (mostly) string values; those unprocessed
-string-to-string mappings are called "rawdicts" in DaCHS jargon
-(distinguished from "rowdicts" ready for database ingestion, which sport
+string-to-string mappings are called “rawdicts” in DaCHS jargon
+(distinguished from “rowdicts“ ready for database ingestion, which sport
 processed and typed data).
 
 It is often useful to inspect what a grammar emits.  You can do that
@@ -797,7 +673,7 @@ character indices that are here, following the display in most editors,
 are counted from 1 upwards.  Note that in ranges, the last column is
 included in the string – these are no python slices but basically a
 representation of the character ranges in VizieR-style
-"byte-by-byte"-descriptions.
+“byte-by-byte”-descriptions.
 
 The assignment of names to column ranges can happen both in a
 ``colDefs`` element as shown above – one specification per line, label
@@ -848,7 +724,7 @@ building process.  These let you perform all kinds of higher magic.  For
 details, see the `chapter on scripting in the reference`_.
 
 As explained above, output of grammars and hence the input to a make is
-a sequence of mappings from names to strings (the "rawdicts").  The
+a sequence of mappings from names to strings (the “rawdicts”).  The
 database, on the other hand, wants typed values, i.e., integers, time
 stamps, etc.  Also, data in input tables is frequently given in
 inconvenient formats (e.g., sexagesimal angles), deprecated or
@@ -856,7 +732,7 @@ inconsistent units, or values may be distributed over multiple columns
 (e.g., date and time of an observation when we want a single timestamp).
 To cover these and more tasks, DaCHS has row makers, the results of which
 are then called rowdicts (note the subtle difference from the rawdicts
-coming in from the grammars: "row makers turn rawdicts into rowdicts").
+coming in from the grammars: “row makers turn rawdicts into rowdicts”).
 
 Basically a row maker consists of
 
@@ -894,7 +770,7 @@ For simple cases, maps will suffice; frequently, you can do without
 python expressions by giving a ``src`` attribute specifying a rawdict
 key instead of element content (which is preferable if possible – as
 elsewhere, less code is better in RDs, too). The rawdict string will in
-this case be converted to a typed value using "sane" defaults (e.g.,
+this case be converted to a typed value using “sane” defaults (e.g.,
 integers will be converted by python's int constructor, where empty
 strings are mapped to None, datetimes are parsed as ISO strings, etc)
 
@@ -960,7 +836,7 @@ If you need to scale this (or if null values are chosen that they are
 invalid literals to begin with), a feature that lets you null out a
 value when an specific type of exception is raised comes in handy.
 This is map's ``nullExcs`` attribute, which is just a comma separated list of
-exceptions that should be caught and interpreted as "this is null".  If,
+exceptions that should be caught and interpreted as “this is null”.  If,
 in the example above, the source would give the magnitude in millimags
 to save a comma, you could use::
 
@@ -1001,8 +877,8 @@ arihip's opening table element::
   <table id="main" onDisk="True" adql="True" mixin="//scs#q3cindex"
     primary="hipno">
 
-Mixins are DaCHS' primary tool to endow tables with "everything needed
-to serve a standard" (e.g., a minimal set of columns, certain indices,
+Mixins are DaCHS' primary tool to endow tables with “everything needed
+to serve a standard” (e.g., a minimal set of columns, certain indices,
 or metadata).  For instance, an image table must have a certain
 structure determined by the SIA protocol.  The ``//siap#pgs``
 mixin makes sure that tables have this structure,
@@ -1014,7 +890,7 @@ The content of the mixin element (or the attribute value when you give
 the mixin property as an attribute) is a reference to a mixin
 definition.  These references typically go into some system descriptor
 (though you could define your own mixins), and the double slash in a
-DaCHS reference means "system descriptor" (in actual truth, it's just an
+DaCHS reference means “system descriptor” (in actual truth, it's just an
 abbreviation for ``__system__/``).  The reference documentation contains
 a chapter on `DaCHS' public mixins`_.  For the curious: you can have a
 look at the actual definitions by admin's ``dumpDF`` subcommand, e.g.,
@@ -1124,7 +1000,7 @@ in the reference documentation's `renderer chapter`_.  As you have seen
 above, the renderer is selected via the URL.  If a client tries to
 retrieve a URL with a renderer that is not in the service's ``allowed``
 list, DaCHS will respond with a 403 forbidden HTTP code (excepting
-certain "unchecked" renderers like ``info`` that typically expose
+certain “unchecked” renderers like ``info`` that typically expose
 service metadata).  Note that some of the more exotic renderers may pose
 special requirements on cores, so don't be too disappointed of some
 exotic renderer won't work with your core.
@@ -1152,7 +1028,7 @@ fill in).  Most commonly, you will either define them using the
 using ``buildFrom``.  The first case is typically used in connection
 with protocols and on tables having mixins; such condDescs result in
 zero or more input fields, and they typically inspect the queried table.
-For example, the ``//scs#humanScs`` condDesc locates the "main"
+For example, the ``//scs#humanScs`` condDesc locates the “main"
 positions as identified by UCDs and generates queries against them using
 two input fields, one it tries to guess a position from, and another for
 the search radius.
@@ -1162,11 +1038,11 @@ usually one or more input field(s) constraining values in the column
 named in the ``buildFrom`` attribute.  The software tries to make some
 useful input definition from that column, depending on the renderer.
 Renderers with a parameter style (this is given in each renderer's
-description the reference documentation) of "form", for example, let
+description the reference documentation) of “form”, for example, let
 users query string-like columns using Vizier-like string expressions,
 real and double precision columns using Vizier-like float expressions,
 and so on.   The ``pql`` style allows a specification like for some SSAP
-parameters (e.g., "range_min/range_max").
+parameters (e.g., ``range_min/range_max'').
 
 The ``service`` element must have an ``id`` attribute that is used to
 select the service run in the access URL.  Furthermore, there should be
@@ -1174,10 +1050,10 @@ certain pieces of metadata useful in later registration.  First, there's
 ``shortName``, which is typically used by clients in space-restricted
 displays.  It must not be longer than 16 characters, so something like
 an acronym and a very terse role identifier is the best you can do
-(hence the "arihip cone" here).  Frequently, a ``title`` meta is also
+(hence the “arihip cone” here).  Frequently, a ``title`` meta is also
 useful, in particular when an RD contains multiple services, in which
-case one could be "Cone search for ARI's HIPPARCOS re-reduction" and the
-other, say, "Autocorrelation on ARI's HIPPARCOS re-reduction".
+case one could be “Cone search for ARI's HIPPARCOS re-reduction” and the
+other, say, “Autocorrelation on ARI's HIPPARCOS re-reduction”.
 
 
 See :dachsdoc:`data_checklist.html` for more information on useful generic
@@ -1189,6 +1065,158 @@ metadata.  In the case of arihip, we have a Simple Cone Search service,
 which, as laid down in the section on the `scs.xml`_ renderer in the
 reference documentation, requires the parameters of a test query
 returning a nonempty result.
+
+
+
+Building a Catalog Service
+==========================
+
+To do anything useful with DaCHS, you will have to write a resource
+descriptor (RD), and you'll probably have to have some data.  Both must
+reside within some subdirectory of DaCHS' input directory (unless you
+configured otherwise, that's /var/gavo/inputs; we assume that in the
+following).
+
+Since both astronomical data and VO services tend to be complex, you can
+do a lot of things in an RD.  However, the publication of a certain
+data type (e.g., catalogue, spectra or image collection) often follows a
+pattern.  DaCHS comes with a library of such patterns, and when starting
+a service, you will usually do something like::
+
+  cd /var/gavo/inputs
+  mkdir <collection-name>
+  cd <collection-name>
+  dachs start <data-type-tag>
+
+To see something quickly, however, we will look at an existing data set
+first, a catalog called ARIHIP catalog – this is a
+re-reduction of the Hipparcos result catalog
+with particularly careful solutions for proper
+motion.  It has a column-based input and probably a few more columns
+than your average catalog these days.  It hence is simple in principle
+but let us demonstrate a few advanced concepts, too.
+
+You can run the following under any user id, as long as
+you wisely manage the permissions.  For testing, however, we recommend
+doing it as the data center administrative account (for the Debian
+package, that's gavoadmin, if you did the setup manually, it's whatever
+user did the ``dachs init``).
+
+To get a quick start, just pull in the RD in use by GAVO's data center::
+
+  cd /var/gavo/inputs
+  mkdir arihip
+  cd arihip
+  curl -O http://svn.ari.uni-heidelberg.de/svn/gavo/hdinputs/arihip/q.rd
+
+The directory name (“arihip” in this case) will (normally) appear in
+URLs, so it's a good idea to choose something descriptive and short.
+The directory created here is ususally called the resource directory in
+DaCHS lingo.
+
+The resource descriptor name also appears in URLs.  At GAVO's data
+center, we usually call it ``q.rd`` as that looks nicely query-ish (to
+our tastes).
+
+Next, get the raw data.  We recommend keeping data in a subdirectory of
+resource directory (and suggest to call that subdirectory ``data``).  At
+the GAVO DC we usually keep everything in the resource directory under
+version control except for that data directory (which tends to be large,
+full of binary files, and either versioned by upstream or not at all)::
+
+  mkdir data
+  cd data
+  curl -O http://dc.g-vo.org/arihip/q/cone/static/data.txt.gz
+
+At this point, we're ready for ingestion.  All commands to DaCHS go
+through the ``dachs`` program that has several sub-commands; in this
+case, we need the ``import`` sub-command.  The sub-commands can be
+abbreviated as long as the abbreviation is unambiguous::
+
+  cd ..
+  dachs imp q
+
+This should run for a while, reporting the number of ingested rows now
+and then, and finally say something like “Rows affected: XY”.  With this,
+the data is in the database and is ready for querying.
+
+Let us mention in passing that ``dachs imp`` tries to interpret its first
+argument first as a file system path.  If that fails, it tries to
+interpret it as an RD identifier, i.e., the inputsDir-relative path of
+the RD with the extension stripped.  Our example RD thus has the RD id
+*arihip/q*, and you could have said::
+
+  dachs imp arihip/q
+
+from anywhere in the file system.
+
+After you have imported a table, it is a good idea to run ``dachs info``
+with the DaCHS identifier of the freshly imported table, e.g.,::
+
+  dachs info arihip/q#main
+
+The DaCHS identifier of the table consists of the RD id as introduced
+above, the hash (inspired by the URL fragment identifier), and the id of
+the table.
+
+This will output several properties (min, max, avg) of numeric columns
+that may help spot import errors.  Also note that for each column, the
+presence of NULLs is given.  When you import data, it is a good idea to
+check whether these correspond to your expectations, and to consider
+declaring columns as required when they do not indeed contain NULLs.
+
+Now start the server; if you installed from the Debian package, it is
+already running; stop it first for this tutorial::
+
+  sudo service dachs stop  # only if installed from package
+  dachs serve debug
+
+(if the last command fails with permission problems, add yourself to the
+gavo group, say ``newgrp gavo`` (or log out and in again) and try again).
+
+The RD sets up a form-based service you can operate from a web browser;
+open the URL http://localhost:8080/arihip/q/cone/form [#binding]_
+and play around a
+bit.  Note the small links behind some query fields – DaCHS supports
+VizieR-like expressions in those fields.
+
+Briefly have a look at the URL; apart from the host name and port (see
+the `operator's guide`_ on how to change those), there is the path to the
+RD (without the file extension), then the id of the service element (see
+below) and a “renderer name”.  That essentially defines the physical
+interface of the service, i.e., which protocol it is accessed through.
+In this case, it's ``form`` for an HTML form.
+
+Another renderer supported by this service is ``scs.xml``, which
+implements the IVOA Simple Cone Search (SCS) protocol.  A client that supports
+this is TOPCAT_; to try it out, in TOPCAT select VO/Cone Search and fill
+out the Cone URL field in the lower part of the window to be
+``http://localhost:8080/arihip/q/cone/scs.xml``.  Enter some object name
+and a sufficiently large search radius (e.g., Aldebaran and 0.5
+degrees), and you'll see the results coming in.
+
+Incidentally, cone search does not (yet) have a usable interface to
+discover additional parameters, and hence TOPCAT restricts you to those
+mandatory for every SCS service.  For instance, as delivered, arihip
+admits an ``mv`` parameter.  DaCHS supports a special syntax for
+“free” parameters of cone searches as defined by the spectral access
+protocol SSAP; to say ”everything brighter than 6th magnitude”, the
+parameter setting would be ``/6``; to use this constraint within TOPCAT,
+the access URL needs to be amended like this:
+``http://localhost:8080/arihip/q/cone/scs.xml?mv=/6``.
+
+Finally, the RD opens the arihip table for the IVOA Table Access
+Protocol TAP, which allows queries in a dialect of SQL.  Again, TOPCAT
+has a nice client for TAP built in.  To try it, select VO/TAP Query,
+enter ``http://localhost:8080/tap`` in the TAP URL field near the bottom
+of the window, and hit “Enter Query”.  In the resulting dialog, you can
+browse the table's metadata and then enter queries like::
+
+  SELECT * from arihip.main where sqrt(pmde*pmde+pmra*pmra)>2/3600.
+
+For more information on what fancy things you can do here, see `GAVO's
+ADQL short course`_
+
 
 
 Introduction to DaCHS Publishing 
@@ -1233,9 +1261,9 @@ you're using the vim editor, you can drop the following into your
 ~/.vimrc::
 
   augroup rd
-	  au!
-	  au BufRead,BufNewFile *.rd imap <F8> <ESC>/%[^%]*%<CR>a
-	  au BufRead,BufNewFile *.rd imap <F9> <ESC>cf%
+    au!
+    au BufRead,BufNewFile *.rd imap <F8> <ESC>/%[^%]*%<CR>a
+    au BufRead,BufNewFile *.rd imap <F9> <ESC>cf%
   augroup END
 
 Then, when you open an rd file, you can, in insert mode, alternately hit
@@ -1456,7 +1484,7 @@ but while writing up such material, it's easy to forget that < and & are
 magic to XML.  CDATA is your fried for embedded formal languages.
 
 Now for a particularly nasty syntax error that's not XML-related at all.
-To trigger it, go to the note meta with the "src" tag and remove
+To trigger it, go to the note meta with the ``src`` tag and remove
 whitespace from the second column line like this::
 
     <meta name="note" tag="src">
@@ -1480,8 +1508,8 @@ Hence, DaCHS removes leading indentation from the content of all
 elements containing such material, and the amount of indentation is
 goverened by the second line, where the line with the opening tag
 counts; in the example above, DaCHS tries to subtract from every
-subsequent line the indentation of the line starting with "The srcSel
-field" (the first line is the one containing the tag).
+subsequent line the indentation of the line starting with “The srcSel
+field” (the first line is the one containing the tag).
 
 This kind of problem is particularly insidious if you're mixing blanks
 with tabs for indentation.  Don't do this in python, don't do this in
@@ -1522,9 +1550,9 @@ frightening with rawdicts as large as in this case::
 
 The dump of the rawdict, however, is often helpful enough to warrant the
 scary appearance, even at the risk of obscuring the actual message at
-the very end.  Note that the "while building kbin" tells you where in
+the very end.  Note that the “while building kbin” tells you where in
 the rowmaker something went wrong: At the mapping of kbin.  The ``in
-None`` part may be a bit less fortunate – the "None" here is the id of
+None`` part may be a bit less fortunate – the “None” here is the id of
 the rowmaker, which you didn't give.  If you have multiple rowmakers in
 an RD, it's a good idea to name them.  So, add an ``id`` attribute as
 in::
@@ -1774,7 +1802,7 @@ there is the ``hdusField`` attribute.  This gives the key under which
 the pyfits HDU is visible in the rawdict.  Be warned that using this
 might make your grammar *dramatically* slower, in particular when it
 operates on gzipped FITS files (which are, incientally, supported if
-their file names end in ".gz").
+their file names end in “.gz”).
 
 
 csvGrammar
@@ -1802,7 +1830,7 @@ sourceToken as argument.  It must return a dictionary, the key/value
 pairs of which will be added to all rows returned by the row iterator.
 
 The purpose of sourceFields is to precompute values that depend on the
-source ("file") and are constant for all rows within it.  An example for
+source (“file”) and are constant for all rows within it.  An example for
 where you need this is when you want to create backlinks to the file a
 piece of data came from::
 
@@ -1902,7 +1930,7 @@ STC
 As soon as you have coordinates, you will want to declare coordinate
 metadata on them, i.e., reference frames, roles played by tables (x is
 the derivative of y, and x1 is a galactic latitude, etc).  In VO lingo,
-this is known as declaring "space-time coordinates" or STC for short.
+this is known as declaring space-time coordinates or STC for short.
 
 DaCHS uses a language called STC-S to do this.  The STC-S definition
 currently only exists as a note and is both a bit terse and not quite as
@@ -1975,7 +2003,7 @@ To obtain the plainest output conceivable, try::
   </html>
 
 Save this to a file within the resource directory, let's say
-"res/plain.html".  Then, say::
+``res/plain.html``.  Then, say::
 
     <template key="form">res/plain.html</template>
 
@@ -2031,7 +2059,7 @@ information, with code generating SQL conditions.
 
 A condDesc can contain zero or more input keys (though having zero input
 keys makes no sense for user-defined condDescs since they would never
-"fire").  Having more than one input key is useful when input quantities
+“fire”).  Having more than one input key is useful when input quantities
 can only be interpreted when present as a group.  An example is the
 standard cone search, where you need both a position and a search
 radius.
@@ -2100,7 +2128,7 @@ Incidentally, two properties on inputKeys are defined to only show
 inputs for certain renderers, viz., ``onlyForRenderer`` and
 ``notForRenderer``.  Both have single strings as values.  This is
 intended mainly for cases like SIAP and SCS where there are
-"human-oriented" versions of the input fields available.  The built-in
+“human-oriented” versions of the input fields available.  The built-in
 SCS and SIAP conditions already to that, so you can give both scs and
 humanSCS conditions in a core.  Here is how you would define an input
 key that is only used for the form renderer::
@@ -2317,9 +2345,9 @@ example would be a star catalog within a planetarium software.
 Active Tags
 ===========
 
-Active "tags" delemit elements within resource descriptor XML that
+Active tags delimit elements within resource descriptor XML that
 do not directly contribute to result tree.  Their typical use is to
-"record" event sequences and replay them later.  Much of this is used
+“record” event sequences and replay them later.  Much of this is used
 internally.  However, some applications of active tags are interesting
 for RD writers, too.  Active tags always have names in all upper-case.
 
@@ -2328,7 +2356,7 @@ LOOP
 ----
 
 Loop lets you create multiple elements by rules.  The simplest way to
-use it is by giving a space-separated list of "items"::
+use it is by giving a space-separated list of “items”::
 
   <LOOP listItems="a b c">
     <events>
@@ -2337,8 +2365,8 @@ use it is by giving a space-separated list of "items"::
   </LOOP>
 
 The ``events`` child of the ``LOOP`` element creates a list of events
-(think "begin column element", "value for name attribute", "end column
-element").  These events are then replayed to the parser for each item
+(think “begin column element“, “value for name attribute”, “end column
+element“).  These events are then replayed to the parser for each item
 in the LOOP's ``listItems`` attribute.  Each occurrence of the
 ``\\item`` macro is replaced with the current item.  So, in the
 resulting RD tree, the fragment above will have the same result as::
@@ -2505,7 +2533,7 @@ for times using double precision almost always is a good idea).
 Publishing DAL Services
 =======================
 
-DAL is VO-speak for "Data Access Layer", the standard protocols the VO
+DAL is VO-speak for “Data Access Layer”, the standard protocols the VO
 uses to allow remote querying of data.  To support such a protocol, you
 usually need to arrange things in three places:
 
@@ -2670,10 +2698,10 @@ Run the import::
 Now start the server as necessary (see above), and start TOPCAT and
 Aladin_.  In TOPCAT, open VO/SIA Query, enter your new service's access
 URL (it's ``http://localhost:8080/emi/q/s/siap.xml`` unless you did
-something cunning and should know better yourself) under "SIA URL"
+something cunning and should know better yourself) under “SIA URL”
 pretty far down in the dialog.
 
-Then have "Lockman Hole" as Object Name and resolve it, or manually
+Then have “Lockman Hole” as Object Name and resolve it, or manually
 enter 161.25 and 58.0 as RA and Dec, respectively, and have 2 as Angular
 Size.  Send off the request.  You'll get back a table that you can send
 to Aladin (Interop/Send to/Aladin), which will respond by presenting a
@@ -2842,7 +2870,7 @@ This does, step by step:
   Here, we use that to let DaCHS find the input file independently of
   where the program was started.
 
-Warning: Do *not* use idmaps="*" with SIAP, since the auto-generated
+Warning: Do *not* use ``idmaps="*"`` with SIAP, since the auto-generated
 mappings will clobber the work of the xSIAP procs.
 
 
@@ -2852,7 +2880,7 @@ Cores
 There are two cores you may want for SIAP services:
 
 * dbCore_, to which you add the necessary
-  condDescs manually as below, for "normal" SIAP services.
+  condDescs manually as below, for “normal” SIAP services.
 * `siapCutoutCore <ref.html#element-siapcutoutcore>`_, which speaks SIAP
   but returns cutouts rather than full images; the size of these cutouts
   is determined by the SIZE argument (i.e., the region of interest).
@@ -3142,7 +3170,7 @@ returning 1e4.
 
 The bindings already prepare for making and serving previews, which is
 discussed in more detail in :dachsref:`Product Previews` in the DaCHS
-reference; see there for everything mentioning “preview”::
+reference; see there for everything mentioning “preview“.
 
 SSAP has a feature that lets users request certain formats, and for
 clients that don't know Datalink, this may be a good idea.  In that
@@ -3354,13 +3382,13 @@ easy to also publish the spectra through ObsTAP_.  Just mix in
 :dachsref:`//obscore#publishSSAPMIXC` and set ``calibLevel``.  The
 template does a bit more for one reason or another::
 
-		<mixin
-		  calibLevel="%likely one of 1 for uncalibrated or 2 for uncalibrated data%"
-		  coverage="%ssa_region -- or remove this if you have no ssa_region%"
-		  sResolution="ssa_spaceres"
-		  oUCD="ssa_fluxucd"
-		  emUCD="ssa_spectralucd"
-		  >//obscore#publishSSAPMIXC</mixin>
+    <mixin
+      calibLevel="%likely one of 1 for uncalibrated or 2 for uncalibrated data%"
+      coverage="%ssa_region -- or remove this if you have no ssa_region%"
+      sResolution="ssa_spaceres"
+      oUCD="ssa_fluxucd"
+      emUCD="ssa_spectralucd"
+      >//obscore#publishSSAPMIXC</mixin>
 
 – if you use one of the old hcd or mixc mixins, you certainly don't want
 oUCD and emUCD.
@@ -3602,7 +3630,7 @@ like its SIAP cousin (see the reference documentation of details).
 Pure Obscore Tables
 '''''''''''''''''''
 
-You can also have "pure" Obscore tables which do not build on protocol
+You can also have “pure” Obscore tables which do not build on protocol
 mixins.  A live example is the cubes table in the `califa/q3`_ RD within
 the GAVO data center.  Here's a brief explanation of how this works.
 
@@ -3915,7 +3943,7 @@ declare that child tables are TAP-accessible, like this::
     <make table="part3"/>
   </data>
 
-When publishing "non-obvious" tables to TAP, it's a good idea to add one
+When publishing “non-obvious” tables to TAP, it's a good idea to add one
 or more TAP examples for it.  See `Writing Examples`_
 
 
@@ -3944,8 +3972,8 @@ like::
 
 Within the data element you need one make each for each table you want
 in ADQL; it would cause the tables to be created on a plain ``dachs
-imp``, in the present context, it just says something like "put the
-table metadata into DaCHS' internal catalogs".
+imp``, in the present context, it just says something like “put the
+table metadata into DaCHS' internal catalogs”.
 
 After that, say ``dachs imp -m <rd-id>``; make sure you don't forget the
 ``-m``, because without it, ``dachs imp`` will drop the existing tables
@@ -4060,8 +4088,8 @@ until the table metadata is in and then again query something like::
 
   SELECT * FROM lutetia.epn_core
 
-Hit "Run Query",open the table and play with it.  As a little visual treat,
-in TOPCAT's main window hit "Activation Action", and configure the
+Hit “Run Query”,open the table and play with it.  As a little visual treat,
+in TOPCAT's main window hit “Activation Action”, and configure the
 ``preview_url`` column under “View URL as Image”.  Then click on the table rows.
 
 To get into Vespa's query interface, you will have to register your
@@ -4526,7 +4554,7 @@ resource descriptors describe; DaCHS RDs may descibe zero, one, or
 multiple VO resources.  We apologize for the confused nomenclature.
 
 Physically, there are several services that keep and update this set and
-let people query them (a "full registry"), e.g., the `ESAVO registry`_
+let people query them (a “full registry”), e.g., the `ESAVO registry`_
 or the DaCHS network of RegTAP services [#rr], with a web interface at
 http://dc.g-vo.org/WIRR.
 
@@ -4567,7 +4595,7 @@ Services`_; in the most typical case, you want at least one protocol
 interface and one browser interface per data sets, but there are many
 exceptions.
 
-Here's "best practice" recommendations:
+Here's “best practice” recommendations:
 
 * for SCS services, you can simply use the generated web interface as
   the browser interace.  This leads to the pattern shown
@@ -4601,7 +4629,7 @@ easy.  Simply write::
 
   <publish/>
 
-into the body of the table and be done with it.  If your "resource"
+into the body of the table and be done with it.  If your resource
 consists of several tables, do not individually publish them.  Instead,
 publish the data item that creates them, as in this example taken from
 `rr/q`_::
@@ -4645,7 +4673,7 @@ Sets
 
 The ``ivo_managed`` set that came up in some of the examples above (it
 is the default for ``publish`` in data publications) has the special
-role of indicating "put this service into the VO Registry".
+role of indicating “put this service into the VO Registry”.
 
 While you can define as many other sets as you want (by just mentioning
 them in ``sets`` attributes), DaCHS as delivered just uses one other set
@@ -4702,11 +4730,11 @@ In this case, it is defined by the Open Archives Initiative; in case
 you're curious, you'll find it at ``/oai.xml`` on your site, and DaCHS
 has several stylesheets in place that make it somewhat human-readable.
 Once the VO knows about your publishing registries, full registries will
-start pulling ("harvesting") your resource records from there.
+start pulling (“harvesting”) your resource records from there.
 
 To make the VO aware of the existence of your data center, you will need
 to tell the `RofR`_ (Registry of Registries) about your data center.  Go
-there, hit "Register/Validate a Registry", enter ``<your data center's
+there, hit “Register/Validate a Registry”, enter ``<your data center's
 base URL>/oai.xml`` in the URL box and let it run.
 
 If your endpoint does not validate, please run ``dachs val`` on all RDs
@@ -4732,7 +4760,7 @@ the data in a data center with encumbered access rather than just on the
 providers' machines.
 
 Therefore, DaCHS has features to restrict access.  Right now, this is
-very basic and only provides what is known as "mild security", since it
+very basic and only provides what is known as “mild security”, since it
 is based on HTTP basic authentication over (usually) unencrypted  lines.
 Given that we are not dealing with sensitive information and snooping
 attacks on our connections would be too much honor, we consider  this
@@ -4753,12 +4781,12 @@ user/group model, except that there always is a group corresponding to a
 user.  To create a user and its group, use ``dachs admin adduser``, like
 this::
 
-  dachs admin adduser kroisos notsecret "Remove when xy is public"
+  dachs admin adduser kroisos notsecret “Remove when xy is public”
 
 This command adds the user kroisos with the password notsecret and an
 optional comment reminding future operators what to do with the
 identity.  Note that the password is stored in clear text in the
-database – which allows you to handle "I forgot my password" requests
+database – which allows you to handle “I forgot my password” requests
 gracefully; as long as we only do HTTP Basic authentication, this
 doesn't matter much since with it, the passwords traverse the net in
 basically cleartext anyway. Again: all this is mild deterrence rather
@@ -4798,9 +4826,9 @@ To password-protect entire services, use the ``limitTo`` child of the
 Any access to the service will then require a client to authenticate as
 a user belonging to the group given in ``limitTo``.  Only one such group
 can be given.  If you forsee the need for complex authorization schemes
-(rather than "there's one user on my system, and whoever's authorized
-get its credentials"), it is probably a good idea to create one user per
-service and add "real" users to the corresponding group as necessary.
+(rather than “there's one user on my system, and whoever's authorized
+get its credentials”), it is probably a good idea to create one user per
+service and add “real” users to the corresponding group as necessary.
 
 
 Embargoing Products
@@ -4812,7 +4840,7 @@ their proprietarity period, while handing out the data itself only to
 authorized clients.  The embargo will automatically be lifted once the
 proprietarity period is over.
 
-To make a "product" (e.g., spectrum or image) proprietary, in the
+To make a ”product” (e.g., spectrum or image) proprietary, in the
 `products#define`_ application building the rowdict, set the ``owner``
 and ``embargo`` keys.  Owner is the name of a user created as described
 above, embargo must eventually become a timestamp, so you'll in general
@@ -4896,7 +4924,7 @@ data – see above for details on how to create users and groups.
 .. _make: http://docs.g-vo.org/DaCHS/ref.html#element-make
 .. _manually add our repository: http://soft.g-vo.org/repo
 .. _map: http://docs.g-vo.org/DaCHS/ref.html#element-map
-.. _operator's guide: http://docs.g-vo.org/DaCHS/opguide.html
+.. _Operator's Guide: http://docs.g-vo.org/DaCHS/opguide.html
 .. _pgsphere: http://pgsphere.projects.pgfoundry.org/
 .. _procs#mapValue: ref.html#procs-mapvalue
 .. _products#define: ref.html#products-define
@@ -4926,7 +4954,7 @@ data – see above for details on how to create users and groups.
      [web]
      bindAddress:
 
-   (yes, there's nothing behind "bindAddress:").  Restart the server and
+   (yes, there's nothing behind “bindAddress:”).  Restart the server and
    you should see the output.
 
 .. [#rr] If you are running DaCHS on a reasonably stable platform,
