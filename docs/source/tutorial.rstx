@@ -458,6 +458,13 @@ there are no two rows with the same value for the primary key.  Also,
 the database creates an index for efficient queries using the primary
 key.
 
+While this table doesn't have metadata (because this is a one-table
+resource, and the global resource metadata is the one of the table
+itself), table elements may override RD metadata, and in multi-table RDs
+it's usually a good idea to override title and description.  Otherwise,
+meta inheritance as discussed in `Global Metadata`_ will do the right
+thing.
+
 What follows is a definition of the structure of the space-time
 coordinates::
 
@@ -485,7 +492,7 @@ what's going on right now is discussed in `STC`_ .
 
 
 Column definitions
-..................
+''''''''''''''''''
 
 The RD continues with the definitions of the columns that make up the
 table::
@@ -499,32 +506,30 @@ table::
       description="Source of the astrometric solution"
       note="src"/>
 
-For every column ending up in the table, there is one column element
+For every column in a table, there is one column element
 with a host of attributes.  The ``name`` attribute is
-central in that it will be the column name in the database
-(incidentally, it's not ``id`` as with tables as it is quite common for
-different tables in one RD to have columns with the same name, and that
-would violate the id attribute's uniqueness constraint), the key for
+central in that it will be the column name in the database,
+the key for
 the column's value in record dictionaries that the software uses
 internally, and it is usually used to reference the column from the
-outside.  Column names must be legal identifiers for both python and SQL in
+outside (see `Referencing in DaCHS`_).  
+
+Column names must be legal identifiers for both python and SQL in
 DaCHS.  SQL delimited identifiers thus are not allowed (this is not the
 whole truth, but it's true enough, and you're saving yourself a lot of
 headache if you simply believe it).
 
 The type attribute defaults to real, and can otherwise take values in
-valid SQL datatypes.  The DC software knows how to handle
+valid SQL datatypes.  Among the more common types are:
 
 * ``text`` – a string.  You could also use types with explicit length
-  like char(7), but this is highly discouraged; it does not help
-  postgres (or much anything else within the DC), but it hurts insofar
-  as DaCHS cannot produce NULLs for such constructs in most VOTable
-  serialisations.
-* ``char`` – a character, typically used in arrays.  If using single
-  flags, these might make sense (though you'll usually have to manually
-  give a null literal then).  Don't do ``char(*)``, ``varchar(*)``, or any
-  mogrification with actual lengths, though.  It doesn't help postgres
-  but might give headache later.
+  like char(7), but this is discouraged.  It does not help
+  postgres (or much anything else within the DC).  The only advantage
+  would be if you later want to handle FITS Binary serialisations,
+  because when all strings and arrays in a record have fixed lengths,
+  libraries can directly seek to records.  Also note that text-valued
+  columns can only keep ASCII.  Use the ``unicode`` type if you need
+  non-ASCII.
 * ``real``  – a real number.
 * ``double precision`` – a floating point number.  You should use
   in doubles if you need to keep more than about 7 digits of mantissa.
@@ -537,12 +542,15 @@ valid SQL datatypes.  The DC software knows how to handle
   (like 10000 B.C. or 10000 A.D. you may need to use custom
   representations. Also, the DC assumes all times to be without time
   zones.  Further time metadata (like distinguishing TT from UT) is
-  given through STC specifications.
+  given through STC specifications.  A word of advice: It's almost
+  always preferable to represent dates as julian years, as JD, or as
+  MJD, if only because it's so much easier to deal with these in ADQL
+  queries.
 * ``date`` – a date.  See timestamp.
 * ``time`` – a time.  See timestamp
-* ``box`` – a rectangle.
 * ``spoint``, ``scircle``, ``sbox``, ``spoly`` – objects of spherical
-  geometry, taken from pgSphere.  Ask for documentation...
+  geometry, taken from pgSphere.  See ``Geometry Types`` below on how to
+  ingest them.
 
 Some more types (like ``raw`` and ``file``) are available to tables in service
 definitions, but they should, in general, not appear in database tables.
@@ -550,20 +558,26 @@ definitions, but they should, in general, not appear in database tables.
 Futher metadata on columns includes:
 
 * ``unit`` – the unit the column values are in.  The syntax is that of
-  VOUnits_. Unit is left out for unitless values.
+  VOUnits_. Unit is left out for unitless values.  Because it's hard to
+  rigorously define, DaCHS does not distinguish between dimensionless
+  (as, for instance, width/height, which in principle has a unit that
+  just happens to come out as 1), things that can't have units to
+  begin with (e.g., an observer name), and things that should have units
+  but are written in a way that they can't (e.g., sexagesimal
+  coordinates or ISO datetime strings).
 * ``tablehead`` – a very short string designating the content.  This string
   is typically used for display purposes, e.g., as table headings or
   labels on input fields and defaults to the capitalized column name.
 * ``description`` – a longer string characterizing the content.  This may
-  be in bubble help or VOTable descriptions.  Since these could be
+  end up in help bubbles or VOTable descriptions.  Since these could be
   longer, you may want to put them in a child element rather than an
-  attribute; in both cases, whitespace is normalized, so you can enter
+  attribute.  In both cases, whitespace is normalized, so you can enter
   line breaks and similar for readability in the source, and they will
   always be rendered as a single blank.  For even longer, note-like
   material, see Notes_.  An example for a long descripton::
 
     <column name="aperture">
-      <description>The aperture is the full-width-half-mean of the
+      <description>The aperture is the full-width-half-max of the
         response function of our sage 3000 hyper-detector.</description>
     </column>
 * ``ucd`` – a Unified Content Descriptor as defined by IVOA.  To figure out
@@ -594,7 +608,7 @@ necessary for floats, and usually not even strings, because these have
 useful (and actually non-overridable) null values in the VOTable
 representation (where this sort of thing counts most).  It is, however,
 highly recommended to give null literals when defining integral types
-(including chars) that may have null values.  DaCHS will try to pick
+(including chars) in columns that may have NULLs.  DaCHS will try to pick
 useful null values for those automatically when possible, but when
 streaming tables, this is impossible, and errors will be raised during
 VOTable rendering when NULLs are encountered in such a situation.
@@ -613,17 +627,10 @@ NULL values.  To help people spot them when metadata is missing, it's
 usually wise to choose “conspicuous” null values (like -1, 9999, or
 similar).
 
-Table elements may contain metadata.  You do not need to repeat metadata
-given for the resource, because (in most cases) the DC performs metadata
-inheritance.  This means that if a table is asked for a piece of
-metadata it does not have, it forwards that request to the embedding
-resource.  For multi-table resources, you should usually give ``title``
-and ``description`` metas.
-
 Scrolling a bit further down in the arihip RD, you'll notice some LOOP
 constructs.  These are discussed below under `active tags`_.
 
-At the end of the table element, there are meta elements called “note”;
+After the column definitions, there are meta elements called “note”;
 for those, see Notes_.
 
 
@@ -1128,7 +1135,7 @@ description the reference documentation) of “form”, for example, let
 users query string-like columns using Vizier-like string expressions,
 real and double precision columns using Vizier-like float expressions,
 and so on.   The ``pql`` style allows a specification like for some SSAP
-parameters (e.g., ``range_min/range_max'').
+parameters (e.g., ``range_min/range_max``).
 
 The ``service`` element must have an ``id`` attribute that is used to
 select the service run in the access URL.  Furthermore, there should be
