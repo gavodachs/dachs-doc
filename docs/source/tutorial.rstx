@@ -186,8 +186,9 @@ three exceptions to this rule:
 
 To change ``rootDir`` (or any of the other directory-like locations),
 change the corresponding parameter in the general section of
-``/etc/gavo.rc`` (creating it if ncessary), perhaps (see the `operator's
-guide`_ for a list directories DaCHS deals with):
+``/etc/gavo.rc`` (creating it if necessary), perhaps 
+(see the `operator's
+guide`_ for a list directories DaCHS deals with)::
 
   [general]
   rootDir: /srv/dachs
@@ -230,7 +231,13 @@ avoid spreading information on a single resource over multiple files
 (and I wish I had been similarly strict with DaCHS' configuration info).
 There are exceptions (e.g., C-language boosters, custom grammars and
 pages, etc.), but for publishing of well-behaved data operators should
-not need those: Essentially, a service is the upstream data plus the RD.
+not need those: Essentially, a service is the **upstream** (i.e., your
+data providers') data plus the RD.
+
+Put another way, the RD is the formalisation of what you can learn about
+the data from your upstream *about* the data.  On the present example,
+you can see what we started with at
+http://dc.g-vo.org/arihip/q/cone/static.
 
 This section will introduce an example RD for a simple service (we will
 use it in the `Quick Start with DaCHS`_) publishing a simple
@@ -341,68 +348,77 @@ The RD goes on to give metadata applying to everything within the RD::
   ]]> </meta>
 
 
-This metadata is cruicial for later registration of the service, 
+This metadata is crucial for later registration of the service, 
 some of it turns up in service responses, and quite a bit is used in
 making web pages, in the metadata sidebars and elsewhere.
 
-Metadata elements have a ``name`` attribute that gives the “kind“ of
+Metadata elements have a ``name`` attribute that gives the “kind” of
 metadata contained, and sometimes also determine a specific type.  The
 names should usually give a good indication of what information is
 given.  We will later revisit individual items and what should and
 should not be put there.
 
 If there is more than one meta element for a name (like for subject in
-the example), the key is multi-valued.  For quite a few meta keys, DaCHS
-will at some point spit at you if you do this; for instance, you cannot
-have multiple titles, descriptions, or creation dates.  Because DaCHS
+the example), the key is **multi-valued**.  For quite a few meta keys, DaCHS
+will at some point raise errors you if you have multiple values where
+you can't have them, as for instance, with
+titles, descriptions, or creation dates.  Because DaCHS
 itself tries to treat all metadata as equal as possibly, the failures
 will not happen during metadata definition but when generating things
 like registry records, which sometimes makes it a bit hard to follow the
-root of the error back to the metadata definition.
+root of the error back to the metadata definition.  The ``dachs val``
+subcommand should catch such problems, though (and if it doesn't, please
+report that as a bug).
 
-Metadata can come in various formats as determined by the
-``format`` attribute.  If you give nothing there, DaCHS will apply some
+Metadata can come in various **formats** as determined by the
+``format`` attribute.  If you give nothing there (which makes it
+``plain``), DaCHS will apply some
 whitespace normalization, and it will interpret empty lines as
 paragraphs if the target format supports it.  
 
 With ``format="rst"`` (as used in ``_longdoc`` and ``_intro`` in the
 example), the content will be interpreted as reStructuredText_, which
 lets you do rather fancy things when the metadata is being rendered into
-HTML.  Be careful to use consistent indenation in this case.  There are
-some other, more obscure, formats, too, that you do not need to worry
-about right now.
+HTML.  Be careful to use consistent indendation in this case.  There are
+also ``raw`` and ``literal`` as formats; don't worry about them now.
 
 Metadata with names starting with underscores – like ``_intro`` in the
 example – is for DaCHS-internal use, very typically when building
-informational pages.
-
-Finally, DaCHS has the concept of metadata inheritance.  For instance,
-if you define a service within the RD, and the services doesn't have a
-title meta of its own, DaCHS will use the title meta on the RD.  The
-root of the metadata inheritance hierarchy is the file
-``etc/defaultmeta.txt``.  If you defined a meta item ``title`` there,
-this would be the default title for everything in your data center
-(which is something you probably don't want).  This default metadata,
-however, is handy for things like the publisher, that plausibly is
-essentially constant across a data center.
+informational pages; where there's no underscore, there is generally
+some external standard, and in all likelihood the information will end
+up in the VO Registry in some way.
 
 In the above RD snippet, there are two elements that are not simple meta
 elements.  One is ``coverage``; this gives the extent of the data
 contained in the service in space, time, and spectrum.  You will usually
 only define this manually if you know things the computer can't easily
 find out itself.  This is typically “data consists of several
-well-defined campains” (so you have clear time intervals) or “data is
+well-defined campaigns” (so you have clear time intervals) or “data is
 taken in a few of rather small bands” (so you have clear spectral
 intervals).
 
 The other non-meta element is ``FEED``.  In DaCHS uppercase elements
 signify `active tags`_, elements that are replaced by something else (or
-nothing) in the document tree.  The reference manual has list of
+nothing) in the document tree.  ``FEED``, as used here, simply inserts a
+stream (essentially, a sequence of elements) defined elsewhere and puts
+it in. The reference manual has list of
 :dachsref:`predefined streams` with an indication of what is inserted.
 Here, this is used to insert a few more formalised meta items declaring
 the license under which your data can be used and distributed.  Please
 be explicit on your licenses, and have a look at `Licensing`_ below.
 
+The last major concept you should now in connection with DaCHS metadata
+is **metadata inheritance**.  For instance,
+if you define a service within the RD, and there is no title meta within
+the service, DaCHS will use the title meta on the RD.  The
+root of the metadata inheritance hierarchy is the file
+``etc/defaultmeta.txt``.  If you defined a meta item ``title`` there,
+this would be the default title for everything in your data center
+(which is something you probably don't want).  This default metadata,
+however, is handy for items that plausibly are
+essentially constant across a data center, like a publisher or a
+contact.  By the inheritance rules you can still override it in
+individual RDs or services if necessary.
 
 
 Defining Tables
@@ -411,8 +427,7 @@ Defining Tables
 A major part of the metadata DaCHS deals with is the table structure.
 It is defined in table elements, which usually are direct children of
 the resoource element.  A resource element may contain multiple table
-definitions.  See http://dc.g-vo.org/arihip/q/cone/static for what
-upstream documentation we had when we made the service.
+definitions.  
 
 Skip over the ``macDef`` elements for now to where the ``table`` element
 begins.  What you see is something like::
@@ -426,12 +441,14 @@ identifier (i.e., ``[A-Za-z_][A-Za-z0-9_]*``) – DaCHS does not support
 for delimited identifiers as table names.
 
 Be sure to always specify ``onDisk="True"`` unless you're going for
-special effects – without it, the table will end up only in memory.
+special effects – without it, the table will end up only in memory and
+be gone after the import.
 The ``adql`` attribute says that TAP queries should be allowed on the
 table; leave it out for tables not suitable for “raw” consumption by your
 clients.
 
-For the ``mixin`` attribute, see `Indices and Mixins`_.
+For the ``mixin`` attribute is one of the deeper concepts in DaCHS.
+We'll have more on this later.
 
 Finally, using the ``primary`` attribute you can specify an explicit
 primary key of the table (if it is made up of several columns,
@@ -463,14 +480,15 @@ coordinates::
 
 What this says is that there's a number of coordinate structures in the
 table, grouping together positions, errors, and proper motions in a
-specific reference frame.  This is again a topic of its own, discussed
-in `STC`_
+specific reference frame.  This will soon look differently; until then,
+what's going on right now is discussed in `STC`_ .
 
 
-Column definition
-.................
+Column definitions
+..................
 
-Finally, we're at the column definitions::
+The RD continues with the definitions of the columns that make up the
+table::
 
     <column name="hipno" type="integer" ucd="meta.id;meta.main"
       tablehead="HIP id" verbLevel="1"
@@ -905,8 +923,39 @@ it's best to keep everything related to a given import together in the
 make element.
 
 
+Referencing in DaCHS
+--------------------
+
+You will often have to reference items within DaCHS RDs from the
+outside, for instance in command line arguments, sources for active
+elements, or when copying using original.  All these follow (essentially
+the same logic):
+
+(a) An RD has an identifier that is the path to the RD file relative to
+    inputsDir (corollary: DaCHS doesn't let you have active RDs outside
+    of inputsDir), with the ``.rd`` extension cut off.
+(b) When referencing an RD from the command line, you can normally use
+    relative references (e.g., if you are in ``inputs/myres``, saying
+    ``dachs imp q`` and ``dachs imp myres/q`` is the same thing
+    (exceptions apply).
+(c) When referencing elements within RDs, use an XML-like fragment
+    identifier.  For instance, ``myres/q#main`` would reference the
+    element with the id ``main`` in the RD ``myres/q.rd``.
+(d) With tables or other items that have children with names, you can
+    reference them by name after a dot.  For instance
+    ``myres/q#main.ra`` references the ``ra`` column in the ``main``
+    table in ``myres/q``.  If referencing within an RD, you can leave the
+    RD id out; in the example, within ``myres/q`` you can write
+    ``main.ra`` as well (and you can abbreviate that even more when the
+    parent has a ``namePath`` attribute; this is what's behind the
+    compact ``buildFrom`` notations in output tables).
+(e) If an RD id starts with a double slash (``//``), it refers to a
+    built-in RD; ``//tap`` is the built-in TAP RD.  To inspect these
+    built-in RD, use a command like ``dachs adm dumpDF //tap``.
+
+
 Indices and Mixins
-''''''''''''''''''
+------------------
 
 We have so far deferred the discussion of the ``mixin`` attribute in
 arihip's opening table element::
@@ -1065,7 +1114,7 @@ fill in).  Most commonly, you will either define them using the
 using ``buildFrom``.  The first case is typically used in connection
 with protocols and on tables having mixins; such condDescs result in
 zero or more input fields, and they typically inspect the queried table.
-For example, the ``//scs#humanScs`` condDesc locates the “main"
+For example, the ``//scs#humanScs`` condDesc locates the “main”
 positions as identified by UCDs and generates queries against them using
 two input fields, one it tries to guess a position from, and another for
 the search radius.
