@@ -639,12 +639,14 @@ Parsing Input Data
 
 Going further down in the RD, you will find a data element.  Their main
 purpose is to describe how certain input files fill the table(s)
-defined above.  It starts like this::
+defined above.  
+
+It starts like this::
 
   <data id="import">
     <sources>data/data.txt.gz</sources>
 
-Data elements can have ids which can be used to indiviually reference
+Data elements must have ids which can be used to individually reference
 them from a ``dachs imp`` command line; this is useful if you just want
 to import one part of a multi-table data collection.  The default of
 ``dachs imp`` default is to build all ``data`` elements except those
@@ -655,7 +657,11 @@ basically contains instructions for an action.  You might rightly argue
 that we have not chosen the element name too aptly (``recipe`` might
 have been more appropriate), but we feel it's too late to change it now.
 
-The sources_ element lets you specify the names of the input files to
+Source Specifications
+.....................
+
+The :dachsref:`Element sources` lets you specify 
+the names of the input files to
 be processed. There are several ways to do that; in this case, there's
 just one input file, which is given as element content, with the path
 interpreted relative to the resource directory.  If the data was
@@ -669,96 +675,139 @@ the following specification would do the trick::
 
 The ``sources`` element also has a recurse (boolean) attribute that
 makes DaCHS search for the pattern in the subdirectories of the path
-part of the pattern.
+part of the pattern if true.
 
-Now have a look at the input file::
+Grammars
+........
 
-  zless data/data.txt.gz
-
-You'll see that we have a plain ASCII file with aligned columns, header
-lines, and even a cell separator (``|``).  That's still a fairly common
-format for raw data, but by no means the only one.  To give DaCHS the
-flexibility to deal with anything upstream cares to throw at you, DaCHS
-has the concept of a grammar.
-
-There are many grammars defined, e.g., for getting values from FITS
-files, VOTables, or using column-based formats; you can also write
-specialized grammars in python.   All grammars read “something” and emit
-a mapping from names to (mostly) string values; those unprocessed
-string-to-string mappings are called “rawdicts” in DaCHS jargon
-(distinguished from “rowdicts“ ready for database ingestion, which sport
-processed and typed data).
-
-It is often useful to inspect what a grammar emits.  You can do that
-using import's ``--dump`` flag. During development, it is frequently
-convenient to just import a few rows and watch what they produce; this
-would look like this::
-
-  dachs imp -M 100 --dump q.rd | less
-
-(if you interrrupt the above command, your table should be unscathed –
-check with ``dachs info`` –; otherwise just re-run the full import).
-
-With a source that has both a separator character and aligned columns,
-there are several valid choice for which grammar to use on this
-particular file.  In the RD, it next says::
+In the RD, it next says::
 
     <columnGrammar topIgnoredLines="9" preFilter="zcat">
       <colDefs>
         hipno:     3-8
         srcSel:    47-49
         alphaHMS:  59-73
-        deltaDMS:  77-91
-        pmra_mas:  95-103
-        pmde_mas:  107-115
-        t_ra_mod:  119-123
-        err_ra_mas:127-131
-        err_pmra_mas:135-139
-        t_de_mod:  143-147
-        err_de_mas:151-155
-        err_pmde_mas:159-163
-        parallax_mas:167-172
-        e_parallax_mas:176-180
-        kp:        184
-        vrad:      188-195
-        mv:        199-203
-        km:        207
-        kbin:      211-212
-        kdmu:      216
-        kae:       220
-        flags:     882-901
+        [...]
       </colDefs>
 
-– so we went for :dachsref:`Element columngrammar`.  
-Those cut up every input line along
-character indices that are here, following the display in most editors,
-are counted from 1 upwards.  Note that in ranges, the last column is
+This is the definition of a **grammar**, which in DaCHS is something
+that turns some (specific) sort of input into a sequence of
+dictionaries, which we sometimes call **rawdict**, with a bit of a pun,
+because after some processing in the rowmaker (discussed below) they
+will turn into **rowdicts**.  While a rawdict almost always (exceptions
+are for higher-level source formats like FITS) maps strings to strings,
+the rowdicts map strings (column names) to something directly ingestable
+into the database (e.g., integers, or perhaps polygons).
+
+There are many grammars built into DaCHS, e.g., for getting values from FITS
+headers or tables, from VOTables, via regular expressions, or
+using column-based formats; you can also write
+specialized grammars in python, and there's direct grammars that you'll
+want to learn about if you have data larger than, say 10e7 rows (see
+:dachsdoc:`booster.html` for these).
+
+It is often useful to inspect what a grammar emits.  You can do that
+using import's ``--dumpRows`` flag, usually telling DaCHS to stop before
+you drown in screen output, perhaps like this::
+
+  dachs imp -M 100 --dumpRows q.rd | less
+
+The source file of arihip has both a separator character and 
+aligned columns, so we could use either 
+:dachsref:`Element columnGrammar` (which, as shown above, has 
+ranges of character positions with a line as shown by most editors to
+define what will be in the rawdicts' values) or :dachsref:`Element
+reGrammar` (which we could have used to split along vertical bars).
+The choice was mainly a matter of taste, but experience also shows that data
+providers are not always careful to somehow escape their separator
+characters when the appear in values, so using a column grammar is perhaps
+the somewhat more defensive choice.
+
+By the way, note that in ranges, the last column is
 included in the string – these are no python slices but basically a
 representation of the character ranges in VizieR-style
-“byte-by-byte”-descriptions.
-
-The assignment of names to column ranges can happen both in a
-``colDefs`` element as shown above – one specification per line, label
-mapped to a column or a range of columns.
-
-Alternatively, have several ``col`` elements, each of which has a ``key``
-attribute that gives a name.  This could be the ``name`` of a target
-column in the simplest case, or it can be an auxillary identifier that
-is later processed in a rowmaker.  These individual specifications are
-interesting when combined with RD macros, and that's where they come in
-in the arihip RD (again, using LOOPs).
+“byte-by-byte” descriptions.
 
 Grammars also have various attributes; the ones parsing from text files
 support, for example, ``topIgnoredLines``, which allows you to skip
-header lines, and ``preFilter`` that allows running the input through
+header lines, and ``preFilter`` that lets you run the input through
 a shell command before it is processed using DaCHS (if you find yourself
 doing more than just decompression in such a preFilter,  you should
 probably look for a different solution).
 
 
+Metaprogramming: Macros and LOOPs
+.................................
+
+As you go on in the RD, things become about as cryptic as they get in
+RDs as such (you can skip this subsection if you get scared)::
+
+    <LOOP csvItems="\modes">
+        <events>
+          <col key="dra\mname">\racols</col>
+          [...]
+          <col key="err_ra\mname\+_mas">\errracols</col>
+          [...]
+        </events>
+    <LOOP>
+
+This thing still assigns column ranges in the input file to keys in the
+rawdict.   Column grammars accept these in the relatively compact form
+in an :dachsref:`Element colDefs` as seen above. 
+
+Alternatively, you can have several of :dachsref:`Element col`,
+each of which has a ``key`` attribute that gives the key in the rawdict
+and the range of columns in the body.  These are useful here because the
+let us use another piece of RD metaprogramming: The active
+:dachsref:`Element LOOP`.  Essentially, this lets you define some sort
+of fillers, and for each set of fillers, whatever is in the LOOP's
+``events`` child will end up in the document tree once with the
+appropriate fillers.
+
+In this particular case, there were three modes of data reduction in
+arihip, and these modes turn up in several places in the RD; you may
+have wondered what a similar thing in the column definition was.
+To make this enumeration re-usable, I've defined it in a macro
+near the top of the RD::
+
+  <macDef name="modes">
+    mname, racols, decols, pmracols, pmdecols, tracols, errracol...
+    LTP, 224-233, 276-285, 328-335,  383-390,  438-444, 478-483 ...
+    STP, 237-246, 289-298, 339-346,  394-401,  448-454, 487-492 ...
+    HIP, 250-259, 302-311, 350-357,  405-412,  458-464, 496-501 ...
+  </macDef>
+
+These macros can now be used in many places, in particular in LOOP's
+``csvItems`` attribute, where LOOP will make one set of fillers from
+each CSV line.  And these fillers then become macros in the LOOP's event
+body.  In that way, the example above spits out something like::
+
+    <col key="draLTP">224-233</col>
+    <col key="draSTP">237-246</col>
+    <col key="draHIP">250-259</col>
+
+from the first ``col`` in ``events`` and the first and second column in
+the CSV.  
+
+The second element I show in the example above has the somewhat weird
+``\mname\+_mas`` macro call; the ``\+`` here just makes up for the lack
+of whitespace after ``\mname``.  If it read ``\mname_mas``, DaCHS would
+look for a filler called ``mname_mas``, which doesn't exist.  With that
+cleared, the expansions of that second ``col`` example would be::
+
+   <col key="err_raLTP_mas">478-483</col>
+   <col key="err_raSTP_mas">487-492</col>
+   <col key="err_raHIP_mas">496-501</col>
+
+The good news: As far as RD wizardry goes, this is how bad it gets
+(well, you could argue multiple expansion is worse, but I'd dispute
+that).  Once you write your first RD with LOOPs and macros, you have
+ascended into the ranks of DaCHS grand mastery.
+
+Most operators lead happy lives without such aspirations.
 
 Mapping data
-''''''''''''
+............
 
 The arihip RD then goes on with::
 
