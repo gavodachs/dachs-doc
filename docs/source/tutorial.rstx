@@ -740,7 +740,7 @@ Metaprogramming: Macros and LOOPs
 .................................
 
 As you go on in the RD, things become about as cryptic as they get in
-RDs as such (you can skip this subsection if you get scared)::
+RDs before you add Python (you can skip this subsection if you get scared)::
 
     <LOOP csvItems="\modes">
         <events>
@@ -799,7 +799,7 @@ cleared, the expansions of that second ``col`` example would be::
    <col key="err_raSTP_mas">487-492</col>
    <col key="err_raHIP_mas">496-501</col>
 
-The good news: As far as RD wizardry goes, this is how bad it gets
+The good news: This is essentially how far RD wizardry goes
 (well, you could argue multiple expansion is worse, but I'd dispute
 that).  Once you write your first RD with LOOPs and macros, you have
 ascended into the ranks of DaCHS grand mastery.
@@ -821,67 +821,63 @@ The arihip RD then goes on with::
         @vrad, lambda a:float(killBlanks(a)), "")</map>
 
 The make_ element brings together a table (in the ``table``
-attribute) with a recipe how to fill it from the output of the grammar
+attribute) with a recipe for how to fill it from the output of the grammar
 (the row maker).
 
-Incidentally, there can be multiple ``make`` elements in a single
-``data`` element if multiple tables (using different row makers) are
-generated from the same grammar output.  This is particularly useful in
-combination with `dispatching grammars`_ that let, in effect, the
-grammar choose which make to use.
-
-Makes can also carry scripts in SQL or python, at various points of the
-building process.  These let you perform all kinds of higher magic.  For
-details, see the `chapter on scripting in the reference`_.
-
-As explained above, output of grammars and hence the input to a make is
+As explained above, the output of grammars and hence the input to a make is
 a sequence of mappings from names to strings (the “rawdicts”).  The
 database, on the other hand, wants typed values, i.e., integers, time
 stamps, etc.  Also, data in input tables is frequently given in
 inconvenient formats (e.g., sexagesimal angles), deprecated or
 inconsistent units, or values may be distributed over multiple columns
 (e.g., date and time of an observation when we want a single timestamp).
-To cover these and more tasks, DaCHS has row makers, the results of which
-are then called rowdicts (note the subtle difference from the rawdicts
-coming in from the grammars: “row makers turn rawdicts into rowdicts”).
+All that can be fixed in row makers, recipes for producing rowdicts.
 
-Basically a row maker consists of
+Rowmakers are where it's rather common to have embedded python code in
+RDs; however, in simple cases you can get by with purely declarative
+XML, which, of course, is preferable, as it is much less likely we will
+break that while DaCHS, python, and DaCHS' dependencies evolve.
 
-* var_ elements – assignments of expression values names in the rawdict.
-* map_ elements – simple mappings of (python) expressions to values in
-  the destination rowdict
-* procedure applications (see apply_) – manipulations of both rawdicts
-  and rowdicts in python code
+A row maker has three kinds of children:
+
+* :dachsref:`Element var` – assignments of expression values names in 
+  the rawdict.
+* :dachsref:`Element map` – simple mappings of (python) expressions 
+  to values in the destination rowdict
+* procedure applications (:dachsref:`Element apply`) – manipulations 
+  of both rawdicts and rowdicts in python code
 
 The fragment above shows one of several ways to use both ``var`` and
-``map`` (which work exactly the same way, except that vars end up in the
-rawdict, and map in the rowdict): generating values from python
-expressions, where there is the special syntax ``@identifier`` which
+``map`` (which work exactly the same way, except that var generates
+additional values in the rawdict, whereas map directly manipulates the
+rowdict): with simple mappings between names, using pre-defined procedure
+applications, or generating values from python
+expressions. In the latter case, there is the special 
+syntax ``@identifier``, which
 expands to whatever value the rawdict has for that key (or raises a
 KeyError if the key is not present in the rawdict).
-
-The rawdict manipulations that ``var`` does are useful if you want to
-re-use whatever you compute.  The ``map`` element, on the other hand,
-writes directly into the results dictionary, the keys of which directly
-correspond to the column names.
 
 When building a rowdict for ingestion into the database, a row maker first
 binds var names, then applies procedures and finally performs the mappings.
 In the bodies of the mappings, you can use all built-in python
-functions plus a set of useful `rowmaker functions`_ documented in the
-reference documentation, as well as everything from the python standard
+functions plus a set of useful :dachsref:`functions available for 
+row makers`, as well as everything from the python standard
 library modules ``datetime``, ``math``, ``os``, ``re``, ``sys``,
-``time``, and ``urllib`` (you need to give the module name when
+``time``, and ``urllib.parse`` (you need to give the module name when
 referring to names from these modules as in, e.g., ``re.sub``).
 Furthermore, the gavo modules ``base``, ``stc``, and ``utils`` are in
 the namespace of the mapping code, as well as the submodule
-``utils.pgsphere``.  TODO: link to useful documentation for them here.
+``utils.pgsphere`` as ``pgsphere``.  These latter may not be quite as
+stable, so it's probably better if you ask for having something in the
+official rowmaker functions than pull them from these internal modules.
+Having said that, you can figure out what is in there in DaCHS'
+:dachsdoc:`api` docs.
 
 For simple cases, maps will suffice; frequently, you can do without
 python expressions by giving a ``src`` attribute specifying a rawdict
-key instead of element content (which is preferable if possible – as
-elsewhere, less code is better in RDs, too). The rawdict string will in
-this case be converted to a typed value using “sane” defaults (e.g.,
+key instead of element content (as said above,
+less code is better in RDs). This will perform some default conversion
+(e.g.,
 integers will be converted by python's int constructor, where empty
 strings are mapped to None, datetimes are parsed as ISO strings, etc)
 
@@ -905,8 +901,8 @@ need to be identical; the first item of each pair is the table column
 name, the second the rawdict key.
 
 The case where the names of rawdict and rowdict keys are identical is so
-common (since the RD author in general controls both) that there is yet
-another shortcut for this::
+common (since the RD author in general controls both) that there is an
+even more compact shortcut for this::
 
   <rowmaker>
     <idmaps>evi,av,ai</idmaps>
@@ -924,13 +920,21 @@ the column names in the target table.  For every column for which there
 is no explicit mapping, an identity mapping (with type conversion) will
 be set up with this specification.
 
+In the authors' experience, building the rowdict in the rawdict (i.e.,
+using ``var``) and then mapping it all with ``idmaps="*"`` has proven to
+be the preferable approach in many situations.  This pattern is used,
+for instance, in the built-in mapping procedures for SSAP.  On the other
+hand, the built-in mapping procedures for SIAP were written before we
+had this insight, and thus they are, regrettably, incompatible with this
+approach.
+
 Of course, you can have values that do not even depend on grammar
 output::
 
   <map dest="dateIngested">datetime.datetime.now()</map>
 
 Null values are always troublesome.  Within DaCHS, the null value
-(almost) always is python's None.  There is the row maker function
+(almost) always is python's ``None``.  There is the row maker function
 ``parseWithNull`` to help you come up with those; if your upstream was
 devious enough to use 99.99 as a null value for a magnitude, you could
 say::
@@ -938,18 +942,18 @@ say::
   <map dest="Vmag">parseWithNull(@VmagSrc, float, "99.99")</map>
 
 Note that the null value here is a literal matched against the string
-coming from the grammar; due to the rounding errors when converting from
-decimal to binary floating points, you can only safely compare against
-relatively few floating point numbers (99.99 is not among them), so you
-shouldn't do that if you can avoid it.
+coming from the grammar, i.e., before conversion to the target type.
+This is good because otherwise you could only safely compare against
+relatively few floating point numbers (99.99 is not among them).
+In cases where you can compare against the converted value, it is
+preferable to use the ``nullExpr`` attribute on vars and maps.
 
-If you need to scale this (or if null values are chosen that they are
-invalid literals to begin with), a feature that lets you null out a
-value when an specific type of exception is raised comes in handy.
-This is map's ``nullExcs`` attribute, which is just a comma separated list of
+A complementary way to produce NULLs (in particular when parseWithNull
+is used in expressions)
+the ``nullExcs`` attribute, which is just a comma separated list of
 exceptions that should be caught and interpreted as “this is null”.  If,
 in the example above, the source would give the magnitude in millimags
-to save a comma, you could use::
+to save a decimal point, you could use::
 
   <map dest="Vmag" nullExcs="TypeError"
     >parseWithNull(@VmagSrc, float, "99999")/1000.</map>
@@ -957,7 +961,7 @@ to save a comma, you could use::
 If ``parseWithNull`` here returns None, a ``TypeError`` will be raised
 and caught, and ``Vmag`` will be None.
 
-You can turn more than one exception into None.  For example example, if
+You can turn more than one exception into None.  For example, if
 ``magicOffset`` has been parsed before and could be None, while
 ``magicLit`` is to be parsed and has the empty string as a NULL literal, you
 could write::
@@ -968,15 +972,66 @@ could write::
 If ``magicOffset`` is None, magic will be None via the ``TypeError``,
 whereas empty ``magicLits`` will result in Nones via a ``ValueError``.
 
-We defer the discussion of ``apply`` elements to the discussion of how
-to build SIAP services.
+Rowmaker procedures are in :dachsref:`Element apply`.  There are a
+number of predefined ones (see :dachsref:`Procedures available for
+rowmaker/parmaker apply` in the reference documentation).  Quite
+commonly, mixins for tables underlying VO standard protocols come with
+one or more applys to populate the tables in a controlled fashion.  More
+on these when we discuss the protocols served by these mixins.
 
-``rowmaker`` elements may also be direct children of ``resource``; this
-is for when they are used in more than one ``data``. You would then give
-the rowmaker an ``id`` attribute and say something like ``<make
-rowmaker="id-of-rowmaker" table=.../>``  However, for the standard case
-it's best to keep everything related to a given import together in the
-make element.
+You can also define your own applys, but that's for higher-level DaCHS
+magicians and won't be discussed here.
+
+Service Definitions
+...................
+
+TBD
+
+Regression Tests
+................
+
+While it's admittedly boring, writing regression tests while developing
+your RD will save you a lot of fear, uncertainty, and doubt later.  In
+the arihip RD, there are two regression tests::
+
+  <regSuite title="ARIHIP regression">
+    <regTest title="ARIHIP form service appears to work.">
+      <url parSet="form" hscs_sr="1.0" hscs_pos="0.00 1.08"
+        >cone/form</url>
+      <code>
+        self.assertHasStrings("PM RA (STP)", 
+          "1.0890086361", "-5.00", "Note bin")
+      </code>
+    </regTest>
+
+    <regTest title="ARIHIP SCS response looks reasonable">
+      <url RA="0.0273384667" DEC="25.8864593500" SR="0.001" 
+        VERB="3">cone/scs.xml</url>
+      <code>
+        row = self.getFirstVOTableRow()
+        self.assertEqual(row["flags"], 's 00 .. .... ... ...')
+        self.assertAlmostEqual(row["err_parallaxSI"], 5.25e-07)
+        self.assertEqual(row["hipno"], '8')
+      </code>
+    </regTest>
+  </regSuite>
+
+As you can see, the tests are grouped into suites, where for most RDs
+you'll just have one suite.  
+
+Each test has a title, which comes in handy when a test fails and you
+want to locate it source.
+
+The body of a test is a pair of an :dachsref:`element url` – which,
+really, is just a convenient way to write a URL, typically into the
+services of the RD – and of an :dachsref:`element code`, which mostly
+gives a bunch of assertions about what a running server should be
+returning for the query encoded by ``url``.
+
+We have tried to write the reference documentation's section on
+:dachsref:`regression testing` in a tutorial-like fashion and therefore
+point you there for further details.
+
 
 
 Referencing in DaCHS
@@ -5075,7 +5130,6 @@ data – see above for details on how to create users and groups.
 .. _reference documentation: http://docs.g-vo.org/DaCHS/ref.html
 .. _registry section in the operator's guide: opguide.html#registry-matters
 .. _renderer chapter: http://docs.g-vo.org/DaCHS/ref.html#renderers-available
-.. _rowmaker functions: http://docs.g-vo.org/DaCHS/ref.html#functions-available-for-row-makers
 .. _scs.xml: http://docs.g-vo.org/DaCHS/ref.html#the-scs-xml-renderer
 .. _sources: http://docs.g-vo.org/DaCHS/ref.html#element-sources
 .. _splat: http://star-www.dur.ac.uk/~pdraper/splat/splat-vo
