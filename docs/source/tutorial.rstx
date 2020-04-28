@@ -97,9 +97,10 @@ typcial scenarios.  Anything more complicated will probably require
 perusal of the other pieces of documentation.
 
 In order to have some basic understanding of what all this is about, our
-good advice is to linearly read and follow the `high-level overview`_
-and the `quick start with DaCHS`_, as well as `Common metadata`_.
-Anything else can probably wait until you actually need it.
+good advice is to linearly skim the `high-level overview`_ in order to
+have an idea of DaCHS' basic concepts (yes, it's a bit more than 20
+pages, but we'd like to belive that grokking that is a half hour well
+spent) and then try the `quick start with DaCHS`_.
 
 Installation
 ------------
@@ -386,7 +387,9 @@ Metadata with names starting with underscores – like ``_intro`` in the
 example – is for DaCHS-internal use, very typically when building
 informational pages; where there's no underscore, there is generally
 some external standard, and in all likelihood the information will end
-up in the VO Registry in some way.
+up in the VO Registry in some way.  Many of those we discuss in
+:dachsdoc:`data_checklist.html`, which is also what we give to our data
+providers in order to seed the metadata sections of our RDs.
 
 In the above RD snippet, there are two elements that are not simple meta
 elements.  One is ``coverage``; this gives the extent of the data
@@ -735,76 +738,12 @@ a shell command before it is processed using DaCHS (if you find yourself
 doing more than just decompression in such a preFilter,  you should
 probably look for a different solution).
 
+Somewhat further on in the grammar, you will find a LOOP element with
+lots of backslashes.  It's not necessary to understand that to write
+good RDs.  But it's handy and helps avoiding repetition, which is why
+we're showing it in the example RD, and we have a chapter devoted to it
+later in in the introduction: `Metaprogramming: Macros and LOOPs`_.
 
-Metaprogramming: Macros and LOOPs
-.................................
-
-As you go on in the RD, things become about as cryptic as they get in
-RDs before you add Python (you can skip this subsection if you get scared)::
-
-    <LOOP csvItems="\modes">
-        <events>
-          <col key="dra\mname">\racols</col>
-          [...]
-          <col key="err_ra\mname\+_mas">\errracols</col>
-          [...]
-        </events>
-    <LOOP>
-
-This thing still assigns column ranges in the input file to keys in the
-rawdict.   Column grammars accept these in the relatively compact form
-in an :dachsref:`Element colDefs` as seen above. 
-
-Alternatively, you can have several of :dachsref:`Element col`,
-each of which has a ``key`` attribute that gives the key in the rawdict
-and the range of columns in the body.  These are useful here because the
-let us use another piece of RD metaprogramming: The active
-:dachsref:`Element LOOP`.  Essentially, this lets you define some sort
-of fillers, and for each set of fillers, whatever is in the LOOP's
-``events`` child will end up in the document tree once with the
-appropriate fillers.
-
-In this particular case, there were three modes of data reduction in
-arihip, and these modes turn up in several places in the RD; you may
-have wondered what a similar thing in the column definition was.
-To make this enumeration re-usable, I've defined it in a macro
-near the top of the RD::
-
-  <macDef name="modes">
-    mname, racols, decols, pmracols, pmdecols, tracols, errracol...
-    LTP, 224-233, 276-285, 328-335,  383-390,  438-444, 478-483 ...
-    STP, 237-246, 289-298, 339-346,  394-401,  448-454, 487-492 ...
-    HIP, 250-259, 302-311, 350-357,  405-412,  458-464, 496-501 ...
-  </macDef>
-
-These macros can now be used in many places, in particular in LOOP's
-``csvItems`` attribute, where LOOP will make one set of fillers from
-each CSV line.  And these fillers then become macros in the LOOP's event
-body.  In that way, the example above spits out something like::
-
-    <col key="draLTP">224-233</col>
-    <col key="draSTP">237-246</col>
-    <col key="draHIP">250-259</col>
-
-from the first ``col`` in ``events`` and the first and second column in
-the CSV.  
-
-The second element I show in the example above has the somewhat weird
-``\mname\+_mas`` macro call; the ``\+`` here just makes up for the lack
-of whitespace after ``\mname``.  If it read ``\mname_mas``, DaCHS would
-look for a filler called ``mname_mas``, which doesn't exist.  With that
-cleared, the expansions of that second ``col`` example would be::
-
-   <col key="err_raLTP_mas">478-483</col>
-   <col key="err_raSTP_mas">487-492</col>
-   <col key="err_raHIP_mas">496-501</col>
-
-The good news: This is essentially how far RD wizardry goes
-(well, you could argue multiple expansion is worse, but I'd dispute
-that).  Once you write your first RD with LOOPs and macros, you have
-ascended into the ranks of DaCHS grand mastery.
-
-Most operators lead happy lives without such aspirations.
 
 Mapping data
 ............
@@ -869,9 +808,9 @@ Furthermore, the gavo modules ``base``, ``stc``, and ``utils`` are in
 the namespace of the mapping code, as well as the submodule
 ``utils.pgsphere`` as ``pgsphere``.  These latter may not be quite as
 stable, so it's probably better if you ask for having something in the
-official rowmaker functions than pull them from these internal modules.
+official rowmaker functions than pull them from these internal-ish modules.
 Having said that, you can figure out what is in there in DaCHS'
-:dachsdoc:`api` docs.
+:dachsdoc:`apidoc`.
 
 For simple cases, maps will suffice; frequently, you can do without
 python expressions by giving a ``src`` attribute specifying a rawdict
@@ -894,7 +833,7 @@ no further manipulations, a row maker like::
 would to the trick. Since this is a bit unwieldy, DaCHS provides a
 shortcut::
 
-  <rowmaker> <simplemaps>evi:evi,av:av,ai:ai</simplemaps> </rowmaker>
+  <rowmaker simplemaps="evi:evi,av:av,ai:ai"/>
 
 which expands to exactly what is written above.  The keys in each pair do not
 need to be identical; the first item of each pair is the table column
@@ -904,9 +843,7 @@ The case where the names of rawdict and rowdict keys are identical is so
 common (since the RD author in general controls both) that there is an
 even more compact shortcut for this::
 
-  <rowmaker>
-    <idmaps>evi,av,ai</idmaps>
-  </rowmaker>
+  <rowmaker idmaps="evi,av,ai"/>
 
 Idmaps sets up one map element each with both dest and src set to the
 value for every name in the comma separated list idmaps.
@@ -982,10 +919,135 @@ on these when we discuss the protocols served by these mixins.
 You can also define your own applys, but that's for higher-level DaCHS
 magicians and won't be discussed here.
 
+
 Service Definitions
 ...................
 
-TBD
+The last but one part of the RD deals with how to get the data out of
+the database again, i.e., the services exposing the data.  This part is
+fairly simple for arihip::
+
+  <service id="cone" allowed="scs.xml,form">
+    <meta name="shortName">arihip cone</meta>
+    <meta name="testQuery">
+      <meta name="ra">9.4076</meta>
+      <meta name="dec">9.6414</meta>
+      <meta name="sr">1.0</meta>
+    </meta>
+
+    <dbCore queriedTable="main">
+      <FEED source="//scs#coreDescs"/>
+      <condDesc buildFrom="mv"/>
+      <condDesc>
+        <inputKey original="hipno" required="False"/>
+      </condDesc>
+    </dbCore>
+
+    <publish render="scs.xml" sets="ivo_managed"/>
+    <publish render="form" sets="ivo_managed,local"/>
+    <outputTable verbLevel="20"/>
+  </service>
+
+
+To understand what's going on here, some basic understanding of DaCHS'
+service architecture is required; it consists of:
+
+* cores; they do the actual computation or database query
+* renderers; these digest the bits coming in from the client and (in
+  general) format the result in some way requested by the client again.
+  There are renderers for web forms and several VO protocols, ones
+  producing HTML documentation for RDs, and so on.  In the ideal case –
+  as in the example –, you can use the same core for both a VO protocol
+  and a form-based service by just allowing different renderers.
+* services; they hold together the core and the renderer, can
+  reformat core results, and they are what is registered, which means that
+  they hold the metadata that ends up in the registry (most of it
+  is typically inherited from their RDs).
+
+The renderers are referenced by name in the service's ``allowed``
+attribute.  What can be given there (concatenated by commas) is listed
+in the reference documentation's section on 
+:dachsref:`Renderers Available`.
+
+Which renderer is used when a service is run is selected by the client:
+it's (usually) the last segment of the path part of the access
+URL.  If a client tries to
+retrieve a URL with a renderer that is not in the service's ``allowed``
+list, DaCHS will respond with a 403 forbidden HTTP code (excepting
+certain “unchecked” renderers like ``info`` that typically expose
+service metadata).  Note that some of the more exotic renderers may pose
+special requirements on cores.  Don't be too disappointed of a given
+renderer won't work with your core.
+
+The most common core for catalogue services (and the one you'll typically
+use for SCS services) is the dbCore_, as used here.  Other cores you
+should know about include the :dachsref:`Element nullCore` (for services
+that don't do any server-side computation at all), :dachsref:`Element
+datalinkCore` (which can define all sorts of manipulations on and
+linking of datasets), the python and custom cores (discussed in the
+reference's `Write Your Own Core`_ section), and several
+protocol-specific cores discussed below.
+
+The dbCore generates a (single-table) query from condition descriptors
+and returns a table that you describe through an output table.  Cores
+are defined as direct children of the resource (as with grammars and
+rowmakers, you can also have them in ``resource`` and then write
+``core="id-of-element"``, which makes sense when a single core is shared
+by several services).
+
+dbCores need a ``queriedTable`` attribute, the value of which must be 
+the id of a ``table`` element.  This is the table the query will run against.
+
+The condition descriptors within dbCores
+(defined in :dachsref:`Element condDesc`) define, in essence, input fields:
+in the form renderer, these will be rendered as form items people can
+fill in.  Most commonly, you will either define them using the
+``original`` attribute (when inheriting from predefined condDescs) or
+using ``buildFrom``.  The first case is typically used in connection
+with protocols and on tables having mixins; such condDescs result in
+zero or more input fields, and they typically inspect the queried table.
+For example, the ``//scs#humanScs`` condDesc locates the “main”
+positions as identified by UCDs and generates queries against them using
+two input fields.  One somehow specifies center position of the
+region of interest, the other gives the search radius.
+
+When you define a ``condDesc`` using ``buildFrom``, the result is
+usually one or more input field(s) constraining values in the column
+named in the ``buildFrom`` attribute.  The software tries to make some
+useful input definition from that column, depending on the current
+renderer's parameter style (which is given in :dachsref:`renderers
+available`).
+
+For instance, if you build a condDesc from a real- or double
+precision-typed column, and the service is accessed with a form-styled
+renderer, users can constrain the column's values with
+Vizier-like float expressions, where, for instance, an interval would be
+written as ``range_min .. range_max``.  When the request comes in
+through renderers with a parameter style of ``pql`` (e.g., SSAP), the
+condDesc would expect SSAP-style intervals (e.g.,
+``range_min/range_max``).  In the parameter style ``dali``, that
+interval would be written ``range_min range_max``.  Yes, it is
+deplorable that something like the parameter style exists, but that
+particular uglyness is not DaCHS' fault; in practice, it's a lot less
+horrifying than it sounds, because clients very typically just use one
+renderer, and they hopefully agree with it on the parameter syntax.
+
+The ``service`` element must have an ``id`` attribute that is used to
+select the service run in the access URL's last but one segment.  
+Furthermore, there should be
+certain pieces of metadata useful for the Registry.  First, there's
+``shortName``, which is typically used by clients in space-restricted
+displays.  It must not be longer than 16 characters, so something like
+an acronym and a very terse role identifier is the best you can do
+(hence the “arihip cone” here).  Frequently, a ``title`` meta is also
+useful, in particular when an RD contains multiple services.
+
+Many standard VO protocols require additional, protocol-specific
+metadata.  In the case of arihip, we have a Simple Cone Search service,
+which, as laid down in the reference for the :dachsref:`the scs.xml
+renderer`, requires the parameters of a test query returning a non-empty
+result.
+
 
 Regression Tests
 ................
@@ -1149,124 +1211,82 @@ A simple condDesc that searches using this index could be::
   </condDesc>
 
 
-Cores and Services
-''''''''''''''''''
+Metaprogramming: Macros and LOOPs
+---------------------------------
 
-The last but one part of the RD deals with how to get the data out of
-the database again, i.e., the services exposing the data.  This part is
-fairly simple for arihip::
+In the paragraph on `Grammars`_, we skipped over something that
+admittedly is a bit cryptic (you can skip this subsection if you get
+scared; you can use all of DaCHS without knowing about it)::
 
-  <service id="cone" allowed="scs.xml,form">
-    <meta name="shortName">arihip cone</meta>
-    <meta name="testQuery">
-      <meta name="ra">9.4076</meta>
-      <meta name="dec">9.6414</meta>
-      <meta name="sr">1.0</meta>
-    </meta>
+    <LOOP csvItems="\modes">
+        <events>
+          <col key="dra\mname">\racols</col>
+          [...]
+          <col key="err_ra\mname\+_mas">\errracols</col>
+          [...]
+        </events>
+    <LOOP>
 
-    <dbCore queriedTable="main">
-      <FEED source="//scs#coreDescs"/>
-      <condDesc buildFrom="mv"/>
-      <condDesc>
-        <inputKey original="hipno" required="False"/>
-      </condDesc>
-    </dbCore>
+As with the ``colDefs`` discussed above, this part still 
+assigns column ranges in the input file to keys in the
+rawdict.   Column grammars accept these in the relatively compact form
+in an :dachsref:`Element colDefs` as seen above. 
 
-    <publish render="scs.xml" sets="ivo_managed"/>
-    <publish render="form" sets="ivo_managed,local"/>
-    <outputTable verbLevel="20"/>
-  </service>
+Alternatively, you can have several of :dachsref:`Element col`,
+each of which has a ``key`` attribute that gives the key in the rawdict
+and the range of columns in the body.  These are useful here because the
+let us use another piece of RD metaprogramming: The active
+:dachsref:`Element LOOP`.  Essentially, this lets you define some sort
+of fillers, and for each set of fillers, whatever is in the LOOP's
+``events`` child will end up in the document tree once with the
+appropriate fillers.
 
+In this particular case, there were three modes of data reduction in
+arihip, and these modes turn up in several places in the RD; you may
+have wondered what a similar thing in the column definition was.
+To make this enumeration re-usable, I've defined it in a macro
+near the top of the RD::
 
-To understand what's going on here, some basic understanding of DaCHS'
-service architecture is required; it consists of:
+  <macDef name="modes">
+    mname, racols, decols, pmracols, pmdecols, tracols, errracol...
+    LTP, 224-233, 276-285, 328-335,  383-390,  438-444, 478-483 ...
+    STP, 237-246, 289-298, 339-346,  394-401,  448-454, 487-492 ...
+    HIP, 250-259, 302-311, 350-357,  405-412,  458-464, 496-501 ...
+  </macDef>
 
-* cores; they actually do the computation or database query
-* renderers; these digest the data coming in from the service and (in
-  general) format the result in some way requested by the user.
-  There are renderers for web forms, VO protocols,
-  imges, etc.  Frequently – as in the example –, you can use the same
-  core for both a VO protocol and a form-based service by just
-  allowing different renderers.
-* The service; it holds together the core and the renderer, can
-  reformat core results, controls the metadata, etc.
+These macros can now be used in many places, in particular in LOOP's
+``csvItems`` attribute, where LOOP will make one set of fillers from
+each CSV line.  And these fillers then become macros in the LOOP's event
+body.  In that way, the example above spits out something like::
 
-The renderers are referenced by name in the service's ``allowed``
-attribute.  What can be given there (concatenated by commas) is listed
-in the reference documentation's `renderer chapter`_.  As you have seen
-above, the renderer is selected via the URL.  If a client tries to
-retrieve a URL with a renderer that is not in the service's ``allowed``
-list, DaCHS will respond with a 403 forbidden HTTP code (excepting
-certain “unchecked” renderers like ``info`` that typically expose
-service metadata).  Note that some of the more exotic renderers may pose
-special requirements on cores, so don't be too disappointed of some
-exotic renderer won't work with your core.
+    <col key="draLTP">224-233</col>
+    <col key="draSTP">237-246</col>
+    <col key="draHIP">250-259</col>
 
-The most common core for catalog services (and the one you'll typically
-use for SCS services) is the dbCore_, as used here.  See `cores
-available`_ in the reference documentation for more predefined cores --
-e.g., to run ADQL queries or to upload files.  For special
-functionality, you can even `write your own core`_.
+from the first ``col`` in ``events`` and the first and second column in
+the CSV.  
 
-The dbCore generates a (single-table) query from condition descriptors
-and returns a table that you describe through an output table.  Cores
-are defined as direct children of the resource (as with grammars, you
-can also have them in ``resource`` and then write
-``core="id-of-element"``, which makes sense when a single core is shared
-by several services).
+The second element I show in the example above has the somewhat weird
+``\mname\+_mas`` macro call; the ``\+`` here just makes up for the lack
+of whitespace after ``\mname``.  If it read ``\mname_mas``, DaCHS would
+look for a filler called ``mname_mas``, which doesn't exist.  With that
+cleared, the expansions of that second ``col`` example would be::
 
-dbCores need a ``queriedTable`` attribute, the value of which must be a
-table reference.  This is the table the query will run against.
+   <col key="err_raLTP_mas">478-483</col>
+   <col key="err_raSTP_mas">487-492</col>
+   <col key="err_raHIP_mas">496-501</col>
 
-The condition descriptors (or condDescs for short) define input fields
-(for the form renderer, these will be rendered as form items people can
-fill in).  Most commonly, you will either define them using the
-``original`` attribute (when inheriting from predefined condDescs) or
-using ``buildFrom``.  The first case is typically used in connection
-with protocols and on tables having mixins; such condDescs result in
-zero or more input fields, and they typically inspect the queried table.
-For example, the ``//scs#humanScs`` condDesc locates the “main”
-positions as identified by UCDs and generates queries against them using
-two input fields, one it tries to guess a position from, and another for
-the search radius.
+The good news: This is essentially how far RD wizardry goes
+(well, you could argue multiple expansion is worse, but I'd dispute
+that).  Once you write your first RD with LOOPs and macros, you have
+ascended into the ranks of DaCHS grand mastery.
 
-When you define a ``condDesc`` using ``buildFrom``, the result is
-usually one or more input field(s) constraining values in the column
-named in the ``buildFrom`` attribute.  The software tries to make some
-useful input definition from that column, depending on the renderer.
-Renderers with a parameter style (this is given in each renderer's
-description the reference documentation) of “form”, for example, let
-users query string-like columns using Vizier-like string expressions,
-real and double precision columns using Vizier-like float expressions,
-and so on.   The ``pql`` style allows a specification like for some SSAP
-parameters (e.g., ``range_min/range_max``).
-
-The ``service`` element must have an ``id`` attribute that is used to
-select the service run in the access URL.  Furthermore, there should be
-certain pieces of metadata useful in later registration.  First, there's
-``shortName``, which is typically used by clients in space-restricted
-displays.  It must not be longer than 16 characters, so something like
-an acronym and a very terse role identifier is the best you can do
-(hence the “arihip cone” here).  Frequently, a ``title`` meta is also
-useful, in particular when an RD contains multiple services, in which
-case one could be “Cone search for ARI's HIPPARCOS re-reduction” and the
-other, say, “Autocorrelation on ARI's HIPPARCOS re-reduction”.
-
-
-See :dachsdoc:`data_checklist.html` for more information on useful generic
-metadata and remember that services inherit whatever is defined within
-``resource`` when not specified within the element.
-
-Many standard VO protocols require additional, protocol-specific
-metadata.  In the case of arihip, we have a Simple Cone Search service,
-which, as laid down in the section on the `scs.xml`_ renderer in the
-reference documentation, requires the parameters of a test query
-returning a nonempty result.
+Most operators lead happy lives without such aspirations.
 
 
 
-Building a Catalog Service
-==========================
+Building a Catalogue Service
+============================
 
 To do anything useful with DaCHS, you will have to write a resource
 descriptor (RD), and you'll probably have to have some data.  Both must
@@ -1286,11 +1306,11 @@ a service, you will usually do something like::
   dachs start <data-type-tag>
 
 To see something quickly, however, we will look at an existing data set
-first, a catalog called ARIHIP catalog – this is a
-re-reduction of the Hipparcos result catalog
+first, a catalogue called ARIHIP catalogue – this is a
+re-reduction of the Hipparcos result catalogue
 with particularly careful solutions for proper
 motion.  It has a column-based input and probably a few more columns
-than your average catalog these days.  It hence is simple in principle
+than your average catalogue these days.  It hence is simple in principle
 but let us demonstrate a few advanced concepts, too.
 
 You can run the following under any user id, as long as
@@ -1430,7 +1450,7 @@ there and then see if starting from the corresponding RD in our
 The standard way (and that's what we almost always do), however, is to
 use ``dachs start``.  To use it, create your resource directory, change
 into it and give build a q.rd template by running ``dachs start
-<proto>``.  For instance, when you have a catalog called smartdata, you
+<proto>``.  For instance, when you have a catalogue called smartdata, you
 would write::
 
   cd /var/gavo/inputs
@@ -1468,7 +1488,7 @@ F8 to go to the next thing to fill in, and F9 to replace the template
 text (that usually gives you a hint on what to put there – but also read
 the comments).
 
-If you've followed the chapter on `Building a catalog service`_
+If you've followed the chapter on `Building a catalogue service`_
 above, not much of what you'll be seeing should surprise you.  If you're
 wondering about a particular thing, you can always refer to the `RD
 element reference`_ to see how it's used in our data center, or go to
@@ -2081,7 +2101,7 @@ Notes
 -----
 
 Frequently, you need to say more about a column than is appropriate in
-the few-phrase description.  In catalog descriptions and VizieR, such
+the few-phrase description.  In catalogue descriptions and VizieR, such
 situations are handled using notes, and DaCHS follows suit.
 
 The notes themselves are kept in meta elements belonging to tables.
@@ -2532,7 +2552,7 @@ whatsoever to do with requiring people to properly cite and/or
 acknowledge.  That is part of good scientific practice and is unrelated
 to legal issues.  Licensing is necessary for hassle-free re-use of the
 data in situations where it needs to be re-distributed; the classic
-example would be a star catalog within a planetarium software.
+example would be a star catalogue within a planetarium software.
 
 .. _Reference Manual on RMI-style metadata: ./ref.html#rmi-style-metadata
 .. _STC library documentation: ./stc.html
@@ -2751,7 +2771,7 @@ just HTTP with RA, DEC, and SR parameters, a slightly constrained
 VOTable response, plus a special way to encode errors (in a way somewhat
 different from what has been specified for later DAL protocols).
 
-The service discussed in `Building a Catalog Service`_ is a combined
+The service discussed in `Building a Catalogue Service`_ is a combined
 SCS/form service.  This section just briefly recapitulates what was
 discussed there.  For a quick start, just follow the tutorial above.
 
@@ -2834,7 +2854,7 @@ on it.  As the core is built, you can have a web-based form interface
 for free::
 
   <service id="cone" allowed="scs.xml,form">
-    <meta name="title">Nice Catalog Cone Search</meta>
+    <meta name="title">Nice Catalogue Cone Search</meta>
     <meta name="shortName">NC Cone</meta>
     <meta name="testQuery.ra">10</meta>
     <meta name="testQuery.dec">10</meta>
@@ -4170,7 +4190,7 @@ like::
 Within the data element you need one make each for each table you want
 in ADQL; it would cause the tables to be created on a plain ``dachs
 imp``, in the present context, it just says something like “put the
-table metadata into DaCHS' internal catalogs”.
+table metadata into DaCHS' internal catalogues”.
 
 After that, say ``dachs imp -m <rd-id>``; make sure you don't forget the
 ``-m``, because without it, ``dachs imp`` will drop the existing tables
@@ -4620,7 +4640,7 @@ First, you'll obviously define the tables involved::
     <column name="catno" type="integer" required="True"
       ucd="meta.id;meta.main"
       tablehead="id#"
-      description="Identification number in the ARIGFH master catalog"
+      description="Identification number in the ARIGFH master catalogue"
       verbLevel="1"/>
     <column name="raj2000" type="double precision"
     ...
@@ -4629,8 +4649,8 @@ First, you'll obviously define the tables involved::
     <column name="dist" type="double precision"
       ucd="pos.angDistance" unit="deg"
       tablehead="Offset"
-      description="Offset between master catalog position at catalog
-        epoch and equinox and the catalog position"
+      description="Offset between master catalogue position at catalogue
+        epoch and equinox and the catalogue position"
       verbLevel="1" displayHint="displayUnit=mas,sf=1"/>
     <column name="masterNo" type="integer" required="True"
       ...
@@ -4649,7 +4669,7 @@ the source columns.  The view definition then looks somewhat like this::
   <table onDisk="true" id="id" adql="True">
     <meta name="description">
       The stars from the gfh table having counterparts in the master
-      catalog, together with those counterparts.
+      catalogue, together with those counterparts.
     </meta>
     <column original="master.catno" name="masterNo"/>
     <column original="master.component" name="compMaster"/>
@@ -5129,7 +5149,6 @@ data – see above for details on how to create users and groups.
 .. _reStructuredText: http://docutils.sourceforge.net/rst.html
 .. _reference documentation: http://docs.g-vo.org/DaCHS/ref.html
 .. _registry section in the operator's guide: opguide.html#registry-matters
-.. _renderer chapter: http://docs.g-vo.org/DaCHS/ref.html#renderers-available
 .. _scs.xml: http://docs.g-vo.org/DaCHS/ref.html#the-scs-xml-renderer
 .. _sources: http://docs.g-vo.org/DaCHS/ref.html#element-sources
 .. _splat: http://star-www.dur.ac.uk/~pdraper/splat/splat-vo
