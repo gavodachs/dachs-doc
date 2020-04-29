@@ -139,7 +139,7 @@ you're reading this, that's you), people consuming your services
 *users*.
 
 
-High-level overview
+High-level Overview
 ===================
 
 Invoking DaCHS
@@ -151,7 +151,10 @@ program called ``dachs``.  Multiple functions are integrated and selected
 through the first argument; run ``dachs help`` (or, for perhaps less
 cryptic output, ``man dachs``) to see what's available; realistically,
 the functions most operators will be confronted with are ``start``,
-``import``, ``debug``, ``publish``, ``test``, and perhaps adm.
+``import``, ``debug``, ``publish``, ``test``, and perhaps ``admin``.
+DaCHS will be happy with unique prefixes into these command names; for
+instance, we tend to just type ``dachs adm xsd`` rather than ``dachs
+admin xsdValidate``.
 
 DaCHS has some global options (that go in front of the subcommand name),
 which mostly are useful for `Debugging`_.  Most subcommands take options
@@ -242,7 +245,7 @@ http://dc.g-vo.org/arihip/q/cone/static.
 
 This section will introduce an example RD for a simple service (we will
 use it in the `Quick Start with DaCHS`_) publishing a simple
-astrometrical catalogue.  To follow the exposition below, have a look at
+astrometric catalogue.  To follow the exposition below, have a look at
 the XML by by fetching
 http://svn.ari.uni-heidelberg.de/svn/gavo/hdinputs/arihip/q.rd (use
 HTTP, not HTTPS, as the latter requires authentication) and opening the
@@ -451,7 +454,7 @@ table; leave it out for tables not suitable for “raw” consumption by your
 clients.
 
 For the ``mixin`` attribute is one of the deeper concepts in DaCHS.
-We'll have more on this later.
+We defer a closer look at that to the `Mixin Introduction`_.
 
 Finally, using the ``primary`` attribute you can specify an explicit
 primary key of the table (if it is made up of several columns,
@@ -629,6 +632,21 @@ The output of ``dachs info`` (see above) can help you to choose suitable
 NULL values.  To help people spot them when metadata is missing, it's
 usually wise to choose “conspicuous” null values (like -1, 9999, or
 similar).
+
+A child element of ``table`` we have not mentioned above  is this::
+
+    <index columns="mv"/>
+
+This is the simplest, but mostly sufficient, form of telling DaCHS to
+index a column, where the columns attribute just lists the names of the
+columns to index – and most of the time, that will be just one.  More
+complicated index patterns are possible – see :dachsref:`the index
+element` in the reference.
+
+Indices are usually generated after a full import.  If you add or change
+indices later, run ``dachs imp -I``, which will re-make all indices.
+For large tables, you may want to just create one particular index; in
+that case, see the ``indexStatements`` subcommand to ``dachs admin``.
 
 Scrolling a bit further down in the arihip RD, you'll notice some LOOP
 constructs.  These are discussed below under `active tags`_.
@@ -1127,14 +1145,13 @@ the same logic):
     built-in RD, use a command like ``dachs adm dumpDF //tap``.
 
 
-Indices and Mixins
+Mixin Introduction
 ------------------
 
 We have so far deferred the discussion of the ``mixin`` attribute in
 arihip's opening table element::
 
-  <table id="main" onDisk="True" adql="True" mixin="//scs#q3cindex"
-    primary="hipno">
+  <table [...] mixin="//scs#q3cindex">
 
 Mixins are DaCHS' primary tool to endow tables with “everything needed
 to serve a standard” (e.g., a minimal set of columns, certain indices,
@@ -1147,68 +1164,28 @@ is updated when the table is filled.
 
 The content of the mixin element (or the attribute value when you give
 the mixin property as an attribute) is a reference to a mixin
-definition.  These references typically go into some system descriptor
-(though you could define your own mixins), and the double slash in a
-DaCHS reference means “system descriptor” (in actual truth, it's just an
-abbreviation for ``__system__/``).  The reference documentation contains
-a chapter on `DaCHS' public mixins`_.  For the curious: you can have a
-look at the actual definitions by admin's ``dumpDF`` subcommand, e.g.,
-like this::
+definition.  If you have read `Referencing in DaCHS`_, you will see that
+the mixin here sits in a built-in RD (because it starts with a double
+slash).  That is where you will usually get them from, and what you can
+choose from you can figure out from the reference documentation's
+:dachsref:`mixins` section.
+
+For the curious: If you want to see the definition of a mixin (it's in
+an RD, after all), use admin's ``dumpDF`` subcommand like this::
 
   dachs admin dumpDF //scs
 
-The ``//scs#q3cindex`` mixin referenced here arranges for spatial
+:dachsref:`The //scs#q3cindex mixin` referenced here arranges for spatial
 indexing of tables having some sort of spherical coordinates.
 To identify which columns to index, DaCHS inspects the UCDs of the
-columns; what it looks for here are columns with UCDs of
-``pos.eq.(ra|dec);meta.main``` as index columns.  Contrary
+columns, which happens to almost be enough to make the table suitable
+for publication through the IVOA's simple cone search protocol (SCS). 
+What it looks for here are columns with UCDs of
+``pos.eq.(ra|dec);meta.main``, and it will index them.  Contrary
 to mixins for other standard protocols, it does not automatically insert
 these columns (and neither the only other required column in SCS, the
 main row identifier with the UCD ``meta.id;meta.main``).
 
-Since in addition to spatial queries, we also expect a lot of queries
-constraining the ``mv`` column, we ask for an index on it using DaCHS'
-index_ element, which is a child of ``table``::
-
-    <index columns="mv"/>
-
-This is the simplest, but mostly sufficient, form of defining an index;
-for advanced usage, please refer to the `reference documentation`_.  If
-you decide to add an index to a table later on, or to initiate
-re-indexing after a lot of data changed, see the ``-I`` option of
-``dachs imp``.
-
-The ``pos.eq`` UCDs in the SCS ``condDescs`` are hardcoded; this is
-because the standard simple cone search protocol specifies that the
-coordinates passed in are ICRS, and hence other systems – galactic, say
-– make little sense here.  Also, the web form-variants of the protocols
-let users enter Simbad-resolvable identifiers rather than positions.  In
-sum, making these things generic for other systems would be an
-unreasonable implementation effort.
-
-If you want to allow queryies in other systems, just write the index
-statement inline, e.g., for galactic coordinates in the columns
-``lambda``, ``beta``::
-
-  <index name="q3c_gal" cluster="True" columns="lambda,beta"
-    >q3c_ang2ipix(lambda,beta)</index>
-
-A simple condDesc that searches using this index could be::
-
-  <condDesc>
-    <inputKey original="lambda" required="True"/>
-    <inputKey original="beta" required="True"/>
-    <inputKey name="sr" tablehead="Search Radius">
-      <values default="0.001"/>
-    </inputKey>
-    <phraseMaker>
-      yield q3c_radial_query(lambda, beta, %%(%s)s, "
-        "%%(%s)s, %%(%s)s)")%(
-        base.getSQLKey("lambda", inPars["lambda"], outPars),
-        base.getSQLKey("beta", inPars["beta"], outPars),
-        base.getSQLKey("sr", inPars["sr"], outPars))
-    </phraseMaker>
-  </condDesc>
 
 
 Metaprogramming: Macros and LOOPs
@@ -1285,33 +1262,28 @@ Most operators lead happy lives without such aspirations.
 
 
 
-Building a Catalogue Service
-============================
+Quick start with DaCHS
+======================
 
-To do anything useful with DaCHS, you will have to write a resource
-descriptor (RD), and you'll probably have to have some data.  Both must
-reside within some subdirectory of DaCHS' input directory (unless you
-configured otherwise, that's /var/gavo/inputs; we assume that in the
-following).
+This brief section will guide you through the process of importing data
+into DaCHS, running an associated service, and publishing it, using the
+arihip RD discussed in `The Resource Descriptor`_ above.  It is probably
+a good idea to have skimmed the `High-level Overview`_ before
+experimenting here.
 
-Since both astronomical data and VO services tend to be complex, you can
-do a lot of things in an RD.  However, the publication of a certain
-data type (e.g., catalogue, spectra or image collection) often follows a
-pattern.  DaCHS comes with a library of such patterns, and when starting
-a service, you will usually do something like::
+In general, when you start publishing data in DaCHS, you will do
+something like::
 
   cd /var/gavo/inputs
   mkdir <collection-name>
   cd <collection-name>
+  mkdir data
+  (put your upstream data into the data subdirectory)
   dachs start <data-type-tag>
 
-To see something quickly, however, we will look at an existing data set
-first, a catalogue called ARIHIP catalogue – this is a
-re-reduction of the Hipparcos result catalogue
-with particularly careful solutions for proper
-motion.  It has a column-based input and probably a few more columns
-than your average catalogue these days.  It hence is simple in principle
-but let us demonstrate a few advanced concepts, too.
+In this particular case, we will skip the ``dachs start`` (which
+necessarily is followed by a lot of work on mapping the data) and just
+use an existing RD.
 
 You can run the following under any user id, as long as
 you wisely manage the permissions.  For testing, however, we recommend
@@ -1327,16 +1299,19 @@ To get a quick start, just pull in the RD in use by GAVO's data center::
   curl -O http://svn.ari.uni-heidelberg.de/svn/gavo/hdinputs/arihip/q.rd
 
 The directory name (“arihip” in this case) will (normally) appear in
-URLs, so it's a good idea to choose something descriptive and short.
-The directory created here is ususally called the resource directory in
-DaCHS lingo.
+URLs, so it's a good idea to choose something descriptive, short, and
+without characters that need URL escaping.  The directory you have just
+created is the resource directory introduced in the overview.
 
 The resource descriptor name also appears in URLs.  At GAVO's data
 center, we usually call it ``q.rd`` as that looks nicely query-ish (to
 our tastes).
 
-Next, get the raw data.  We recommend keeping data in a subdirectory of
-resource directory (and suggest to call that subdirectory ``data``).  At
+Next, get the raw data.  In particular because sources assumes that
+much, the raw data should reside in a subdirectory of the resource
+directory, and unless you have a good reason to break with that
+convention (e.g., separating several data releases would be such a good
+reason), just call it ``data``.  At
 the GAVO DC we usually keep everything in the resource directory under
 version control except for that data directory (which tends to be large,
 full of binary files, and either versioned by upstream or not at all)::
@@ -1345,10 +1320,9 @@ full of binary files, and either versioned by upstream or not at all)::
   cd data
   curl -O http://dc.g-vo.org/arihip/q/cone/static/data.txt.gz
 
-At this point, we're ready for ingestion.  All commands to DaCHS go
-through the ``dachs`` program that has several sub-commands; in this
-case, we need the ``import`` sub-command.  The sub-commands can be
-abbreviated as long as the abbreviation is unambiguous::
+At this point, we're ready for ingestion, which is covered by the
+``import`` subcommand (cf. `Invoking DaCHS`_).  So, return to the
+resource directory and run the default import::
 
   cd ..
   dachs imp q
@@ -1357,27 +1331,18 @@ This should run for a while, reporting the number of ingested rows now
 and then, and finally say something like “Rows affected: XY”.  With this,
 the data is in the database and is ready for querying.
 
-Let us mention in passing that ``dachs imp`` tries to interpret its first
-argument first as a file system path.  If that fails, it tries to
-interpret it as an RD identifier, i.e., the inputsDir-relative path of
-the RD with the extension stripped.  Our example RD thus has the RD id
-*arihip/q*, and you could have said::
-
-  dachs imp arihip/q
-
-from anywhere in the file system.
-
 After you have imported a table, it is a good idea to run ``dachs info``
 with the DaCHS identifier of the freshly imported table, e.g.,::
 
   dachs info arihip/q#main
 
-The DaCHS identifier of the table consists of the RD id as introduced
-above, the hash (inspired by the URL fragment identifier), and the id of
-the table.
+If this command's argument looks confusing to you, please review
+`Referencing in DaCHS`_.
 
-This will output several properties (min, max, avg) of numeric columns
-that may help spot import errors.  Also note that for each column, the
+This will output several properties (right now, minimum, maximum, 
+average) of numeric columns, which
+may help spot problems in the data or the row maker (or both).  
+Also note that for each column, the
 presence of NULLs is given.  When you import data, it is a good idea to
 check whether these correspond to your expectations, and to consider
 declaring columns as required when they do not indeed contain NULLs.
@@ -1388,8 +1353,9 @@ already running; stop it first for this tutorial::
   sudo service dachs stop  # only if installed from package
   dachs serve debug
 
-(if the last command fails with permission problems, add yourself to the
-gavo group, say ``newgrp gavo`` (or log out and in again) and try again).
+If the last command fails with permission problems, add yourself to the
+gavo group, say ``newgrp gavo`` (or log out and in again) and try again
+[#port]_.
 
 The RD sets up a form-based service you can operate from a web browser;
 open the URL http://localhost:8080/arihip/q/cone/form [#binding]_
@@ -1397,33 +1363,41 @@ and play around a
 bit.  Note the small links behind some query fields – DaCHS supports
 VizieR-like expressions in those fields.
 
-Briefly have a look at the URL; apart from the host name and port (see
+Briefly have a look at the URL. A promised in `Service Definitions`_, 
+apart from the host name and port (see
 the `operator's guide`_ on how to change those), there is the path to the
-RD (without the file extension), then the id of the service element (see
-below) and a “renderer name”.  That essentially defines the physical
-interface of the service, i.e., which protocol it is accessed through.
-In this case, it's ``form`` for an HTML form.
+RD (without the file extension), then the id of the service element, and
+finally the renderer name.  In this case, that's ``form`` for an HTML form.
+
+By the way, a convenient backdoor to find such links without looking
+up the individual parts is the RD browser.  To enter that, just append
+your RD id to the ``browse`` child of your server; in this case, that
+would be http://localhost:8080/browse/arihip/q.  This will give you a
+convenient overview over the tables and services defined by the RD.
 
 Another renderer supported by this service is ``scs.xml``, which
-implements the IVOA Simple Cone Search (SCS) protocol.  A client that supports
-this is TOPCAT_; to try it out, in TOPCAT select VO/Cone Search and fill
+implements the IVOA Simple Cone Search (SCS) protocol.  A client
+speaking SCS
+is TOPCAT_; to try it out, in TOPCAT select VO/Cone Search and fill
 out the Cone URL field in the lower part of the window to be
 ``http://localhost:8080/arihip/q/cone/scs.xml``.  Enter some object name
 and a sufficiently large search radius (e.g., Aldebaran and 0.5
 degrees), and you'll see the results coming in.
 
-Incidentally, cone search does not (yet) have a usable interface to
-discover additional parameters, and hence TOPCAT restricts you to those
-mandatory for every SCS service.  For instance, as delivered, arihip
-admits an ``mv`` parameter.  DaCHS supports a special syntax for
-“free” parameters of cone searches as defined by the spectral access
-protocol SSAP; to say ”everything brighter than 6th magnitude”, the
+In case you're missing the mv parameter you had in the form interface: 
+cone search does not (yet) have a usable interface to
+discover custom parameters, and hence TOPCAT restricts you to those
+mandatory for every SCS service[#scs-extra]_.
+DaCHS supports a special syntax for
+such “free” parameters of cone searches (see the discussion of parameter
+styles in `Service Definitions`; SCS is pql in DaCHS).
+To say ”everything brighter than 6th magnitude”, the
 parameter setting would be ``/6``; to use this constraint within TOPCAT,
 the access URL needs to be amended like this:
 ``http://localhost:8080/arihip/q/cone/scs.xml?mv=/6``.
 
 Finally, the RD opens the arihip table for the IVOA Table Access
-Protocol TAP, which allows queries in a dialect of SQL.  Again, TOPCAT
+Protocol TAP, which lets you write queries in a dialect of SQL.  Again, TOPCAT
 has a nice client for TAP built in.  To try it, select VO/TAP Query,
 enter ``http://localhost:8080/tap`` in the TAP URL field near the bottom
 of the window, and hit “Enter Query”.  In the resulting dialog, you can
@@ -1434,6 +1408,7 @@ browse the table's metadata and then enter queries like::
 For more information on what fancy things you can do here, see `GAVO's
 ADQL short course`_
 
+TBD: dachs pub, browsing oai.xml
 
 
 Introduction to DaCHS Publishing 
@@ -1488,7 +1463,7 @@ F8 to go to the next thing to fill in, and F9 to replace the template
 text (that usually gives you a hint on what to put there – but also read
 the comments).
 
-If you've followed the chapter on `Building a catalogue service`_
+If you have skimmed the `High-level Overview`_
 above, not much of what you'll be seeing should surprise you.  If you're
 wondering about a particular thing, you can always refer to the `RD
 element reference`_ to see how it's used in our data center, or go to
@@ -2771,7 +2746,7 @@ just HTTP with RA, DEC, and SR parameters, a slightly constrained
 VOTable response, plus a special way to encode errors (in a way somewhat
 different from what has been specified for later DAL protocols).
 
-The service discussed in `Building a Catalogue Service`_ is a combined
+The service discussed in the `High-level Overview`_ is a combined
 SCS/form service.  This section just briefly recapitulates what was
 discussed there.  For a quick start, just follow the tutorial above.
 
@@ -4807,8 +4782,8 @@ Adding Publish Elements
 -----------------------
 
 With that done, you add ``<publish>`` elements to the services you want
-to publish to the registry.  These were introduced under `Cores and
-Services`_; in the most typical case, you want at least one protocol
+to publish to the registry.  
+In the most typical case, you want at least one protocol
 interface and one browser interface per data sets, but there are many
 exceptions.
 
@@ -5109,7 +5084,6 @@ data – see above for details on how to create users and groups.
 
 .. _//epntap2#populate-2_0: http://docs.g-vo.org/DaCHS/ref.html#epntap2-populate-2-0
 .. _//epntap2#table-2_0: http://docs.g-vo.org/DaCHS/ref.html#the-epntap2-table-2-0-mixin
-.. _DaCHS' public mixins: http://docs.g-vo.org/DaCHS/ref.html#mixins
 .. _EPN-TAP proposed specification: https://voparis-confluence.obspm.fr/display/VES/EPN-TAP+v2+parameter+description
 .. _ESAVO registry: http://esavo.esa.int/registry/index.jsp
 .. _IVOA identifiers: http://www.ivoa.net/documents/IVOAIdentifiers/20150709/index.html
@@ -5136,7 +5110,6 @@ data – see above for details on how to create users and groups.
 .. _gavo's adql short course: http://www.g-vo.org/adql
 .. _grammars available: http://docs.g-vo.org/DaCHS/ref.html#grammars-available
 .. _hints on common problems: http://docs.g-vo.org/commonproblems.html
-.. _index: http://docs.g-vo.org/DaCHS/ref.html#element-index
 .. _installation guide: http://docs.g-vo.org/DaCHS/install.html
 .. _make: http://docs.g-vo.org/DaCHS/ref.html#element-make
 .. _manually add our repository: http://soft.g-vo.org/repo
@@ -5159,8 +5132,18 @@ data – see above for details on how to create users and groups.
 .. _vounits: http://www.ivoa.net/documents/VOUnits/index.html
 .. _write your own core: http://docs.g-vo.org/DaCHS/ref.html#writing-custom-cores
 
+.. [#port] Another reason this may fail is if you have something else
+   listening on port 8080 already, in with case you can create a file
+   ``.gavorc`` in your home directory and add::
+
+     [web]
+     port: 4040
+
+   there.  Of course, you have to adjust the URLs given in the tutorial
+   then.
+
 .. [#binding] This assumes you're doing this on your local machine (which
-   were recommend to get started.  If you do this on a remote machine,
+   we recommend to get started).  If you do this on a remote machine,
    you will obviously have to replace the localhost in the url with the
    machine's host name.  However, that still will not work as, by
    default, DaCHS only binds to the loopback address.  To change this,
@@ -5171,6 +5154,16 @@ data – see above for details on how to create users and groups.
 
    (yes, there's nothing behind “bindAddress:”).  Restart the server and
    you should see the output.
+
+.. [#scs-extra] In case you're desparate and have to use custom
+   parameters in SCS: DaCHS supports a special syntax for the “free”
+   parameters of cone searches (see the discussion of parameter styles
+   in `Service Definitions`; SCS is pql in DaCHS).  To say ”everything
+   brighter than 6th magnitude”, you would pass ``mv=/6``.  With clients
+   like pyvo, that's not hard.  To use such a constraint within TOPCAT,
+   the access URL needs to read
+   ``http://localhost:8080/arihip/q/cone/scs.xml?mv=/6``.  But, really:
+   better use TAP.
 
 .. [#rr] If you are running DaCHS on a reasonably stable platform,
    you're most welcome to join it.  You would have to check out the
