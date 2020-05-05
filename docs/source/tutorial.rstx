@@ -1271,6 +1271,9 @@ arihip RD discussed in `The Resource Descriptor`_ above.  It is probably
 a good idea to have skimmed the `High-level Overview`_ before
 experimenting here.
 
+Preparing the Resource Directory
+--------------------------------
+
 In general, when you start publishing data in DaCHS, you will do
 something like::
 
@@ -1320,6 +1323,10 @@ full of binary files, and either versioned by upstream or not at all)::
   cd data
   curl -O http://dc.g-vo.org/arihip/q/cone/static/data.txt.gz
 
+
+Running the Ingestion
+---------------------
+
 At this point, we're ready for ingestion, which is covered by the
 ``import`` subcommand (cf. `Invoking DaCHS`_).  So, return to the
 resource directory and run the default import::
@@ -1346,6 +1353,10 @@ Also note that for each column, the
 presence of NULLs is given.  When you import data, it is a good idea to
 check whether these correspond to your expectations, and to consider
 declaring columns as required when they do not indeed contain NULLs.
+
+
+Trying the services
+-------------------
 
 Now start the server; if you installed from the Debian package, it is
 already running; stop it first for this tutorial::
@@ -1408,7 +1419,69 @@ browse the table's metadata and then enter queries like::
 For more information on what fancy things you can do here, see `GAVO's
 ADQL short course`_
 
-TBD: dachs pub, browsing oai.xml
+This is also the moment to write regression tests (yeah, it would be cool
+write the tests before writing tables and services, but frankly, that's
+something you'll only pull off if you're really familiar with both the
+data and the protocols; don't feel bad about writing the tests after the
+fact, but do feel bad if you don't write them at all) and then run::
+
+  dachs test -v q
+
+
+Publishing a Service
+--------------------
+
+Once you are satisified the service is in presentable shape, you should
+publish it.
+
+In DaCHS, publication is an extra action.  :dachsref:`The publish
+element`, if you will, earmarks a thing for publication.  To actually 
+perform it, you have to run::
+
+  dachs pub q
+
+This will enter all the published services and tables in the RD q.rd
+into the table of published resources.  For ``local`` publications, this
+means they will appear on the default front page.  However, DaCHS caches
+the front page, and to see changes, you will have to invalidate the
+cache.  If you've set ``[web]adminpasswd``, and it fits what the
+``serverURL`` says, ``dachs pub`` will do that itself.  If in doubt,
+just restart the DaCHS server.
+
+For ``ivo_published`` services, publication means that their metadata
+will be served whenever DaCHS is harvested by VO registries using a
+protocol called OAI-PMH.  DaCHS' implemenation of that protocol is done
+such that XSLT-aware user agents (which, at least in 2020, still means:
+all major web browsers) can be used to (somewhat clumsily) operate it.
+
+In practice, you can point your browser to the ``oai.xml`` child of your
+server root – by default http://localhost:8080/oai.xml –, and you will
+see an error message (because you've violated the protocol in this way),
+but you will also see a link to a list of links to the metadata of all
+the resources you publish.  Follow this and look around; inspecting what
+DaCHS tells the Registry sometimes lets you spot metadata errors.
+
+There are two kinds of things that may become publicly visible without a
+``dachs pub`` because their typical discovery bypasses the registry:
+
+(a) TAP tables.  They will be entered into TAP_SCHEMA immediately, and
+TAP clients will find it there at once.  Also, many clients still use
+`GloTS <http://dc.g-vo.org/GloTS/plain/info>`_, which, once it has
+re-harvested your server, will make your TAP table globally
+discoverable.  If you don't want this, write ``adql="Hidden"`` in the
+table head and change it to ``adql="True"`` when you publish your
+data.
+
+(b) Obscore datasets.  When you put products into the obscore table,
+they will immediately appear there, and, for instance, all-VO obscore
+searches will find them.  The only way to avoid that at this point 
+is to comment out obscore mixins pre-publication and then comment
+them in when you publish.
+
+The recommended way to deal with both problems is to have a development
+or test server that is non-public (and perhaps even has a global access
+restriction) and only take the data and RDs to the production server
+when you go for publication.
 
 
 Introduction to DaCHS Publishing 
@@ -4791,7 +4864,7 @@ Here's “best practice” recommendations:
 
 * for SCS services, you can simply use the generated web interface as
   the browser interace.  This leads to the pattern shown
-  in `Cores and Services`_ .  This will also create an auxiliary TAP
+  in `Service Definitions`_ .  This will also create an auxiliary TAP
   publication if the queried table is adql-accessible.  In plain
   English: the table will also be discoverable if people look for TAP
   services.
