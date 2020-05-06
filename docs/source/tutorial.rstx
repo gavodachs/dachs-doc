@@ -18,19 +18,6 @@ GAVO DaCHS Tutorial
 
 .. plan for the rewrite:
 
-  High-level overview 
-
-    Invoking DaCHS
-
-    What's where I
-
-    An RD
-
-  Quick start 
-
-    but: you have to look at "defining your site" before this becomes
-    publishable
-
   Publishing data
 
     Common Metadata
@@ -97,7 +84,7 @@ typcial scenarios.  Anything more complicated will probably require
 perusal of the other pieces of documentation.
 
 In order to have some basic understanding of what all this is about, our
-good advice is to linearly skim the `high-level overview`_ in order to
+advice is to linearly skim `DaCHS Basics`_ in order to
 have an idea of DaCHS' basic concepts (yes, it's a bit more than 20
 pages, but we'd like to belive that grokking that is a half hour well
 spent) and then try the `quick start with DaCHS`_.
@@ -139,8 +126,8 @@ you're reading this, that's you), people consuming your services
 *users*.
 
 
-High-level Overview
-===================
+DaCHS Basics
+============
 
 Invoking DaCHS
 --------------
@@ -1268,7 +1255,7 @@ Quick start with DaCHS
 This brief section will guide you through the process of importing data
 into DaCHS, running an associated service, and publishing it, using the
 arihip RD discussed in `The Resource Descriptor`_ above.  It is probably
-a good idea to have skimmed the `High-level Overview`_ before
+a good idea to have skimmed the `DaCHS Basics`_ before
 experimenting here.
 
 Preparing the Resource Directory
@@ -1484,21 +1471,16 @@ restriction) and only take the data and RDs to the production server
 when you go for publication.
 
 
-Introduction to DaCHS Publishing 
-================================
+Publishing Data with DaCHS
+==========================
 
 Starting from Scratch
 ---------------------
 
-When you get a new data collection in, it might be a good idea to check
-the `GAVO data center's service roster`_ if there's anything similar
-there and then see if starting from the corresponding RD in our 
-`RD repository`_.
-
 The standard way (and that's what we almost always do), however, is to
-use ``dachs start``.  To use it, create your resource directory, change
-into it and give build a q.rd template by running ``dachs start
-<proto>``.  For instance, when you have a catalogue called smartdata, you
+use ``dachs start``.  Begin by creating your resource directory, change
+into it and build a q.rd template by running ``dachs start
+<protocol>``.  For instance, when you have a catalogue called smartdata, you
 would write::
 
   cd /var/gavo/inputs
@@ -1509,19 +1491,27 @@ would write::
 Use ``dachs start list`` to see what templates there are (scs, siap, and
 ssap are the most likely candidates for VO beginners).
 
-After that, you have a file called q.rd in the current directory.  This
-would be the perfect time to check it into your version control (you
-have one, don't you?).
+When your data does not fit anything offered by ``dachs start``, you
+probably want to send mail to `dachs-support`_ describing what you are
+trying to do; perhaps we want to extend ``dachs start``.  Also, have a
+look at
+the `GAVO data center's service roster`_ if there's anything similar
+there and then see if starting from the corresponding RD in our 
+`RD repository`_ looks like it will save you work.
 
-Next, bring in (a sample of) your data (recommended: in the data
-subdirectory).
+Either way, you will end up with an RD in your resource directory, and
+that would be the perfect time to check it into your version control
+system.  Don't go on without one.
 
-And then the actual work begins: Filling in the global metadata, the
+After bringing in your data, the actual work begins: 
+Filling in the global metadata, the
 table structure, the ingestion rules, service metadata, and regression
 tests.  Where possible, the templates are written such that when you
 have filled out everything ``%between percent signs%``, you should have a
-very basic (possibly usesless) service.  The envisioned workflow is
-that you go through the file pattern by pattern.  As an example, if
+very basic (possibly useless) service.  
+
+The envisioned workflow is that you go through the file pattern by
+pattern, ideally with support from your editor.  As an example, if
 you're using the vim editor, you can drop the following into your
 ~/.vimrc::
 
@@ -1531,12 +1521,12 @@ you're using the vim editor, you can drop the following into your
     au BufRead,BufNewFile *.rd imap <F9> <ESC>cf%
   augroup END
 
-Then, when you open an rd file, you can, in insert mode, alternately hit
+Then, when you open an RD file, you can, in insert mode, alternately hit
 F8 to go to the next thing to fill in, and F9 to replace the template
 text (that usually gives you a hint on what to put there – but also read
 the comments).
 
-If you have skimmed the `High-level Overview`_
+If you have skimmed the `DaCHS Basics`_
 above, not much of what you'll be seeing should surprise you.  If you're
 wondering about a particular thing, you can always refer to the `RD
 element reference`_ to see how it's used in our data center, or go to
@@ -1568,7 +1558,8 @@ General Hints
 '''''''''''''
 
 * If you get error messages, be sure to check our `hints on common
-  problems`_ – may commonly encountered problems are explained there with
+  problems`_ – many commonly encountered problems, in particular the
+  ones that give particularly baffling messages, are explained there with
   suggestions for how to fix them.
 * The dachs command takes a ``--hints`` switch.  With it, error messages
   are frequently accompanied with – you guessed it – hints on what might
@@ -1589,25 +1580,25 @@ General Hints
   (many) tracebacks by passing the ``--debug`` flag to ``dachs``.
 * If you're trying to figure out server behaviour, don't run the
   server daemonized but use ``dachs serve debug`` instead; this won't
-  detach and log to stdout.
-* With this (or the problem is in normally-running DaCHS code in the
+  detach and log to stdout.  The user executing the serve command needs
+  to be in the ``gavo`` group, or you'll get permission problems.
+* With this (or if the problem is in non-server DaCHS code in the
   first place), the python debugger is your friend.  The ``dachs``
   command has an option ``--enable-pdb`` that will dump you into the
   debugger where an uncaught exception happened (as the server should
   never let an uncaught exception through, that's not useful with
   ``dachs serve``).  If that doesn't help you, you can set breakpoints
   (e.g., in your own in-RD procedure defininitions by writing
-  ``import pdb; pdb.set_trace``.  If you install the python-ipdb package,
-  and write ipdb instead of pdb, you'll get a nicer debugger commandline
-  with tab completion and similar frills.
+  ``import pdb; pdb.set_trace()``.
 * To see what SQL is actually sent to the database, set the
   GAVO_SQL_DEBUG environment variable to any value.  This could look like
   this::
 
     env GAVO_SQL_DEBUG=1 dachs imp q create
 
-  The first couple of requests are for internal use (like checking that
-  some meta tables are present).
+  Don't be too alarmed by the deluge of queries you'll see while DaCHS
+  starts up; this is just making sure that the tables DaCHS cannot live
+  without are present.
 * If ``dachs serve start`` doesn't actually cause the server to run,
   something went wrong after detaching from the controlling terminal.
   The messages are in the logs directory, in the file ``serverStderr``.
@@ -2819,7 +2810,7 @@ just HTTP with RA, DEC, and SR parameters, a slightly constrained
 VOTable response, plus a special way to encode errors (in a way somewhat
 different from what has been specified for later DAL protocols).
 
-The service discussed in the `High-level Overview`_ is a combined
+The service discussed in the `DaCHS Basics`_ is a combined
 SCS/form service.  This section just briefly recapitulates what was
 discussed there.  For a quick start, just follow the tutorial above.
 
@@ -5176,6 +5167,7 @@ data – see above for details on how to create users and groups.
 .. _chapter on scripting in the reference: http://docs.g-vo.org/DaCHS/ref.html#scripting
 .. _cores available: http://docs.g-vo.org/DaCHS/ref.html#cores-available
 .. _customization info in the operators' guide: http://docs.g-vo.org/opguide.html#adapting-dachs-for-your-site
+.. _dachs-support: http://lists.g-vo.org/cgi-bin/mailman/listinfo/dachs-support
 .. _dbCore: http://docs.g-vo.org/DaCHS/ref.html#element-dbcore
 .. _dispatching grammars: http://docs.g-vo.org/DaCHS/ref.html#dispatching-grammars
 .. _fancyQueryCore: ref.html#element-fancyquerycore
