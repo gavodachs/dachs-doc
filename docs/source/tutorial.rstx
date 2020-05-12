@@ -1311,10 +1311,76 @@ full of binary files, and either versioned by upstream or not at all)::
   curl -O http://dc.g-vo.org/arihip/q/cone/static/data.txt.gz
 
 
+Starting from Scratch
+---------------------
+
+(You can skip this when you are just following the quick start).
+
+When you do not have the luxury of having a ready-made RD (i.e., almost
+always), use ``dachs start``.  Again, begin by creating your 
+resource directory, change
+into it and build a q.rd template by running ``dachs start
+<protocol>``.  For instance, when you have a catalogue called smartdata, you
+would write::
+
+  cd /var/gavo/inputs
+  mkdir smartdata
+  cd smartdata
+  dachs start scs
+
+Use ``dachs start list`` to see what templates there are (scs, siap, and
+ssap are the most likely candidates for VO beginners).
+
+When your data does not fit anything offered by ``dachs start``, you
+probably want to send mail to `dachs-support`_ describing what you are
+trying to do; perhaps we want to extend ``dachs start``.  Also, have a
+look at
+the `GAVO data center's service roster`_ if there's anything similar
+there and then see if starting from the corresponding RD in our 
+`RD repository`_ looks like it will save you work.
+
+Either way, you will end up with an RD in your resource directory, and
+that would be the perfect time to check it into your version control
+system.  Don't go on without one.
+
+After bringing in your data, the actual work begins: 
+Filling in the global metadata, the
+table structure, the ingestion rules, service metadata, and regression
+tests.  Where possible, the templates are written such that when you
+have filled out everything ``%between percent signs%``, you should have a
+very basic (possibly useless) service.  
+
+The envisioned workflow is that you go through the file pattern by
+pattern, ideally with support from your editor.  As an example, if
+you're using the vim editor, you can drop the following into your
+~/.vimrc::
+
+  augroup rd
+    au!
+    au BufRead,BufNewFile *.rd imap <F8> <ESC>/%[^%]*%<CR>a
+    au BufRead,BufNewFile *.rd imap <F9> <ESC>cf%
+  augroup END
+
+Then, when you open an RD file, you can, in insert mode, alternately hit
+F8 to go to the next thing to fill in, and F9 to replace the template
+text (that usually gives you a hint on what to put there – but also read
+the comments).
+
+If you have skimmed the `DaCHS Basics`_
+above, not much of what you'll be seeing should surprise you.  If you're
+wondering about a particular thing, you can always refer to the `RD
+element reference`_ to see how it's used in our data center, or go to
+the `reference documentation`_.  Also, please give us hints if you see a
+way to make the material more helpful.
+
+.. _GAVO data center's service roster: http://dc.g-vo.org
+.. _RD repository: http://svn.ari.uni-heidelberg.de/svn/gavo/hdinputs/
+
+
 Running the Ingestion
 ---------------------
 
-At this point, we're ready for ingestion, which is covered by the
+Back with arihip, we're ready for ingestion, which is covered by the
 ``import`` subcommand (cf. `Invoking DaCHS`_).  So, return to the
 resource directory and run the default import::
 
@@ -1471,70 +1537,15 @@ restriction) and only take the data and RDs to the production server
 when you go for publication.
 
 
-Publishing Data with DaCHS
+Topics in DaCHS Publishing
 ==========================
 
-Starting from Scratch
----------------------
 
-The standard way (and that's what we almost always do), however, is to
-use ``dachs start``.  Begin by creating your resource directory, change
-into it and build a q.rd template by running ``dachs start
-<protocol>``.  For instance, when you have a catalogue called smartdata, you
-would write::
+Publication Options
+-------------------
 
-  cd /var/gavo/inputs
-  mkdir smartdata
-  cd smartdata
-  dachs start scs
+TODO: registry chapter, purx, eschrow
 
-Use ``dachs start list`` to see what templates there are (scs, siap, and
-ssap are the most likely candidates for VO beginners).
-
-When your data does not fit anything offered by ``dachs start``, you
-probably want to send mail to `dachs-support`_ describing what you are
-trying to do; perhaps we want to extend ``dachs start``.  Also, have a
-look at
-the `GAVO data center's service roster`_ if there's anything similar
-there and then see if starting from the corresponding RD in our 
-`RD repository`_ looks like it will save you work.
-
-Either way, you will end up with an RD in your resource directory, and
-that would be the perfect time to check it into your version control
-system.  Don't go on without one.
-
-After bringing in your data, the actual work begins: 
-Filling in the global metadata, the
-table structure, the ingestion rules, service metadata, and regression
-tests.  Where possible, the templates are written such that when you
-have filled out everything ``%between percent signs%``, you should have a
-very basic (possibly useless) service.  
-
-The envisioned workflow is that you go through the file pattern by
-pattern, ideally with support from your editor.  As an example, if
-you're using the vim editor, you can drop the following into your
-~/.vimrc::
-
-  augroup rd
-    au!
-    au BufRead,BufNewFile *.rd imap <F8> <ESC>/%[^%]*%<CR>a
-    au BufRead,BufNewFile *.rd imap <F9> <ESC>cf%
-  augroup END
-
-Then, when you open an RD file, you can, in insert mode, alternately hit
-F8 to go to the next thing to fill in, and F9 to replace the template
-text (that usually gives you a hint on what to put there – but also read
-the comments).
-
-If you have skimmed the `DaCHS Basics`_
-above, not much of what you'll be seeing should surprise you.  If you're
-wondering about a particular thing, you can always refer to the `RD
-element reference`_ to see how it's used in our data center, or go to
-the `reference documentation`_.  Also, please give us hints if you see a
-way to make the material more helpful.
-
-.. _GAVO data center's service roster: http://dc.g-vo.org
-.. _RD repository: http://svn.ari.uni-heidelberg.de/svn/gavo/hdinputs/
 
 
 Debugging
@@ -1604,11 +1615,6 @@ General Hints
   The messages are in the logs directory, in the file ``serverStderr``.
 
 
-Publication Options
-'''''''''''''''''''
-
-TODO: registry chapter, purx, eschrow
-
 
 Debugging Services
 ''''''''''''''''''
@@ -1624,11 +1630,12 @@ it's running within a terminal there, but it's definitely doable.
 
 Another challenge is that sometimes problems manifest themselves in a
 running server.  In that case it's sometimes useful to open a manhole
-into the server.  One reasonably convenient way to do this is to but a
+into the server.  One reasonably convenient way to do this is to put a
 special RD somewhere (e.g., ``__tests/manhole.rd``) and use some
 RD-embedded code to introspect the server.  We ususally use a datalink
 service for this since it keeps things nicely self-contained – an
-obvious alternative with less bending could be a custom renderer.
+obvious alternative with less bending could be a python core returning
+a pair of ``text/plain`` and a string.
 
 Here's how something that fiddles out a column property would look
 like::
@@ -1683,7 +1690,7 @@ you how the errors manifest themselves, and how you could try and figure
 them out.  It's highly recommended to play the scenarios; it's very well
 possible that the actual messages will look differently for you if we've
 changed and hopefully improved the software.  We're thankful if you
-point us to outdated samples.
+point us to outdated examples.
 
 
 XML syntax errors
@@ -1737,7 +1744,7 @@ If you check out the indicated line, you'll see some table markup.  Now
 that you're warned, you'll probably see immediately that there's a
 less-than sign there that's not allowed in XML parsed character data,
 but while writing up such material, it's easy to forget that < and & are
-magic to XML.  CDATA is your fried for embedded formal languages.
+magic to XML.  CDATA is your friend for embedded formal languages.
 
 Now for a particularly nasty syntax error that's not XML-related at all.
 To trigger it, go to the note meta with the ``src`` tag and remove
@@ -1795,28 +1802,33 @@ case, change the kbin mapping to::
 frightening with rawdicts as large as in this case::
 
   arihip > dachs imp q
-  Making data import
+  Making data arihip/q#import
   Starting /home/msdemlei/gavo/inputs/arihip/data/data.txt.gz
-  Failed /home/msdemlei/gavo/inputs/arihip/data/data.txt.gz
-  *** Error: Row {u'pmdeLTP': None, u'srcSel': 'T2H', u'err_raHIP':
-  [abridged]
-  .. .... ... ...', u'ddeLTP': '-     2.37', u'pmra_mas': '-    4.85',
-  u'raHIP': None} Field kbin: While building kbin in None: name
+  Done /home/msdemlei/gavo/inputs/arihip/data/data.txt.gz, read 1
+  *** Error:   Row
+    alphaHMS -> '0  0  0.216002'
+    ddeHIP -> '+     0.93'
+    [...lots of lines...]
+    t_ra_mod -> '91.45'
+    vrad -> ''
+    
+  Field kbin: While building kbin in <rowmaker without id>: name
   'parsWithNull' is not defined
 
-The dump of the rawdict, however, is often helpful enough to warrant the
-scary appearance, even at the risk of obscuring the actual message at
-the very end.  Note that the “while building kbin” tells you where in
-the rowmaker something went wrong: At the mapping of kbin.  The ``in
-None`` part may be a bit less fortunate – the “None” here is the id of
-the rowmaker, which you didn't give.  If you have multiple rowmakers in
-an RD, it's a good idea to name them.  So, add an ``id`` attribute as
-in::
+The many lines are a dump of the rawdict that is being processed; it is
+a bit bulky, but it frequently helps figuring out problems that only
+occur when there is an odd value in the incoming data.
+
+The “while building kbin” tells you where in
+the rowmaker something went wrong: At the mapping of kbin.  The
+``<rowmaker without id>`` part would be more informative if we had given
+the rowmaker element an id.  Doing that obviously is advisable when you
+have multiple rowmakers in one RD, as for instance::
 
   <make table="main">
     <rowmaker idmaps="*" id="make_main_row">
 
-and to the improvement in the error message::
+That woud improve the message to::
 
   Field kbin: While building kbin in make_main_row: name
   'parsWithNull' is not defined
@@ -1844,6 +1856,7 @@ string to float is tried (and this fails in this case).
 
 What happens if no such input key is present?  To find out, additionally
 remove the line::
+
 
         vrad:      188-195
 
@@ -1885,23 +1898,20 @@ if you consider that rawdicts are mappings, you will at least see the
 logic in it::
 
   arihip > dachs imp -M 12 q
-  Making data import
-  Starting /home/msdemlei/gavo/inputs/arihip/data/data.txt.gz
-    Source hit import limit, import aborted.
-  Done /home/msdemlei/gavo/inputs/arihip/data/data.txt.gz, read 1
-  *** Error: Row {u'pmdeLTP': None, u'srcSel': 'T2H', u'err_raHIP':
+Making data arihip/q#import
+Starting /home/msdemlei/gavo/inputs/arihip/data/data.txt.gz
+Done /home/msdemlei/gavo/inputs/arihip/data/data.txt.gz, read 1
+*** Error:   Row
+  alphaHMS -> '0  0  0.216002'
   [...]
-  u'ddeLTP': '-     2.37', u'pmra_mas': '-    4.85', u'raHIP': None}
-  Field vrad: While building vrad in None: Key 'vrad' not found in a
-  mapping.
+  t_ra_mod -> '91.45'
+  
+  Field vrad: While building vrad in <rowmaker without id>: Key 'vrad'
+  not found in a mapping.
 
-When debugging stuff like this, it is sometimes useful to cut-and-paste
-the rawdict dumped into a file, join all the lines, remove the
-``parser_`` key-value pair (the content of which cannot be represented
-as a string), assign it to a name and then manipulate it in the rest of
-the file using python statements.  You can have a similar effect by
-giving ``--enable-pdb`` as a ``dachs`` main option; this will dump you in
-a debugger at the place of the problem.
+Incidentally, the ``--enable-pdb`` main option to ``dachs`` sometimes is
+helpful in such situations, as it will dump you in the python debugger
+at the place of the problem.
 
 Undo all changes to the arihip RD to continue.
 
@@ -1914,16 +1924,18 @@ larger.  To see how basic problems are reported, add::
    </code>
  </apply>
 
-somewhere within the RD.  This yields::
+somewhere within the rowmaker.  This yields::
 
   arihip > dachs imp q
   [...]
-  u'raHIP': None} Field proc98577cc: While executing proc98577cc in
-  None: global name 'ddt' is not defined
+  Field procf11fed4c: While executing procf11fed4c in <rowmaker without
+  id>: name 'ddt' is not defined
 
-The message coming from the bowels of python is clear enough, but the
-alphabet soup giving the error is not.  This name was invented by DaCHS
-since no ``name`` (sorry, not id this time) attribute was given to
+The message coming from the bowels of python is clear enough (``'ddt' is
+not defined), but the
+alphabet soup surrounding it is not.  This name was invented by DaCHS
+since no ``name`` (it's no id as the same name might be used in two
+different rowmakers) attribute was given to
 ``apply``.  Try it, the error message will be much more palatable with
 it.
 
@@ -1967,7 +1979,6 @@ nicest way to debug stuff like this is to write::
       ...
 
 and then use the python debugger to figure things out.
-
 
 
 
