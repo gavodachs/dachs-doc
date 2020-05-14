@@ -1541,7 +1541,7 @@ Publishing DAL Services
 =======================
 
 DAL is VO-speak for “Data Access Layer”, the standard protocols the VO
-uses to allow remote querying of data.  To support such a protocol, you
+defines for data discovery and access.  To support such a protocol, you
 usually need to arrange things in three places:
 
 * The table queried needs a certain set of columns
@@ -1563,13 +1563,14 @@ different from what has been specified for later DAL protocols).
 
 The service discussed in the `DaCHS Basics`_ is a combined
 SCS/form service.  This section just briefly recapitulates what was
-discussed there.  For a quick start, just follow the tutorial above.
+discussed there.  For a quick start, just follow `Quick start with
+DaCHS`_.
 
 
 Tables
 ''''''
 
-In principle, SCS can expose any table that has a exactly one column
+SCS can expose any table that has exactly one column
 each with the UCDs ``pos.eq.ra;meta.main``, ``pos.eq.dec;meta.main``,
 and ``meta.id;meta.main``, where the coordinates must be real or double
 precision, and the id must be either some integral type or text; the
@@ -1578,49 +1579,58 @@ convert integral types.  The main query is then ran against the position
 specified in this way.
 
 You almost always want to have a spatial index on these columns.  To do
-that, use the ``//scs#q3cindex`` mixin on the tables, like this::
+that, use :dachsref:`the //scs#pgs-pos-index mixin` on the tables, like
+this::
 
-  <table id="forSCS" onDisk="true" mixin="//scs#q3cindex"> ...
+  <table id="forSCS" onDisk="true" mixin="//scs#pgs-pos-index"> ...
 
-Finally, note that to have a valid SCS service, you must make sure the
+The “pgs” in pgs-pos-index refers to pgSphere, a postgres database
+extension for spherical geometry.  You may see RDs around that use
+:dachsref:`the //scs#q3cindex mixin` instead here.  It does the same
+thing (dramatically speed up spatial queries) but uses a different
+scheme.  It's faster and takes up less space, but it's also less
+general, which is why we are trying to phase it out.  Only use it when
+you are sure you cannot afford the (reasonable, i.e., mostly within a
+factor of two) cost of pgSphere.
+
+Note that to have a valid SCS service, you must make sure the
 output table always contains the three required columns (as defined by
-the UCDs given above.  To ensure that, these columns' ``verbLevel``
+the UCDs) discussed above.  To ensure that, these columns' ``verbLevel``
 attribute must be 10 or less (we advise to have it at 1).
 
 
 Cores
 '''''
 
-The SCS core simply is a dbCore.  You must include the SCS condDesc,
-like this::
+SCS could work with a dbCore, but friendly cone search services include
+a field with the distance between the object found and the position
+passed in; this is added by the special :dachsref:`element scsCore`.
 
-  <dbCore queriedTable="main">
-    <condDesc original="//scs#protoInput"/>
-  </dbCore>
+You (in effect) must include the some pre-defined condDescs that make
+up the SCS protocol, like this::
 
-There is an alternative condDesc more suitable for humans.  They can be
-used in parallel.  The form renderer will then use the human-oriented
-one, the DAL renderer the protocol one.  You'll get this by writing::
-
-  <dbCore id="xlcore" queriedTable="main">
-    <condDesc original="//scs#humanInput"/>
-    <condDesc original="//scs#protoInput"/>
-  </dbCore>
-
-Although not required by SCS, we recommend to also include a MAXREC
-argument that lets people change the match limit in the SCS service (for
-the web service, the database widget already provides this
-functionality).  A usable definition for it is given in the SCS RD in a
-STREAM with the id coreDescs, together with the two condDescs above.
-So, here's the recommended way to build a bare-bone SCS service::
-
-  <dbCore id="xlcore" queriedTable="main">
+  <scsCore queriedTable="main">
     <FEED source="//scs#coreDescs"/>
-  </dbCore>
+  </scsCore>
+
+This will provide the RA, DEC, and SR parameters for must renderers. The
+form renderer, however will show a nice input box that lets humans enter
+object names or, if they cannot live without them, sexagesimal
+positions (if you are curious: this works by setting the
+``onlyForRenderer`` and ``notForRenderer`` attributes on
+:dachsref:`Element inputKey`).
+
+In addition, :dachsref:`//scs#coreDescs` gives you a paramter MAXREC to
+limit or raise the number of matches returned.  This parameter is not 
+required by SCS, but it is useful if people with sufficient technical
+skills (they'll need those because common SCS clients don't support
+MAXREC yet) want to raise or lower DaCHS' default match limit (which is
+configured in [ivoa]dalDefaultLimit and can be raised up to
+[ivoa]dalHardLimit).
 
 SCS allows more query parameters; you can usually use condDesc's
-buildFrom attribute to directly make one from an input column.  If you
-want to add a larger number of them, you would use an active tag::
+`buildFrom` attribute to directly make one from an input column.  If you
+want to add a larger number of them, you would use ``active tags`_::
 
   <dbCore id="xlcore" queriedTable="main">
     <FEED source="//scs#coreDescs"/>
@@ -1631,16 +1641,26 @@ want to add a larger number of them, you would use an active tag::
     </LOOP>
   </dbCore>
 
-Note that most current SCS clients are not good at discovering them,
-since for SCS this requires going through the registry.  In TOPCAT, for
-example, users would have to manually edit the cone search URL.
+Note that most current SCS clients are not good at discovering such
+additional parameters, since for SCS this requires going through the
+registry.  In TOPCAT, for example, users would have to manually edit the
+cone search URL.
 
+Also note that SCS does not really define the syntax of these
+parameters, which is relevant because most of the time they will be
+float-valued, and hence you will generally need to use intervals as
+constraints.  The interval syntax used by the SCS renderer is DALI, so a
+bounded interval would be ``22.3 30e5``, and you'd build half-bounded
+intervals with IEEE infinity literals, like ``-Inf -1``.  Of course,
+when accessed through a form, the usual VizieR parameter syntax is
+supported.
 
 Service
 '''''''
 
 To expose that core through a service, just allow the scs.xml renderer
-on it.  As the core is built, you can have a web-based form interface
+on it.  With the extra human-oriented positional constraint and mainly
+builtFrom condDescs, you can usually have a web-based form interface
 for free::
 
   <service id="cone" allowed="scs.xml,form">
@@ -1649,19 +1669,19 @@ for free::
     <meta name="testQuery.ra">10</meta>
     <meta name="testQuery.dec">10</meta>
     <meta name="testQuery.sr">0.01</meta>
-    <dbCore id="xlcore" queriedTable="main">
+    <scsCore queriedTable="main">
       <FEED source="//scs#coreDescs"/>
       <LOOP listItems="ipix bmag rmag jmag pmra pmde">
         <events>
           <condDesc buildFrom="\item"/>
         </events>
       </LOOP>
-    </dbCore>
+    </scsCore>
   </service>
 
-The meta information given is used when generating registration
-records.  In particular, you should make sure that a query with the
-given ra, dec, and sr actually returns some data.
+The meta information given is used when generating registry
+records; the idea is that a query with the ra, dec, and sr you give
+actually returns some data.
 
 
 SIAP
