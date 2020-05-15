@@ -132,7 +132,6 @@ DaCHS Basics
 Invoking DaCHS
 --------------
 
-
 All DaCHS functionality is invoked through a
 program called ``dachs``.  Multiple functions are integrated and selected
 through the first argument; run ``dachs help`` (or, for perhaps less
@@ -1553,8 +1552,8 @@ usually need to arrange things in three places:
 This section discusses the individual protocols in turn.
 
 
-SCS
----
+Publishing Catalogues via SCS (Cone Search)
+-------------------------------------------
 
 SCS, the simple cone search, is the simplest IVOA DAL protocol – it is
 just HTTP with RA, DEC, and SR parameters, a slightly constrained
@@ -1567,8 +1566,8 @@ discussed there.  For a quick start, just follow `Quick start with
 DaCHS`_.
 
 
-Tables
-''''''
+SCS Tables
+''''''''''
 
 SCS can expose any table that has exactly one column
 each with the UCDs ``pos.eq.ra;meta.main``, ``pos.eq.dec;meta.main``,
@@ -1599,8 +1598,8 @@ the UCDs) discussed above.  To ensure that, these columns' ``verbLevel``
 attribute must be 10 or less (we advise to have it at 1).
 
 
-Cores
-'''''
+SCS Cores
+'''''''''
 
 SCS could work with a dbCore, but friendly cone search services include
 a field with the distance between the object found and the position
@@ -1625,12 +1624,12 @@ limit or raise the number of matches returned.  This parameter is not
 required by SCS, but it is useful if people with sufficient technical
 skills (they'll need those because common SCS clients don't support
 MAXREC yet) want to raise or lower DaCHS' default match limit (which is
-configured in [ivoa]dalDefaultLimit and can be raised up to
-[ivoa]dalHardLimit).
+configured in ``[ivoa]dalDefaultLimit`` and can be raised up to
+``[ivoa]dalHardLimit``).
 
 SCS allows more query parameters; you can usually use condDesc's
 `buildFrom` attribute to directly make one from an input column.  If you
-want to add a larger number of them, you would use ``active tags`_::
+want to add a larger number of them, you would use `active tags`_::
 
   <dbCore id="xlcore" queriedTable="main">
     <FEED source="//scs#coreDescs"/>
@@ -1655,8 +1654,8 @@ intervals with IEEE infinity literals, like ``-Inf -1``.  Of course,
 when accessed through a form, the usual VizieR parameter syntax is
 supported.
 
-Service
-'''''''
+SCS Services
+''''''''''''
 
 To expose that core through a service, just allow the scs.xml renderer
 on it.  With the extra human-oriented positional constraint and mainly
@@ -1684,17 +1683,34 @@ records; the idea is that a query with the ra, dec, and sr you give
 actually returns some data.
 
 
-SIAP
-----
+Publishing Images via SIAP
+--------------------------
 
-DaCHS' SIAP implemention right now assumes you are publishing FITS files
-with WCS headers.  Other arrangements are of course possible, but you'd
-have to write an equivalent of the ``//siap#computePGS`` procDef
-yourself.
+SIAP is a proven, if just a little dated, way to make images available
+in a uniform way.  Note that there is a second major version of SIAP,
+called SIAv2 here.  Since it is much more like obscore than like
+conventional SIAP, we discuss it there.
+
+To generate a template RD for an  image collection published through
+SIAP, run::
+
+  dachs start siap
+
+See `Starting from Scratch`_ for a discussion on how to fill out this
+template.
+
+While you can shoehorn DaCHS to pull the necessary information from many
+different types of images, anything but FITS files with halfway sane WCS
+headers is going to be fiddly – and of course, FITS+modern WCS is about
+the only thing that will work nicely on all relevant clients.
+
+If you have to have images of a different sort, it is probably a good
+idea to inquire on the dachs-support mailing list before spending a
+major effort on local development.
 
 
-Quick Start
-'''''''''''
+Quick Sample Image Service
+''''''''''''''''''''''''''
 
 Check out a sample resource directory::
 
@@ -1732,75 +1748,48 @@ Then have “Lockman Hole” as Object Name and resolve it, or manually
 enter 161.25 and 58.0 as RA and Dec, respectively, and have 2 as Angular
 Size.  Send off the request.  You'll get back a table that you can send
 to Aladin (Interop/Send to/Aladin), which will respond by presenting a
-load dialog.  Doubleclick and load as you like (yes, the images look a
-bit like static noise; that's all right here; but do combine these
+load dialog.  Doubleclick and load as you like.  Yes, the images look a
+bit like static noise. That's all right here – but do combine these
 images with, say, DSS colored optical imagery and marvel at the wonders
-of modern VLBI interferometry).
+of modern VLBI interferometry.
 
 Indicentally, we made the detour through TOPCAT since there's no nice UI
 to query non-registred SIAP services in Aladin.
 
 
 
-Tables
-''''''
+Defining SIAP Tables
+''''''''''''''''''''
 
-SIAP-capable tables should mix in ``//siap#pgs``.
-This mixin provides all the columns necessary
-for valid SIAP responses.
+SIAP-capable tables should mix in ``//siap#pgs``.  This mixin provides
+all the columns necessary for valid SIAP responses, and it will prepare
+the table so that spatial queries (which are the most common) will use a
+pgSphere index.
 
-So, in the simplest case, a table that's going to be published through
-SIAP would look like this::
+So, in the simplest case, a table published through a SIAP service
+would be declared like this::
 
   <table id="images" onDisk="True" mixin="//siap#pgs"/>
 
-(of course, you can add more columns if you need them, and you might
-need metadata and all that, but this is all it really takes).
+This only has the minimal SIAP metadata.  You will usually want to add
+additional columns with extra metadata from your images.
 
-In the case of the Lockman Hole RD, things are a bit more verbose::
+:dachsref:`The //siap#pgs mixin` also takes care that anything added to
+the table also ends up in `the products table`_.  This means that the
+grammar filling the table needs a :dachsref:`//products#define` rowfilter.
 
-  <table id="main" onDisk="True">
-    <mixin>//siap#pgs</mixin>
-    <mixin
-      calibLevel="3"
-      collectionName="'VLBA LH sources'"
-      facilityName="'VLBA'"
-      oUCD="'phot.flux.density;em:radio.750-1500MHz;phys.polarisation.Stokes.I'"
-      polStates="'/I/'"
-      targetName="object"
-      tResolution="5000000"
-      targetClass="'AGN'"
-    >//obscore#publishSIAP</mixin>
+Filling SIAP Tables
+'''''''''''''''''''
 
-    <column name="object" type="text"
-      ucd="meta.id"
-      tablehead="Object"
-      description="Source name as in
-        2009MNRAS.397..281I (VizieR J/MNRAS/397/281)"
-      verbLevel="1"/>
-    <column name="obsra"
-      ucd="pos.eq.ra" unit="deg"
-      description="Antenna pointing, RA"
-      verbLevel="18"/>
-    <column name="obsdec"
-      ucd="pos.eq.dec" unit="deg"
-      description="Antenna pointing, Dec"
-      verbLevel="18"/>
-    <column name="weighting" type="text"
-      ucd="meta.code"
-      description="Natural or uniform, according to weighting method."
-      verbLevel="18">
-      <values><option>natural</option><option>uniform</option></values>
-    </column>
-  </table>
+When filling SIAP tables, you will almost always use:
 
-More on the obscore mixin below.  otherwise, you see that additional,
-non-siap columns are simply added as usual.  Anything with a verbLevel
-lower or equal 20 will be included in standard SIAP replies.
+* :dachsref:`Element fitsProdGrammar` as the grammar.
+* the :dachsref:`//siap#computePGS` apply to interpret the FITS WCS to
+  fill the coverage-related columns in the table.
+* the :dachsref:`//siap#setMeta` apply to fill the nonpositional
+  SIAP metadata.
 
-To fill such tables, the normal ``//products#define`` rowfilter is
-necessary, and there are two procDefs from ``//siap`` that come in
-handy::
+In practice, this might look like this::
 
   <data id="import_main">
     <sources recurse="True">
@@ -1827,9 +1816,9 @@ handy::
           <bind name="bandpassId">"1.4 GHz"</bind>
           <bind name="bandpassRefval">0.214</bind>
           <bind name="bandpassUnit">"m"</bind>
-          <!-- since the images are fairly complex mosaics, there's no way we
-          can have sensible dates; this one here "plays a special role
-          in the calibration" (Middelberg) -->
+          <!-- since the images have a fairly complex provenance, 
+          there's no way we can have sensible dates; this one here 
+          ought to be reasonably representative -->
           <bind name="dateObs"
             >dateTimeToMJD(datetime.datetime(2010, 7, 4))</bind>
           <bind name="instrument">@INSTRUME</bind>
@@ -1858,47 +1847,54 @@ handy::
 This does, step by step:
 
 * The ``sources`` element is as always – with image collections, the
-  ``recurse`` attribute usually comes in particularly handy.
-* When ingesting images, you will (at least for a while, still) almost
-  always read from FITS images, i.e., FITS primary headers.
-  A ``fitsProdGrammar`` delivers the key-value-pairs from a
-  header as a rawdict.
-* The ``qnd`` attribute of the grammar is recommended.  It makes
-  some (weak) assumptions to yield significant speedups with large
-  images, just so long as you can make do with the primary header.
+  ``recurse`` attribute often comes in particularly handy.
+* When ingesting images, you will very typically read from
+  FITS primary headers.  That is what :dachsref:`element
+  fitsProdGrammar` does unless told otherwise:  Its rawdicts simply are
+  the (astropy.io.fits) headers turned into plain python dictionaries.
+* The ``qnd`` attribute of the grammar is recommended as long as you 
+  get away with it.  It makes some (weak) assumptions to yield 
+  significant speedups, but it limits you to the primary header.  You
+  cannot use ``qnd`` with compressed FITS images.  Also note the
+  ``hdusField`` attribute when you have more complex FITSes to process.
 * The ``fitsProdGrammar`` will map keys with hyphens to names with
   underscores, which allows for smoother action with them in rowmakers.
-  The ``mapKey``` element can produce additional mappings; in this case,
+  The ``mapKeys`` element can produce additional mappings; in this case,
   we abuse it a bit to let us have idmaps (rather than simplemaps)
   in the rowmaker.  And, actually, to illustrate the feature, as this
-  data does not need that facility, really.
-* The grammar further needs a rowfilter.  The `products#define`_ rowfilter
-  lets  you add keys on owners and embargo in case you want password
-  protection for images, but most importantly it defines what table the
-  data is destined for.  This is crucial information, and if you ever
-  get it wrong, you need to manually connect to the database and issue
-  a command like ``DELETE FROM products WHERE sourcetable='<your wrong
-  table>'``.  So, always bind table.  Make sure to include the quotes,
-  this is supposed to be a valid python expression yielding a string.
-  Also, this is where you'd define the media type for your products
-  if they're not FITS files.
-* You then need to define a rowmaker that must apply two procs.  For
-  one, you need `//siap#computePGS <ref.html#siap-computepgs>`_
-  (if you mixed in ``//siap#pgsSIAP``).  No bindings are required here.
-* The second proc application required is
-  `//siap#setMeta <ref.html#siap-setmeta>`_ .  Try to give all its keys
+  data does not need key mapping, really.
+* Since we are defining a table serving data products here,
+  the grammar needs the :dachsref:`//products#define` rowfilter
+  discussed in `the products table`_
+* We have mentioned the :dachsref:`//siap#computePGS` mixin above; as
+  long as astropy can deal with your WCS, it's really automatic (though
+  you may want to pass parameters when you have cubes with suboptimal
+  WCS or want to keep products without WCS in your table).  And if
+  you don't have proper WCS: see above on checking with dachs-supoort.
+* The second apply you want when feeding SIAP tables is
+  :dachsref:`//siap#setMeta`.  Try to give all its keys
   somewhat sensible values, you will make your users' lives much easier.
-* Typically, many values coming in the FITS headers will be messy and
+* The exception to the “just fill all of setMeta's parameters” is the
+  various bandpass* parameters.  If the bandpass used is known to DaCHS,
+  just set ``bandpassId`` and then use the
+  :dachsref:`//siap#getBandFromFilter` apply.  Whether a band is known
+  you can find out by running ``dachs admin dumpDF data/filters.txt`` –
+  and we are grateful for further contributions to that file.
+* Typically, many values you find in the FITS headers will be messy and
   fouled up.  You'll spend some quality time fixing these values in the
   typical case.  Here, we translate somewhat broken object names using
-  a simple mapping file that was provided by the author.  In other
-  circumstances there's the `procs#mapValue`_ procApp helping you.
-* As is usual in procApps, you can access the embedding RD as ``rd``.
-  Here, we use that to let DaCHS find the input file independently of
-  where the program was started.
+  a simple mapping file that was provided by the author.  In may other
+  situations, the :dachsref:`//procs#mapValue` or
+  :dachsref:`//procs#dictMap` applys let you do fixes with less code.
+* As is usual in DaCHS procdures, you can access the embedding RD as ``rd``.
+  In our object name fixer, we use that to let DaCHS find the input 
+  file independently of where the programme was started.
 
-Warning: Do *not* use ``idmaps="*"`` with SIAP, since the auto-generated
-mappings will clobber the work of the xSIAP procs.
+Somewhat regrettably, //siap#setMeta cannot be used with ``idmaps="*"``;
+as settings from setMeta would be overwritten then.  This is because
+setMeta was written before the idmaps attribute existed and hence it
+wrote directly into rowdict.  Changing setMeta now would break existing
+RDs, which we try hard to avoid.
 
 
 Cores
@@ -1913,10 +1909,10 @@ There are two cores you may want for SIAP services:
   is determined by the SIZE argument (i.e., the region of interest).
 
 To furnish these cores with the parameters required by the standard, use
-the //siap#protoInput condDesc.  If you want to re-use the core for a
-form-based service, use the //siap#humanInput condDesc as well.  Both
-are written in a way that they'll sense if they run under a SIAP
-renderer or not.
+the //siap#protoInput.  If you want to re-use the core for a
+form-based service, simply add the //siap#humanInput condDesc; as for
+SCS, the respective renderers will use parsers adapted to where the
+inputs come from.
 
 So, a basic core with a couple of additional fields would look like
 this::
@@ -1946,8 +1942,7 @@ Service
 If you wrote the core to work for both SIAP and form as described above,
 there's little more to say except you'll want to use the ``siap.xml``
 renderer, and you need some additional metadata for VO registration.
-The latter is described in the
-`siap.xml reference <ref.html#the-siap-xml-renderer>`_.
+The latter is described with :dachsref:`the siap.xml renderer`.
 
 With this, the service definition would look like this::
 
@@ -1965,36 +1960,10 @@ With this, the service definition would look like this::
     <publish render="form" sets="local,ivo_managed"/>
   </service>
 
-(where again you can just write the above core inline rather than
-referencing it; that's the style we usually recommend).
+– where again you can just write the above core inline rather than
+referencing it; that's the style we usually recommend, and what the
+``dachs start`` template has.
 
-
-SIAP version 2
---------------
-
-SIAP version 2 is just a a thin layer of parameters on top of obscore.
-To publish with SIAP version 2, simply ingest your data as for SIAP_ and
-add the appropriate ObsTAP_ mixin (``//obscore#publishSIAP``, in all
-likelihood).
-
-There is a sitewide SIAPv2 service at ``<root
-URL>/__system__/siap2/sitewide/siap.xml`` which is always there.  It is,
-however, unpublished by default.  To publish it, you should furnish some
-extra metadata in your userconfig RD (see
-:dachsdoc:`opguide.html#userconfig-rd`).
-
-Specifically, get the ``sitewidesiap2-extras`` stream and follow the
-instructions there and update the meta items as appropriate; they are
-analogous to the ones for SIAP_.
-
-Once that's done, you can say::
-
-  dachs pub //siap2
-
-and you're done.
-
-There currently is no facility for having SIAPv2 services for individual
-services.  If you want them, talk to us.
 
 
 SSAP
@@ -2732,6 +2701,36 @@ That's about it for defining the table.  To fill the table, just have a
 normal rowmaker; since the table contains products, don't forget the
 ``//products#define`` rowfilter in the grammar.
 
+
+SIAP version 2
+''''''''''''''
+
+SIAP version 2 is just a a thin layer of parameters on top of obscore.
+To publish with SIAP version 2, simply ingest your data as for SIAP_ and
+add the appropriate ObsTAP_ mixin (``//obscore#publishSIAP``, in all
+likelihood).
+
+There is a sitewide SIAPv2 service at ``<root
+URL>/__system__/siap2/sitewide/siap.xml`` which is always there.  It is,
+however, unpublished by default.  To publish it, you should furnish some
+extra metadata in your userconfig RD (see
+:dachsdoc:`opguide.html#userconfig-rd`).
+
+Specifically, get the ``sitewidesiap2-extras`` stream and follow the
+instructions there and update the meta items as appropriate; they are
+analogous to the ones for SIAP_.
+
+Once that's done, you can say::
+
+  dachs pub //siap2
+
+and you're done.
+
+There currently is no facility for having SIAPv2 services for individual
+services.  If you want them, talk to us.
+
+
+
 .. _Tody et al (2011): http://www.ivoa.net/Documents/ObsCore/index.html
 .. _//obscore#publishSIAP: ./ref.html#the-obscore-publishsiap-mixin
 .. _//obscore#publishSSAPHCD: ./ref.html#the-obscore-publishsiap-mixin
@@ -3323,6 +3322,45 @@ Publication Options
 
 TODO: registry chapter, purx, eschrow
 
+
+The Products Table
+------------------
+
+DaCHS has a central place in which it keeps metadata on datasets it
+serves: The product table :dachsref:`dc.products`.  It is used to
+assign media types (is it a FITS or a text file?), access control (who
+owns the file and should it be handed out to everybody?), associated
+thumbnails, and the table through which the product is actually
+published (i.e., the table underlying the SIAP, SSAP, or whatever
+service).
+
+This last part, the source table name, is crucial information, because
+if that table is torn down, the corresponding entries in the product
+table need to be deleted.  Hence, if you ever get it wrong, you need to
+manually connect to the database and issue a command like ``DELETE FROM
+products WHERE sourcetable='<your wrong table>'``.  
+
+This source table name is almost always declared in a
+:dachsref:`//products#define` rowfilter (follow this link to see other
+parameters to set for this rowfilter) in the grammar feeding the table,
+which minimally looks like this::
+
+  <rowfilter procDef="//products#define">
+      <bind key="table">"emi.main"</bind>
+  </rowfilter>
+
+Make sure you don't forget the quotes around the value here – as usual
+in DaCHS procs, what you bind here are python expressions.  You can use
+macros, so if you're not sure what schema you will eventually choose,
+you could have written ``"\schema.main"``, too.
+
+Unless you are serving FITS files, you also have to give the media type
+here, for instance::
+
+  <rowfilter procDef="//products#define">
+      <bind key="table">"emi.main"</bind>
+      <bind key="mime">"image/jpeg"</bind>
+  </rowfilter>
 
 
 Debugging
@@ -5214,8 +5252,6 @@ data – see above for details on how to create users and groups.
 .. _map: http://docs.g-vo.org/DaCHS/ref.html#element-map
 .. _Operator's Guide: http://docs.g-vo.org/DaCHS/opguide.html
 .. _pgsphere: http://pgsphere.projects.pgfoundry.org/
-.. _procs#mapValue: ref.html#procs-mapvalue
-.. _products#define: ref.html#products-define
 .. _reGrammar: http://docs.g-vo.org/DaCHS/ref.html#element-regrammar
 .. _reStructuredText: http://docutils.sourceforge.net/rst.html
 .. _reference documentation: http://docs.g-vo.org/DaCHS/ref.html
