@@ -3430,6 +3430,25 @@ General Hints
   The messages are in the logs directory, in the file ``serverStderr``.
 
 
+Debugging Rowmaker
+''''''''''''''''''
+
+When debugging rowmakers, it helps keeping in mind that there are two
+dictionaries that play a role here: The incoming rawdict and the rowdict
+that is being built.  Having a clear image which key is where at which
+point is helpful.  Also, it is important to remember the sequence that,
+first app ``var`` elements are processed, then all ``apply`` elements,
+and finally all ``map`` elements.  Within each class, elements are
+processed in the order of definition, with ``simpleMaps`` and ``idmaps``
+after all explicit maps.
+
+Since only applys contain larger amounts of code, debugging will mostly
+focus on them.  If you want to look at one of your own applys, just set
+breakpoints as discussed above (``import pdb; pdb.set_trace()``).  If
+you'd just like to have a look at what ``vars`` and ``results`` look
+like at some point, just add a ``<apply procDef="//procs#debug"/>.  This
+will, again, drop you into a debugger.
+
 
 Debugging Services
 ''''''''''''''''''
@@ -3438,10 +3457,20 @@ Debugging services is of course an extra challenge since code runs deep
 in the bowels of a complex system, with timeouts, threads, and all kinds
 of nastyness involved.  The first adivce is: Pull whatever is mysterious
 into your development system and run ``dachs serve debug``.  You can even
-do the ``import pdb;pdb.set_trace()`` trick then.  It's a bit tricky to
+drop into the python debugger while the server processes a request (the
+server will of course block while you are in the debugger).
+It's a bit tricky to
 communicate with the debugger in between the log messages of ``dachs
 serve debug``, and there's no readline support since pdb doesn't think
 it's running within a terminal there, but it's definitely doable.
+
+Note that in python3, the debugger by default changes SIGINT processing
+so pressing Control-C will drop you back into the debugger.  With
+``dachs serve debug``, that behaviour is unwelcome, because it makes
+terminating the server a bit of a steeplechase.  Hence, when setting
+breakpoints in server code, use::
+
+  import pdb;pdb.Pdb(nosigint=True).set_trace()
 
 Another challenge is that sometimes problems manifest themselves in a
 running server.  In that case it's sometimes useful to open a manhole
@@ -3451,6 +3480,8 @@ RD-embedded code to introspect the server.  We ususally use a datalink
 service for this since it keeps things nicely self-contained – an
 obvious alternative with less bending could be a python core returning
 a pair of ``text/plain`` and a string.
+
+TODO: rewrite to use a python core and a qp renderer.
 
 Here's how something that fiddles out a column property would look
 like::
@@ -3471,8 +3502,7 @@ like::
         <dataFormatter>
           <code>
             class DebugResult(Page):
-              def renderHTTP(self, ctx):
-                request = IRequest(ctx)
+              def renderHTTP(self, request):
                 request.setHeader("content-type", "text/plain")
                 return "%s"%base.caches.getRD("maidanak/res/rawframes"
                   ).getById("rawframes").getColumnByName("accref").displayHint
