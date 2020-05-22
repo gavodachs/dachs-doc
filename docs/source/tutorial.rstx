@@ -18,6 +18,8 @@ GAVO DaCHS Tutorial
 
 .. plan for the rewrite:
 
+  TODO: SODA in SIAP
+
   Publishing data
 
     Common Metadata
@@ -1973,6 +1975,32 @@ referencing it; that's the style we usually recommend, and what the
 ``dachs start`` template has.
 
 
+SIAP and Obscore
+''''''''''''''''
+
+SIAP's metadata is quite a bit poorer than Obscore's (cf. `publishing
+anything through Obscore`_).  This means that you will usually have to
+fill a few extra parameters to arrive at a full Obscore record.  But
+even a simple use of :dachsref:`the //obscore#publishSIAP mixin` will
+let people find your SIAP data in the obscore table.
+
+The defaults given in the reference documentation show how we are
+mapping SIAP to Obscore.  At least whatever is NULL by default you
+should critically examine and fill as appropriate.
+
+DaCHS' SIAP template gives the most important extra fields::
+
+  <mixin
+     calibLevel="2"
+     collectionName="'%a few letters identifying this data%'"
+     targetName="%column name of an object designation%"
+     expTime="%column name of an exposure time%"
+     targetClass="'%simbad taget class%'"
+   >//obscore#publishSIAP</mixin>
+
+You can delete any parameter you cannot fill or do not want to fill,
+though you really *should* put in a useful ``collectionName``.
+
 
 Publishing Spectra or Time Series via SSAP
 ------------------------------------------
@@ -2342,6 +2370,7 @@ will ever be interested in anyway.
 So, you'll typically define extra browser-based
 services.  The example RD shows a compact way to do that.
 
+
 Form-based Spectral services
 ''''''''''''''''''''''''''''
 
@@ -2394,11 +2423,12 @@ the SSA service.  This is done using the service attribute in the
     <publish render="form" sets="ivo_managed,local" service="web"/>
   
 
-SSAP Obscore Publication
-''''''''''''''''''''''''
+SSAP and Obscore
+''''''''''''''''
 
-The SSA metadata is not far from the obscore metadata, and so it's fairly
-easy to also publish the spectra through ObsTAP_.  Just mix in
+The SSA metadata is not far from the Obscore metadata (cf. `publishing
+anything through obscore`_), and so an Obscore publication of SSAP data
+almost comes for free: Just mix in
 :dachsref:`//obscore#publishSSAPMIXC` and set ``calibLevel``.  The
 template does a bit more for one reason or another::
 
@@ -2412,6 +2442,12 @@ template does a bit more for one reason or another::
 
 – if you use one of the old hcd or mixc mixins, you certainly don't want
 oUCD and emUCD.
+
+In particular for larger spectral collections, it is highly recommended
+to also have :dachsref:`the //ssap#simpleCoverage mixin` in an
+obscore-published spectral table; only then will you get indexed queries
+when there are constraints on s_region, and having these non-indexed
+will lead to really slow obscore queries.
 
 
 SSAP and Datalink
@@ -2563,30 +2599,53 @@ producing time series, do two things:
 
 (1) Globally declare that you serve time series by setting::
 
-	<meta name="productType">timeseries</meta>
+    <meta name="productType">timeseries</meta>
 
-near the top of your RD.  The ssap+datalink template has more
-information on the ``productType`` meta.
+  near the top of your RD.  The ssap+datalink template has more
+  information on the ``productType`` meta.
 
 (2) have ``'timeseries'`` as ssa_dstype in your view definition.
 
 
 
-ObsTAP
-------
+Publishing Anything Through Obscore
+-----------------------------------
+
+“Obscore”, in VO jargon, refers a publication of datasets by putting
+their metadata into a TAP-queriable database table with a bespoke set of
+columns.  It lets people pose very complex constraints, even using
+uploaded tables, and it is flexible enough to support almost any sort of
+data the typed services (SIAP, SSAP) serve and a lot more.
+
+You may ask: Why have the S*APs in the first place?  The answer is,
+mainly, history.  Had we had TAP from the start, it's likely we hadn't
+bothered with defining standards for typed services.  But that's not how
+things worked out, and thus client support of Obscore still is inferior
+to that of the typed services.
+
+However, with a view to a future migrating towards obscore, it is
+certainly a good idea to publish data through obscore, too.  The good
+news is that in DaCHS, that's generally close to trivial.
+
+You will sometimes see something called ObsTAP mentioned.  This was
+meant to refer to “Obscore queried through TAP”, but since, really,
+everyone uses Obscore through TAP, people don't say ObsTAP much any
+more.  If you see it somewhere, pretend it's really saying Obscore.
 
 *Note*: Before you can do anything with obscore, you have to run::
 
   dachs imp //obscore
 
 This will also declare support for the obscore DM in your TAP service's
-registry record.
+registry record, which will make all-VO obscore queries use your
+service.  Avoid that if you do not really publish anything through
+Obscore.
 
-If you want to drop obscore again, you will have to say::
+To drop Obscore if you have accidentally imported it, run::
 
   dachs drop --system //obscore
 
-Internally, the ivoa.obscore table is implemented as a view.  If this
+Internally, the ``ivoa.obscore`` table is implemented as a view.  If this
 view contains bad SQL or tables that have been dropped, working with
 obscore can result in rather confusing messages.  If that happens, try::
 
@@ -2598,70 +2657,165 @@ This should remove the bad content from the view statement.
 Obscore Derived from Typed Service Tables
 '''''''''''''''''''''''''''''''''''''''''
 
-ObsTAP is basically a single table, ivoa.ObsCore.  In DaCHS, this is a
-view generated from input tables.  To include the products within a
-table, you must use one of the mixins from the //obscore RD and fill out
-some of the mixin's parameters.  There is some documentation on what to
+Obscore defines a single table called ``ivoa.obscore``.  In DaCHS, that
+table typically contains data from a multitude of resources with
+different metadata structures.  To keep that manageable, DaCHS
+implements the table as a view, where the individual tables are mapped
+onto that common schema.  These mappings are almost always created using
+a mixin from the //obscore RD.  Filling out its parameters will result
+in SQL DDL fragments that are eventually combined to the view
+definition.  In case you are curious: The fragments are kept in the
+``ivoa._obscoresources`` table.
+
+There is some documentation on what to
 put where in the mixin documentation, but frankly, as a publisher, you
 should have at least passing knowledge of the obscore data model as laid
 down in `Tody et al (2011)`_.
 
-In the simplest case, a SIAP table, you could get by simply adding::
+When you start with a table underlying a typed service, you can get away
+with just saying something like (using SIAP as an example)::
 
     mixin="//obscore#publishSIAP"
 
 to the table definition's start tag.  You do not have to re-import a table to
-publish it to obscore after the fact – ``dachs imp -m <rd id> && dachs imp
-//obscore create`` will include an existing table to the obscore view.
+publish it to Obscore after the fact – ``dachs imp -m <rd id> && dachs imp
+//obscore`` will include an existing table in the obscore view.
 
-Even for SIAP, you will usually want to add metadata not contained
-in DaCHS' SIAP meta.  To do this, add a mixin element to the table
-definition's body::
+When you import data without the ``-m`` flag, the mixins arrange for
+everything, so you do not need the extra step of importing ``//obscore``.
+
+Since the Obscore data model is quite a bit richer than SIAP's and just a bit
+richer than SSAP's, you will usually want to add extra metadata through
+the mixin, for instance::
 
     <mixin
       sResolution="0.5"
       calibLevel="2"
       >//obscore#publishSIAP</mixin>
 
-To find out what parameters the mixin takes, see
-`//obscore#publishSIAP`_ in the reference documentation.
+Again, a ``dachs imp -m`` followed by an import of ``//obscore`` would
+be enough to make these changes visible in ``ivoa.obscore``.
 
-On a table import, the obscore table will automatically be recreated to
-include the data.  If you retrofit ObsCore support to large tables, you
-can avoid having to re-import everything by adding the mixin clause and
-then updating the metadata.  In that case, you must manually remake the
-obscore table::
+See `SIAP and Obscore`_ and `SSAP and Obscore`_ for more information
+on how to Obscore-publish typed data.
 
-  dachs imp -m path/to/my/rd
-  dachs imp //obscore create
 
-For SSAP tables, there is an ``//obscore#publishSSAPMIXC`` mixin that works
-like its SIAP cousin (see the reference documentation of details).
+Obscore Notes
+'''''''''''''
+
+Dataset Identifiers (DID)
+.........................
+
+Obscore uses the concept of dataset identifiers rather extensively, and
+it is not unlikely that queries against the ``obs_publisher_did`` column
+will be run – not the least in connection with datalink, in which the
+DID has the role of something like a primary key.  DaCHS'
+obscore-associated datalink service, for instance, will do such queries,
+and will be slow if postgres has to seqscan large tables for pubDIDs.
+
+While DaCHS probably does a good job with creating usable (and globally
+unique) publisher DIDs, it will not index them by default.  Use the
+``createDIDIndex`` parameter of the various mixins to make one if your
+data collection contains more than just a few hundered entries and there
+is no index on it anyway.
+
+On the other hand, the creator DID would be assigned by whoever wrote
+the data file, and you should not change or invent it.  It was intended
+to let people track who republishes a given data set, weed out
+duplicates, and the like.  Regrettably, only very few data provides
+assign creator DIDs, so it's probably not worth bothering.
+
+If you are in a position in which you could make your data provider
+generate creator DIDs, you could make them set a good precendent.  DaCHS
+helps you by letting you claim an authority for them (which would be the
+first step).  See :samplerd:`tutreg/gavo_edu_auth.rd` for an example RD
+that, when ``dachs pub``-ed, will claim an authority for your publishing
+registry.
+
+
+target_class
+............
+
+The obscore model has the notion of a target class for pointed
+observations; this is intended to cover use cases like “get me spectra
+of Galaxies“ or so.  Of course, this only works with a common vocabulary
+of object types, which does not actually exist in the VO at this time.
+The next best thing is `SIMBAD's types
+<http://simbad.u-strasbg.fr/guide/chF.htx>`_, which are to be used until
+then.
+
+
+s_region
+........
+
+Obscore has two ways to do spatial queries: using s_ra, s_dec, and
+perhaps s_fov on the one hand, and using s_region on the other.  That is
+a bit unfortunate because in practice you have to have two indices over
+at least three columns.  Also, DaCHS really likes it if columns are
+type-clean, and thus the mixins take quite a bit of pain to make sure
+only polygons are in s_region.  At your own risk, we will try hard to
+not break things if you put in scircles or smocs.
+
+Having said all that: please make sure that whenever there is a position
+of some kind, you also fill s_region; this is not a problem in SIAP, but
+where you only have a position and aperture, in a pinch fill in
+something like::
+
+  <map key="s_region">pgsphere.SCircle.fromDALI(
+     [alpha, delta, aperture]).asPoly(6)</map>
+
+(:dachsref:`the //ssap#setMeta mixin` already does that).
 
 
 Pure Obscore Tables
 '''''''''''''''''''
 
 You can also have “pure” Obscore tables which do not build on protocol
-mixins.  A live example is the cubes table in the `califa/q3`_ RD within
+mixins.  A live example is the ``cubes`` table in the
+:samplerd:`califa/q3.rd` RD within
 the GAVO data center.  Here's a brief explanation of how this works.
 
-For the non-constant parts of your data, re-use the metadata given in
-the global obscore table – to make that convenient, tell DaCHS to
-resolve ``original`` references in there::
+Somewhat like with `the SSA view`_, you define a table for
+the obscore columns varying for your particular data collection.
+In that tables' definition re-use the metadata given in
+the global obscore table.  A compact way to do that is through a LOOP
+(see `Active Tags`_) and ``original`` references, exploiting the
+``namePath`` on :dachsref:`Element Table`::
 
   <table id="cubes" onDisk="True" namePath="//obscore#ObsCore">
+    <LOOP listItems="obs_id obs_title obs_publisher_did
+      target_name t_exptime t_min t_max s_region
+      t_exptime em_min em_max em_res_power">
+      <events>
+        <column original="\item"/>
+      </events>
+    </LOOP>
 
-``adql="True"`` is absent here as the obscore mixin set it.  It wouldn't
-hurt, though.
+``adql="True"`` is absent here as the obscore mixin will set it later.  
+It wouldn't hurt, though.   If you don't have any additional columns
+(which you can of course have) and just want to have your datasets in
+the obscore table, consider having ``<adql>hidden</adql>`` after the
+obscore mixin.  This will make your table invisible to but still
+readable by TAP.  This is desirable in such a situation because the
+entire information of the table would already be contained in the
+obscore table, and thus there is no real reason to query the table.  In
+the Califa example cited above, that is obviously not the case; there is
+a wealth of additional columns in the custom, non-obscore table, which
+we believe will be the rule rather than the exception.
 
-You will almost always want to have DaCHS manage your products.  This
+For a quick overview over what column names you can have in the
+``listItems`` above, see the `obscore table description`_.
+
+Even with a custom obscore-like table, you will 
+almost always want to have DaCHS manage your products.  This
 works even when all your files are external (i.e., you're entering http
-URLs in accessURL), so it's a good idea to always mix in products::
+URLs in ``//products#define``'s path), and so use :dachsref:`the
+//products#table mixin` (which you don't see with SIAP and SSAP as their
+mixins pull it in for you)::
 
   <mixin>//products#table</mixin>
 
-Then, you mix in ``//obscore#publish``, which is like the
+Then, apply :dachsref:`the //obscore#publish mixin`, which is like the
 protocol-specific mixins except it doesn't pre-set parameters based on
 what's already in protocol-specific tables::
 
@@ -2693,65 +2847,83 @@ what's already in protocol-specific tables::
 
 Essentially, what's constant is given in literals, what's variable is
 given as a column reference.  It is a bit unfortunate that you have to
-enter quite a few identity mappings in here, so we might provide a mixin
-presetting those if this turns out to be a common use case.  Tell us if
-you're annoyed.
-
-You can then add your custom columns (which might be useful if people
-directly query your table).  The central part is copying over obscore
-columns that are not constant for your data collection.  For califa,
-this looks like this::
-
-  <LOOP listItems="obs_id obs_title obs_publisher_did
-      target_name t_exptime t_min t_max s_region
-      t_exptime">
-      <events>
-        <column original="\item"/>
-      </events>
-    </LOOP>
-
-– you'll obviously have to adapt the ``listItems``.  To see what column
-names are available, see the `obscore table description`_.
+enter quite a few identity mappings in here (and our foolish
+camel-case mogrification of the parameter names doesn't help).  Telling
+us you are annoyed with this will certainly speed up our efforts to fix
+things.
 
 That's about it for defining the table.  To fill the table, just have a
 normal rowmaker; since the table contains products, don't forget the
-``//products#define`` rowfilter in the grammar.
+:dachsref:`//products#define` rowfilter in the grammar.
+
+
+Registering Obscore-Published Datasets
+''''''''''''''''''''''''''''''''''''''
+Most of the time, you do not need to worry about telling the Registry
+anything about what you do with obscore.  As long as you have the
+obscore table, your TAP registry record will tell the Registry about it,
+and as long as that is published, clients looking for obscore-published
+data will find your service and thus your datasets (if they match
+the constraints in the obscore query, that is).
+
+In the other direction, when you register a service for a data
+collection published via a typed protocol, DaCHS will add a reference
+such that clients can see that the data is available through obscore,
+too.
+
+But when you do not register a typed service for your data collection
+for some reason, you have to publish your metadata table explicitly.  If
+you have defined sufficient metadata in the RD, all it takes for that is
+a::
+
+  <publish/>
+
+in the table element and a subsequent dachs pub.  If you want a link to
+the table metadata (and a bit of TAP info) on your local front page,
+make that a::
+
+  <publish sets="ivo_managed,local"/>
+
+In more complex scenarios involving multiple tables that should be all
+be mentioned in the registration, you can define an “inactive” data
+element.  An example is again found in :samplerd:`califa/q3.rd`, where
+five tables make up the data collection's table set::
+
+  <data id="tables" auto="false">
+    <meta name="title">CALIFA DR3 tables</meta>
+    <make table="spectra"/>
+    <make table="fluxposv500"/>
+    <make table="fluxposv1200"/>
+    <make table="cubes"/>
+    <make table="objects"/>
+    <publish/>
+  </data>
 
 
 SIAP version 2
 ''''''''''''''
 
 SIAP version 2 is just a a thin layer of parameters on top of obscore.
-To publish with SIAP version 2, simply ingest your data as for SIAP_ and
-add the appropriate ObsTAP_ mixin (``//obscore#publishSIAP``, in all
-likelihood).
+To publish with SIAP version 2, simply ingest your data as described in
+`publishing images via SIAP`_ and add :dachsref:`the
+//obscore#publishSIAP mixin`.
 
-There is a sitewide SIAPv2 service at ``<root
-URL>/__system__/siap2/sitewide/siap.xml`` which is always there.  It is,
-however, unpublished by default.  To publish it, you should furnish some
-extra metadata in your userconfig RD (see
-:dachsdoc:`opguide.html#userconfig-rd`).
-
-Specifically, get the ``sitewidesiap2-extras`` stream and follow the
-instructions there and update the meta items as appropriate; they are
-analogous to the ones for SIAP_.
-
-Once that's done, you can say::
+In contrast to SIAP version 1, you do not define or register a service
+for a SIAPv2-published data collection.  Instead, 
+there is a sitewide SIAPv2 service at ``<root
+URL>/__system__/siap2/sitewide/siap.xml``.  It is always there,
+but it is unpublished by default.  To publish it, you should furnish
+some extra metadata in `the userconfig RD`_ and then run::
 
   dachs pub //siap2
 
-and you're done.
-
-There currently is no facility for having SIAPv2 services for individual
-services.  If you want them, talk to us.
-
+Specifically, get the ``sitewidesiap2-extras`` stream and follow the
+instructions there to update the meta items as appropriate; at this
+point, they are exactly analogous to the ones for SIAP version 1.
 
 
-.. _Tody et al (2011): http://www.ivoa.net/Documents/ObsCore/index.html
-.. _//obscore#publishSIAP: ./ref.html#the-obscore-publishsiap-mixin
-.. _//obscore#publishSSAPHCD: ./ref.html#the-obscore-publishsiap-mixin
-.. _califa/q3: http://svn.ari.uni-heidelberg.de/svn/gavo/hdinputs/califa/q3.rd
-.. _obscore table description: http://dc.g-vo.org/__system__/dc_tables/show/tableinfo/ivoa.ObsCore
+.. _Tody et al (2011): http://www.ivoa.net/Documents/ObsCore
+.. _obscore table description: http://dc.g-vo.org/tableinfo/ivoa.ObsCore
 
 
 Datalink
