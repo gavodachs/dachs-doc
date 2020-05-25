@@ -1538,8 +1538,8 @@ restriction) and only take the data and RDs to the production server
 when you go for publication.
 
 
-Publishing DAL Services
-=======================
+Publishing Data Using VO Protocols
+==================================
 
 DAL is VO-speak for “Data Access Layer”, the standard protocols the VO
 defines for data discovery and access.  To support such a protocol, you
@@ -2001,6 +2001,84 @@ DaCHS' SIAP template gives the most important extra fields::
 You can delete any parameter you cannot fill or do not want to fill,
 though you really *should* put in a useful ``collectionName``.
 
+
+SIAP and Datalink
+'''''''''''''''''
+
+A fairly typical case for a datalink service is a file that has a few
+related datasets and perhaps a cutout.  To define such a thing, write
+something like (cf. :samplerd:`lswscans/res/positions.rd`)::
+
+  <service id="dl" allowed="dlget,dlmeta">
+    <meta name="title">HDAP Datalink</meta>
+    <meta name="description">This service lets you access cutouts
+      from HDAP plates and retrieve scaled versions.</meta>
+    <datalinkCore>
+      <descriptorGenerator procDef="//soda#fits_genDesc">
+        <bind key="accrefPrefix">lswscans</bind>
+      </descriptorGenerator>
+       <FEED source="//soda#fits_standardDLFuncs"/>
+
+      <metaMaker>
+        <code>
+          yield descriptor.makeLink(
+            makeProductLink(descriptor.accref+"?scale=4"),
+            contentType="image/fits",
+            description="FITS, scaled by 1/4",
+            semantics="#science",
+            contentLength=descriptor.estimateSize()/16.)
+        </code>
+      </metaMaker>
+    </datalinkCore>
+  </service>
+
+TODO: Explain what's going on here.
+
+When you attach the datalink functionality (rather than having datalink
+links as access URLs), the following is the recommended pattern:
+
+(1) Add a pub_did column to the SIAP table.  Make sure you're giving it a
+    UCD of ``meta.id;meta.main`` and that you have no other such column
+    in your table::
+
+      <table id="data" onDisk="true" mixin="//siap#pgs">
+        <index columns="pub_did"/>
+        <column name="pub_did" type="text"
+          ucd="meta.id;meta.main"
+          tablehead="P. DID" 
+          description="Dataset identifier assigned by the publisher"
+          verbLevel="15"/>
+
+(2) Populate the ``pub_did`` column in the row maker::
+
+      <map key="pub_did">\standardPubDID</map>
+      
+(3) In the service that has the siap.xml renderer, declare datalink
+    support by setting the corresponding property to the id of the
+    datalink service (here assumed to be ``dl``)::
+
+      <service id="ssa" core="siacore" allowed="siap.xml">
+        <property name="datalink">dl</property>
+
+(4) If you have a form-based publication, hide the ``pub_did`` column
+    and rather make datalinks::
+
+      <service id="web" core="siacore">
+        ...
+        <outputTable>
+           <outputField name="dlurl" select="accref"
+            tablehead="Datalink Access"
+            description="URL of a datalink document for the dataset
+              (cutouts, different formats, etc)">
+            <formatter>
+              yield T.a(href=getDatalinkMetaLink(
+                rd.getById("dl"), data)
+                )["Datalink"]
+            </formatter>
+          </outputField>
+
+
+.. _large section on it: http://docs.g-vo.org/DaCHS/ref.html#datalink-cores
 
 Publishing Spectra or Time Series via SSAP
 ------------------------------------------
@@ -2926,201 +3004,6 @@ point, they are exactly analogous to the ones for SIAP version 1.
 .. _obscore table description: http://dc.g-vo.org/tableinfo/ivoa.ObsCore
 
 
-Datalink
---------
-
-Datalink isn't a discovery protocol like the others discussed so far;
-rather, it is a file format and a simple access protocol for
-representing relationships between parts of complex datasets.
-Essentially, datalink is for you if you have parts of a dataset's
-provenance, refined products like source lists and cutouts, masks, or
-whatever else.
-
-Datalink is particularly attractive when you have large datasets and you
-don't want to push out the whole thing in one go by default.  Insteadt,
-clients retrieve the datalink document.  That then says how to retrieve
-cutouts (and also gives a link to the full dataset for those that want
-it and are aware they might be pulling a large chunk of data).
-
-Since Datalink is very flexible, defining datalink services is a bit
-involved.  The reference documentation has a `large section on it`_.
-Here, we discuss some standard cases.
-
-Datalinks in columns
-''''''''''''''''''''
-
-The simplest way to let people discover datalink documents is by
-including links in normal tables (as for DAL tables) and keep the normal
-access URL in the accref column.  To do that, define a column like
-this::
-
-  <column name="datalink" type="text"
-    ucd="meta.ref.url"
-    tablehead="DL"
-    description="URL of a datalink document for this dataset"
-    verbLevel="1" displayHint="type=url"/>
-
-and then fill it in the corresponding rowmaker.  For the normal case
-where a product corresponds to a disk file, there is a macro to help
-you::
-
-  <map key="datalink">\dlMetaURI{dl}</map>
-
-Here, the “dl” in the macro argument must be the id of the datalink
-service as discussed below.
-
-In such situations, it is still usually advisable to use the datalink
-URL rather than the naked accref in the obscore table – for instance,
-when you are using a SIAP cutout on large image (obscore cannot do
-cutouts) or to allow format conversions.  To do that, you need to advise
-the obscore to use the datalink response; besides changing the access
-URL, you will also need to adjust the access_format (so clients know
-they will have to deal with a datalink) and the access_estsize (because
-they will not have to download the entire dataset in one go).  For the
-latter, it is hard to predict how large the datalink stream will end up
-being.  Guessing “about 10 kB” should be good enough, though.
-
-In total, the obscore mixin would have to look like this::
-
-     <mixin
-      mime="'application/x-votable;content=datalink'"
-      accessURL="datalink"
-      size="10"
-      ...
-    >//obscore#publish(WHATEVER)</mixin>
-
-(in case you're wondering: the ``datalink`` given here for accessURL is
-just the column name as given above).
-
-
-Datalinks as accrefs
-''''''''''''''''''''
-
-In particular for large datasets, it is probably a good idea to keep
-people from blindly pulling the data without first having been made
-aware that what they're accessing is not just a little CCD frame.
-Having the datalink document as the primary document retrieved is a
-fairly good way to do that; of course, without a datalink-enabled client
-people might be locked out from the dataset entirely.  On the other
-hand, DaCHS comes with a stylesheet that enables datalink operation from
-a common web brower, so that's perhaps not too bad.
-
-To have datalinks rather than the plain dataset as what the accref
-points to, you need to change what DaCHS thinks of your dataset; this is
-what the ``//products#define`` rowfilter in your grammar is for::
-
-    <fitsProdGrammar qnd="True">
-      <rowfilter procDef="//products#define">
-        <bind key="path">\dlMetaURI{dl}</bind>
-        <bind key="mime">'application/x-votable+xml;content=datalink'</bind>
-        [...]
-      </rowfilter>
-      [...]
-    </fitsProdGrammar>
-
-When you do this, you must use a datalink-aware descriptor generator.
-When you use the recommended setup, where the accref is the
-inputsDir-relative path to the main file, and you're dealing with FITS,
-you can use the ``DLFITSProductDescriptor`` class (in other cases, its
-implementation (in gavo.protocols.datalink) will show you how to handle
-these cases).   Thus, the base functionality of a FITS cutout service
-with datalink products would be::
-
-   <service id="dl" allowed="dlget,dlmeta">
-    <meta name="title">My Cutout Service</meta>
-    <datalinkCore>
-      <descriptorGenerator procDef="//soda#fits_genDesc" 
-        name="genFITSDesc">
-        <bind key="accrefPrefix">'mysvcs/data'</bind>
-        <bind key="descClass">DLFITSProductDescriptor</bind>
-      </descriptorGenerator>
-      <FEED source="//soda#fits_standardDLFuncs"/>
-    </datalinkCore>
-  </service>
-
-
-Also note that DaCHS will not produce automatic previews in this
-situation.  You will have to generate precomputed previews as discussed
-in :dachsref:`Product Previews`.
-
-
-Simple FITS Datalink Services
-'''''''''''''''''''''''''''''
-
-A fairly typical case for a datalink service is a file that has a few
-related datasets and perhaps a cutout.  To define such a thing, write
-something like (cf. :samplerd:`lswscans/res/positions.rd`)::
-
-  <service id="dl" allowed="dlget,dlmeta">
-    <meta name="title">HDAP Datalink</meta>
-    <meta name="description">This service lets you access cutouts
-      from HDAP plates and retrieve scaled versions.</meta>
-    <datalinkCore>
-      <descriptorGenerator procDef="//soda#fits_genDesc">
-        <bind key="accrefPrefix">lswscans</bind>
-      </descriptorGenerator>
-       <FEED source="//soda#fits_standardDLFuncs"/>
-
-      <metaMaker>
-        <code>
-          yield descriptor.makeLink(
-            makeProductLink(descriptor.accref+"?scale=4"),
-            contentType="image/fits",
-            description="FITS, scaled by 1/4",
-            semantics="#science",
-            contentLength=descriptor.estimateSize()/16.)
-        </code>
-      </metaMaker>
-    </datalinkCore>
-  </service>
-
-TODO: Explain what's going on here.
-
-When you attach the datalink functionality (rather than having datalink
-links as access URLs), the following is the recommended pattern:
-
-(1) Add a pub_did column to the SIAP table.  Make sure you're giving it a
-    UCD of ``meta.id;meta.main`` and that you have no other such column
-    in your table::
-
-      <table id="data" onDisk="true" mixin="//siap#pgs">
-        <index columns="pub_did"/>
-        <column name="pub_did" type="text"
-          ucd="meta.id;meta.main"
-          tablehead="P. DID" 
-          description="Dataset identifier assigned by the publisher"
-          verbLevel="15"/>
-
-(2) Populate the ``pub_did`` column in the row maker::
-
-      <map key="pub_did">\standardPubDID</map>
-      
-(3) In the service that has the siap.xml renderer, declare datalink
-    support by setting the corresponding property to the id of the
-    datalink service (here assumed to be ``dl``)::
-
-      <service id="ssa" core="siacore" allowed="siap.xml">
-        <property name="datalink">dl</property>
-
-(4) If you have a form-based publication, hide the ``pub_did`` column
-    and rather make datalinks::
-
-      <service id="web" core="siacore">
-        ...
-        <outputTable>
-           <outputField name="dlurl" select="accref"
-            tablehead="Datalink Access"
-            description="URL of a datalink document for the dataset
-              (cutouts, different formats, etc)">
-            <formatter>
-              yield T.a(href=getDatalinkMetaLink(
-                rd.getById("dl"), data)
-                )["Datalink"]
-            </formatter>
-          </outputField>
-
-
-.. _large section on it: http://docs.g-vo.org/DaCHS/ref.html#datalink-cores
 
 
 Publishing DaCHS-managed tables via TAP
@@ -3498,6 +3381,125 @@ For registration, just add::
   <publish/>
 
 to your table body and run ``dachs pub <rd-id>``.
+
+
+Datalink
+--------
+
+Datalink isn't a discovery protocol like the others discussed so far;
+rather, it is a file format and a simple access protocol for
+representing relationships between parts of complex datasets.
+Essentially, datalink is for you if you have parts of a dataset's
+provenance, refined products like source lists and cutouts, masks, or
+whatever else.
+
+Datalink is particularly attractive when you have large datasets and you
+don't want to push out the whole thing in one go by default.  Insteadt,
+clients retrieve the datalink document.  That then says how to retrieve
+cutouts (and also gives a link to the full dataset for those that want
+it and are aware they might be pulling a large chunk of data).
+
+Since Datalink is very flexible, defining datalink services is a bit
+involved.  The reference documentation has a `large section on it`_.
+Here, we discuss some standard cases.
+
+Datalinks in columns
+''''''''''''''''''''
+
+The simplest way to let people discover datalink documents is by
+including links in normal tables (as for DAL tables) and keep the normal
+access URL in the accref column.  To do that, define a column like
+this::
+
+  <column name="datalink" type="text"
+    ucd="meta.ref.url"
+    tablehead="DL"
+    description="URL of a datalink document for this dataset"
+    verbLevel="1" displayHint="type=url"/>
+
+and then fill it in the corresponding rowmaker.  For the normal case
+where a product corresponds to a disk file, there is a macro to help
+you::
+
+  <map key="datalink">\dlMetaURI{dl}</map>
+
+Here, the “dl” in the macro argument must be the id of the datalink
+service as discussed below.
+
+In such situations, it is still usually advisable to use the datalink
+URL rather than the naked accref in the obscore table – for instance,
+when you are using a SIAP cutout on large image (obscore cannot do
+cutouts) or to allow format conversions.  To do that, you need to advise
+the obscore to use the datalink response; besides changing the access
+URL, you will also need to adjust the access_format (so clients know
+they will have to deal with a datalink) and the access_estsize (because
+they will not have to download the entire dataset in one go).  For the
+latter, it is hard to predict how large the datalink stream will end up
+being.  Guessing “about 10 kB” should be good enough, though.
+
+In total, the obscore mixin would have to look like this::
+
+     <mixin
+      mime="'application/x-votable;content=datalink'"
+      accessURL="datalink"
+      size="10"
+      ...
+    >//obscore#publish(WHATEVER)</mixin>
+
+(in case you're wondering: the ``datalink`` given here for accessURL is
+just the column name as given above).
+
+
+Datalinks as accrefs
+''''''''''''''''''''
+
+In particular for large datasets, it is probably a good idea to keep
+people from blindly pulling the data without first having been made
+aware that what they're accessing is not just a little CCD frame.
+Having the datalink document as the primary document retrieved is a
+fairly good way to do that; of course, without a datalink-enabled client
+people might be locked out from the dataset entirely.  On the other
+hand, DaCHS comes with a stylesheet that enables datalink operation from
+a common web brower, so that's perhaps not too bad.
+
+To have datalinks rather than the plain dataset as what the accref
+points to, you need to change what DaCHS thinks of your dataset; this is
+what the ``//products#define`` rowfilter in your grammar is for::
+
+    <fitsProdGrammar qnd="True">
+      <rowfilter procDef="//products#define">
+        <bind key="path">\dlMetaURI{dl}</bind>
+        <bind key="mime">'application/x-votable+xml;content=datalink'</bind>
+        [...]
+      </rowfilter>
+      [...]
+    </fitsProdGrammar>
+
+When you do this, you must use a datalink-aware descriptor generator.
+When you use the recommended setup, where the accref is the
+inputsDir-relative path to the main file, and you're dealing with FITS,
+you can use the ``DLFITSProductDescriptor`` class (in other cases, its
+implementation (in gavo.protocols.datalink) will show you how to handle
+these cases).   Thus, the base functionality of a FITS cutout service
+with datalink products would be::
+
+   <service id="dl" allowed="dlget,dlmeta">
+    <meta name="title">My Cutout Service</meta>
+    <datalinkCore>
+      <descriptorGenerator procDef="//soda#fits_genDesc" 
+        name="genFITSDesc">
+        <bind key="accrefPrefix">'mysvcs/data'</bind>
+        <bind key="descClass">DLFITSProductDescriptor</bind>
+      </descriptorGenerator>
+      <FEED source="//soda#fits_standardDLFuncs"/>
+    </datalinkCore>
+  </service>
+
+
+Also note that DaCHS will not produce automatic previews in this
+situation.  You will have to generate precomputed previews as discussed
+in :dachsref:`Product Previews`.
+
 
 
 
