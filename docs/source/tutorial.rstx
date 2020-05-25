@@ -2005,9 +2005,27 @@ though you really *should* put in a useful ``collectionName``.
 SIAP and Datalink
 '''''''''''''''''
 
-A fairly typical case for a datalink service is a file that has a few
-related datasets and perhaps a cutout.  To define such a thing, write
-something like (cf. :samplerd:`lswscans/res/positions.rd`)::
+If you have larger  images or cubes and serve them SIAP, consider
+offering datalinks instead or perhaps even have `datalinks as accrefs`_.
+The latter case is particularly attractive if your images are so large
+that people just clicking on some row in Aladin might not expect a
+download of that size (in 2020, I'd set that limit at, perhaps, 100 MB).
+In both cases, people can select and download only parts of the image or
+request scaled versions of it (a less powerful and transparent
+alternative is the siapCutoutCore discussed above; the two options don't
+mix very well).
+
+Defining a datalink service for normal FITS images is not hard.  In the
+simplest case, you just give a bit of metadata, use the
+:dachsref:`//soda#fits_genDesc` descriptor generator (you don't need to
+understand exactly what that is, if if you are curious:
+:refdoc:`Datalink and SODA` has the full story) and FEED
+:dachsref:`//soda#fits_standardDLFuncs`.  Done.
+
+The following example, taken from
+:samplerd:`lswscans/res/positions.rd`), adds a fixed link to a scaled
+version, which might work a bit smoother with unsophisticated Datalink
+clients using a meta maker::
 
   <service id="dl" allowed="dlget,dlmeta">
     <meta name="title">HDAP Datalink</meta>
@@ -2019,20 +2037,25 @@ something like (cf. :samplerd:`lswscans/res/positions.rd`)::
       </descriptorGenerator>
        <FEED source="//soda#fits_standardDLFuncs"/>
 
-      <metaMaker>
+      <metaMaker semantics="#science">
         <code>
           yield descriptor.makeLink(
             makeProductLink(descriptor.accref+"?scale=4"),
             contentType="image/fits",
             description="FITS, scaled by 1/4",
-            semantics="#science",
             contentLength=descriptor.estimateSize()/16.)
         </code>
       </metaMaker>
     </datalinkCore>
   </service>
 
-TODO: Explain what's going on here.
+See `creating links rows` for more information on what is going on
+inside the meta maker.  The remaining material is either stereotypical
+or pure metadata: title and description are as for any other serivces,
+and the ``accrefPrefix`` should in general reflect your resource
+directory name.  DaCHS datalink machinery will reject any publisher DID
+yielding to an accref not starting with that string.  The idea here is
+to avoid applying code to datasets it is not written for.
 
 When you attach the datalink functionality (rather than having datalink
 links as access URLs), the following is the recommended pattern:
@@ -2053,32 +2076,23 @@ links as access URLs), the following is the recommended pattern:
 
       <map key="pub_did">\standardPubDID</map>
       
-(3) In the service that has the siap.xml renderer, declare datalink
-    support by setting the corresponding property to the id of the
-    datalink service (here assumed to be ``dl``)::
+(3) Declare your table as having datalink support; both SIAP and TAP
+    will pick that up and add the necessary declarations so
+    Datalink-aware clients will know they can run Datalink queries
+    against your service::
 
-      <service id="ssa" core="siacore" allowed="siap.xml">
-        <property name="datalink">dl</property>
+      <meta name="_associatedDatalinkService">
+        <meta name="serviceId">dl</meta>
+        <meta name="idColumn">pub_did</meta>
+      </meta>
 
-(4) If you have a form-based publication, hide the ``pub_did`` column
-    and rather make datalinks::
+    This block needs to sit in the table element.  The serviceId meta
+    contains the id of the Datalink service.
 
-      <service id="web" core="siacore">
-        ...
-        <outputTable>
-           <outputField name="dlurl" select="accref"
-            tablehead="Datalink Access"
-            description="URL of a datalink document for the dataset
-              (cutouts, different formats, etc)">
-            <formatter>
-              yield T.a(href=getDatalinkMetaLink(
-                rd.getById("dl"), data)
-                )["Datalink"]
-            </formatter>
-          </outputField>
+(4) If you also produce HTML forms and tables, see `datalinks in
+    form-based services`_.
 
 
-.. _large section on it: http://docs.g-vo.org/DaCHS/ref.html#datalink-cores
 
 Publishing Spectra or Time Series via SSAP
 ------------------------------------------
@@ -3401,7 +3415,11 @@ it and are aware they might be pulling a large chunk of data).
 
 Since Datalink is very flexible, defining datalink services is a bit
 involved.  The reference documentation has a `large section on it`_.
-Here, we discuss some standard cases.
+Here, we discuss some extra usage patterns.  See also `SSAP and
+Datalink`_ and `SIAP and Datalink`_.
+
+.. _large section on it: http://docs.g-vo.org/DaCHS/ref.html#datalink-cores
+
 
 Datalinks in columns
 ''''''''''''''''''''
@@ -3448,6 +3466,35 @@ In total, the obscore mixin would have to look like this::
 
 (in case you're wondering: the ``datalink`` given here for accessURL is
 just the column name as given above).
+
+
+Datalinks in form-based services
+''''''''''''''''''''''''''''''''
+
+When you have an HTML form service over a table with datalinks, it's
+usually rather ugly to have the long and unwieldy publisher DIDs in the
+response tables.  On the other hand, DaCHS delivers its datalink
+responses with XSLT stylesheets that produce, we claim, reasonable
+output in web browsers.
+
+Hence, it's a good idea to furnish Web-facing services with
+:dachsref:`Element outputTable`s.  In there, do not include the column
+with your publisher DID but instead produce a link directly to the links
+response, somewhat like this::
+
+  <service id="web" core="siacore">
+    ...
+    <outputTable>
+       <outputField name="dlurl" select="accref"
+        tablehead="Datalink Access"
+        description="URL of a datalink document for the dataset
+          (cutouts, different formats, etc)">
+        <formatter>
+          yield T.a(href=getDatalinkMetaLink(
+            rd.getById("dl"), data)
+            )["Datalink"]
+        </formatter>
+      </outputField>
 
 
 Datalinks as accrefs
