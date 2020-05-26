@@ -2993,7 +2993,7 @@ point, they are exactly analogous to the ones for SIAP version 1.
 
 
 
-Publishing DaCHS-managed tables via TAP
+Publishing DaCHS-Managed Tables via TAP
 ---------------------------------------
 
 In the simplest form, all you need to do to publish a table through
@@ -3023,6 +3023,13 @@ the :dachsref:`Element publish` on the table.  For a simple
 table, just adding ``<publish/>``  to the table body and a subsequent
 ``dachs pub`` is enough.
 
+To have such a table turn up on the root page of your site – this then
+links to a page describing the table and giving some information on how
+to query it using TAP –, as for services tell ``publish`` to
+include the local set, too::
+
+  <publish sets="ivo_managed,local"/>
+
 In more complex scenarios involving multiple tables that should be all
 be mentioned in the registration, you can define an “inactive” data
 element.  An example is found in :samplerd:`califa/q3`, where
@@ -3038,16 +3045,20 @@ five tables make up the data collection's table set::
     <publish/>
   </data>
 
-When publishing “non-obvious” tables to TAP, it's a good idea to add one
+When publishing “non-obvious” tables to TAP, it is a good idea to add one
 or more TAP examples for it.  See `Writing Examples`_
 
 
-Publishing existing tables via TAP
-----------------------------------
+Publishing Externally Managed Tables via TAP
+--------------------------------------------
 
-If you already have a database table and now want to use DaCHS to
-publish it via TAP, just write an RD as described above, except that the
-data element is trivial.  Here's an example of how that could look
+While we generally discourage not letting DaCHS do table creation and
+ingestion, sometimes there already is substantial infrastructure
+building a postgres table, in particular when data “lives”.  If you now
+want to use DaCHS to publish it via TAP, just write an RD to describe
+the table, but make the data element trivial and updating (which means
+that DaCHS will not tear down the table if one accidentally runs ``dachs
+imp`` without an ``-m`` flag).  Here's an example of how that could look
 like::
 
   <resource schema="mydata">
@@ -3059,27 +3070,20 @@ like::
          <description>id of object covered here</description></column>
     </table>
 
-    <data id="import">
+    <data id="d" updating="True">
+      <publish/>
       <make table="values"/>
     </data>
   </resource>
 
+Within the data element you need one ``make`` each for each table you
+want to publish.
 
-Within the data element you need one make each for each table you want
-in ADQL; it would cause the tables to be created on a plain ``dachs
-imp``, in the present context, it just says something like “put the
-table metadata into DaCHS' internal catalogues”.
-
-After that, say ``dachs imp -m <rd-id>``; make sure you don't forget the
-``-m``, because without it, ``dachs imp`` will drop the existing tables
-if it can, i.e., if gavoadmin has write access to the schema in
-question, and it should have that for reasons explained in the next
-paragraph.
-
-This adds the metadata you've given to all kinds of administrative
-tables DaCHS keeps but does not touch the data.  It will also try to fix
-the permissions of the table such that DaCHS's untrusted user can read
-it.  To let DaCHS manage the permissions, in psql say (assuming standard
+After that, say ``dachs imp -m <rd-id>``.  This adds the metadata you've
+given to all kinds of administrative tables DaCHS keeps, but DaCHS will
+not touch the rows in the tables.  It will also try to fix the
+permissions of the table such that DaCHS's untrusted user can read it.
+To let DaCHS manage the permissions, in psql say (assuming standard
 profiles)::
 
   GRANT ALL PRIVILEGES ON SCHEMA <your schema> TO gavoadmin
@@ -3087,34 +3091,13 @@ profiles)::
   GRANT SELECT ON <your schema>.<your table> TO gavoadmin
     WITH GRANT OPTION;
 
-If you have local users accessing the table, you should declare
+If you have local users accessing the table, you may need to declare
 them in either the allRoles or readRoles attributes to the table
-definiton.  Maybe even adapting the profiles in GAVOROOT/etc to match
-your existing infrastructure could make sense.
+definition (see :dachsref:`Element table`).
 
-Also do not forget that people should have some way to locate your data
-collection (i.e., the table(s) that you are exposing).  If you have
-sufficient metadata defined – basically as for services –, you can
-register your data collection.  To do this, just add an empty
-``<register/>`` element to either a table definition or, more
-convenient in multi-table setups, a data element for your data
-collection.  The defaults for register are publication to the VO and,
-for ADQL-exposed tables, serviced by the TAP service, which is about
-what you want in this situation.
-
-Here's an example for the case of a multi-table publication::
-
-  <data id="collection" auto="false">
-    <register services="__system__/tap#run"/>
-    <make table="part1"/>
-    <make table="part3"/>
-  </data>
-
-Don't forget that you need to execute::
-
-  dachs pub the/rdid
-
-to make DaCHS actually publish the table.
+See `publishing DaCHS-managed tables via TAP`_ on the Registry aspects,
+and in particular the use of a ``sets`` attribute to ``publish`` if you
+want the table(s) to be visible from your site's front page.
 
 
 EPN-TAP
