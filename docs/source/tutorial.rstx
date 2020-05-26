@@ -2963,33 +2963,8 @@ such that clients can see that the data is available through obscore,
 too.
 
 But when you do not register a typed service for your data collection
-for some reason, you have to publish your metadata table explicitly.  If
-you have defined sufficient metadata in the RD, all it takes for that is
-a::
-
-  <publish/>
-
-in the table element and a subsequent dachs pub.  If you want a link to
-the table metadata (and a bit of TAP info) on your local front page,
-make that a::
-
-  <publish sets="ivo_managed,local"/>
-
-In more complex scenarios involving multiple tables that should be all
-be mentioned in the registration, you can define an “inactive” data
-element.  An example is again found in :samplerd:`califa/q3.rd`, where
-five tables make up the data collection's table set::
-
-  <data id="tables" auto="false">
-    <meta name="title">CALIFA DR3 tables</meta>
-    <make table="spectra"/>
-    <make table="fluxposv500"/>
-    <make table="fluxposv1200"/>
-    <make table="cubes"/>
-    <make table="objects"/>
-    <publish/>
-  </data>
-
+for some reason, you should also register the standalone table as
+described in `publishing DaCHS-managed tables via TAP`_
 
 SIAP version 2
 ''''''''''''''
@@ -3018,39 +2993,49 @@ point, they are exactly analogous to the ones for SIAP version 1.
 
 
 
-
 Publishing DaCHS-managed tables via TAP
 ---------------------------------------
 
 In the simplest form, all you need to do to publish a table through
 the TAP endpoint is to add an ``adql="True"`` attribute to the table
 definition and update the metadata (by saying ``dachs imp -m <rd>``).
+This will include basic table metadata including its columns in both the
+TAP schema and the tableset of the TAP service, which is marginally
+enough to make it discoverable once your TAP service is registered.
 
-You should, however, take particular care that there's a useful
+You should, however, take particular care to give a useful
 description of the table, usually as a direct meta on the table.
-Keep in mind that people will stumble across the table in some sort of
-registry and need to be able to figure out whether the table contains
-useful data by that description and the column metadata alone.
+Keep in mind that people will typcially discover the table through some
+sort or Registry query and should to be able to figure out whether the
+table contains data useful to them by that description and the column
+metadata.
 
-The TAP endpoint only exposes rather limited metadata.  At least when
-there is no published service on the table, you may want to just publish
-the data to the registry, too.  This leads to a much richer set of
-metadata, increasing people's chances to able to locate the data.
+However, both the TAP schema and the tableset only contain rather
+limited metadata.  Hence, when there is no published service on the
+table (which will take care of producing a proper registry record), you
+should have a publication for the table itself, which substantially
+increases people's chances to locate the data in typical Registry
+queries.
 
-To publish a nonservice (usually a table definition, but you can
+To publish such a non-service (usually a table definition, but you can
 register data descriptors containing multiple tables, too), use
-the `register Element <./ref.html#element-register>`_ .  For a simple
-table, just wringing ``<register/>`` is enough, since the set name
-defaults to ``ivo_managed`` and ADQL-accessible tables are automatically
-related to the TAP services.
+the :dachsref:`Element publish` on the table.  For a simple
+table, just adding ``<publish/>``  to the table body and a subsequent
+``dachs pub`` is enough.
 
-When ``register`` is the child of a data item, you need to manually
-declare that child tables are TAP-accessible, like this::
+In more complex scenarios involving multiple tables that should be all
+be mentioned in the registration, you can define an “inactive” data
+element.  An example is found in :samplerd:`califa/q3`, where
+five tables make up the data collection's table set::
 
-  <data id="collection" auto="false">
-    <register services="__system__/tap#run"/>
-    <make table="part1"/>
-    <make table="part3"/>
+  <data id="tables" auto="false">
+    <meta name="title">CALIFA DR3 tables</meta>
+    <make table="spectra"/>
+    <make table="fluxposv500"/>
+    <make table="fluxposv1200"/>
+    <make table="cubes"/>
+    <make table="objects"/>
+    <publish/>
   </data>
 
 When publishing “non-obvious” tables to TAP, it's a good idea to add one
