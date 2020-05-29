@@ -170,7 +170,7 @@ A binding of a procedure definition parameter to a concrete value.
 The value to set is contained in the binding body in the form of
 a python expression.  The body must not be empty.
 
-May occur in `Element phraseMaker`_, `Element apply`_, `Element job`_, `Element processEarly`_, `Element processLate`_, `Element regTest`_, `Element rowfilter`_, `Element sourceFields`_, `Element iterator`_, `Element pargetter`_, `Element dataFormatter`_, `Element dataFunction`_, `Element descriptorGenerator`_, `Element metaMaker`_, `Element coreProc`_.
+May occur in `Element phraseMaker`_, `Element apply`_, `Element job`_, `Element processEarly`_, `Element processLate`_, `Element regTest`_, `Element rowfilter`_, `Element sourceFields`_, `Element iterator`_, `Element pargetter`_, `Element dataFormatter`_, `Element dataFunction`_, `Element descriptorGenerator`_, `Element coreProc`_.
 
 Atomic Children
 ...............
@@ -2267,7 +2267,9 @@ A definition of the mapping between grammar input and finished rows
 ready for shipout.
 
 Rowmakers consist of variables, procedures and mappings.  They
-result in a python callable doing the mapping.
+result in a python callable doing the mapping.  In python code
+withing rowmaker elements, you can use a large number of functions.
+See `Functions avalailable for row makers`_ in the reference documentation.
 
 RowmakerDefs double as macro packages for the expansion of various
 macros.  The standard macros will need to be quoted, the rowmaker macros
@@ -2277,7 +2279,7 @@ Within map and var bodies as well as late apply pars and apply bodies,
 you can refer to the grammar input as vars["name"] or, shorter @name.
 
 To add output keys, use map or, in apply bodies, add keys to the
-result dictionary.
+``result`` dictionary.
 
 May occur in `Element data`_, `Element resource`_.
 
@@ -2442,7 +2444,7 @@ Caution: Macros are expanded within the code; this means you
 need double backslashes if you want a single backslash in python
 code.
 
-May occur in `Element phraseMaker`_, `Element apply`_, `Element job`_, `Element processEarly`_, `Element processLate`_, `Element procDef`_, `Element regTest`_, `Element rowfilter`_, `Element sourceFields`_, `Element iterator`_, `Element pargetter`_, `Element dataFormatter`_, `Element dataFunction`_, `Element descriptorGenerator`_, `Element metaMaker`_, `Element coreProc`_.
+May occur in `Element phraseMaker`_, `Element apply`_, `Element job`_, `Element processEarly`_, `Element processLate`_, `Element procDef`_, `Element regTest`_, `Element rowfilter`_, `Element sourceFields`_, `Element iterator`_, `Element pargetter`_, `Element dataFormatter`_, `Element dataFunction`_, `Element descriptorGenerator`_, `Element coreProc`_.
 
 Atomic Children
 ...............
@@ -3480,6 +3482,15 @@ This could look like this, when the grammar input is some iterable::
       </code>
     </iterator>
   </embeddedGrammar>
+
+If you need to raise an error from within an embeddedGrammar, use
+a SourceParseError, somewhat like this::
+
+  raise utils.SourceParseError(
+    "Bad line", 
+    offending=inputLine, 
+    location=str(lineNumber+1),
+    source=inputFile.name)
 
 
 Atomic Children
@@ -5052,99 +5063,6 @@ Structure Children
   more times) -- Input parameters for this table.
 
 Macros predefined here: `Macro RSTservicelink`_, `Macro RSTtable`_, `Macro decapitalize`_, `Macro getConfig`_, `Macro internallink`_, `Macro lower`_, `Macro magicEmpty`_, `Macro metaSeq`_, `Macro metaString`_, `Macro quote`_, `Macro rdId`_, `Macro rdIdDotted`_, `Macro reSub`_, `Macro schema`_, `Macro sql_standardPubDID`_, `Macro sqlquote`_, `Macro test`_, `Macro today`_, `Macro upper`_, `Macro urlquote`_
-
-Element metaMaker
-'''''''''''''''''
-
-A procedure application that generates metadata for datalink services.
-
-The code must be generators (i.e., use yield statements) producing either
-svcs.InputKeys or protocols.datalink.LinkDef instances.
-
-metaMaker see the data descriptor of the input data under the name
-descriptor.
-
-The data attribute of the descriptor is always None for metaMakers, so
-you cannot use anything given there.
-
-Within MetaMakers' code, you can access InputKey, Values, Option, and
-LinkDef without qualification, and there's the MS function to build
-structures.  Hence, a metaMaker returning an InputKey could look like this::
-
-  <metaMaker>
-    <code>
-      yield MS(InputKey, name="format", type="text",
-        description="Output format desired",
-        values=MS(Values,
-          options=[MS(Option, content_=descriptor.mime),
-            MS(Option, content_="text/plain")]))
-    </code>
-  </metaMaker>
-
-(of course, you should give more metadata -- ucds, better description,
-etc) in production).
-
-Note that MetaMakers cannot rely on descriptor.pubDID to actually have 
-a value; in particular SSA may construct cores to produce "direct"
-processing datalink descriptors.  When you need a pubDID, just return if
-descriptor.pubDID is None.
-
-It's ok to yield None; this will suppress a Datalink and is convenient
-when some component further down figures out that a link doesn't exist
-(e.g., because a file isn't there).  Note that in many cases, it's
-more helpful to client components to handle such situations by
-yielding a DatalinkFault.NotFoundFault.
-
-In addition to the usual names available to ProcApps, meta makers have:
-
-- MS -- function to make DaCHS structures
-- InputKey -- the class to make for input parameters
-- Values -- the class to make for input parameters' values attributes
-- Options -- used by Values
-- LinkDef -- a class to define further links within datalink services.
-- DatalinkFault -- a container of datalink error generators
-- soda -- the soda module.
-
-May occur in `Element datalinkCore`_.
-
-Atomic Children
-...............
-
-* **code** (unicode string; defaults to <Not given/empty>) -- A python
-  function body.
-* **deprecated** (unicode string; defaults to None) -- A deprecation
-  message.  This will be shown if this procDef is being compiled.
-* **doc** (unicode string; defaults to '') -- Human-readable docs for
-  this proc (may be interpreted as restructured text).
-* **name** (unicode string; defaults to <Not given/empty>) -- A name
-  of the proc.  ProcApps compute their (python) names to be somwhat
-  random strings.  Set a name manually to receive more easily
-  decipherable error messages.  If you do that, you have to care about
-  name clashes yourself, though.
-* **original** (id reference; defaults to None) -- An id of an element
-  to base the current one on.  This provides a simple inheritance
-  method.  The general rules for advanced referencing in RDs apply.
-* **procDef** (id reference; defaults to <Not given/empty>) --
-  Reference to the procedure definition to apply
-* **semantics** (unicode string; defaults to
-  'http://dc.g-vo.org/datalink#other') -- For link-generating
-  metaMakers, the semantics makeLink or makeLinkFromFile will use
-  unless given something else.  This is also what will be used if the
-  meta maker exceptions out.  Note that the default is not good and is
-  only set for backwards compatibility.  You should override this.
-* **type** (One of: apply, dataFormatter, dataFunction,
-  descriptorGenerator, iterator, metaMaker, mixinProc, pargetter,
-  phraseMaker, regTest, rowfilter, sourceFields, t_t; defaults to
-  None) -- The type of the procedure definition.  The procedure
-  applications will in general require certain types of definitions.
-
-Structure Children
-..................
-
-* bindings (contains `Element bind`_ and may be repeated zero or more
-  times) -- Values for parameters of the procedure definition
-* setups (contains `Element setup`_ and may be repeated zero or more
-  times) -- Setup of the namespace the function will run in
 
 Element nullCore
 ''''''''''''''''
@@ -7944,7 +7862,7 @@ set a property ``internal`` on the table (the value is ignored).
 The scs.xml Renderer
 ''''''''''''''''''''
 
-*This renderer's parameter style is "pql".*
+*This renderer's parameter style is "dali".*
 
 
 A renderer for the Simple Cone Search protocol.
@@ -8556,9 +8474,9 @@ Parameter *naxis*
 sets the bandpassId, bandpassUnit, bandpassRefval, bandpassHi,
 and bandpassLo from a set of standard band Ids.
 
-The bandpass ids known are contained in a file supplied file
-that you should consult for supported values.  Run
-gavo admin dumpDF data/filters.txt for details.
+The bandpass ids known are contained in a file supplied by
+DaCHS that you should consult for supported values by running
+``dachs admin dumpDF data/filters.txt``.
 
 All values filled in here are in meters.
 
