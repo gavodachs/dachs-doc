@@ -24,10 +24,10 @@ Debian Systems
 
 The preferred way to run DaCHS is on Debian stable or compatible
 systems.   To install, `add our APT repository`_ to your
-`/etc/apt/sources.list` and install the `gavodachs-server` package, e.g. by
+`/etc/apt/sources.list` and install the `gavodachs2-server` package, e.g. by
 running::
 
-  sudo apt-get install gavodachs-server
+  sudo apt install gavodachs2-server
 
 With that, you're ready to proceed to the tutorial_ and the `Operator's
 Guide`_
@@ -269,50 +269,23 @@ The final step is to make DaCHS start as part of the system boot.
 Setup DaCHS web-server as a system service
 ------------------------------------------
 
-Rather than use the init script provided by upstream, use the following
-systemd unit file (put it into ``/etc/systemd/system/dachs.service``)::
+Use the following systemd unit file (put it into
+``/etc/systemd/system/dachs.service``)::
 
-	[Unit]
-	Description=GAVO Data Center Helper Suite
-	After=network.target postgresql.service
-	Requires=postgresql.service
+  [Unit]
+  Description=The DaCHS VO server
+  After=network.target
 
-	[Service]
-	Type=forking
-	PIDFile=/DACHS/ROOT/DIR/state/web.pid
+  [Service]
+  ExecStart=/usr/local/bin/dachs serve start -f
+  Type=simple
+  Restart=on-abnormal
 
-	User=gavo
-	Group=gavo
+  [Install]
+  WantedBy=multi-user.target
 
-	WorkingDirectory=/DACHS/ROOT/DIR
-	
-	# Configure the server environment if you have a non-standard setup, this 
-	# may not be needed if no special arguments were supplied to 
-	# "python setup.py install" when installing the dachs software
-	
-	#Environment=GAVOSETTINGS=/ABSOLUTE/PATH/TO/GAVO.RC
-	
-	# When setting a sub-path the *entire* path must be set.  Systemd has
-	# *no* facility for variable substitution in any environment variables.
-	
-	#Environment=PATH=/usr/bin:/usr/sbin:/DIR/CONTAINING/DACHS_SCRIPT
-	
-	# Again, if your gavodachs-1.1.3-py2.7.egg file is not is the standard 
-	# location set the entire PYTHONPATH here, statements such as
-	# PYTHONPATH=${PYTHONPATH}:/some/other/directory do *not* work in
-	# systemd unit scripts.
-	
-	#Environment=PYTHONPATH=/DIR/CONTAINING/GAVODACHS_EGG
-	
-	ExecStart=/bin/python /ABS/PATH/TO/DACHS_SCRIPT serve start
-	ExecReload=/bin/python /ABS/PATH/TO/DACHS_SCRIPT serve restart
-	ExecStop=/bin/python /ABS/PATH/TO/DACHS_SCRIPT serve stop
-	
-	[Install]
-	WantedBy=multi-user.target
 
-You will have to adapt the all-uppercase strings to the installation
-choices you made above.
+You may need to adapt the path to the ``dachs`` binary.
 
 Before activating DaCHS through systemd, make sure you have shutdown any
 instances of dachs that you may have running::

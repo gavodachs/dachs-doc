@@ -1509,7 +1509,7 @@ Atomic Children
   contributing to a published view.  Warning: adql=hidden is
   incompatible with setting readProfiles manually.
 * **allProfiles** (Comma separated list of profile names.; defaults to
-  'msdemlei, admin') -- A (comma separated) list of profile names
+  'admin, msdemlei') -- A (comma separated) list of profile names
   through which the object can be written or administred (oh, and the
   default is not admin, msdemlei but is the value of [db]maintainers)
 * **autoCols** (Comma-separated list of strings; defaults to '') --
@@ -2142,7 +2142,7 @@ Atomic Children
 ...............
 
 * **allProfiles** (Comma separated list of profile names.; defaults to
-  'msdemlei, admin') -- A (comma separated) list of profile names
+  'admin, msdemlei') -- A (comma separated) list of profile names
   through which the object can be written or administred (oh, and the
   default is not admin, msdemlei but is the value of [db]maintainers)
 * **readProfiles** (Comma separated list of profile names.; defaults
@@ -2545,7 +2545,7 @@ Atomic Children
   contributing to a published view.  Warning: adql=hidden is
   incompatible with setting readProfiles manually.
 * **allProfiles** (Comma separated list of profile names.; defaults to
-  'msdemlei, admin') -- A (comma separated) list of profile names
+  'admin, msdemlei') -- A (comma separated) list of profile names
   through which the object can be written or administred (oh, and the
   default is not admin, msdemlei but is the value of [db]maintainers)
 * **dupePolicy** (One of: check, drop, dropOld, overwrite; defaults to

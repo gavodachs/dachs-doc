@@ -1688,6 +1688,14 @@ GAVO DC RDs:
   days has been: Whenever any text comes in, turn it into strings as
   soon as possible, and encode just before writing (that of course
   doesn't apply when you're actually dealing with binary data).
+* encoding-aware files (this was actually our number one problem not
+  automatically caught by 2to3) – when you just ``open("name")``, you get back
+  a file that returns true strings and hence supposes an encoding.  That
+  may actually do what you expect by accident, but mostly it doesn't.
+  You'll have to decide in each case whether you want bytes (in which
+  case you ``open("name", "rb")`` or strings (in which case you should
+  specify the encoding explicitly – ``open("name", "r", enc="utf-8")``
+  to avoid run-time surprises).
 * ``urllib.quote`` is now ``urllib.parse.quote`` (the latter is in the
   rowmaker namespace)
 * int/int now is a float.  Well, DaCHS should always have future-imported
