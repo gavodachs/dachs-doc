@@ -398,8 +398,8 @@ stream (essentially, a sequence of elements) defined elsewhere and puts
 it in. The reference manual has list of
 :dachsref:`predefined streams` with an indication of what is inserted.
 Here, this is used to insert a few more formalised meta items declaring
-the license under which your data can be used and distributed.  Please
-be explicit on your licenses, and have a look at `Licensing`_ below.
+the licence under which your data can be used and distributed.  Please
+be explicit on your licences, and have a look at `Licensing`_ below.
 
 The last major concept you should now in connection with DaCHS metadata
 is **metadata inheritance**.  For instance,
@@ -3547,6 +3547,10 @@ instead.
 Topics in DaCHS Publishing
 ==========================
 
+This section discusses various DaCHS aspects in somewhat more detail
+than in what is in `DaCHS Basics`_.  The idea is that you can skim the
+material and return later when a given problem turns up.
+
 
 Publication Options
 -------------------
@@ -4548,79 +4552,85 @@ write the equivalent vizier-like expressions)::
     </condDesc>
 
 
-More on Metadata
-----------------
+Metadata Specials
+-----------------
 
-In general, most metadata for services and resources rather closely
-follows what's defined in `Resource Metadata for the Virtual
-Observatory`_; see also the `Reference Manual on RMI-style metadata`_.
+The reference manual has a fairly extensive section on
+:dachsref:`defining metadata`; much of it is tutorial-style, so we 
+encourage you to skim that section at some point.
 
-Authors
-'''''''
-
-VOResource wants split-up author specifications, and for a good reason.
-However, for longer author lists, these are a pain to write down (see
-also `RMI-Style Metadata in the reference`_).
-
-As a shortcut, DaCHS lets you specify authors in the simple ``creator``
-metadata as semicolon-separated names.  Unless you want to set logos or
-similar, the recommended way to declare authors is::
-
-  <meta name="creator">Author1, S.; Author-Two, J.C.</meta>
+This section picks some metadata-related points that merit discussion on
+a wider scope.
 
 
-Coverage
-''''''''
+Authors, or: Nested Sequential Meta
+'''''''''''''''''''''''''''''''''''
 
-One tricky spot is coverage, i.e., the parts of the STC space covered
-by what's in the resource.  In general, you will define coverage more
-or less like this::
+If you read :dachsref:`RMI-Style Metadata` in the reference, you will
+notice that the real meta key for the authors of the data is
+``creator.name`` (please pay particular attention to what we are saying
+there about the format of that string).  However, in the templates and
+our examples, you will see we are using ``creator`` throughout.  The
+reason for this is that ``creator`` is complex metadata (there's name,
+logo, and possibly more), and setting multiple pieces of complex
+metadata according to the rules discussed in :dachsref:`Defining Metadata`
+has a nasty pitfall with these.
 
-  <meta name="coverage">
-    <meta name="profile">AllSky ICRS</meta>
-    <meta name="waveband">Optical</meta>
+We discuss this pitfall here.  Since it probably will not bite you
+outside of ``creator``, you might decide to skip this and just never
+write ``creator.name`` in your RDs.
+
+So, suppose you had more than one creator.  What you then want is
+a metadata structure like this::
+
+  +-- creator -- name (Arthur)
+  |
+  +-- creator -- name (Berta)
+
+However, if you write::
+
+  creator.name: Arthur
+  creator.name: Berta
+
+or, equivalently::
+
+  <meta name="creator.name">Arthur</meta>
+  <meta name="creator.name">Berta</meta>
+
+by rules of :dachsref:`Defining Metadata`, you will get this::
+
+  +-- creator -- name (Arthur)
+         |
+         +------ name (Berta)
+
+i.e., one creator with two names, which is both invalid and wrong.
+
+To avoid this, you have to insert a new creator node in between, and
+write::
+
+  creator.name: Arthur
+  creator:
+  creator.name: Berta
+
+This yields the upper (correct) meta structure.
+
+Since the creator.name case is so common, DaCHS provides a
+shortcut, which you should simply always use to define the creators: if
+you set ``creator`` directly, DaCHS will expect a string of the form::
+
+  <author1>, <inits1> {; <authorn>, <initsn>}
+
+(i.e., Last, I.-form separated by semicolons, as in "Foo, X.; Bar, Q.;
+et al") and split it up into the proper structure.  You can mix the two
+notations, for instance if you want to set a logo on the first creator::
+
+  <meta name="creator">
+    <meta name="name">Chandrasekhar, S.</meta>
+    <meta name="logo">http://sit.in/chandra.png</meta>
   </meta>
-
-The easy part is the waveband.  Values here are from a fixed set of
-strings, viz., Radio, Millimeter, Infrared, Optical, UV, EUV, X-ray,
-Gamma-ray;  capitalization is important, and you may give multiple
-elements (the software doesn't enforce this selection, but your registry
-documents will become invalid if you use anything else).
-
-The coverage.profile meta item has STC-S strings as values.  See the
-`STC-S Note`_ as well as the `STC library documentation`_ for more
-information on the STC-S understood by DaCHS.  In principle, you can
-get fancy here; for example, you could write::
-
-  <meta name="coverage.profile">
-    TimeInterval TT BARYCENTER 1999-10-01T20:30:00 1999-10-02T20:30:10
-      unit s Error 10 Resolution 1 2
-    Circle FK5 J1980.0 GEOCENTER 0.13 0.45 0.03 unit rad
-      PixSize 0.0001 0.0001
-    SpectralInterval HELIOCENTER 2000 6000 unit Angstrom Error 1
-    RedshiftInterval TOPOCENTER VELOCITY RELATIVISTIC -10 10 unit km/s
-  </meta>
-
-However, the registries probably evaluate not very much of this
-information as yet, and you most certainly should try to give positions
-in ICRS.
+  <meta name="creator">Copernicus, N.; Gallilei, G.</meta>
 
 
-(Content) Type
-''''''''''''''
-
-Values for ``type`` come from a controlled vocabulary that
-includes Other, Archive,
-Bibliography, Catalog, Journal, Library, Simulation, Survey,
-Transformation, Education, Outreach, EPOResource, Animation, Artwork,
-Background, BasicData, Historical, Photographic, Press, Organisation,
-Project, Registry.
-
-Specifying the content type is optional, and you can repeat the meta
-element as often as you need to.
-
-If you are unsure what these mean, see `Resource Metadata for the
-Virtual Observatory`_, section 3.3.
 
 Licensing
 '''''''''
@@ -4628,36 +4638,66 @@ Licensing
 Within the astronomical community, licensing issues have traditionally
 played a minor role – if you referenced properly, using data from other
 people was not only ok, it was encouraged.  We should keep it that way,
-even in the days of easy reproducability.  Still, formal statements
+even in the days of easy transmission and copying.  
+Still, formal statements
 about how your data may be used are required if, for instance, the data
-or parts thereof are re-used in Free software.  Such statements are
-called licenses.
+or parts thereof are re-used in Free software, or are aggregated and
+re-published.  Such statements are
+called licences, and to facilitate re-use you should choose and declare
+a licence.
 
-In DaCHS, three meta items are used for licensing:
+In DaCHS, you can to that manually using the following two meta items:
 
 * rights – this is free text transmitted to the registry that should
   state the conditions under which the data can be used, shared, etc.
   This can include requests for acknowledgement, but don't be overly
   verbose here; if, for instance, you'd like to acknowledge all your
-  contributors, rather put that into _longdoc and reference that from
-  rights.
-* rightsURI – a URI of a common license; this is so machines can figure
-  out conditions if necessary.  We'll link a list of such URIs if we
-  find one.
+  contributors, rather put that into a ``_longdoc`` meta and reference 
+  that from rights.
+* rightsURI – a URI of a common licence; this is so machines can figure
+  out conditions if necessary.  For now, only include it if your licence
+  actually gives such a URI.
 
-In practice, you should stick to a well-known license.  DaCHS comes with
-support of CC-0 (essentially, no restrictions) and CC-BY (state where
-you got the data from if re-publishing).  Let us know if you want other
-licenses supported, and we'll do something about it.  To apply them,
-replay one of the streams
+In practice, you should stick to a well-known licence and probably don't
+bother with these two items by hand.  DaCHS comes with
+support for CC-0 (essentially, no restrictions; that's not precisely a
+licence, but it stands in well for one), CC-BY (state where
+you got the data from if re-publishing), and CC-BY-SA (as for CC-BY, but
+also require anyone who re-uses the data to share what they got from you
+at least as liberally as you shared it.  Let us know if you want other
+licences supported, and we'll do something about it.  
 
-* :dachsref:`//procs#license-cc0` (public domain)
-* :dachsref:`//procs#license-cc-by` (attribution)
+To apply them, replay one of the streams
 
-into the RD and give a ``what`` attribute saying what is licensed
+* :dachsref:`//procs#license-cc0`
+* :dachsref:`//procs#license-cc-by`
+* :dachsref:`//procs#license-cc-by-sa`
+
+into the RD and give a ``what`` attribute saying what is licenced
 (usually, the data).  For instance::
 
   <STREAM source="//procs#license-cc-by" what="ARIHIP"/>
+
+If you get to choose the licence but are not sure which one to pick: Our
+advice is to go for CC-0.  This is although we do believe in the GPL for
+software, which has strong traits of CC-BY-SA in that it prevents others
+from making your code proprietary.  But data is not code.  While it is
+probably unreasonable to combine more than a dozen pieces of source code
+from different parties into a single reasonable piece of software
+(excepting distributions, but these have special rules, and modern web
+browsers, which are not reasonable), it is totally reasonable to include
+data from thousands of sources.  Even something as permissive as CC-BY
+then becomes a liability – if you published the result of such an
+effort, in your ``rights`` meta you would have to reproduce a thousand
+attributions, and that is absolutely not worth it.
+
+In case your data providers are nervous about putting their work into,
+in effect, the public domain: Licensing has **nothing**
+whatsoever to do with requiring people to properly cite and/or
+acknowledge.  That is part of good scientific practice and is unrelated
+to legal issues.  Licensing is necessary for hassle-free re-use of the
+data in situations where it needs to be re-distributed; the classic
+example would be a star catalogue within a planetarium software.
 
 Sometimes you want an additional acknowleding clause.  In that case,
 just add another rights meta item::
@@ -4673,16 +4713,6 @@ just add another rights meta item::
   </meta>
   <FEED source="//procs#license-cc0" what="the HDAP scans"/>
 
-In case your data providers are nervous: Licensing has **nothing**
-whatsoever to do with requiring people to properly cite and/or
-acknowledge.  That is part of good scientific practice and is unrelated
-to legal issues.  Licensing is necessary for hassle-free re-use of the
-data in situations where it needs to be re-distributed; the classic
-example would be a star catalogue within a planetarium software.
-
-.. _Reference Manual on RMI-style metadata: ./ref.html#rmi-style-metadata
-.. _STC library documentation: ./stc.html
-.. _STC-S Note: http://www.ivoa.net/Documents/Notes/STC-S/
 
 
 Active Tags
