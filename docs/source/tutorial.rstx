@@ -2176,8 +2176,8 @@ Since the dataset is in the obscore table, it would otherwise be
 globally discoverable, and that'd be bad.
 
 
-SSAP Local Tables
-'''''''''''''''''
+SSAP Tables
+'''''''''''
 
 Contrary to what DaCHS does with the relatively small 
 SCS, SIAP, and SLAP models, due to the size of the SSAP model, spectral
@@ -2214,8 +2214,9 @@ metadata “unpredictably” varying between datasets (or, for large data
 collections, anything that needs to be indexed for good performance).
 For instance, for observational data, the observed location is going to
 change from row to row.  The start and the end of the spectrum is
-probably going to be fixed by the instrument, and so you probably will
-not have columns of them and rather provide constant values when
+probably going to be fixed for a given instrument, and so if you have a
+homogeneous data collection you probably will
+not have columns for them and rather provide constant values when
 defining the view.
 
 To conveniently define the table, it is recommended to pull the SSA
@@ -2243,24 +2244,33 @@ certainly want; see `The Products Table`_ for an explanation),
 ``//ssap#plainlocation`` (which you want if
 you have positions on observational data) and ``//ssap#simpleCoverage``
 (which you want if you want to publish your observational spectra
-through obscore).
+through obscore).  The template then defines::
+
+  <FEED source="//scs#splitPosIndex"
+    long="degrees(long(ssa_location))" 
+    lat="degrees(lat(ssa_location))"/>
+
+This again is mainly useful for obscore as long as DaCHS' ADQL engine
+may turn queries into q3c statements; just leave it if you have
+positions, and remove it if you don't.
 
 You can, of course, define further columns here, both for later use in
 the view and for local management.  SSAP lets you return arbitrary local
 columns, and in particular for theory services, you will have to (to
 define the physics of your model).  As a DaCHS convention, please don't
 use the ``ssa_`` prefix on your custom columns. See
-:samplerd:`theossa/q` for an example of that.
+:samplerd:`theossa/q` for an example of a table with many extra
+columns.
 
 The SSA template then goes on with a data item filling the ``raw_data``
 table.  The template assumes you're parsing from IRAF-style 1D images.
 You will have to use a different grammar if that is not what you have,
-in particular you cannot use the ``specAx`` var defined in the
-rowmaker.
+and in that case you in particular you cannot use the ``specAx`` var 
+defined in the rowmaker.
 
-The first thing you will notice in the template is
-``<recreateAfter>make_view</recreateAfter>``; this simply makes sure
-that the SSA view will be regenerated after you import the table itself.
+The data item has ``<recreateAfter>make_view</recreateAfter>`` quite
+early on; this simply makes sure that the SSA view will be regenerated
+after you import the table itself.
 
 The rowfilter in the grammar is fairly complex here because we will
 completely hide the original; if you simply want to serve your upstream
@@ -2272,9 +2282,12 @@ and ``preview_mime``.  If you do that, use the following strings in
 * ``application/fits`` for spectra in FITS tables
 * ``application/x-votable+xml`` for spectra in VOTables
 
-Let's hope you're not struggling with anything else.
+Please do not put anything else into SSA tables, because you will most
+certainly overstrain most SSA clients; if you have a different
+upstream format and you want to make it available, turn it into SDM
+VOTables and use datalink to link to the original source.
 
-However, for most cases (including also ASCII spectra), here's what we
+Hence, for most cases (including also ASCII spectra), here's what we
 recommend as the product definition rowfilter (it's roughly what's in
 the template) to isolate your clients from the odd upstream formats::
 
@@ -2295,7 +2308,7 @@ further down.  Since the data returned is generated on the fly, you'll
 have to give an estimate of how large the VOTable will be (overriding
 DaCHS' default of the size of the source file).  Don't sweat this too
 much, just don't claim something is 1e9 bytes when you're really just
-returning 1e4.
+returning a few kilobytes.  The rowfilter expects the size in bytes.
 
 The bindings already prepare for making and serving previews, which is
 discussed in more detail in :dachsref:`Product Previews` in the DaCHS
@@ -2306,7 +2319,8 @@ clients that don't know Datalink, this *may* be a good idea.  In that
 scheme, you use a rowfilter to return a description of your native data
 *and* the processed SDM-compliant dataset as used here.  See
 :samplerd:`theossa/q` for an example how that would look like.  Our
-recommenation: don't bother, it's a misfeature confusing your users.
+recommendation: don't bother, it's a misfeature that will most likely
+just confuse your users.
 
 The rowmaker is fairly standard; we should perhaps mention the
 elements::
@@ -2321,8 +2335,8 @@ information to let you transform pixel to physical coordinates.  This
 currently uses a simplified DaCHS implemenation that only does a small
 part of WCS (but we may change that, keeping the interface stable).  The
 ``var``, anyway, binds the resulting object to ``specAx``.  You can use
-that later to find out the limits of the spectrum.  The way it's written
-here, you'll still have convert the value to metres manually.  But as
+that later to find out the limits of the spectrum.  The way it is written
+here, you will still have convert the value to metres manually.  But as
 said above, if you're publishing a homogeneous collection of spectra,
 both values are probably constant, and you'll want to remove both maps
 from the template.
@@ -2341,7 +2355,8 @@ basis of the service.  It starts with the declaration::
 
 This is lets DaCHS add a link to the datalink service to results
 generated from this (both via SSAP and TAP).  There's nothing you need to
-change here (unless you chuck datalink).
+change here (unless you chuck datalink); see `SSAP and Datalink` and
+`Datalink` for more detail.
 
 The main body of the table definition is :dachsref:`the //ssap#view`
 mixin.  This lets you write the SSA parameters as SQL literals (i.e.,
@@ -2400,19 +2415,20 @@ Use the :dachsref:`element ssapCore` for SSAP services.  You must
 feed in the condition descriptors for the SSAP parameters you want to
 support (some are mandatory).  The
 simplest way to do that is to ``FEED`` the
-:dachsdoc:`//ssap#hcd_condDescs` stream.  The ``hcd_condDescs`` STREAM
+:dachsdoc:`//ssap#hcd_condDescs` stream.  It
 includes condition descriptors for all mandatory and optional parameters
 that we can remotely see in use.
 
 Some of them may not be relevant to your service because your table
 never has values for them.  For example, theoretical spectra will
 typically not give information on positions.  The SSAP spec says that
-such a service should ignore POS rather than returning the empty set
-(which we consider an unfortunate recommendation that you probably want
-to ignore).
+such a service should ignore POS rather than returning the empty set.
+We consider that an unfortunate recommendation that you should
+ignore; if someone queries your theoretical service with a position, it
+is highly likely they do not want to see all your spectra.
 
 If you nevertheless think you must ignore 
-certain conditions, you can use the PRUNE
+certain conditions, you can use the ``PRUNE``
 active tag.  This looks like this::
 
   <ssapCore queriedTable="newdata">
@@ -2422,10 +2438,8 @@ active tag.  This looks like this::
     </FEED>
   </ssapCore>
 
-Do not do this just because you don't have position information – this
-would mean that you would dump your complete archive for (typical)
-queries with a position, and that is neither required by the spec (even
-if you might think so at first reading) nor desirable.
+Again, do not do this just because you don't have, say position
+information.
 
 Here is a table of parameter names and ids; you can always check them
 by inspecting the output of ``dachs adm dumpDF //ssap``:
@@ -2452,23 +2466,18 @@ To have custom parameters, simply add condDesc elements as usual::
 For SSAP cores, ``buildFrom`` will enable “PQL”-like query syntax such
 that users can post arguments like ``20000/30000,35000`` to ``t_eff``.
 This is in keeping with the general SSAP parameter style, while 
-more modern VO services use 2-arrays for intervals.
+more modern VO services use 2-arrays for intervals (“DALI style”).
 
-To expose SSAP cores, use :dachsref:`the ssap.xml renderer`.  Using the
+To expose SSAP cores, use :dachsref:`the ssap.xml renderer`.  
+
+Form-based Spectral services
+''''''''''''''''''''''''''''
+Using the
 form renderer on SSAP cores is not terribly useful, because the core
 returns XML directly, and there are far too many parameters no human
 will ever be interested in anyway.
 So, you'll typically define extra browser-based
-services.  The example RD shows a compact way to do that.
-
-
-Form-based Spectral services
-''''''''''''''''''''''''''''
-
-The SSAP interface is fairly ugly on both input and output if used with
-a form renderer.  Hence, we recommend to build an extra form-based
-service with just minimal metadata.  The template has something like
-this::
+services.  The example RD shows a compact way to do that::
 
   <service id="web" defaultRenderer="form">
     <meta name="shortName">\\schema Web</meta>
@@ -2500,16 +2509,21 @@ syntax and probably not very useful in interactive applications.
 
 The extra selector for object names with the names actually present in
 the database is a nice service as long as you only have a few hundred
-objects or so.
+objects or so.  Since the query over ``ssa_targname`` is executed at
+each load of the RD, it should be fast, which means that even for
+medium-sized tables, you should have an index on the object names in
+the ``raw_data`` table, probably like this::
+  
+  <index columns="ssa_targname"/>
 
 In the output table, we only give a few of the many dozen SSAP output
-fields; and we change the units of the spectral limits to Angstroms,
-which will look nicer for optical spectra.  Well, I suppose for
-educational reasons you ought to change this to nm (nanometer).
+fields, and we change the units of the spectral limits to Angstroms,
+which will look nicer for optical spectra.  For
+educational reasons you might want to change this to nm (nanometer).
 
 In the template, this form-based service is published as a capability of
 the SSA service.  This is done using the service attribute in the
-:dachsref:`Element publish`::
+:dachsref:`Element publish` *in the SSAP service element*::
 
     <publish render="form" sets="ivo_managed,local" service="web"/>
   
@@ -2519,9 +2533,9 @@ SSAP and Obscore
 
 The SSA metadata is not far from the Obscore metadata (cf. `publishing
 anything through obscore`_), and so an Obscore publication of SSAP data
-almost comes for free: Just mix in
+almost comes for free: Minimally, just mix in
 :dachsref:`//obscore#publishSSAPMIXC` and set ``calibLevel``.  The
-template does a bit more for one reason or another::
+template does a bit more::
 
     <mixin
       calibLevel="%likely one of 1 for uncalibrated or 2 for uncalibrated data%"
@@ -2544,12 +2558,15 @@ will lead to really slow obscore queries.
 SSAP and Datalink
 '''''''''''''''''
 
-Given that you'll usually get fairly bizarre inputs and will probably
+Given that you will usually get fairly bizarre inputs and will probably
 want to publish “repaired” spectra, using Datalink to provide both
 native and SDM (“Spectral Data Model”) compliant spectra without having
 to resort to SSAP's ill-thought-out FORMAT feature is a fairly natural
-thing to do.   In DaCHS, that's not too hard; essentially, you have to
-write an embedded (or custom) grammar to parse the spectra.
+thing to do.   That is why the SSAP+datalink template comes with almost
+all that you need to do that; what is left is mainly to
+write an embedded grammar to parse the spectra (if the parsing is
+complex, you might to go for an :dachsref:`Element customGrammar`, which
+lets you keep the source outside of the RD).
 Other than that, it's just a few formalities.
 
 So, you first define the table that will later hold your spectrum.
@@ -2577,8 +2594,9 @@ Note that the table does not have ``onDisk="True"``; these tables are
 only made for the brief moment it takes to serialise them into what the
 user receives.
 
-As usual, to fill tables, you want a data element.  In the zcosmos
-example, it looks like this::
+As usual, to fill tables, you want a data element.  The template just
+gives a few hints on how that might work.  As a working example,
+:samplerd:`zcosmos/q` parses from 1D FITS images like this::
 
   <data id="build_sdm_data" auto="False">
     <embeddedGrammar>
@@ -2609,9 +2627,26 @@ example, it looks like this::
     </make>
   </data>
 
-You'll notice that the rowmaker in the example is missing.  
-DaCHS will then fill in the
-default one, which essentially is ``idmaps="*"``.  Since you're writing
+The way this figures out the file from which to parse will work if you
+have the actual file path in the product table.  When you hide the
+upstream format as recommended, you have to follow some custom
+convention.  The SSAP+datalink template has::
+
+  sourcePath = urllib.decode(
+    self.sourceToken["ssa_pubDID"].split('?', 1)[-1])
+
+This works if you use the :dachsref:`macro standardPubDID` as in the
+template.
+
+But you can do arbitrary things here; see the :samplerd:`califa/q3` RD
+for an example for how you can decode the accref to database rows.
+A more complex scenario with ASCII data stored externally and cached is
+in :samplerd:`theossa/q`, a case where multiple orders of echelle
+spectra are being processed in :samplerd:`flashheros/q`.
+
+You will notice that the rowmaker in both the example and the template
+is missing.  DaCHS will then fill in the
+default one, which essentially is ``idmaps="*"``.  Since you are writing
 the grammar from scratch, just use the names of the columns defined in
 the instance table and be done with it.  The predefined column names are
 ``spectral`` and ``flux``, so make sure you always have keys for them in
@@ -2621,62 +2656,26 @@ Then there's a :dachsdoc:`Element parmaker`; this is stereotypical,
 just always use the ``procDef`` as here.  It copies values from the SSA
 input row to the params in the instance table.
 
-The thing you have to vary is the code in the embedded grammar.  It
-must, from its input (``self.sourceToken``, which here is the SSA row)
-figure out where the data file is.  In this case, we are playing it safe
-and look up the path in the
-products table (using``products.RAccref``).  More typically,
-just make a convention how to get from accref to the local file and use
-that.  An example for that is in :samplerd:`feros/q` (the complication
-there is that the datalink products actually have accrefs themselves,
-and for those the path in the product table is the datalink URL; that,
-of course, wouldn't bring the grammar any closer to finding the file).
-
-But you can do arbitrary things here; see the :samplerd:`califa/q3` RD
-for an example for how you can decode the accref to database rows.
-A more complex scenario with ASCII data stored externally and cached is
-in :samplerd:`theossa/q`, a case where multiple orders of echelle
-spectra are being processed in :samplerd:`flashheros/q`.
-
-Once you have that just build dictionaries with at least ``spectral``
-and ``flux`` keys; at least with the default rowmaker you need to make
-sure that the values match the units you define in the instance table.
-
-Finally, you would need to write the service.  But for SSAP and SODA, 
-what's in the template ought to just work.
-If you do have to change something here, please skim the endless
+Finally, you would need to write the service.  For SSAP and SODA, 
+what's in the template ought to just work.  Add :dachsref:`Element
+metaMaker`s to provide links to, e.g., your raw input files if you want.
+In that case, please skim the endless
 chapter on :dachsdoc:`Datalink and SODA` in the reference documentation
 to get an idea of how
 descriptor generators, data functions, and meta makers play together.
 
-In particular as long as only few clients evaluate datalink
-blocks in DAL responses, it may be a good idea to include a custom
+For reasons discussed in `Datalinks in Columns`_, 
+it *may* be a good idea to include a custom
 column with a datalink URL in the SSAP table.  The ssap+datalink
-template already has that in its source table::
-
-  <column name="datalink" type="text"
-    ucd="meta.ref.url;meta.data.datalink"
-    tablehead="Datalink"
-    description="A link to a datalink document for this spectrum."
-    verbLevel="15" displayHint="type=url"/>
-
-(we're cheating a bit with the UCD; it's actually not legal right now,
-but we're trying to make it legal one of these days).  
-To compute the datalink URL, there's again a helpful
-macro taking the datalink service id::
-
-  <map name="datalink">\dlMetaURI{sdl}</map>
-
-DaCHS for now delivers XSLT with datalink (or does the XSLT translation
-itself if it suspects its client is actually a web brower), so there's
-no harm (but potentially quite a bit of benefit) to feed this URL to tables
-displayed by web browsers, as we do here in the ``web`` service.
+template already has such a column in its source table and fills it in
+import's rowmaker.
 
 
 SSAP for Time Series
 ''''''''''''''''''''
 
-As long as there's no anointed successor to SSAP for time series, you
+As long as there's no anointed successor to SSAP explicitly 
+catering to time series, you
 can use SSAP itself to publish time series.  It's a bit of a hack, but
 clients like SPLAT do about the right thing with them.
 
@@ -3420,7 +3419,7 @@ you like into the ``idColumn``, just so long the table and the
 descriptor generator agree on its interpretation.
 
 
-Datalinks in columns
+Datalinks in Columns
 ''''''''''''''''''''
 
 The ``_associatedDatalinkService`` declaration discussed in the previous
