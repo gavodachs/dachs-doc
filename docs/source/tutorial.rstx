@@ -3552,10 +3552,167 @@ than in what is in `DaCHS Basics`_.  The idea is that you can skim the
 material and return later when a given problem turns up.
 
 
-Publication Options
--------------------
+Metadata Specials
+-----------------
 
-TODO: registry chapter, purx, eschrow
+The reference manual has a fairly extensive section on
+:dachsref:`defining metadata`; much of it is tutorial-style, so we 
+encourage you to skim that section at some point.
+
+This section picks some metadata-related points that merit discussion on
+a wider scope.
+
+
+Authors, or: Nested Sequential Meta
+'''''''''''''''''''''''''''''''''''
+
+If you read :dachsref:`RMI-Style Metadata` in the reference, you will
+notice that the real meta key for the authors of the data is
+``creator.name`` (please pay particular attention to what we are saying
+there about the format of that string).  However, in the templates and
+our examples, you will see we are using ``creator`` throughout.  The
+reason for this is that ``creator`` is complex metadata (there's name,
+logo, and possibly more), and setting multiple pieces of complex
+metadata according to the rules discussed in :dachsref:`Defining Metadata`
+has a nasty pitfall with these.
+
+We discuss this pitfall here.  Since it probably will not bite you
+outside of ``creator``, you might decide to skip this and just never
+write ``creator.name`` in your RDs.
+
+So, suppose you had more than one creator.  What you then want is
+a metadata structure like this::
+
+  +-- creator -- name (Arthur)
+  |
+  +-- creator -- name (Berta)
+
+However, if you write::
+
+  creator.name: Arthur
+  creator.name: Berta
+
+or, equivalently::
+
+  <meta name="creator.name">Arthur</meta>
+  <meta name="creator.name">Berta</meta>
+
+by rules of :dachsref:`Defining Metadata`, you will get this::
+
+  +-- creator -- name (Arthur)
+         |
+         +------ name (Berta)
+
+i.e., one creator with two names, which is both invalid and wrong.
+
+To avoid this, you have to insert a new creator node in between, and
+write::
+
+  creator.name: Arthur
+  creator:
+  creator.name: Berta
+
+This yields the upper (correct) meta structure.
+
+Since the creator.name case is so common, DaCHS provides a
+shortcut, which you should simply always use to define the creators: if
+you set ``creator`` directly, DaCHS will expect a string of the form::
+
+  <author1>, <inits1> {; <authorn>, <initsn>}
+
+(i.e., Last, I.-form separated by semicolons, as in "Foo, X.; Bar, Q.;
+et al") and split it up into the proper structure.  You can mix the two
+notations, for instance if you want to set a logo on the first creator::
+
+  <meta name="creator">
+    <meta name="name">Chandrasekhar, S.</meta>
+    <meta name="logo">http://sit.in/chandra.png</meta>
+  </meta>
+  <meta name="creator">Copernicus, N.; Gallilei, G.</meta>
+
+
+
+Licensing
+'''''''''
+
+Within the astronomical community, licensing issues have traditionally
+played a minor role – if you referenced properly, using data from other
+people was not only ok, it was encouraged.  We should keep it that way,
+even in the days of easy transmission and copying.  
+Still, formal statements
+about how your data may be used are required if, for instance, the data
+or parts thereof are re-used in Free software, or are aggregated and
+re-published.  Such statements are
+called licences, and to facilitate re-use you should choose and declare
+a licence.
+
+In DaCHS, you can to that manually using the following two meta items:
+
+* rights – this is free text transmitted to the registry that should
+  state the conditions under which the data can be used, shared, etc.
+  This can include requests for acknowledgement, but don't be overly
+  verbose here; if, for instance, you'd like to acknowledge all your
+  contributors, rather put that into a ``_longdoc`` meta and reference 
+  that from rights.
+* rightsURI – a URI of a common licence; this is so machines can figure
+  out conditions if necessary.  For now, only include it if your licence
+  actually gives such a URI.
+
+In practice, you should stick to a well-known licence and probably don't
+bother with these two items by hand.  DaCHS comes with
+support for CC-0 (essentially, no restrictions; that's not precisely a
+licence, but it stands in well for one), CC-BY (state where
+you got the data from if re-publishing), and CC-BY-SA (as for CC-BY, but
+also require anyone who re-uses the data to share what they got from you
+at least as liberally as you shared it.  Let us know if you want other
+licences supported, and we'll do something about it.  
+
+To apply them, replay one of the streams
+
+* :dachsref:`//procs#license-cc0`
+* :dachsref:`//procs#license-cc-by`
+* :dachsref:`//procs#license-cc-by-sa`
+
+into the RD and give a ``what`` attribute saying what is licenced
+(usually, the data).  For instance::
+
+  <STREAM source="//procs#license-cc-by" what="ARIHIP"/>
+
+If you get to choose the licence but are not sure which one to pick: Our
+advice is to go for CC-0.  This is although we do believe in the GPL for
+software, which has strong traits of CC-BY-SA in that it prevents others
+from making your code proprietary.  But data is not code.  While it is
+probably unreasonable to combine more than a dozen pieces of source code
+from different parties into a single reasonable piece of software
+(excepting distributions, but these have special rules, and modern web
+browsers, which are not reasonable), it is totally reasonable to include
+data from thousands of sources.  Even something as permissive as CC-BY
+then becomes a liability – if you published the result of such an
+effort, in your ``rights`` meta you would have to reproduce a thousand
+attributions, and that is absolutely not worth it.
+
+In case your data providers are nervous about putting their work into,
+in effect, the public domain: Licensing has **nothing**
+whatsoever to do with requiring people to properly cite and/or
+acknowledge.  That is part of good scientific practice and is unrelated
+to legal issues.  Licensing is necessary for hassle-free re-use of the
+data in situations where it needs to be re-distributed; the classic
+example would be a star catalogue within a planetarium software.
+
+Sometimes you want an additional acknowleding clause.  In that case,
+just add another rights meta item::
+
+  <meta name="rights" format="rst">If you use this data, please
+    acknowledge: "This work made use of the HDAP which was produced at
+    Landessternwarte Heidelberg-Königstuhl under grant No. 00.071.2005
+    of the Klaus-Tschira-Foundation."
+    
+    The data in this service was calibrated using Astrometry.net,
+    :bibcode:`2010AJ....139.1782L`.
+  
+  </meta>
+  <FEED source="//procs#license-cc0" what="the HDAP scans"/>
+
 
 
 The Products Table
@@ -4552,168 +4709,6 @@ write the equivalent vizier-like expressions)::
     </condDesc>
 
 
-Metadata Specials
------------------
-
-The reference manual has a fairly extensive section on
-:dachsref:`defining metadata`; much of it is tutorial-style, so we 
-encourage you to skim that section at some point.
-
-This section picks some metadata-related points that merit discussion on
-a wider scope.
-
-
-Authors, or: Nested Sequential Meta
-'''''''''''''''''''''''''''''''''''
-
-If you read :dachsref:`RMI-Style Metadata` in the reference, you will
-notice that the real meta key for the authors of the data is
-``creator.name`` (please pay particular attention to what we are saying
-there about the format of that string).  However, in the templates and
-our examples, you will see we are using ``creator`` throughout.  The
-reason for this is that ``creator`` is complex metadata (there's name,
-logo, and possibly more), and setting multiple pieces of complex
-metadata according to the rules discussed in :dachsref:`Defining Metadata`
-has a nasty pitfall with these.
-
-We discuss this pitfall here.  Since it probably will not bite you
-outside of ``creator``, you might decide to skip this and just never
-write ``creator.name`` in your RDs.
-
-So, suppose you had more than one creator.  What you then want is
-a metadata structure like this::
-
-  +-- creator -- name (Arthur)
-  |
-  +-- creator -- name (Berta)
-
-However, if you write::
-
-  creator.name: Arthur
-  creator.name: Berta
-
-or, equivalently::
-
-  <meta name="creator.name">Arthur</meta>
-  <meta name="creator.name">Berta</meta>
-
-by rules of :dachsref:`Defining Metadata`, you will get this::
-
-  +-- creator -- name (Arthur)
-         |
-         +------ name (Berta)
-
-i.e., one creator with two names, which is both invalid and wrong.
-
-To avoid this, you have to insert a new creator node in between, and
-write::
-
-  creator.name: Arthur
-  creator:
-  creator.name: Berta
-
-This yields the upper (correct) meta structure.
-
-Since the creator.name case is so common, DaCHS provides a
-shortcut, which you should simply always use to define the creators: if
-you set ``creator`` directly, DaCHS will expect a string of the form::
-
-  <author1>, <inits1> {; <authorn>, <initsn>}
-
-(i.e., Last, I.-form separated by semicolons, as in "Foo, X.; Bar, Q.;
-et al") and split it up into the proper structure.  You can mix the two
-notations, for instance if you want to set a logo on the first creator::
-
-  <meta name="creator">
-    <meta name="name">Chandrasekhar, S.</meta>
-    <meta name="logo">http://sit.in/chandra.png</meta>
-  </meta>
-  <meta name="creator">Copernicus, N.; Gallilei, G.</meta>
-
-
-
-Licensing
-'''''''''
-
-Within the astronomical community, licensing issues have traditionally
-played a minor role – if you referenced properly, using data from other
-people was not only ok, it was encouraged.  We should keep it that way,
-even in the days of easy transmission and copying.  
-Still, formal statements
-about how your data may be used are required if, for instance, the data
-or parts thereof are re-used in Free software, or are aggregated and
-re-published.  Such statements are
-called licences, and to facilitate re-use you should choose and declare
-a licence.
-
-In DaCHS, you can to that manually using the following two meta items:
-
-* rights – this is free text transmitted to the registry that should
-  state the conditions under which the data can be used, shared, etc.
-  This can include requests for acknowledgement, but don't be overly
-  verbose here; if, for instance, you'd like to acknowledge all your
-  contributors, rather put that into a ``_longdoc`` meta and reference 
-  that from rights.
-* rightsURI – a URI of a common licence; this is so machines can figure
-  out conditions if necessary.  For now, only include it if your licence
-  actually gives such a URI.
-
-In practice, you should stick to a well-known licence and probably don't
-bother with these two items by hand.  DaCHS comes with
-support for CC-0 (essentially, no restrictions; that's not precisely a
-licence, but it stands in well for one), CC-BY (state where
-you got the data from if re-publishing), and CC-BY-SA (as for CC-BY, but
-also require anyone who re-uses the data to share what they got from you
-at least as liberally as you shared it.  Let us know if you want other
-licences supported, and we'll do something about it.  
-
-To apply them, replay one of the streams
-
-* :dachsref:`//procs#license-cc0`
-* :dachsref:`//procs#license-cc-by`
-* :dachsref:`//procs#license-cc-by-sa`
-
-into the RD and give a ``what`` attribute saying what is licenced
-(usually, the data).  For instance::
-
-  <STREAM source="//procs#license-cc-by" what="ARIHIP"/>
-
-If you get to choose the licence but are not sure which one to pick: Our
-advice is to go for CC-0.  This is although we do believe in the GPL for
-software, which has strong traits of CC-BY-SA in that it prevents others
-from making your code proprietary.  But data is not code.  While it is
-probably unreasonable to combine more than a dozen pieces of source code
-from different parties into a single reasonable piece of software
-(excepting distributions, but these have special rules, and modern web
-browsers, which are not reasonable), it is totally reasonable to include
-data from thousands of sources.  Even something as permissive as CC-BY
-then becomes a liability – if you published the result of such an
-effort, in your ``rights`` meta you would have to reproduce a thousand
-attributions, and that is absolutely not worth it.
-
-In case your data providers are nervous about putting their work into,
-in effect, the public domain: Licensing has **nothing**
-whatsoever to do with requiring people to properly cite and/or
-acknowledge.  That is part of good scientific practice and is unrelated
-to legal issues.  Licensing is necessary for hassle-free re-use of the
-data in situations where it needs to be re-distributed; the classic
-example would be a star catalogue within a planetarium software.
-
-Sometimes you want an additional acknowleding clause.  In that case,
-just add another rights meta item::
-
-  <meta name="rights" format="rst">If you use this data, please
-    acknowledge: "This work made use of the HDAP which was produced at
-    Landessternwarte Heidelberg-Königstuhl under grant No. 00.071.2005
-    of the Klaus-Tschira-Foundation."
-    
-    The data in this service was calibrated using Astrometry.net,
-    :bibcode:`2010AJ....139.1782L`.
-  
-  </meta>
-  <FEED source="//procs#license-cc0" what="the HDAP scans"/>
-
-
 
 Active Tags
 -----------
@@ -5162,6 +5157,12 @@ on ``recreateAfter`` happens in a separate transaction.
 
 The Registry Interface
 ======================
+
+Publication Options
+-------------------
+
+TODO: registry chapter, purx, eschrow
+
 
 Conceptually, the VO's Registry is a set of resource records (i.e.,
 descriptions of services, data, or other entities) to let users locate
