@@ -2006,7 +2006,7 @@ SIAP and Datalink
 '''''''''''''''''
 
 If you have larger  images or cubes and serve them SIAP, consider
-offering datalinks instead or perhaps even have `datalinks as accrefs`_.
+offering datalinks instead or perhaps even have `Datalinks as Products`_.
 The latter case is particularly attractive if your images are so large
 that people just clicking on some row in Aladin might not expect a
 download of that size (in 2020, I'd set that limit at, perhaps, 100 MB).
@@ -3755,6 +3755,168 @@ here, for instance::
   </rowfilter>
 
 
+More on Grammars
+----------------
+
+In addition to the ``columnGrammar`` mentioned above, there are several
+other grammars you should know about; the full list of `grammars
+available`_ is found in the reference documentation.
+
+reGrammars
+''''''''''
+
+The reGrammar_ is another grammar suitable for parsing text files.  The
+idea here is that you give two regular expressions to separate the file
+into records and the records into fields, and that you simply enumerate
+the names used in the mapping.
+
+In the simplest case – whitespace separated columns in lines containing no
+whitespace, with one comment line at the top –, such a grammar could be
+specified like this::
+
+  <reGrammar topIgnoredLines="1">
+    <names>raMin, raMax, decMin, decMax, EVI, AV, AI</names>
+  </reGrammar>
+
+reGrammars have a few tricks built-in to make them a bit more versatile.
+The following lets you simulate properly parsing some bzipped database
+dump by making some strong assumptions::
+
+  <reGrammar topIgnoredLines="15" preFilter="bzcat">
+     <fieldSep>"?,(\s*")?</fieldSep>
+     <recordCleaner>\((.*)\)</recordCleaner>
+     <names>primflag, measure_no, paper_id, source_no, source_name</names>
+  </reGrammar>
+
+If things get noticeably more complex than this, an reGrammar may no
+longer be a terribly good solution.  Indeed, we would welcome a
+contributed grammar that would do a somewhat more robust parsing of
+common SQL text dumps.
+
+
+fitsProdGrammar
+'''''''''''''''
+
+This grammar exposes FITS headers as rawdicts.  Since both data
+structures represent essentially the same data structure – sequences of
+key-value pairs, you can get away with just::
+
+  <fitsProdGrammar/>
+
+– and that would cover a lot of use cases that read FITS files.
+
+DaCHS uses pyfits to parse the headers and thus supports all the major
+conventions (CONTINUE cards are transparent, as are HIERARCH-style long
+keywords).  Neither HISTORY nor COMMENT cards are present in the
+rawdicts.
+
+There are some snags, anyway.  For example, DaCHS by default reads the
+header bytes using specialized code that is somewhat more robust and has
+more desirable behaviour with odd files than the pyfits one (you can
+deselect it by setting ``qnd="False"`` if necessary).  This gives up
+collecting header blocks if it has not found the end card after
+``maxHeaderBlocks`` blocks.  The default ``maxHeaderBlocks`` is chosen
+to be 40, which is reasonable for reasonable FITSes.  However, we have
+seen in the wild massive abuse of comment cards to hold entire tables.
+If you're unlucky enough to have to handle such files, you may have to
+raise this.
+
+It is fairly common for FITS keywords to contain a dash (``-``).  Since
+rawdict keys are supposed to be python identifier (e.g., for
+@-referencing), fitsProdGrammars translate these to underscores.  If
+further cleanup is necessary, there is the mapKeys element that lets you
+write things like::
+
+  <mapKeys>
+    <map key="properName">PROP NAM</map>
+  </mapKeys>
+
+The element should only be used to fix crazy names.  Actual mapping of
+names should be performed in rowmakers.
+
+FITS files are somewhat more complex, and fitsProdGrammars expose some
+of this.  If you need to parse from a header other than the primary one,
+give the 0-base extension number in hdu.  For the full power of pyfits
+(but also all incompatibilities that are introduced by using that power),
+there is the ``hdusField`` attribute.  This gives the key under which
+the pyfits HDU is visible in the rawdict.  Be warned that using this
+might make your grammar *dramatically* slower, in particular when it
+operates on gzipped FITS files (which are, incientally, supported if
+their file names end in “.gz”).
+
+
+csvGrammar
+''''''''''
+
+csvGrammar parses from files containing comma separated values.  It
+actually is a thin wrapper around python's csv module, and thus it is
+fairly forgiving about the idiosyncrasies of CSV (e.g., quotes around
+all, some, or no values).  You can configure the delimiter character via
+the same-named attribute (it defaults to, expectably, comma).  It is
+currently *required*, though, that the first row gives the column
+headings.  If you need the capability to name fields as in, say, the
+reGrammar, let us know – it's just a few lines of code.
+
+
+Source Fields
+'''''''''''''
+
+All grammars can have a ``sourceFields`` element.  It contains a standard
+procedure definition (i.e., you could predefine those and bind
+parameters), but usually you will just fill in the code.
+
+This code is called once for each source processed, and receives the
+sourceToken as argument.  It must return a dictionary, the key/value
+pairs of which will be added to all rows returned by the row iterator.
+
+The purpose of sourceFields is to precompute values that depend on the
+source (“file”) and are constant for all rows within it.  An example for
+where you need this is when you want to create backlinks to the file a
+piece of data came from::
+
+  <xygrammar>
+    <sourceFields>
+      <code>
+        srcKey = utils.getRelativePath(sourceToken,
+            base.getConfig("inputsDir"))
+        return locals()
+      </code>
+    </sourceFields>
+  </xygrammar>
+
+You can then retrieve the path to the source file via srcKey key in
+rawdicts (and then, using render functions and static renderers, turn
+this into links).
+
+In addition to the sourceToken, you also have access to the data that
+will be fed from the grammar.  This can be used to, e.g., retrieve the
+resource directory (``data.dd.rd.resdir``) or data descriptor properties
+(``data.dd.getProperty("whatever")``).
+
+Sometimes you want to do database queries from within sourceFields.
+This is tricky when you access the table being written or otherwise
+being accessed.  This is because sourceTokens run in the midst of a
+transaction updating the table.  So, something like::
+
+  <code>
+    <!-- will deadlock, don't do it like this -->
+    base.SimpleQuerier().query(...)
+  </code>
+
+will wait for the transaction to finish.  But the transaction is waiting
+for data that will only come when the query finishes – this is a
+deadlock, and dachs imp will just sit there and wait (see also `Deadlocks
+<commonproblems.html#deadlocks>`_).
+
+To get around this, you need to query using the data's connection.  So,
+instead write::
+
+  <code>
+    base.SimpleQuerier(connection=data.connection).query(...)
+  </code>
+
+
+
 Debugging
 ---------
 
@@ -3838,7 +4000,7 @@ Since only applys contain larger amounts of code, debugging will mostly
 focus on them.  If you want to look at one of your own applys, just set
 breakpoints as discussed above (``import pdb; pdb.set_trace()``).  If
 you'd just like to have a look at what ``vars`` and ``results`` look
-like at some point, just add a ``<apply procDef="//procs#debug"/>.  This
+like at some point, just add a ``<apply procDef="//procs#debug"/>``.  This
 will, again, drop you into a debugger.
 
 
@@ -4135,10 +4297,10 @@ if you consider that rawdicts are mappings, you will at least see the
 logic in it::
 
   arihip > dachs imp -M 12 q
-Making data arihip/q#import
-Starting /home/msdemlei/gavo/inputs/arihip/data/data.txt.gz
-Done /home/msdemlei/gavo/inputs/arihip/data/data.txt.gz, read 1
-*** Error:   Row
+  Making data arihip/q#import
+  Starting /home/msdemlei/gavo/inputs/arihip/data/data.txt.gz
+  Done /home/msdemlei/gavo/inputs/arihip/data/data.txt.gz, read 1
+  *** Error:   Row
   alphaHMS -> '0  0  0.216002'
   [...]
   t_ra_mod -> '91.45'
@@ -4217,167 +4379,6 @@ nicest way to debug stuff like this is to write::
 
 and then use the python debugger to figure things out.
 
-
-
-More on Grammars
-----------------
-
-In addition to the ``columnGrammar`` mentioned above, there are several
-other grammars you should know about; the full list of `grammars
-available`_ is found in the reference documentation.
-
-reGrammars
-''''''''''
-
-The reGrammar_ is another grammar suitable for parsing text files.  The
-idea here is that you give two regular expressions to separate the file
-into records and the records into fields, and that you simply enumerate
-the names used in the mapping.
-
-In the simplest case – whitespace separated columns in lines containing no
-whitespace, with one comment line at the top –, such a grammar could be
-specified like this::
-
-  <reGrammar topIgnoredLines="1">
-    <names>raMin, raMax, decMin, decMax, EVI, AV, AI</names>
-  </reGrammar>
-
-reGrammars have a few tricks built-in to make them a bit more versatile.
-The following lets you simulate properly parsing some bzipped database
-dump by making some strong assumptions::
-
-  <reGrammar topIgnoredLines="15" preFilter="bzcat">
-     <fieldSep>"?,(\s*")?</fieldSep>
-     <recordCleaner>\((.*)\)</recordCleaner>
-     <names>primflag, measure_no, paper_id, source_no, source_name</names>
-  </reGrammar>
-
-If things get noticeably more complex than this, an reGrammar may no
-longer be a terribly good solution.  Indeed, we would welcome a
-contributed grammar that would do a somewhat more robust parsing of
-common SQL text dumps.
-
-
-fitsProdGrammar
-'''''''''''''''
-
-This grammar exposes FITS headers as rawdicts.  Since both data
-structures represent essentially the same data structure – sequences of
-key-value pairs, you can get away with just::
-
-  <fitsProdGrammar/>
-
-– and that would cover a lot of use cases that read FITS files.
-
-DaCHS uses pyfits to parse the headers and thus supports all the major
-conventions (CONTINUE cards are transparent, as are HIERARCH-style long
-keywords).  Neither HISTORY nor COMMENT cards are present in the
-rawdicts.
-
-There are some snags, anyway.  For example, DaCHS by default reads the
-header bytes using specialized code that is somewhat more robust and has
-more desirable behaviour with odd files than the pyfits one (you can
-deselect it by setting ``qnd="False"`` if necessary).  This gives up
-collecting header blocks if it has not found the end card after
-``maxHeaderBlocks`` blocks.  The default ``maxHeaderBlocks`` is chosen
-to be 40, which is reasonable for reasonable FITSes.  However, we have
-seen in the wild massive abuse of comment cards to hold entire tables.
-If you're unlucky enough to have to handle such files, you may have to
-raise this.
-
-It is fairly common for FITS keywords to contain a dash (``-``).  Since
-rawdict keys are supposed to be python identifier (e.g., for
-@-referencing), fitsProdGrammars translate these to underscores.  If
-further cleanup is necessary, there is the mapKeys element that lets you
-write things like::
-
-  <mapKeys>
-    <map key="properName">PROP NAM</map>
-  </mapKeys>
-
-The element should only be used to fix crazy names.  Actual mapping of
-names should be performed in rowmakers.
-
-FITS files are somewhat more complex, and fitsProdGrammars expose some
-of this.  If you need to parse from a header other than the primary one,
-give the 0-base extension number in hdu.  For the full power of pyfits
-(but also all incompatibilities that are introduced by using that power),
-there is the ``hdusField`` attribute.  This gives the key under which
-the pyfits HDU is visible in the rawdict.  Be warned that using this
-might make your grammar *dramatically* slower, in particular when it
-operates on gzipped FITS files (which are, incientally, supported if
-their file names end in “.gz”).
-
-
-csvGrammar
-''''''''''
-
-csvGrammar parses from files containing comma separated values.  It
-actually is a thin wrapper around python's csv module, and thus it is
-fairly forgiving about the idiosyncrasies of CSV (e.g., quotes around
-all, some, or no values).  You can configure the delimiter character via
-the same-named attribute (it defaults to, expectably, comma).  It is
-currently *required*, though, that the first row gives the column
-headings.  If you need the capability to name fields as in, say, the
-reGrammar, let us know – it's just a few lines of code.
-
-
-Source Fields
-'''''''''''''
-
-All grammars can have a ``sourceFields`` element.  It contains a standard
-procedure definition (i.e., you could predefine those and bind
-parameters), but usually you will just fill in the code.
-
-This code is called once for each source processed, and receives the
-sourceToken as argument.  It must return a dictionary, the key/value
-pairs of which will be added to all rows returned by the row iterator.
-
-The purpose of sourceFields is to precompute values that depend on the
-source (“file”) and are constant for all rows within it.  An example for
-where you need this is when you want to create backlinks to the file a
-piece of data came from::
-
-  <xygrammar>
-    <sourceFields>
-      <code>
-        srcKey = utils.getRelativePath(sourceToken,
-            base.getConfig("inputsDir"))
-        return locals()
-      </code>
-    </sourceFields>
-  </xygrammar>
-
-You can then retrieve the path to the source file via srcKey key in
-rawdicts (and then, using render functions and static renderers, turn
-this into links).
-
-In addition to the sourceToken, you also have access to the data that
-will be fed from the grammar.  This can be used to, e.g., retrieve the
-resource directory (``data.dd.rd.resdir``) or data descriptor properties
-(``data.dd.getProperty("whatever")``).
-
-Sometimes you want to do database queries from within sourceFields.
-This is tricky when you access the table being written or otherwise
-being accessed.  This is because sourceTokens run in the midst of a
-transaction updating the table.  So, something like::
-
-  <code>
-    <!-- will deadlock, don't do it like this -->
-    base.SimpleQuerier().query(...)
-  </code>
-
-will wait for the transaction to finish.  But the transaction is waiting
-for data that will only come when the query finishes – this is a
-deadlock, and dachs imp will just sit there and wait (see also `Deadlocks
-<commonproblems.html#deadlocks>`_).
-
-To get around this, you need to query using the data's connection.  So,
-instead write::
-
-  <code>
-    base.SimpleQuerier(connection=data.connection).query(...)
-  </code>
 
 
 
