@@ -4002,18 +4002,43 @@ operates on gzipped FITS files (which are, incidentally, transparently
 supported if their file names end in “.gz”).
 
 
-csvGrammar
-''''''''''
+csvGrammars
+'''''''''''
 
 csvGrammar parses from files containing comma separated values.  It
 actually is a thin wrapper around python's csv module, and thus it is
 fairly forgiving about the idiosyncrasies of CSV (e.g., quotes around
 all, some, or no values).  You can configure the delimiter character via
-the same-named attribute (it defaults to, expectably, comma).  It is
-currently *required*, though, that the first row gives the column
-headings.  If you need the capability to name fields as in, say, the
-reGrammar, let us know – it's just a few lines of code.
+the same-named attribute (it defaults to, expectably, comma).
 
+CsvGrammars by default expect input files to follow the convention that
+the first row contains the column names, and it will use whatever is
+there as rawdict keys.  If these names are not usable as Python
+identifiers, use :dachsref:`Element mapKeys` to map them to other keys
+so you can have nice @-references in your row maker.
+
+If the first CSV line does not contain the names, you must use the
+``names`` child to give these names, like this::
+
+  <csvGrammar names="ra, dec, mag"/>
+
+The csvGrammar will not complain if there are more fields in the file
+than you give names for; any extra values are reachable through
+``@NOTASSIGNED`` (which should probably only be used to catch exceptional
+circumstances).
+
+If your input files follow the (silly) convention of having the colum
+names in a comment in the first line, like this::
+
+  # ra, dec, mag
+  13,2, 14.45, -0.33
+
+you have to give ``names`` as above and make the csvGrammar ignore the
+first line with ``topIgnoredLines="1"``.
+
+There is currently no way to ignore comments in any other way; if you
+need that, you should probably retrofit that functionality in Python's
+csv module.
 
 
 Debugging
