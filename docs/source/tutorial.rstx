@@ -3917,6 +3917,28 @@ dump by making some strong assumptions::
      <names>primflag, measure_no, paper_id, source_no, source_name</names>
   </reGrammar>
 
+The ``recordCleaner`` used here is an RE matched against every record
+and that contains exactly one capturing group.  If it matches, the group
+will be used to apply the separators; in this case, it simply discards
+the parentheses you have in your typical database dump.  Records not
+matching at all are discarded (which, admittedly, makes it easy to miss
+errors in ways that will lose data silently).
+
+An alternative, and somewhat safer, way to get rid of junk in the input
+is to use the ``commentPat`` attribute.  That is an RE that is removed
+from record before trying to parse it.  The reference documentation
+mentions the classic case: ``(?m)^#.*$`` will throw away lines starting
+with a hash.
+
+Another gung-ho feature of reGrammars is the ``lax`` attribute.
+Normally, reGrammars will fail on records that do not have exactly one
+field per name you put in.  Some ugly input may skip “optional” fields
+at the end – with ``lax="True"`, DaCHS will map those to empty strings.
+
+Finally, sometimes files have junk at the end.  This is when ``stopPat``
+comes in handy: When a record matches that RE, the entire remainder of
+the input is ignored.
+
 
 fitsProdGrammar
 '''''''''''''''
