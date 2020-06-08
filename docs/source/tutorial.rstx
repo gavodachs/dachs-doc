@@ -3773,15 +3773,6 @@ descriptions in the reference documentation, and it covers a few
 additional aspects of what can go on in any grammar.
 
 
-.. sidebar:: Grammars Defined in Code
-
-  While DaCHS has :dachsref:`Element customGrammar` and
-  :dachsref:`Element embeddedGrammar` that let you just slap in pieces
-  of Python yielding dictionaries as grammars, we highly recommend to
-  first think hard if one of DaCHS' built-in grammars doesn't do the
-  job.  Long experience has shown that custom code is much more likely
-  to break in the evolution of your system, Python, and DaCHS itself.
-
 
 Source Fields
 '''''''''''''
@@ -4039,6 +4030,73 @@ first line with ``topIgnoredLines="1"``.
 There is currently no way to ignore comments in any other way; if you
 need that, you should probably retrofit that functionality in Python's
 csv module.
+
+
+Python-defined grammars
+'''''''''''''''''''''''
+
+Sometimes inputs are so nasty that DaCHS' grammars really can't be used
+to parse them.  For these situations, DaCHS has :dachsref:`Element
+customGrammar` and :dachsref:`Element embeddedGrammar` that let you just
+slap in pieces of Python yielding dictionaries as grammars. 
+
+First off: before you go there, think hard if one of DaCHS' built-in
+grammars really can't do the job (including :dachsref:`binaryGrammar`).
+Long experience has shown that custom code is much more likely to break
+in the evolution of your system, Python, and DaCHS itself.
+
+Custom grammars come in modules of their own, which is a good thing
+because you can test them outside of DaCHS.  But they break the
+principle of “all you need is in the RD”, so don't use them unless you
+must.  An introduction to them is in :dachsref:`Writing Custom Grammars`
+in the reference documentation.
+
+Embedded grammars are somewhat more light-weight.  They in particular
+come in handy when you need to generate a few rows, like this::
+
+  <embeddedGrammar>
+    <iterator>
+      <setup>
+        <par name="testData">"a"*4</par>
+      </setup>
+      <code>
+        for i in self.sourceToken:
+          yield {'index': i, 'data': testData}
+      </code>
+    </iterator>
+  </embeddedGrammar>
+
+Essentially, they are usual DaCHS procedures that ``yield`` rawdicts in
+some random way.  They see the source to be parsed in
+``self.sourceToken``.  While this usually is a file name (that you
+woujld then pass to ``open``, you can also use the string for something
+else, as is done here.  Combined with::
+
+  <sources><item>ab</item><item>cd5</item></sources>
+
+the grammar above would produce the rawdicts::
+
+  {'index': 'a', 'data': 'aaaa'}
+  {'index': 'b', 'data': 'aaaa'}
+  {'index': 'c', 'data': 'aaaa'}
+  {'index': 'd', 'data': 'aaaa'}
+  {'index': '5', 'data': 'aaaa'}
+
+Embedded grammars are intended to be used for small and simple
+tasks, and if anything goes wrong, the error messages produced by
+default are not very useful.  So, when things get a bit more
+complicated, program defensively and keep a note of where in the source
+you are, somehwhat like this::
+
+  with open(self.sourceToken) as f:
+    for line_number, line in f:
+      try:
+      except Exception as ex:
+        raise utils.SourceParseError(
+          "Bad line: {}".format(ex),
+          offending=line,
+          location=str(line_number+1),
+          source=self.sourceToken)
 
 
 Debugging
