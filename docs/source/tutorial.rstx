@@ -18,7 +18,9 @@ GAVO DaCHS Tutorial
 
 .. plan for the rewrite:
 
-  TODO: Database queries from within RDs.
+  TODO: Database queries from within RDs
+  TODO: customGrammar
+  TODO: mention directGrammars
 
   Publishing data
 
@@ -3867,11 +3869,32 @@ instead write::
   </code>
 
 
+preFilters
+''''''''''
+
+DaCHS Grammars parsing from files have a ``preFilter`` attribute.
+This can contain a pipeline that has to read from stdin and produce its
+output on stdout.
+
+The typical use case is to decompress input files without bothering
+DaCHS, e.g., using ``preFilter="zcat`` (for which there's the historical
+``gunzip="True"`` alias – don't use that any more),
+``preFilter="bzcat"``, or ``preFilter="xzcat"``.
+
+However, if you have some weird format for which there is a dumping tool
+that produces something that can be turned into CSV from a stream coming
+in from stdin something like the following provides an elegant way to
+get the data in with minimal code::
+
+  <csvGrammar preFilter="dump-weird-format-to-stuff | stuff-to-csv"/>
+
 
 reGrammars
 ''''''''''
 
-The reGrammar_ is another grammar suitable for parsing text files.  The
+The :dachsref:`Element reGrammar` is the swiss army knife of
+text-parsing grammars when neither :dachsref:`element columnGrammar` nor
+`csvGrammars`_ will do.  The
 idea here is that you give two regular expressions to separate the file
 into records and the records into fields, and that you simply enumerate
 the names used in the mapping.
@@ -3893,11 +3916,6 @@ dump by making some strong assumptions::
      <recordCleaner>\((.*)\)</recordCleaner>
      <names>primflag, measure_no, paper_id, source_no, source_name</names>
   </reGrammar>
-
-If things get noticeably more complex than this, an reGrammar may no
-longer be a terribly good solution.  Indeed, we would welcome a
-contributed grammar that would do a somewhat more robust parsing of
-common SQL text dumps.
 
 
 fitsProdGrammar
