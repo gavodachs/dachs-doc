@@ -18,7 +18,7 @@ GAVO DaCHS Tutorial
 
 .. plan for the rewrite:
 
-  TODO: SODA in SIAP
+  TODO: Database queries from within RDs.
 
   Publishing data
 
@@ -3758,9 +3758,115 @@ here, for instance::
 More on Grammars
 ----------------
 
-In addition to the ``columnGrammar`` mentioned above, there are several
-other grammars you should know about; the full list of `grammars
-available`_ is found in the reference documentation.
+As discussed in `Parsing Input Data`_, grammars are what turn just about
+any kind of input into neat sequences of Python dictionaries that are
+then processed (and possibly multiplied) in row filters; whatever comes
+out of this is then handed over to row makers and turned into database
+rows.
+
+There are many :dachsref:`grammars available` in DaCHS.  This section
+discusses some of them in a more leisurely fashion than the terse
+descriptions in the reference documentation, and it covers a few
+additional aspects of what can go on in any grammar.
+
+
+.. sidebar:: Grammars Defined in Code
+
+  While DaCHS has :dachsref:`Element customGrammar` and
+  :dachsref:`Element embeddedGrammar` that let you just slap in pieces
+  of Python yielding dictionaries as grammars, we highly recommend to
+  first think hard if one of DaCHS' built-in grammars doesn't do the
+  job.  Long experience has shown that custom code is much more likely
+  to break in the evolution of your system, Python, and DaCHS itself.
+
+
+Source Fields
+'''''''''''''
+
+It is a fairly common situation that you want to make available certain
+properties of a source file to the row makers; the most common case is
+that the data providers have encoded information like object names,
+times, or whatever, in file names, or that there is some auxiliary
+information in a different files.
+
+In these situations, it is often efficient to use :dachsref:`Element
+sourceFields`.  It contains a standard
+procedure definition (i.e., you could predefine those and bind
+parameters), but usually you will just fill in the code.
+
+This code is called once for each source processed, and receives the
+``sourceToken`` as argument.  It must return a dictionary, the key/value
+pairs of which will be added to all rows returned by the row iterator.
+
+In addition to the ``sourceToken``, you also have access to the data that
+will be fed from the grammar.  This can be used to, e.g., retrieve the
+resource directory (``data.dd.rd.resdir``) or data descriptor properties
+(``data.dd.getProperty("whatever")``).
+
+As a trivial example, here is how to avoid parsing the sourceToken in
+order to pull out a field identifier in each row::
+
+  <!-- this sits in a grammar element -->
+	<sourceFields>
+		<code>
+			return {"field":
+				int(sourceToken.split("bul_sc")[-1].split(".pm.gz")[0])}
+		</code>
+	</sourceFields>
+
+A more complex example, taken from :samplerd:`lightmeter/q`, looks up
+some calibration values from a different table based on an identifier
+again pulled from the source file – clearly, you wouldn't want to do
+one query per row when there's thousands of rows coming from one
+source::
+
+	<sourceFields>
+		<code>
+			stationId = os.path.split(os.path.split(sourceToken)[0])[1]
+			if re.match("[0-9]+$", stationId):
+				raise base.SkipThis("Archive directory")
+			try:
+				with base.getTableConn() as conn:
+					stationPars = list(conn.query(
+						"SELECT calibA, calibB, calibC, calibD, timeCorrection"
+						" FROM lightmeter.stations"
+						" WHERE stationId=%(stationId)s", locals()))[0]
+				calibA, calibB, calibC, calibD, timeCorrection = stationPars
+			except IndexError:
+				raise base.ValidationError("No station data for %s.  Import"
+					" stationsdata first."
+					%stationId, "stationId", stationId)
+			if calibA is None:
+				raise base.SkipThis("No calibration for %s."%stationId)
+			srcKey = "/".join(utils.getRelativePath(sourceToken,
+				base.getConfig("inputsDir"), liberalChars=True).split("/")[2:])
+			return locals()
+		</code>
+	</sourceFields>
+
+Note, however, that you need a special pattern when you want to query
+the table that you are filling.  This is because ``sourceFields`` run in
+the midst of a transaction updating the table.  So, something like::
+
+  <code>
+    <!-- will deadlock, don't do it like this -->
+    with base.getTableConn() as conn:
+      conn.queryToDicts("select ... from <table mentioned in make>")
+  </code>
+
+will wait for the transaction to finish.  But the transaction is waiting
+for data that will only come when the query finishes – this is a
+deadlock, and dachs imp will just sit there and wait (see also 
+:dachsdoc:`commonproblems.html#deadlocks`).
+
+To get around this, you need to query using the data's connection.  So,
+instead write::
+
+  <code>
+    yield data.connection.queryToDicts(...)
+  </code>
+
+
 
 reGrammars
 ''''''''''
@@ -3856,64 +3962,6 @@ the same-named attribute (it defaults to, expectably, comma).  It is
 currently *required*, though, that the first row gives the column
 headings.  If you need the capability to name fields as in, say, the
 reGrammar, let us know – it's just a few lines of code.
-
-
-Source Fields
-'''''''''''''
-
-All grammars can have a ``sourceFields`` element.  It contains a standard
-procedure definition (i.e., you could predefine those and bind
-parameters), but usually you will just fill in the code.
-
-This code is called once for each source processed, and receives the
-sourceToken as argument.  It must return a dictionary, the key/value
-pairs of which will be added to all rows returned by the row iterator.
-
-The purpose of sourceFields is to precompute values that depend on the
-source (“file”) and are constant for all rows within it.  An example for
-where you need this is when you want to create backlinks to the file a
-piece of data came from::
-
-  <xygrammar>
-    <sourceFields>
-      <code>
-        srcKey = utils.getRelativePath(sourceToken,
-            base.getConfig("inputsDir"))
-        return locals()
-      </code>
-    </sourceFields>
-  </xygrammar>
-
-You can then retrieve the path to the source file via srcKey key in
-rawdicts (and then, using render functions and static renderers, turn
-this into links).
-
-In addition to the sourceToken, you also have access to the data that
-will be fed from the grammar.  This can be used to, e.g., retrieve the
-resource directory (``data.dd.rd.resdir``) or data descriptor properties
-(``data.dd.getProperty("whatever")``).
-
-Sometimes you want to do database queries from within sourceFields.
-This is tricky when you access the table being written or otherwise
-being accessed.  This is because sourceTokens run in the midst of a
-transaction updating the table.  So, something like::
-
-  <code>
-    <!-- will deadlock, don't do it like this -->
-    base.SimpleQuerier().query(...)
-  </code>
-
-will wait for the transaction to finish.  But the transaction is waiting
-for data that will only come when the query finishes – this is a
-deadlock, and dachs imp will just sit there and wait (see also `Deadlocks
-<commonproblems.html#deadlocks>`_).
-
-To get around this, you need to query using the data's connection.  So,
-instead write::
-
-  <code>
-    base.SimpleQuerier(connection=data.connection).query(...)
-  </code>
 
 
 
@@ -5537,7 +5585,6 @@ data – see above for details on how to create users and groups.
 .. _fancyQueryCore: ref.html#element-fancyquerycore
 .. _gavo ucd resolver: http://dc.g-vo.org/ucds/ui/ui/form
 .. _gavo's adql short course: http://www.g-vo.org/adql
-.. _grammars available: http://docs.g-vo.org/DaCHS/ref.html#grammars-available
 .. _hints on common problems: http://docs.g-vo.org/commonproblems.html
 .. _installation guide: http://docs.g-vo.org/DaCHS/install.html
 .. _make: http://docs.g-vo.org/DaCHS/ref.html#element-make
