@@ -1795,10 +1795,11 @@ Filling SIAP Tables
 
 When filling SIAP tables, you will almost always use:
 
-* :dachsref:`Element fitsProdGrammar` as the grammar.
+* :dachsref:`Element fitsProdGrammar` as the grammar; see also
+  `fitsGrammars`_ further down.
 * the :dachsref:`//siap#computePGS` apply to interpret the FITS WCS to
   fill the coverage-related columns in the table.
-* the :dachsref:`//siap#setMeta` apply to fill the nonpositional
+* the :dachsref:`//siap#setMeta` apply to fill the non-spatial
   SIAP metadata.
 
 In practice, this might look like this::
@@ -3943,13 +3944,17 @@ the input is ignored.
 fitsProdGrammar
 '''''''''''''''
 
-This grammar exposes FITS headers as rawdicts.  Since both data
-structures represent essentially the same data structure – sequences of
+This grammar exposes FITS headers as rawdicts.  Since both 
+represent essentially the same data structure – sequences of
 key-value pairs, you can get away with just::
 
   <fitsProdGrammar/>
 
-– and that would cover a lot of use cases that read FITS files.
+– and that would cover a lot of use cases that read FITS images.
+
+If you have FITS tables, this grammar is not for you; use
+:dachsref:`Element fitsTableGrammar` instead, and if you have large FITS
+tables, have a look at `Grammars in C`_ (even if you don't know C).
 
 DaCHS uses pyfits to parse the headers and thus supports all the major
 conventions (CONTINUE cards are transparent, as are HIERARCH-style long
@@ -3967,10 +3972,14 @@ seen in the wild massive abuse of comment cards to hold entire tables.
 If you're unlucky enough to have to handle such files, you may have to
 raise this.
 
+You also have to use ``qnd="False"`` if you parse from compressed FITS
+images.
+
 It is fairly common for FITS keywords to contain a dash (``-``).  Since
 rawdict keys are supposed to be python identifier (e.g., for
 @-referencing), fitsProdGrammars translate these to underscores.  If
-further cleanup is necessary, there is the mapKeys element that lets you
+further cleanup is necessary, there is :dachsref:`Element mapKeys`
+that lets you
 write things like::
 
   <mapKeys>
@@ -3978,17 +3987,19 @@ write things like::
   </mapKeys>
 
 The element should only be used to fix crazy names.  Actual mapping of
-names should be performed in rowmakers.
+names should be performed in rowmakers, because that's where you will
+look for them in two months.
 
 FITS files are somewhat more complex, and fitsProdGrammars expose some
 of this.  If you need to parse from a header other than the primary one,
-give the 0-base extension number in hdu.  For the full power of pyfits
+give the 0-base extension number in `hdu` attribute.  
+For the full power of pyfits
 (but also all incompatibilities that are introduced by using that power),
 there is the ``hdusField`` attribute.  This gives the key under which
 the pyfits HDU is visible in the rawdict.  Be warned that using this
 might make your grammar *dramatically* slower, in particular when it
-operates on gzipped FITS files (which are, incientally, supported if
-their file names end in “.gz”).
+operates on gzipped FITS files (which are, incidentally, transparently
+supported if their file names end in “.gz”).
 
 
 csvGrammar
