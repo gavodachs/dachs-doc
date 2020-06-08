@@ -4098,6 +4098,26 @@ you are, somehwhat like this::
           location=str(line_number+1),
           source=self.sourceToken)
 
+Grammars in C
+'''''''''''''
+
+If you have large data collections (millions to billions of rows), going
+through the all the steps of parsing, row making, and postgres ingestion
+with lots of Python in between can become prohibitively slow.  In such
+cases, you can use :dachsref:`Element directGrammar` (or “a booster”
+for short).  They let you bypass everything DaCHS and almost everything
+Postgres and produce binary dump material that is just slurped into the
+database at maximum speed.
+
+This almost requires some knowledge of C, although DaCHS tries to help
+you if you're not terribly C-savvy.  The one exception are FITS binary
+tables; DaCHS can generate C code for pulling them in without further
+intervention.
+
+Anyway, boosters are a longer story, which we tell in
+:dachsdoc:booster.html.
+
+
 
 Debugging
 ---------
