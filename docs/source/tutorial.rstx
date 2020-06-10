@@ -4328,6 +4328,172 @@ Finally, to set the location, reference the column with a leading @.  If
 you use a literal here, the implicit unit is day.
 
 
+
+More on Cores
+-------------
+
+CondDescs
+'''''''''
+
+CondDescs were introduced in `Service Definitions`_ above.  Since they
+are powerful tools when building service interfaces, we cast a second
+look at them here.
+
+Automatic and manual control
+............................
+
+The standard idiom introduced above::
+
+  <condDesc buildFrom="somecol"/>
+
+adapts to protocols; for instance, if somecol is a floating point
+variable, the condDesc will accept VizieR-like expressions in HTML
+forms, PQL-like intervals (“min/max") in legacy DAL protocols and
+DALI-like intervals (“min max”) in modern DAL protocols.
+
+Sometimes you need more control, for instance, when there should always
+be just one single string regardless of what renderer the service is
+used through.  In that case, define the input key directly::
+
+  <condDesc>
+    <inputKey original="primaryId" required="False"/>
+  </condDesc>
+
+The extra attribute is there to make sure that even a column that is
+required in the table remains optional in the query (of course, you can
+skip that if your column isn't required in the first place).  You can,
+of course, also define the inputKey from scratch::
+
+  <condDesc>
+    <inputKey 
+      name="specType" 
+      type="text" 
+      tablehead="Spectral Type"
+      description="Spectral type of the target object"/>
+  </condDesc>
+
+If you add an enumeration of possible values, like this::
+
+  <condDesc>
+    <inputKey name="color" type="text" required="True">
+      <values multiOk="True">
+        <option title="Red">R</option>
+        <option title="Green">G</option>
+        <option title="Blue">B</option>
+      </values>
+    </inputKey>
+  </condDesc>
+
+DaCHS will try to communicate the choices to clients; in HTML forms, for
+instance, this will translate into a pop-up menu.
+
+
+Limiting condDescs by renderer
+..............................
+
+In order to let you emulate ``buildFrom`` behaviour of making different
+input key types depending on the renderer even when you cannot use
+``buildFrom``, there are two properties on inputKeys are defined to only show
+inputs for certain renderers, viz., ``onlyForRenderer`` and
+``notForRenderer``.  
+
+Both have single strings as values.  This is
+intended mainly for cases like SIAP and SCS where there are
+“human-oriented” versions of the input fields available.  The built-in
+SCS and SIAP conditions already to that, so you can give both scs and
+humanSCS conditions in a core.  Here is how you would define an input
+key that is only used for the form renderer::
+
+  <inputKey original="color">
+    <property name="onlyForRenderer">form</property>
+  </inputKey>
+
+
+Phrase makers
+.............
+
+In all the condDescs we have seen so far, the SQL generated becomes
+conjunction (i.e., OR expression) of the condDesc's input key's
+individual SQL expressions – unless you set the ``joiner`` attribute to
+AND, that is (incidentally, constraints from different condDescs are
+always combined using AND in DaCHS.
+
+The SQL expression derived from an input key is a simple comparison for
+equality for plain types, a somewhat more fancy comparison for
+interval-valued parameters, and even more fancy expressions for
+VizieR-like expressions in the form renderer.
+
+For complete control over what SQL is generated, condDescs may contain
+code in :dachsref:`Element phraseMaker`.  
+This, again, is a procedure application,
+quite like with rowmaker procs, except that the signature of condDesc
+code is different.
+
+Phrase maker code has the following names available:
+
+* inputKeys – the list of input keys for the parent CondDesc
+* inPars – a dictionary mapping inputKey names to the values
+  provided by the user
+* outPars – a dictionary that is later used as the parameter
+  dictionary to the query.
+
+The code should amend the outPars dictionary with the keys mentioned in
+the conditions.  The conditions themselves are yielded.  So, a very
+simple condDesc with generated SQL could look like this::
+
+  <condDesc> <!-- don't do it like this, see below -->
+    <inputKey name="val"/>
+    <phraseMaker>
+      <code>
+        outPars["xxyy"] = "x"*inPars.get("val", 20)
+        yield "someColumn=%(xxyy)s"
+      </code>
+    </phraseMaker>
+  </condDesc>
+
+However, using fixed names in outPars is not recommended, if only
+because condDescs could be used multiple times.  
+
+The recommended way uses the ``base.getSQLKey(name, value, outPars)``
+function, where name is more or less arbitrary but should usually be the
+input key name, value is what you would like to see in the SQL, and
+outPars is a dictionary that you get passed into your phrase maker.  All
+that you should do with outPars is pass it to this function.
+
+``getSQLKey`` It will return a key unique to the query in
+question and enter the value into the outPars dictionary under that key.
+While that sounds complicated, it is actually rather harmless, as shown in
+the following real-world example that lets users input date, time and an
+interval in split-up form (e.g., when you cannot hope anyone will try to
+write the equivalent vizier-like expressions)::
+
+    <condDesc>
+      <inputKey name="date" tablehead="Date" type="date"
+        multiplicity="single"
+        required="True"/>
+      <inputKey name="time" tablehead="Time (UTC)" type="time"
+        multiplicity="single"
+        required="True"/>
+      <inputKey name="within" required="True" type="integer"
+        multiplicity="single"
+        tablehead="plus/minus" unit="minutes"
+        description="Give measurements within this many minutes
+         of your chosen date and time.  The sampling rate is 20 minutes">
+        <values default="11"/>
+      </inputKey>
+      <phraseMaker>
+        <code>
+          baseTS = datetime.datetime.combine(inPars["date"], inPars["time"])
+          dt = datetime.timedelta(minutes=inPars["within"])
+          yield "date BETWEEN %%(%s)s AND %%(%s)s"%(
+            vizierexprs.getSQLKey("date", baseTS-dt, outPars),
+            vizierexprs.getSQLKey("date", baseTS+dt, outPars))
+        </code>
+      </phraseMaker>
+    </condDesc>
+
+
+
 Debugging
 ---------
 
@@ -4789,161 +4955,6 @@ nicest way to debug stuff like this is to write::
       ...
 
 and then use the python debugger to figure things out.
-
-
-More on Cores
--------------
-
-CondDescs
-'''''''''
-
-CondDescs were introduced in `Service Definitions`_ above.  Since they
-are powerful tools when building service interfaces, we cast a second
-look at them here.
-
-Automatic and manual control
-............................
-
-The standard idiom introduced above::
-
-  <condDesc buildFrom="somecol"/>
-
-adapts to protocols; for instance, if somecol is a floating point
-variable, the condDesc will accept VizieR-like expressions in HTML
-forms, PQL-like intervals (“min/max") in legacy DAL protocols and
-DALI-like intervals (“min max”) in modern DAL protocols.
-
-Sometimes you need more control, for instance, when there should always
-be just one single string regardless of what renderer the service is
-used through.  In that case, define the input key directly::
-
-  <condDesc>
-    <inputKey original="primaryId" required="False"/>
-  </condDesc>
-
-The extra attribute is there to make sure that even a column that is
-required in the table remains optional in the query (of course, you can
-skip that if your column isn't required in the first place).  You can,
-of course, also define the inputKey from scratch::
-
-  <condDesc>
-    <inputKey 
-      name="specType" 
-      type="text" 
-      tablehead="Spectral Type"
-      description="Spectral type of the target object"/>
-  </condDesc>
-
-If you add an enumeration of possible values, like this::
-
-  <condDesc>
-    <inputKey name="color" type="text" required="True">
-      <values multiOk="True">
-        <option title="Red">R</option>
-        <option title="Green">G</option>
-        <option title="Blue">B</option>
-      </values>
-    </inputKey>
-  </condDesc>
-
-DaCHS will try to communicate the choices to clients; in HTML forms, for
-instance, this will translate into a pop-up menu.
-
-
-Limiting condDescs by renderer
-..............................
-
-In order to let you emulate ``buildFrom`` behaviour of making different
-input key types depending on the renderer even when you cannot use
-``buildFrom``, there are two properties on inputKeys are defined to only show
-inputs for certain renderers, viz., ``onlyForRenderer`` and
-``notForRenderer``.  
-
-Both have single strings as values.  This is
-intended mainly for cases like SIAP and SCS where there are
-“human-oriented” versions of the input fields available.  The built-in
-SCS and SIAP conditions already to that, so you can give both scs and
-humanSCS conditions in a core.  Here is how you would define an input
-key that is only used for the form renderer::
-
-  <inputKey original="color">
-    <property name="onlyForRenderer">form</property>
-  </inputKey>
-
-
-Phrase makers
-.............
-
-In all the condDescs we have seen so far, the SQL generated becomes 
-conjunction (i.e., AND expression)
-of the input key's individual SQL expressions.  Those, in turn, are
-simply comparisons for equality for plain types, somewhat more fancy
-comparisons for interval-valued parameters, and even more for
-vizier-like expressions in the form renderer.
-
-For complete control over what SQL is generated, condDescs may contain
-code called a phrase maker.  This, again, is a procedure application,
-quite like with rowmaker procs, except that the signature of condDesc
-code is different.
-
-Phrase maker code has the following names available:
-
-
-* inputKeys – the list of input keys for the parent CondDesc
-* inPars – a dictionary mapping inputKey names to the values
-  provided by the user
-* outPars – a dictionary that is later used as the parameter
-  dictionary to the query.
-
-The code should amend the outPars dictionary with the keys mentioned in
-the conditions.  The conditions themselves are yielded.  So, a very
-simple condDesc with generated SQL could look like this::
-
-  <condDesc> <!-- don't do it like this, see below -->
-    <inputKey name="val"/>
-    <phraseMaker>
-      <code>
-        outPars["xxyy"] = "x"*inPars.get("val", 20)
-        yield "someColumn=%(xxyy)s"
-      </code>
-    </phraseMaker>
-  </condDesc>
-
-However, using fixed names in outPars is not recommended, if only
-because condDescs could be used multiple times.  The recommended way
-uses the vizierexprs.getSQLKey function.  It takes a name, a value, and
-the outPars dictionary.  It will return a key unique to the query in
-question and enter the value into the outPars dictionary under that key.
-While that sounds complicated, it is actually rather harmless, as shown in
-the following real-world example that lets users input date, time and an
-interval in split-up form (e.g., when you cannot hope anyone will try to
-write the equivalent vizier-like expressions)::
-
-    <condDesc>
-      <inputKey name="date" tablehead="Date" type="date"
-        multiplicity="single"
-        required="True"/>
-      <inputKey name="time" tablehead="Time (UTC)" type="time"
-        multiplicity="single"
-        required="True"/>
-      <inputKey name="within" required="True" type="integer"
-        multiplicity="single"
-        tablehead="plus/minus" unit="minutes"
-        description="Give measurements within this many minutes
-         of your chosen date and time.  The sampling rate is 20 minutes">
-        <values default="11"/>
-      </inputKey>
-      <phraseMaker>
-        <code>
-          baseTS = datetime.datetime.combine(inPars["date"], inPars["time"])
-          dt = datetime.timedelta(minutes=inPars["within"])
-          yield "date BETWEEN %%(%s)s AND %%(%s)s"%(
-            vizierexprs.getSQLKey("date", baseTS-dt, outPars),
-            vizierexprs.getSQLKey("date", baseTS+dt, outPars))
-        </code>
-      </phraseMaker>
-    </condDesc>
-
 
 
 Active Tags
