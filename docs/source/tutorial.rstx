@@ -1014,7 +1014,8 @@ fill in.  Most commonly, you will either define them using the
 using ``buildFrom``.  The first case is typically used in connection
 with protocols and on tables having mixins; such condDescs result in
 zero or more input fields, and they typically inspect the queried table.
-For example, the ``//scs#humanScs`` condDesc locates the “main”
+For example, the ``//scs#humanScs`` condDesc (which is part of the
+:dachsref:`//scs#coreDescs` stream) locates the “main”
 positions as identified by UCDs and generates queries against them using
 two input fields.  One somehow specifies center position of the
 region of interest, the other gives the search radius.
@@ -4796,57 +4797,44 @@ More on Cores
 CondDescs
 '''''''''
 
-dbCores and cores derived from them take most of their power from
-condition descriptors or CondDescs.  These combine inputKeys, which are
-basically column objects with some additional presentation-related
-information, with code generating SQL conditions.
-
-A condDesc can contain zero or more input keys (though having zero input
-keys makes no sense for user-defined condDescs since they would never
-“fire”).  Having more than one input key is useful when input quantities
-can only be interpreted when present as a group.  An example is the
-standard cone search, where you need both a position and a search
-radius.
+CondDescs were introduced in `Service Definitions`_ above.  Since they
+are powerful tools when building service interfaces, we cast a second
+look at them here.
 
 Automatic and manual control
 ............................
 
-However, most condDescs correspond to one input key, and the input key
-is mostly derived from a table column.  This is effected by the standard
-idiom::
+The standard idiom introduced above::
 
   <condDesc buildFrom="somecol"/>
 
+adapts to protocols; for instance, if somecol is a floating point
+variable, the condDesc will accept VizieR-like expressions in HTML
+forms, PQL-like intervals (“min/max") in legacy DAL protocols and
+DALI-like intervals (“min max”) in modern DAL protocols.
 
-where somecol is a column in the table queried by the core.  This
-construct will cause the an input key to be built from somecol.  While
-doing this, the type will be mapped automatically.  The primary rules
-are:
-
-* Numeric types will get mapped to numeric vizier-like expressions
-* Datetimes will get mapped to date vizier-like expressions
-* text and chars will get mapped to string vizier-like expressions
-* enumerated values (i.e., columns with value elements giving options)
-  will not become vizier-like expressions but input keys that yield
-  selection widgets.
-
-To have more control (e.g., if you do not want to allow vizier-like
-expressions, give the input key yourself)::
+Sometimes you need more control, for instance, when there should always
+be just one single string regardless of what renderer the service is
+used through.  In that case, define the input key directly::
 
   <condDesc>
     <inputKey original="primaryId" required="False"/>
   </condDesc>
 
-(which would make a column required in the table optional in the query),
-or::
+The extra attribute is there to make sure that even a column that is
+required in the table remains optional in the query (of course, you can
+skip that if your column isn't required in the first place).  You can,
+of course, also define the inputKey from scratch::
 
   <condDesc>
-    <inputKey name="specType" tablehead="Spectral Type"
-      type="text" description="Spectral type of the target object">
+    <inputKey 
+      name="specType" 
+      type="text" 
+      tablehead="Spectral Type"
+      description="Spectral type of the target object"/>
   </condDesc>
 
-
-(which creates an input key matching everything literally), or even::
+If you add an enumeration of possible values, like this::
 
   <condDesc>
     <inputKey name="color" type="text" required="True">
@@ -4858,19 +4846,20 @@ or::
     </inputKey>
   </condDesc>
 
--- if the input key is required, queries not giving it will be rejected.
-The title attribute on option gives the label of an option in the HTML
-input widget; if it's missing, a string representation of the value will
-be used.
+DaCHS will try to communicate the choices to clients; in HTML forms, for
+instance, this will translate into a pop-up menu.
 
-In all those cases, the SQL generated from the condDesc is a conjunction
-of the input key's individual SQL expressions.  Those, in turn, are
-simply comparisons for equality for plain types and more or less
-arbitrary expressions for vizier expression types.
 
-Incidentally, two properties on inputKeys are defined to only show
+Limiting condDescs by renderer
+..............................
+
+In order to let you emulate ``buildFrom`` behaviour of making different
+input key types depending on the renderer even when you cannot use
+``buildFrom``, there are two properties on inputKeys are defined to only show
 inputs for certain renderers, viz., ``onlyForRenderer`` and
-``notForRenderer``.  Both have single strings as values.  This is
+``notForRenderer``.  
+
+Both have single strings as values.  This is
 intended mainly for cases like SIAP and SCS where there are
 “human-oriented” versions of the input fields available.  The built-in
 SCS and SIAP conditions already to that, so you can give both scs and
@@ -4884,6 +4873,13 @@ key that is only used for the form renderer::
 
 Phrase makers
 .............
+
+In all the condDescs we have seen so far, the SQL generated becomes 
+conjunction (i.e., AND expression)
+of the input key's individual SQL expressions.  Those, in turn, are
+simply comparisons for equality for plain types, somewhat more fancy
+comparisons for interval-valued parameters, and even more for
+vizier-like expressions in the form renderer.
 
 For complete control over what SQL is generated, condDescs may contain
 code called a phrase maker.  This, again, is a procedure application,
