@@ -2027,7 +2027,7 @@ understand exactly what that is, if if you are curious:
 :dachsref:`//soda#fits_standardDLFuncs`.  Done.
 
 The following example, taken from
-:samplerd:`lswscans/res/positions.rd`), adds a fixed link to a scaled
+:samplerd:`lswscans/res/positions`), adds a fixed link to a scaled
 version, which might work a bit smoother with unsophisticated Datalink
 clients using a meta maker::
 
@@ -2822,7 +2822,7 @@ assign creator DIDs, so it's probably not worth bothering.
 If you are in a position in which you could make your data provider
 generate creator DIDs, you could make them set a good precendent.  DaCHS
 helps you by letting you claim an authority for them (which would be the
-first step).  See :samplerd:`tutreg/gavo_edu_auth.rd` for an example RD
+first step).  See :samplerd:`tutreg/gavo_edu_auth` for an example RD
 that, when ``dachs pub``-ed, will claim an authority for your publishing
 registry.
 
@@ -2866,7 +2866,7 @@ Pure Obscore Tables
 
 You can also have “pure” Obscore tables which do not build on protocol
 mixins.  A live example is the ``cubes`` table in the
-:samplerd:`califa/q3.rd` RD within
+:samplerd:`califa/q3` RD within
 the GAVO data center.  Here's a brief explanation of how this works.
 
 Somewhat like with `the SSA view`_, you define a table for
@@ -3132,7 +3132,7 @@ When publishing datasets, there are two basic scenarios:
 * ingest from pre-destilled metadata; this is when you don't have the
   files locally (or at least DaCHS should not serve them).  Instead,
   you read metadata from dumps from other databases, metadata
-  stores, or whatever.  The :samplerd:`titan/q.rd` RD shows an example
+  stores, or whatever.  The :samplerd:`titan/q` RD shows an example
   for that. 
 
 To start an EPN-TAP service, do as per `Starting from Scratch`_ and use
@@ -3677,10 +3677,12 @@ To apply them, replay one of the streams
 * :dachsref:`//procs#license-cc-by`
 * :dachsref:`//procs#license-cc-by-sa`
 
-into the RD and give a ``what`` attribute saying what is licenced
-(usually, the data).  For instance::
+into the RD and give a ``what`` attribute saying what is licensed
+(usually, the data).  And yes, we know that CC-0 isn't a licence; still,
+this arrangement seemed logical, and it stands in for a licence, anyway.
+For instance::
 
-  <STREAM source="//procs#license-cc-by" what="ARIHIP"/>
+  <FEED source="//procs#license-cc-by" what="ARIHIP"/>
 
 If you get to choose the licence but are not sure which one to pick: Our
 advice is to go for CC-0.  This is although we do believe in the GPL for
@@ -3802,12 +3804,12 @@ As a trivial example, here is how to avoid parsing the sourceToken in
 order to pull out a field identifier in each row::
 
   <!-- this sits in a grammar element -->
-	<sourceFields>
-		<code>
-			return {"field":
-				int(sourceToken.split("bul_sc")[-1].split(".pm.gz")[0])}
-		</code>
-	</sourceFields>
+  <sourceFields>
+    <code>
+      return {"field":
+        int(sourceToken.split("bul_sc")[-1].split(".pm.gz")[0])}
+    </code>
+  </sourceFields>
 
 A more complex example, taken from :samplerd:`lightmeter/q`, looks up
 some calibration values from a different table based on an identifier
@@ -3815,29 +3817,29 @@ again pulled from the source file – clearly, you wouldn't want to do
 one query per row when there's thousands of rows coming from one
 source::
 
-	<sourceFields>
-		<code>
-			stationId = os.path.split(os.path.split(sourceToken)[0])[1]
-			if re.match("[0-9]+$", stationId):
-				raise base.SkipThis("Archive directory")
-			try:
-				with base.getTableConn() as conn:
-					stationPars = list(conn.query(
-						"SELECT calibA, calibB, calibC, calibD, timeCorrection"
-						" FROM lightmeter.stations"
-						" WHERE stationId=%(stationId)s", locals()))[0]
-				calibA, calibB, calibC, calibD, timeCorrection = stationPars
-			except IndexError:
-				raise base.ValidationError("No station data for %s.  Import"
-					" stationsdata first."
-					%stationId, "stationId", stationId)
-			if calibA is None:
-				raise base.SkipThis("No calibration for %s."%stationId)
-			srcKey = "/".join(utils.getRelativePath(sourceToken,
-				base.getConfig("inputsDir"), liberalChars=True).split("/")[2:])
-			return locals()
-		</code>
-	</sourceFields>
+  <sourceFields>
+    <code>
+      stationId = os.path.split(os.path.split(sourceToken)[0])[1]
+      if re.match("[0-9]+$", stationId):
+        raise base.SkipThis("Archive directory")
+      try:
+        with base.getTableConn() as conn:
+          stationPars = list(conn.query(
+            "SELECT calibA, calibB, calibC, calibD, timeCorrection"
+            " FROM lightmeter.stations"
+            " WHERE stationId=%(stationId)s", locals()))[0]
+        calibA, calibB, calibC, calibD, timeCorrection = stationPars
+      except IndexError:
+        raise base.ValidationError("No station data for %s.  Import"
+          " stationsdata first."
+          %stationId, "stationId", stationId)
+      if calibA is None:
+        raise base.SkipThis("No calibration for %s."%stationId)
+      srcKey = "/".join(utils.getRelativePath(sourceToken,
+        base.getConfig("inputsDir"), liberalChars=True).split("/")[2:])
+      return locals()
+    </code>
+  </sourceFields>
 
 Note, however, that you need a special pattern when you want to query
 the table that you are filling.  This is because ``sourceFields`` run in
@@ -4227,62 +4229,62 @@ a proper STC model comes around, we hope the following examples, taken
 from various `RDs used in Heidelberg`_, will give you enough material to
 see what to do::
 
-		<stc>
-			Position ICRS Epoch J2015.0 "ra" "dec"
-					Error "ra_error" "dec_error"
-				Velocity "pmra" "pmde" Error "sigpmr" "sigpmd"
-		</stc>
-		<stc>
-			Position ICRS Epoch "epu" "ra_ucac" "de_ucac"
-				Velocity "pmra" "pmde" Error "sigpmr" "sigpmd"
-		</stc>
+    <stc>
+      Position ICRS Epoch J2015.0 "ra" "dec"
+          Error "ra_error" "dec_error"
+        Velocity "pmra" "pmde" Error "sigpmr" "sigpmd"
+    </stc>
+    <stc>
+      Position ICRS Epoch "epu" "ra_ucac" "de_ucac"
+        Velocity "pmra" "pmde" Error "sigpmr" "sigpmd"
+    </stc>
 
-		<stc>
-			Position Galactic "glon" "glat"
-		</stc>
+    <stc>
+      Position Galactic "glon" "glat"
+    </stc>
 
-		<stc>
-			Polygon ICRS [s_region]
-		</stc>
+    <stc>
+      Polygon ICRS [s_region]
+    </stc>
 
-		<stc>
-		  PositionInterval ICRS [bbox]
-		</stc>
+    <stc>
+      PositionInterval ICRS [bbox]
+    </stc>
 
-		<stc>
-			Position J2000 "raj2000" "dej2000"
-			Redshift OPTICAL "redshift"
-		</stc>
+    <stc>
+      Position J2000 "raj2000" "dej2000"
+      Redshift OPTICAL "redshift"
+    </stc>
 
-		<stc>
-		  Time TT 2000-01-01T00:00:00
-			Position ICRS Epoch J2000 "alphaFloat" "deltaFloat"
-				Error "RAErr" "DecErr"
-				Velocity "pmRA" "pmDE"
-					Error "PMRAErr" "PMDEErr"
-		</stc>
+    <stc>
+      Time TT 2000-01-01T00:00:00
+      Position ICRS Epoch J2000 "alphaFloat" "deltaFloat"
+        Error "RAErr" "DecErr"
+        Velocity "pmRA" "pmDE"
+          Error "PMRAErr" "PMDEErr"
+    </stc>
 
-		<stc>
-			Time TT "detection_time"
-			Position ICRS "raj2000" "dej2000"
-			Spectral "energy_cor" unit keV
-		</stc>		
+    <stc>
+      Time TT "detection_time"
+      Position ICRS "raj2000" "dej2000"
+      Spectral "energy_cor" unit keV
+    </stc>    
 
-		<stc>
-			TimeInterval UTC TOPOCENTER "time_min" "time_max"
-		</stc>
+    <stc>
+      TimeInterval UTC TOPOCENTER "time_min" "time_max"
+    </stc>
 
-	
-		<stc>
-		  Position ICRS SPHER3 Epoch J2010 "alpha" "delta" "distance"
-			Velocity "mualpha" "mudelta" "radialvelocity"
-	  </stc>
+  
+    <stc>
+      Position ICRS SPHER3 Epoch J2010 "alpha" "delta" "distance"
+      Velocity "mualpha" "mudelta" "radialvelocity"
+    </stc>
 
-		<stc>
-			Position ICRS SPHER3 "raj2000" "dej2000" "dist" 
-				Size "rcluster" "rcluster" -1 
-				Velocity "pmra" "pmde" "rv" Error "e_pm" "e_pm" "e_rv"
-		</stc>
+    <stc>
+      Position ICRS SPHER3 "raj2000" "dej2000" "dist" 
+        Size "rcluster" "rcluster" -1 
+        Velocity "pmra" "pmde" "rv" Error "e_pm" "e_pm" "e_rv"
+    </stc>
 
 
 New-style SIL definitions
@@ -4298,17 +4300,17 @@ we don't really have yet.  DaCHS, however, interprets SIL for time
 system annotation, which is then translated into TIMESYS in VOTables.
 In an ad-hoc way, use the following template, again as a child of table::
 
-	<dm id="obs_pos">
-		(stc2:Coords) {
-			time: (stc2:TimeCoordinate) {
-				frame:
-					(stc2:TimeFrame) {
-						timescale: TCB
-						refPosition: BARYCENTER 
-						time0: 0 }
-				location: @obs_time
-			}
-		}
+  <dm id="obs_pos">
+    (stc2:Coords) {
+      time: (stc2:TimeCoordinate) {
+        frame:
+          (stc2:TimeFrame) {
+            timescale: TCB
+            refPosition: BARYCENTER 
+            time0: 0 }
+        location: @obs_time
+      }
+    }
   </dm>
 
 To adjust this to your tables, pick a timescale from
@@ -4960,18 +4962,161 @@ and then use the python debugger to figure things out.
 Active Tags
 -----------
 
-Active tags delimit elements within resource descriptor XML that
+Sometimes RDs need to contain material in several places, or there are
+tags that basically are copies of each other with minimal variation.
+
+In the spirit of DRY_, it is desirable to avoid the repetition, if only
+because when the RD develops, you may edit some repeated item in one
+place but not the other, at which point you'll have a bug.
+
+.. _DRY: https://en.wikipedia.org/wiki/Don%27t_repeat_yourself
+
+To avoid repetition (and some other minor things), DaCHS has active
+tags, which make up elements within resource descriptor XML that
 do not directly contribute to result tree.  Their typical use is to
-“record” event sequences and replay them later.  Much of this is used
-internally.  However, some applications of active tags are interesting
-for RD writers, too.  Active tags always have names in all upper-case.
+“record” event sequences and replay them later.
+
+In DaCHS, you can tell active tags from others by their all-uppercase
+names. Normal elements in DaCHS always have names starting with lower
+case letters.
+
+
+STREAM and FEED
+'''''''''''''''
+
+When you have a sequence of elements that you need in several places,
+you can put these elements into an :dachsref:`Element STREAM` and replay
+them with :dachsref:`Element FEED` in as many places as you want.  You
+have seen several examples of that in this tutorial, for instance, in::
+
+  <FEED source="//scs#coreDescs"/>
+
+To see what this plays back, look for an element with id ``coreDescs``
+in the RD ``scs``, which in turn you can most easily access with::
+
+  dachs adm dumpDF //scs | less
+
+You will see that this element looks like this::
+
+   <STREAM id="coreDescs">
+           <doc>[...]</doc>
+           <condDesc original="//scs#humanInput"/>
+           <condDesc original="//scs#protoInput"/>
+   </STREAM>
+
+The ``doc`` element is local to the STREAM; make sure that you use it to
+drop a few words on what the stream is supposed to do – your future self
+will be grateful.
+
+All other elements will end up exactly like typed there whereever there
+is a corresponding FEED.
+
+Another example where a simple duplication of elements is useful is in
+:samplerd:`fk6/q`, where a catalogue has been split into two parts.
+Both parts share a lot of the columns, but there are some extra columns
+specific to each part.  To deal with this, the RD defines a STREAM::
+
+  <STREAM id="commonFrontFields" doc="Field 1..23 are (about) the same
+    for parts I and III.">
+
+    <column name="hipno" type="integer" required="True"
+      ucd="meta.id"
+      tablehead="HIP#"
+      description="Number of the star in the HIPPARCOS Catalogue (ESA 1997)"
+      verbLevel="25"/>
+    <column name="comname" type="text"
+    ...
+
+and then, further down, replays it into each table::
+
+  <table onDisk="True" id="part1" adql="True" primary="localid" 
+      mixin="//scs#q3cindex">
+    <mixin>//scs#pgs-pos-index</mixin>
+    <meta name="description">Part I of the FK6 (successor to Basic FK5)</meta>
+    <nrows>878</nrows>
+    <FEED source="commonFrontFields"/>
+    ...
+
+  <table onDisk="True" id="part3" adql="True">
+    ...
+    <FEED source="commonFrontFields"/>
+
+
+However, more commonly there will be slight variations between the
+replayed elements.  Consider, for example, the license declaration we
+have seen above::
+
+  <FEED source="//procs#license-cc-0" what="ARIHIP"/>
+
+Since CC-0 recommends that you explitictly state what you distribute, we
+have to put in something different every time we replay the stream.  If
+you look at the stream (``adm dump`` is your friend again), you will see
+how this works::
+
+  <STREAM id="license-cc0">
+    <doc>[...]</doc>
+    <meta name="rights" format="rst">\\RSTcc0{\what}</meta>
+    <meta name="rights.rightsURI"
+      >http://creativecommons.org/publicdomain/zero/1.0/</meta>
+  </STREAM>
+
+The basis here is that all attributes to ``FEED`` are available for
+macro expansion.  On the other hand, ``FEED`` does one level of macro
+expansion, which explains the double backslash in front of ``RSTCcc0``:
+after the first macro expansion, this becomes a single backslash.  Hence
+with ``what"ARIHIP"`` as above, the ``FEED``'s net effect is the same as
+if someone had typed::
+
+    <meta name="rights" format="rst">\RSTcc0{ARIHIP}</meta>
+    <meta name="rights.rightsURI"
+      >http://creativecommons.org/publicdomain/zero/1.0/</meta>
+
+
+Another example for a parameterised ``STREAM`` is in
+:samplerd:`sp_ace/q`, where multiple output fields of a code have
+possibly asymmetric confidence intervals::
+
+  <STREAM id="valWithConfidence">
+    <doc>
+      A param with a confidence interval (give name, ucd, unit, tablehead
+      and description and get three params including asymmetric error
+      bars.
+    </doc>
+    <param name="\name"
+      ucd="\ucd" unit="\unit"
+      tablehead="\tablehead"
+      description="\description of the best-fit modelled spectrum."/>
+    <param name="\name\+_low"
+      ucd="stat.error;stat.min;\ucd" unit="\unit"
+      tablehead="Lower \tablehead"
+      description="Lower limit of 68% confidence interval of \description"/>
+    <param name="\name\+_up"
+      ucd="stat.error;stat.max;\ucd" unit="\unit"
+      tablehead="Upper \tablehead"
+      description="Upper limit of 68% confidence interval of \description"/>
+  </STREAM>
+
+This is used later on like this::
+
+    <FEED source="valWithConfidence"
+      ucd="phys.temperature.effective" unit="K" 
+      name="teff" tablehead="T_eff" 
+      description="Effective Temperature"/>
+    <FEED source="valWithConfidence"
+      ucd="phys.gravity" unit="cm/s**2" 
+      name="logg" tablehead="Log g" 
+      description="Log of gravity"/>
 
 
 LOOP
 ''''
 
-Loop lets you create multiple elements by rules.  The simplest way to
-use it is by giving a space-separated list of “items”::
+:dachsref:`Element LOOP` takes the idea of having multiple ``FEED``
+elements  further and makes it easy to generate lots of fillers,
+possibly even programmatically.
+
+The simplest way to use ``LOOP`` is by giving a space-separated list of
+“items”::
 
   <LOOP listItems="a b c">
     <events>
@@ -4979,11 +5124,13 @@ use it is by giving a space-separated list of “items”::
     </events>
   </LOOP>
 
-The ``events`` child of the ``LOOP`` element creates a list of events
-(think “begin column element“, “value for name attribute”, “end column
-element“).  These events are then replayed to the parser for each item
+The ``events`` child of the ``LOOP`` element is something like an
+immediate ``STREAM``; you could use a stream instead and reference it in
+a ``source`` attribute, but that's rarely easier to read.
+
+These events are then replayed to the parser for each item
 in the LOOP's ``listItems`` attribute.  Each occurrence of the
-``\\item`` macro is replaced with the current item.  So, in the
+``\item`` macro is replaced with the current item.  So, in the
 resulting RD tree, the fragment above will have the same result as::
 
   <column name="a"/>
@@ -5017,9 +5164,10 @@ Note that macro names must be at least two characters long.
 
 Frequently, the loop variable should not just take on a single string.
 For such cases you can feed in tuples.  The most convenient way to do
-this is ``csvItems``.  The content of this element is a string literal
+this is LOOP's ``csvItems`` attribute.  
+The content of this is a string literal
 containing comma separated values *with labels*, i.e., parsable with
-python's csv.DictReader.  In your events, you can then refer to the
+python's ``csv.DictReader``.  In your events, you can then refer to the
 labeled items using macros.  For example::
 
   <resource schema="foo">
@@ -5043,7 +5191,27 @@ labeled items using macros.  For example::
     </data>
   </resource>
 
-TODO: EDIT actives?
+
+You can take this even further and generate the replacements with python
+code.  For instance, in :samplerd:`califa/q3`, I needed to pull dozens
+of columns through a ``parseWithNull`` in a row maker.  To maintain the
+list of such columns was already a challenge, and so I had the computer
+do it by pulling the table out of the parse context (which is a complex
+object you usually don't see; ``codeItems`` runs while the RD is being
+parsed, and so there are limits to what you can see) and retrieving all
+”flag” columns.  Those are the ones that need a uniform parsing::
+
+  <LOOP>
+    <codeItems>
+      for col in context.getById("cubes"):
+        if col.name.startswith("flag_"):
+          yield {"item": col.name}
+    </codeItems>
+    <events>
+      <map dest="\item">parseWithNull(@\item, int, -1)</map>
+    </events>
+  </LOOP>
+
 
 
 Some Words on Times
