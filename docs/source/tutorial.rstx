@@ -3635,8 +3635,6 @@ notations, for instance if you want to set a logo on the first creator::
   <meta name="creator">Copernicus, N.; Gallilei, G.</meta>
 
 
-
-
 The Products Table
 ------------------
 
@@ -5852,7 +5850,7 @@ times (written as attributes of column):
 * ``type="double precision" unit="yr"`` – a Julian year with fractions
 * ``type="timestamp"`` – a postgresql timestamp
 
-All other things being equal, we recommend using mjds; most VO data
+All other things being equal, we recommend using MJDs; most VO data
 models and protocols employ them, and they are fairly easy to query
 against.  In HTML forms, they are easily displayed as human-readable
 datetimes by using an ``displayHint="type=humanDate"`` (which you can do
@@ -5889,18 +5887,17 @@ about that UCD is horrible, and it is generally accepted in the VO that
 this was an error.
 
 Finally, there is advanced metadata, in particular time zones, time
-scales (i.e., how does the time pass) and reference positions (i.e.,
-where is the clock positioned).
+scales (i.e., how does the time pass?) and reference positions (i.e.,
+where is the clock positioned?).
 
 Time zones are not supported at all in the VO.  All times are for the
-Greenwhich meridian (i.e., they should be close to UTC).
+Greenwich meridian (i.e., they should be close to UTC).
 
-The time scales are important on the level of seconds; they include  TAI
-(the time scale defined by a bunch of atomic clocks, UTC (TAI with leap
-seconds, basically our everyday time), UT, UT0, UT1, UT2 (several sorts
-of true times in Greenwich), and TT (Terrestial Time, a time scale
-linked to the TAI and used quite a bit in Astronomy).  More of that on
-the fairly readable http://stjarnhimlen.se/comp/time.html.
+The time scales are important on the level of seconds; time scales known
+to the VO are listed on http://www.g-vo.org/rdf/timescale.  To
+understand a bit better where all this comes from, we recommend a look
+at the fairly readable explanation at
+http://stjarnhimlen.se/comp/time.html.
 
 The reference positions impact arrival times by simple geometry; common
 reference positions include “roughly earth” and “roughly sun”, which
@@ -5909,28 +5906,21 @@ are relativistic effects at a level of
 milliseconds or below; they need to be declared for high precision work
 since a clock in the barycenter of the solar system will (evaporate but
 before that) run slower than
-one on Pluto due to relativistic effects of various sorts.  
+one on Pluto due to relativistic effects of various sorts.
 
-In STC-S parlance, the reference positions available include
-positions would be TOPOCENTER (the observatory), GEOCENTER (the center
-of the Earth), BARYCENTER (the barycenter of the solar system) and
-UNKNOWN (the default, which you should keep unless you are sure; clients
-can then at least employ some sane fallback rather than make wrong
-assumptions).
+Obviously, any number of reference positions might be necessary at some
+point (“a clock on the Voyager II space probe”).  In the VO, we try to
+stay on top of this by collecting “well-known” reference positions on
+http://www.g-vo.org/rdf/refposition.  This is list will grow over time,
+but it is unlikely that many clients will be able to do much with
+anything except GEOCENTER, EMBARYCENTER, BARYCENTER, and HELIOCENTER.
+That doesn't mean it's not a good idea to declare something else.  Good
+clients might at least adjust estimates of systematic (or even random)
+errors based on such metadata.
 
-To declare those, you must include a time phrase in your STC_ declaration in your table.
-Typically, this could look like this::
-
-  <table id="foo">
-    <stc>TimeInterval TT "timeStart" "timeEnd" Time "dateObs"</stc>
-
-    <column name="timeStart" ucd="time.start" unit="d"/>
-    <column name="timeEnd" ucd="time.end" unit="d"/>
-    <column name="dateObs" ucd="time.epoch;obs" unit="yr"/>
-    ...
-
-(descriptions and everything else left out for clarity; in particular,
-for times using double precision almost always is a good idea).
+To declare them, use the procedure described in `New-style SIL
+definitions`_ for now.  Apologies that this is so obscure, but for once
+that's really not our fault.
 
 
 .. _//epntap2#populate-2_0: http://docs.g-vo.org/DaCHS/ref.html#epntap2-populate-2-0
