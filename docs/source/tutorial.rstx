@@ -4118,6 +4118,214 @@ Anyway, boosters are a longer story, which we tell in
 :dachsdoc:booster.html.
 
 
+More on Tables
+--------------
+
+Table Notes
+'''''''''''
+
+Frequently, you need to say more about a column than is appropriate in
+the few-phrase description.  In catalogue descriptions and VizieR, such
+situations are handled using notes, and DaCHS follows suit.
+
+The notes themselves are kept in meta elements belonging to tables.
+Since the notes tend to be markup-heavy, their default format is
+reStructuredText.  When entering notes in RDs, there is an attribute
+``tag`` on these meta items::
+
+  <table id="demo">
+    ...
+    <meta name="note" tag="1">
+      The meaning of the flag is as follows:
+
+      =====  ==========
+      value  meaning
+      =====  ==========
+      1      value is 2
+      2      value is 1
+      =====  ==========
+   </meta>
+
+   <meta name="note" tag="2">
+   ...
+  </table>
+
+To assoicate a column with a note, use the column's note attribute::
+
+  <colum name="crazyflag" type="smallint" ... note="1"/>
+
+As tag, you may use basically any string, but it's a good idea to keep
+it to numbers or at least characters not requiring URL encoding.
+
+The notes will exposed in HTML table heads, table and service
+descriptions, etc.  If you need to link to one, there is the built-in
+tablenote renderer that takes the table and the note from its query
+path.  The most convenient way to is it is through the built-in vanity
+name tablenote, where you would access the note above using a URL like
+``http://your.server/tablenote/demoschema.demo/1``.
+
+
+Space-Time Metadata
+'''''''''''''''''''
+
+As soon as you have coordinates, you will want to declare coordinate
+metadata on them, i.e., reference frames, roles played by tables (x is
+the derivative of y, and x1 is a galactic latitude, etc), the position
+for which times and positions are given for.  Collectively,
+this is known as declaring space-time coordinates or STC for short.
+
+The problem here is that this got a bad start in the VO and went
+downhill from there.  And that is why there is, to this day, no real
+model for how to express these things.
+
+DaCHS has been using a language called STC-S to let operators declare
+such metadata.  It is clear that we will have to change this at some
+point, and for time metadata, we're already using something else that
+will probably be roughly stable.  Apologies for this state of affairs.
+We've tried to fix it, but so far without much success.
+
+
+Legacy STC-S definitions
+........................
+
+STC-S was an attempt to define a compact notation for describing STC
+structures.  While `the STC-S note`_ still exists, it is clear that
+neither the underlying model nor the mechanism as such will be retained.
+Also, few clients interpret the declarations DaCHS makes from this
+(Aladin does), so it may be not worth the effort to put these
+declarations in.  On the other hand, if you do it now, it will be a lot
+simpler to add proper declarations when there finally is a proper STC
+model in the VO.
+
+.. _the STC-S note: http://www.ivoa.net/Documents/Notes/STC-S/STC-S-20090527.html
+
+The basic idea is that STC-S strings are defined in children of table 
+elements, with Note-style STC extendd to allow references to atomic
+table columns in quoted strings (and to geometry-valued columns in
+square brackets), for instance::
+
+  <table id="withcoo">
+    <stc>
+      Position ICRS "ra" "dec" Error "e_ra" "e_dec"
+    </stc>
+    <stc>
+      Position FK4 Epoch J1950.0 "ra_orig" "dec_orig"
+    </stc>
+
+    <column name="ra" unit=...
+    <column name="dec" ...
+    ...
+  </table>
+
+You do not need to change anything in the column definitions themselves;
+this is pure annotation.  If you refer
+to non-existing columns, RD parse errors will be thrown.
+
+The full STC-S grammar is humonguos and you don't want to bother.  Until
+a proper STC model comes around, we hope the following examples, taken
+from various `RDs used in Heidelberg`_, will give you enough material to
+see what to do::
+
+		<stc>
+			Position ICRS Epoch J2015.0 "ra" "dec"
+					Error "ra_error" "dec_error"
+				Velocity "pmra" "pmde" Error "sigpmr" "sigpmd"
+		</stc>
+		<stc>
+			Position ICRS Epoch "epu" "ra_ucac" "de_ucac"
+				Velocity "pmra" "pmde" Error "sigpmr" "sigpmd"
+		</stc>
+
+		<stc>
+			Position Galactic "glon" "glat"
+		</stc>
+
+		<stc>
+			Polygon ICRS [s_region]
+		</stc>
+
+		<stc>
+		  PositionInterval ICRS [bbox]
+		</stc>
+
+		<stc>
+			Position J2000 "raj2000" "dej2000"
+			Redshift OPTICAL "redshift"
+		</stc>
+
+		<stc>
+		  Time TT 2000-01-01T00:00:00
+			Position ICRS Epoch J2000 "alphaFloat" "deltaFloat"
+				Error "RAErr" "DecErr"
+				Velocity "pmRA" "pmDE"
+					Error "PMRAErr" "PMDEErr"
+		</stc>
+
+		<stc>
+			Time TT "detection_time"
+			Position ICRS "raj2000" "dej2000"
+			Spectral "energy_cor" unit keV
+		</stc>		
+
+		<stc>
+			TimeInterval UTC TOPOCENTER "time_min" "time_max"
+		</stc>
+
+	
+		<stc>
+		  Position ICRS SPHER3 Epoch J2010 "alpha" "delta" "distance"
+			Velocity "mualpha" "mudelta" "radialvelocity"
+	  </stc>
+
+		<stc>
+			Position ICRS SPHER3 "raj2000" "dej2000" "dist" 
+				Size "rcluster" "rcluster" -1 
+				Velocity "pmra" "pmde" "rv" Error "e_pm" "e_pm" "e_rv"
+		</stc>
+
+
+New-style SIL definitions
+.........................
+
+When a proper STC data model comes around, it is quite likely that DaCHS
+will use the custom Simple Instance Language SIL to do this annotation.
+The reference manual has an introduction to the syntax in
+:dachsref:`Annotation Using SIL`.
+
+This doesn't help much in practice because this assumes a model, which
+we don't really have yet.  DaCHS, however, interprets SIL for time
+system annotation, which is then translated into TIMESYS in VOTables.
+In an ad-hoc way, use the following template, again as a child of table::
+
+	<dm id="obs_pos">
+		(stc2:Coords) {
+			time: (stc2:TimeCoordinate) {
+				frame:
+					(stc2:TimeFrame) {
+						timescale: TCB
+						refPosition: BARYCENTER 
+						time0: 0 }
+				location: @obs_time
+			}
+		}
+  </dm>
+
+To adjust this to your tables, pick a timescale from
+http://www.g-vo.org/rdf/timescale, a reference position from 
+http://www.g-vo.org/rdf/refposition, and change time0 to the JD of the
+epoch of your calendar; 0 is for JD itself or 2400000.5 for MJD.  If you
+have anything else, DaCHS can help you::
+
+  >>> from gavo import api
+  >>> import datetime
+  >>> api.dateTimeToJdn(datetime.datetime(1970, 1, 1))
+  2440587.5
+
+would yield the JD of the Unix epoch.
+
+Finally, to set the location, reference the column with a leading @.  If
+you use a literal here, the implicit unit is day.
+
 
 Debugging
 ---------
@@ -4580,90 +4788,6 @@ nicest way to debug stuff like this is to write::
       ...
 
 and then use the python debugger to figure things out.
-
-
-
-
-More on Tables
---------------
-
-Notes
-'''''
-
-Frequently, you need to say more about a column than is appropriate in
-the few-phrase description.  In catalogue descriptions and VizieR, such
-situations are handled using notes, and DaCHS follows suit.
-
-The notes themselves are kept in meta elements belonging to tables.
-Since the notes tend to be markup-heavy, their default format is
-reStructuredText.  When entering notes in RDs, there is an attribute
-``tag`` on these meta items::
-
-  <table id="demo">
-    ...
-    <meta name="note" tag="1">
-      The meaning of the flag is as follows:
-
-      =====  ==========
-      value  meaning
-      =====  ==========
-      1      value is 2
-      2      value is 1
-      =====  ==========
-   </meta>
-
-   <meta name="note" tag="2">
-   ...
-  </table>
-
-To assoicate a column with a note, use the column's note attribute::
-
-  <colum name="crazyflag" type="smallint" ... note="1"/>
-
-As tag, you may use basically any string, but it's a good idea to keep
-it to numbers or at least characters not requiring URL encoding.
-
-The notes will exposed in HTML table heads, table and service
-descriptions, etc.  If you need to link to one, there is the built-in
-tablenote renderer that takes the table and the note from its query
-path.  The most convenient way to is it is through the built-in vanity
-name tablenote, where you would access the note above using a URL like
-``http://your.server/tablenote/demoschema.demo/1``.
-
-
-STC
-'''
-
-As soon as you have coordinates, you will want to declare coordinate
-metadata on them, i.e., reference frames, roles played by tables (x is
-the derivative of y, and x1 is a galactic latitude, etc).  In VO lingo,
-this is known as declaring space-time coordinates or STC for short.
-
-DaCHS uses a language called STC-S to do this.  The STC-S definition
-currently only exists as a note and is both a bit terse and not quite as
-rigorous as one would wish, but the good news is that you will get by
-with but a few features most of the time.
-
-STC is defined in children of table elements, with references to table
-columns in quoted strings::
-
-  <table id="withcoo">
-    <stc>
-      Position ICRS "ra" "dec" Error "e_ra" "e_dec"
-    </stc>
-    <stc>
-      Position FK4 J1950.0 "ra_orig" "dec_orig"
-    </stc>
-
-    <column name="ra" unit=...
-    <column name="dec" ...
-    ...
-  </table>
-
-You do not need to change anything in the column definitions themselves,
-since the machinery will resolve your column references.  If you refer
-to non-existing columns, RD parse errors will be thrown.
-
 
 
 More on Services
@@ -5663,7 +5787,7 @@ authorized clients.  The embargo will automatically be lifted once the
 proprietarity period is over.
 
 To make a ”product” (e.g., spectrum or image) proprietary, in the
-`products#define`_ application building the rowdict, set the ``owner``
+:dachsref:`//products#define` application building the rowdict, set the ``owner``
 and ``embargo`` keys.  Owner is the name of a user created as described
 above, embargo must eventually become a timestamp, so you'll in general
 come up with an ISO datetime string or a python ``datetime.datetime``
@@ -5746,7 +5870,7 @@ data – see above for details on how to create users and groups.
 .. _map: http://docs.g-vo.org/DaCHS/ref.html#element-map
 .. _Operator's Guide: http://docs.g-vo.org/DaCHS/opguide.html
 .. _pgsphere: http://pgsphere.projects.pgfoundry.org/
-.. _reGrammar: http://docs.g-vo.org/DaCHS/ref.html#element-regrammar
+.. _RDs used in Heidelberg: http://svn.ari.uni-heidelberg.de/svn/gavo/hdinputs/
 .. _reStructuredText: http://docutils.sourceforge.net/rst.html
 .. _reference documentation: http://docs.g-vo.org/DaCHS/ref.html
 .. _registry section in the operator's guide: opguide.html#registry-matters
@@ -5754,7 +5878,6 @@ data – see above for details on how to create users and groups.
 .. _sources: http://docs.g-vo.org/DaCHS/ref.html#element-sources
 .. _splat: http://star-www.dur.ac.uk/~pdraper/splat/splat-vo
 .. _ssap#setMeta: ref.html#ssap-setmeta
-.. _stc-s definition: http://www.ivoa.net/Documents/Notes/STC-S/STC-S-20090527.html
 .. _topcat: http://www.star.bris.ac.uk/~mbt/topcat/
 .. _var: http://docs.g-vo.org/DaCHS/ref.html#element-var
 .. _vounits: http://www.ivoa.net/documents/VOUnits/index.html
