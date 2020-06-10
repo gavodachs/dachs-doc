@@ -3636,90 +3636,6 @@ notations, for instance if you want to set a logo on the first creator::
 
 
 
-Licensing
-'''''''''
-
-Within the astronomical community, licensing issues have traditionally
-played a minor role – if you referenced properly, using data from other
-people was not only ok, it was encouraged.  We should keep it that way,
-even in the days of easy transmission and copying.  
-Still, formal statements
-about how your data may be used are required if, for instance, the data
-or parts thereof are re-used in Free software, or are aggregated and
-re-published.  Such statements are
-called licences, and to facilitate re-use you should choose and declare
-a licence.
-
-In DaCHS, you can to that manually using the following two meta items:
-
-* rights – this is free text transmitted to the registry that should
-  state the conditions under which the data can be used, shared, etc.
-  This can include requests for acknowledgement, but don't be overly
-  verbose here; if, for instance, you'd like to acknowledge all your
-  contributors, rather put that into a ``_longdoc`` meta and reference 
-  that from rights.
-* rightsURI – a URI of a common licence; this is so machines can figure
-  out conditions if necessary.  For now, only include it if your licence
-  actually gives such a URI.
-
-In practice, you should stick to a well-known licence and probably don't
-bother with these two items by hand.  DaCHS comes with
-support for CC-0 (essentially, no restrictions; that's not precisely a
-licence, but it stands in well for one), CC-BY (state where
-you got the data from if re-publishing), and CC-BY-SA (as for CC-BY, but
-also require anyone who re-uses the data to share what they got from you
-at least as liberally as you shared it.  Let us know if you want other
-licences supported, and we'll do something about it.  
-
-To apply them, replay one of the streams
-
-* :dachsref:`//procs#license-cc0`
-* :dachsref:`//procs#license-cc-by`
-* :dachsref:`//procs#license-cc-by-sa`
-
-into the RD and give a ``what`` attribute saying what is licensed
-(usually, the data).  And yes, we know that CC-0 isn't a licence; still,
-this arrangement seemed logical, and it stands in for a licence, anyway.
-For instance::
-
-  <FEED source="//procs#license-cc-by" what="ARIHIP"/>
-
-If you get to choose the licence but are not sure which one to pick: Our
-advice is to go for CC-0.  This is although we do believe in the GPL for
-software, which has strong traits of CC-BY-SA in that it prevents others
-from making your code proprietary.  But data is not code.  While it is
-probably unreasonable to combine more than a dozen pieces of source code
-from different parties into a single reasonable piece of software
-(excepting distributions, but these have special rules, and modern web
-browsers, which are not reasonable), it is totally reasonable to include
-data from thousands of sources.  Even something as permissive as CC-BY
-then becomes a liability – if you published the result of such an
-effort, in your ``rights`` meta you would have to reproduce a thousand
-attributions, and that is absolutely not worth it.
-
-In case your data providers are nervous about putting their work into,
-in effect, the public domain: Licensing has **nothing**
-whatsoever to do with requiring people to properly cite and/or
-acknowledge.  That is part of good scientific practice and is unrelated
-to legal issues.  Licensing is necessary for hassle-free re-use of the
-data in situations where it needs to be re-distributed; the classic
-example would be a star catalogue within a planetarium software.
-
-Sometimes you want an additional acknowleding clause.  In that case,
-just add another rights meta item::
-
-  <meta name="rights" format="rst">If you use this data, please
-    acknowledge: "This work made use of the HDAP which was produced at
-    Landessternwarte Heidelberg-Königstuhl under grant No. 00.071.2005
-    of the Klaus-Tschira-Foundation."
-    
-    The data in this service was calibrated using Astrometry.net,
-    :bibcode:`2010AJ....139.1782L`.
-  
-  </meta>
-  <FEED source="//procs#license-cc0" what="the HDAP scans"/>
-
-
 
 The Products Table
 ------------------
@@ -5214,104 +5130,6 @@ parsed, and so there are limits to what you can see) and retrieving all
 
 
 
-Some Words on Times
--------------------
-
-Among the messier data types in astronomical databases are dates and
-times – they come in lots of crazy input formats, they can be
-represented in lots of different ways in the database, they are expected
-in lots of crazy output formats, plus there's a host of exciting
-metadata on them, including time scales and reference positions.
-
-With DaCHS, we recommend one of the following ways of storing dates and
-times (written as attributes of column):
-
-* ``name="x_mjd" type="double precision" unit="d"`` – a modified julian date
-* ``type="double precision" unit="d"`` – a julian date
-* ``type="double precision" unit="s"`` – a unix timestamp
-* ``type="double precision" unit="yr"`` – a Julian year with fractions
-* ``type="timestamp"`` – a postgresql timestamp
-
-All other things being equal, we recommend using mjds; most VO data
-models and protocols employ them, and they are fairly easy to query
-against.  In HTML forms, they are easily displayed as human-readable
-datetimes by using an ``displayHint="type=humanDate"`` (which you can do
-for the others, too, of course).
-
-And yes, unfortunately DaCHS currently has to use the column name to
-tell MJDs from JDs.  We used to use the xtype for that (and that still
-works), but that's incompatible with the SODA/SIAv2 use of xtype.
-Eventually, some saner mechanism will be defined by the VO, but until
-then just name columns having MJDs something with ``mjd`` in it.  And
-don't have ``mjd`` in your column names unless there's MJD in there.
-
-The Julian years are a good choice, too, and they are immediately
-human-readable to some extent.  They are certainly the representation of
-choice for epochs and equinoxes.  Note that the storage of Bessel years
-is strongly discouraged.  Use the ``bYearToDateTime`` function to
-transform them to datetime instances which you can then map to any
-recommended representation.
-
-While timestamps might sound like a good idea in that they are the proper
-native type to manipulate dates and times with, they usually are a bad
-choice.  The main reason is that in ADQL there is basically no support of
-timestamps at all, which makes any manipulation of them in ADQL queries
-virtually impossible.  If you're sure your table will never turn up on a
-TAP service, that doesn't hurt much, but can you be sure?
-
-All this didn't mention any UCDs or utypes that may apply.  UCDs should not,
-in general, depend on the time format chosen; all of the above could be
-used for quantities like ``time.creation``, ``time.end``,
-``time.epoch``, ``time.equinox``, ``time.processing``, ``time.release``,
-``time.start``, and more.  The SIAP version 1 protocol made a funky
-exception there, defining an ``VOX:Image_MJDateObs`` UCD; everything
-about that UCD is horrible, and it is generally accepted in the VO that
-this was an error.
-
-Finally, there is advanced metadata, in particular time zones, time
-scales (i.e., how does the time pass) and reference positions (i.e.,
-where is the clock positioned).
-
-Time zones are not supported at all in the VO.  All times are for the
-Greenwhich meridian (i.e., they should be close to UTC).
-
-The time scales are important on the level of seconds; they include  TAI
-(the time scale defined by a bunch of atomic clocks, UTC (TAI with leap
-seconds, basically our everyday time), UT, UT0, UT1, UT2 (several sorts
-of true times in Greenwich), and TT (Terrestial Time, a time scale
-linked to the TAI and used quite a bit in Astronomy).  More of that on
-the fairly readable http://stjarnhimlen.se/comp/time.html.
-
-The reference positions impact arrival times by simple geometry; common
-reference positions include “roughly earth” and “roughly sun”, which
-leads to differences on the order of ten minutes.  Additionally, there
-are relativistic effects at a level of
-milliseconds or below; they need to be declared for high precision work
-since a clock in the barycenter of the solar system will (evaporate but
-before that) run slower than
-one on Pluto due to relativistic effects of various sorts.  
-
-In STC-S parlance, the reference positions available include
-positions would be TOPOCENTER (the observatory), GEOCENTER (the center
-of the Earth), BARYCENTER (the barycenter of the solar system) and
-UNKNOWN (the default, which you should keep unless you are sure; clients
-can then at least employ some sane fallback rather than make wrong
-assumptions).
-
-To declare those, you must include a time phrase in your STC_ declaration in your table.
-Typically, this could look like this::
-
-  <table id="foo">
-    <stc>TimeInterval TT "timeStart" "timeEnd" Time "dateObs"</stc>
-
-    <column name="timeStart" ucd="time.start" unit="d"/>
-    <column name="timeEnd" ucd="time.end" unit="d"/>
-    <column name="dateObs" ucd="time.epoch;obs" unit="yr"/>
-    ...
-
-(descriptions and everything else left out for clarity; in particular,
-for times using double precision almost always is a good idea).
-
 
 Writing Examples
 ================
@@ -5923,6 +5741,197 @@ An embargoed product can only be retrieved by the owner until the
 embargo period is over.  What you give as ``owner`` is a group name; if
 someone can authenticate as the member of a group, she can access the
 data – see above for details on how to create users and groups.
+
+
+Conventions and Advocacy
+========================
+
+This chapter collects a few sections discussing recurring topics in data
+publication less tightly coupled with DaCHS.
+
+Licensing
+---------
+
+Within the astronomical community, licensing issues have traditionally
+played a minor role – if you referenced properly, using data from other
+people was not only ok, it was encouraged.  We should keep it that way,
+even in the days of easy transmission and copying.  
+Still, formal statements
+about how your data may be used are required if, for instance, the data
+or parts thereof are re-used in Free software, or are aggregated and
+re-published.  Such statements are
+called licences, and to facilitate re-use you should choose and declare
+a licence.
+
+In DaCHS, you can to that manually using the following two meta items:
+
+* rights – this is free text transmitted to the registry that should
+  state the conditions under which the data can be used, shared, etc.
+  This can include requests for acknowledgement, but don't be overly
+  verbose here; if, for instance, you'd like to acknowledge all your
+  contributors, rather put that into a ``_longdoc`` meta and reference 
+  that from rights.
+* rightsURI – a URI of a common licence; this is so machines can figure
+  out conditions if necessary.  For now, only include it if your licence
+  actually gives such a URI.
+
+In practice, you should stick to a well-known licence and probably don't
+bother with these two items by hand.  DaCHS comes with
+support for CC-0 (essentially, no restrictions; that's not precisely a
+licence, but it stands in well for one), CC-BY (state where
+you got the data from if re-publishing), and CC-BY-SA (as for CC-BY, but
+also require anyone who re-uses the data to share what they got from you
+at least as liberally as you shared it.  Let us know if you want other
+licences supported, and we'll do something about it.  
+
+To apply them, replay one of the streams
+
+* :dachsref:`//procs#license-cc0`
+* :dachsref:`//procs#license-cc-by`
+* :dachsref:`//procs#license-cc-by-sa`
+
+into the RD and give a ``what`` attribute saying what is licensed
+(usually, the data).  And yes, we know that CC-0 isn't a licence; still,
+this arrangement seemed logical, and it stands in for a licence, anyway.
+For instance::
+
+  <FEED source="//procs#license-cc-by" what="ARIHIP"/>
+
+If you get to choose the licence but are not sure which one to pick: Our
+advice is to go for CC-0.  This is although we do believe in the GPL for
+software, which has strong traits of CC-BY-SA in that it prevents others
+from making your code proprietary.  But data is not code.  While it is
+probably unreasonable to combine more than a dozen pieces of source code
+from different parties into a single reasonable piece of software
+(excepting distributions, but these have special rules, and modern web
+browsers, which are not reasonable), it is totally reasonable to include
+data from thousands of sources.  Even something as permissive as CC-BY
+then becomes a liability – if you published the result of such an
+effort, in your ``rights`` meta you would have to reproduce a thousand
+attributions, and that is absolutely not worth it.
+
+In case your data providers are nervous about putting their work into,
+in effect, the public domain: Licensing has **nothing**
+whatsoever to do with requiring people to properly cite and/or
+acknowledge.  That is part of good scientific practice and is unrelated
+to legal issues.  Licensing is necessary for hassle-free re-use of the
+data in situations where it needs to be re-distributed; the classic
+example would be a star catalogue within a planetarium software.
+
+Sometimes you want an additional acknowleding clause.  In that case,
+just add another rights meta item::
+
+  <meta name="rights" format="rst">If you use this data, please
+    acknowledge: "This work made use of the HDAP which was produced at
+    Landessternwarte Heidelberg-Königstuhl under grant No. 00.071.2005
+    of the Klaus-Tschira-Foundation."
+    
+    The data in this service was calibrated using Astrometry.net,
+    :bibcode:`2010AJ....139.1782L`.
+  
+  </meta>
+  <FEED source="//procs#license-cc0" what="the HDAP scans"/>
+
+
+
+Some Words on Times
+-------------------
+
+Among the messier data types in astronomical databases are dates and
+times – they come in lots of crazy input formats, they can be
+represented in lots of different ways in the database, they are expected
+in lots of crazy output formats, plus there's a host of exciting
+metadata on them, including time scales and reference positions.
+
+With DaCHS, we recommend one of the following ways of storing dates and
+times (written as attributes of column):
+
+* ``name="x_mjd" type="double precision" unit="d"`` – a modified julian date
+* ``type="double precision" unit="d"`` – a julian date
+* ``type="double precision" unit="s"`` – a unix timestamp
+* ``type="double precision" unit="yr"`` – a Julian year with fractions
+* ``type="timestamp"`` – a postgresql timestamp
+
+All other things being equal, we recommend using mjds; most VO data
+models and protocols employ them, and they are fairly easy to query
+against.  In HTML forms, they are easily displayed as human-readable
+datetimes by using an ``displayHint="type=humanDate"`` (which you can do
+for the others, too, of course).
+
+And yes, unfortunately DaCHS currently has to use the column name to
+tell MJDs from JDs.  We used to use the xtype for that (and that still
+works), but that's incompatible with the SODA/SIAv2 use of xtype.
+Eventually, some saner mechanism will be defined by the VO, but until
+then just name columns having MJDs something with ``mjd`` in it.  And
+don't have ``mjd`` in your column names unless there's MJD in there.
+
+The Julian years are a good choice, too, and they are immediately
+human-readable to some extent.  They are certainly the representation of
+choice for epochs and equinoxes.  Note that the storage of Bessel years
+is strongly discouraged.  Use the ``bYearToDateTime`` function to
+transform them to datetime instances which you can then map to any
+recommended representation.
+
+While timestamps might sound like a good idea in that they are the proper
+native type to manipulate dates and times with, they usually are a bad
+choice.  The main reason is that in ADQL there is basically no support of
+timestamps at all, which makes any manipulation of them in ADQL queries
+virtually impossible.  If you're sure your table will never turn up on a
+TAP service, that doesn't hurt much, but can you be sure?
+
+All this didn't mention any UCDs or utypes that may apply.  UCDs should not,
+in general, depend on the time format chosen; all of the above could be
+used for quantities like ``time.creation``, ``time.end``,
+``time.epoch``, ``time.equinox``, ``time.processing``, ``time.release``,
+``time.start``, and more.  The SIAP version 1 protocol made a funky
+exception there, defining an ``VOX:Image_MJDateObs`` UCD; everything
+about that UCD is horrible, and it is generally accepted in the VO that
+this was an error.
+
+Finally, there is advanced metadata, in particular time zones, time
+scales (i.e., how does the time pass) and reference positions (i.e.,
+where is the clock positioned).
+
+Time zones are not supported at all in the VO.  All times are for the
+Greenwhich meridian (i.e., they should be close to UTC).
+
+The time scales are important on the level of seconds; they include  TAI
+(the time scale defined by a bunch of atomic clocks, UTC (TAI with leap
+seconds, basically our everyday time), UT, UT0, UT1, UT2 (several sorts
+of true times in Greenwich), and TT (Terrestial Time, a time scale
+linked to the TAI and used quite a bit in Astronomy).  More of that on
+the fairly readable http://stjarnhimlen.se/comp/time.html.
+
+The reference positions impact arrival times by simple geometry; common
+reference positions include “roughly earth” and “roughly sun”, which
+leads to differences on the order of ten minutes.  Additionally, there
+are relativistic effects at a level of
+milliseconds or below; they need to be declared for high precision work
+since a clock in the barycenter of the solar system will (evaporate but
+before that) run slower than
+one on Pluto due to relativistic effects of various sorts.  
+
+In STC-S parlance, the reference positions available include
+positions would be TOPOCENTER (the observatory), GEOCENTER (the center
+of the Earth), BARYCENTER (the barycenter of the solar system) and
+UNKNOWN (the default, which you should keep unless you are sure; clients
+can then at least employ some sane fallback rather than make wrong
+assumptions).
+
+To declare those, you must include a time phrase in your STC_ declaration in your table.
+Typically, this could look like this::
+
+  <table id="foo">
+    <stc>TimeInterval TT "timeStart" "timeEnd" Time "dateObs"</stc>
+
+    <column name="timeStart" ucd="time.start" unit="d"/>
+    <column name="timeEnd" ucd="time.end" unit="d"/>
+    <column name="dateObs" ucd="time.epoch;obs" unit="yr"/>
+    ...
+
+(descriptions and everything else left out for clarity; in particular,
+for times using double precision almost always is a good idea).
+
 
 .. _//epntap2#populate-2_0: http://docs.g-vo.org/DaCHS/ref.html#epntap2-populate-2-0
 .. _//epntap2#table-2_0: http://docs.g-vo.org/DaCHS/ref.html#the-epntap2-table-2-0-mixin
