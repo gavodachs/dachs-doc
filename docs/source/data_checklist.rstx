@@ -62,13 +62,11 @@ The italicized text in the explanations is taken from [RMI]_.
   about the resource. [...] To support keyword-based searches of
   registry contents, the Subject element should be as specific as
   possible and include as many relevant terms as possible.* If at all
-  possible, the subjects should come from a controlled vocabulary.  We
-  recommend you first check the `IVOA Thesaurus`_ (the dictionary may be
-  useful, or download the the turtle version and use what's under
-  skos:definition), but both `Astronomy Journal Keywords`_ and `Vizier
-  Keywords`_ will do fine if you already have those.  In the GAVO DC the
-  first term is *always* capitalized, successive words should be lower
-  case if at all posssible.
+  possible, the subjects should come from a controlled vocabulary, which
+  by now is http://www.ivoa.net/rdf/uat.  If you find something there,
+  add it; if you have extra terms, don't worry.  Nobody will come after
+  you for inventing terms as long as the UAT really doesn't have a 
+  matching concept.
 
 :Description:
   *Thorough text descriptions are particularly encouraged in order to
@@ -122,21 +120,22 @@ The italicized text in the explanations is taken from [RMI]_.
   and 2010-10-30 and cover positions between 30,40, and 60, 120 degrees
   ICRS; we only have objects of redshifts between 0.1 and 0.2".
 
-:Copyright information:
-  If you have any special wishes ("if you use..., please
-  acknowledge..."), or if you want to restrict what people can do with
-  your data, this would go here.  GAVO offers "embargoed" publication
-  where, for a limited time, only persons having a password can access
-  data files or a service.  
+:Licensing and Acknowledgements:
+  It is not uncommon to add phrases like "if you use..., please
+  acknowledge..." to the metadata.  Feel free to invent something.
+  Also, it would be good if you gave your data a licence.  That is
+  completely unrelated to citation (that's academic practice and you
+  can't license away fair use even if there were a reason to do so).
+  But it's good if people who want to re-distribute your data know what
+  they're allowed to do.  We recommend to distribute data under CC-0
+  (which is essentially public domain) for a number of reasons, but if
+  this scares you, CC-BY and CC-BY-SA usually doesn't seriously hinder
+  reasonable re-use, either.
 
-:Service profile:
-  Certain VO protocols have a notion of "verbosity", giving more or less
-  fields depending on the query.  For data giving enough columns, it
-  would be nice if you gave us your assessment of the "importance" of a
-  column, going from 1 (most important, data is worthless without this
-  column) to 30 (only very specific and exotic applications will need
-  this column).
-  
+  Somewhat relatedly, GAVO also offers "embargoed" publication where,
+  for a limited time, only persons having a password can access data
+  files or a service.  
+
 
 Other issues
 ------------
