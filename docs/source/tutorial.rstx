@@ -4244,6 +4244,144 @@ Finally, to set the location, reference the column with a leading @.  If
 you use a literal here, the implicit unit is day.
 
 
+Defining Views
+''''''''''''''
+
+Sometimes a service should execute queries spanning several tables.  One
+way to go about this would be to use a fancyQueryCore_.
+
+However, since metadata generation is much more straightforward if a
+service sits on top of something that's actually pretty much a table,
+the better way usually is to define a view executing the query.  There
+are some subtleties with this, though, so here's a few words on how we
+recommend you go about that.
+
+First, you'll obviously define the tables involved::
+
+  <table onDisk="True" id="master" mixin="//scs#q3cindex"
+      primary="catno" adql="True">
+    <column name="catno" type="integer" required="True"
+      ucd="meta.id;meta.main"
+      tablehead="id#"
+      description="Identification number in the ARIGFH master catalogue"
+      verbLevel="1"/>
+    <column name="raj2000" type="double precision"
+    ...
+
+  <table onDisk="True" id="identified" adql="True">
+    <column name="dist" type="double precision"
+      ucd="pos.angDistance" unit="deg"
+      tablehead="Offset"
+      description="Offset between master catalogue position at catalogue
+        epoch and equinox and the catalogue position"
+      verbLevel="1" displayHint="displayUnit=mas,sf=1"/>
+    <column name="masterNo" type="integer" required="True"
+      ...
+
+A good approach might be to stuff the columns that will later show up in
+the view into a STREAM and then replay that stream in both the table
+definitions and the view definition, but since the RD we're using as an
+`example <http://svn.ari.uni-heidelberg.de/svn/gavo/hdinputs/arigfh/q.rd>`_
+here worked with ``original``, this we use in this introduction; with
+STREAMs, sharing the columns looks differently, the rest remains the
+same.
+
+To save typing and make things a bit clearer, we use LOOPs for copying
+the source columns.  The view definition then looks somewhat like this::
+
+  <table onDisk="true" id="id" adql="True">
+    <meta name="description">
+      The stars from the gfh table having counterparts in the master
+      catalogue, together with those counterparts.
+    </meta>
+    <column original="master.catno" name="masterNo"/>
+    <column original="master.component" name="compMaster"/>
+    <column original="master.raj2000"/>
+    <column original="master.dej2000"/>
+    <column original="master.pmra" name="pmraMaster"/>
+    <column original="master.pmde" name="pmdeMaster"/>
+    <column original="master.mv" name="mvMaster"/>
+    <column original="master.mb" name="mbMaster"/>
+
+    <LOOP listItems="catid catan dist iq">
+      <events>
+        <column original="identified.\item"/>
+      </events>
+    </LOOP>
+
+    <LOOP>
+      <codeItems>
+        for col in context.getById("gfh"):
+          yield {'item': col.name}
+      </codeItems>
+      <events>
+        <column original="gfh.\item"/>
+      </events>
+    </LOOP>
+
+    <viewStatement>
+      CREATE VIEW \curtable AS (
+        SELECT \colNames FROM
+          (SELECT catno, raj2000, dej2000,
+            pmra AS pmraMaster,
+            pmde AS pmdeMaster,
+            mv AS mvMaster,
+            mb AS mbMaster,
+            component AS compMaster FROM \schema.master) AS m
+        JOIN
+          \schema.identified AS idf
+        ON (masterNo=catno)
+        JOIN \schema.gfh
+        USING (catid, catan))
+    </viewStatement>
+  </table>
+
+As you can see, you can rename columns, and the second loop actually
+gets column names from some table obtained via its id programmatically
+(only do that if you're sure you actually want to follow changes in
+source table structure; the reason this is no one of the joined tables
+in the view has to do with the specific dataset).
+
+The viewStatement essentially is more or less arbitrary SQL.  For
+robustness against changes of table structure or schema or table name
+changes, however, you should probably always start with::
+
+      CREATE VIEW \curtable AS (
+        SELECT \colNames FROM
+
+– ``\\curtable`` will automatically adjust to whatever schema and table
+name is given in the RD, and ``\\colNames`` gives all the names of the
+columns; using it, you'll get errors instead of silent failures if you
+add or remove columns in the table definition but fail to adjust the
+view statement.
+
+When making these tables, it pays to be a bit careful with the ``data``
+elements, as of course the view depends on the source tables.  In
+particular, when you re-import one of the source tables, the view will
+get dropped, and it is a good idea to tell DaCHS to automatically
+re-make it.  The recommended setup for this looks like this::
+
+  <data id="import_master" recreateAfter="gfhtables">
+    ...
+    <make table="master"...
+
+  <data id="import_identified" recreateAfter="gfhtables">
+    ...
+    <make table="identified"...
+
+
+  <data id="gfhtables" auto="False">
+    <make table="id"/>
+  </data>
+
+– essentially, you make the view in a non-auto data which gets imported
+every time the source tables are re-made.  Note that making the ``data``
+for one source table when the other doesn't exist and will not be made
+in the same import will lead to an error in the view creation.  This is
+harmless for the import of the table you imported, as ``data`` creation
+on ``recreateAfter`` happens in a separate transaction.
+
+
 
 More on CondDescs
 -----------------
@@ -5264,143 +5402,6 @@ parsed, and so there are limits to what you can see) and retrieving all
 
 
 
-
-Services Over Views
-===================
-
-Sometimes a service should execute queries spanning several tables.  One
-way to go about this would be to use a fancyQueryCore_.
-
-However, since metadata generation is much more straightforward if a
-service sits on top of something that's actually pretty much a table,
-the better way usually is to define a view executing the query.  There
-are some subtleties with this, though, so here's a few words on how we
-recommend you go about that.
-
-First, you'll obviously define the tables involved::
-
-  <table onDisk="True" id="master" mixin="//scs#q3cindex"
-      primary="catno" adql="True">
-    <column name="catno" type="integer" required="True"
-      ucd="meta.id;meta.main"
-      tablehead="id#"
-      description="Identification number in the ARIGFH master catalogue"
-      verbLevel="1"/>
-    <column name="raj2000" type="double precision"
-    ...
-
-  <table onDisk="True" id="identified" adql="True">
-    <column name="dist" type="double precision"
-      ucd="pos.angDistance" unit="deg"
-      tablehead="Offset"
-      description="Offset between master catalogue position at catalogue
-        epoch and equinox and the catalogue position"
-      verbLevel="1" displayHint="displayUnit=mas,sf=1"/>
-    <column name="masterNo" type="integer" required="True"
-      ...
-
-A good approach might be to stuff the columns that will later show up in
-the view into a STREAM and then replay that stream in both the table
-definitions and the view definition, but since the RD we're using as an
-`example <http://svn.ari.uni-heidelberg.de/svn/gavo/hdinputs/arigfh/q.rd>`_
-here worked with ``original``, this we use in this introduction; with
-STREAMs, sharing the columns looks differently, the rest remains the
-same.
-
-To save typing and make things a bit clearer, we use LOOPs for copying
-the source columns.  The view definition then looks somewhat like this::
-
-  <table onDisk="true" id="id" adql="True">
-    <meta name="description">
-      The stars from the gfh table having counterparts in the master
-      catalogue, together with those counterparts.
-    </meta>
-    <column original="master.catno" name="masterNo"/>
-    <column original="master.component" name="compMaster"/>
-    <column original="master.raj2000"/>
-    <column original="master.dej2000"/>
-    <column original="master.pmra" name="pmraMaster"/>
-    <column original="master.pmde" name="pmdeMaster"/>
-    <column original="master.mv" name="mvMaster"/>
-    <column original="master.mb" name="mbMaster"/>
-
-    <LOOP listItems="catid catan dist iq">
-      <events>
-        <column original="identified.\item"/>
-      </events>
-    </LOOP>
-
-    <LOOP>
-      <codeItems>
-        for col in context.getById("gfh"):
-          yield {'item': col.name}
-      </codeItems>
-      <events>
-        <column original="gfh.\item"/>
-      </events>
-    </LOOP>
-
-    <viewStatement>
-      CREATE VIEW \curtable AS (
-        SELECT \colNames FROM
-          (SELECT catno, raj2000, dej2000,
-            pmra AS pmraMaster,
-            pmde AS pmdeMaster,
-            mv AS mvMaster,
-            mb AS mbMaster,
-            component AS compMaster FROM \schema.master) AS m
-        JOIN
-          \schema.identified AS idf
-        ON (masterNo=catno)
-        JOIN \schema.gfh
-        USING (catid, catan))
-    </viewStatement>
-  </table>
-
-As you can see, you can rename columns, and the second loop actually
-gets column names from some table obtained via its id programmatically
-(only do that if you're sure you actually want to follow changes in
-source table structure; the reason this is no one of the joined tables
-in the view has to do with the specific dataset).
-
-The viewStatement essentially is more or less arbitrary SQL.  For
-robustness against changes of table structure or schema or table name
-changes, however, you should probably always start with::
-
-      CREATE VIEW \curtable AS (
-        SELECT \colNames FROM
-
-– ``\\curtable`` will automatically adjust to whatever schema and table
-name is given in the RD, and ``\\colNames`` gives all the names of the
-columns; using it, you'll get errors instead of silent failures if you
-add or remove columns in the table definition but fail to adjust the
-view statement.
-
-When making these tables, it pays to be a bit careful with the ``data``
-elements, as of course the view depends on the source tables.  In
-particular, when you re-import one of the source tables, the view will
-get dropped, and it is a good idea to tell DaCHS to automatically
-re-make it.  The recommended setup for this looks like this::
-
-  <data id="import_master" recreateAfter="gfhtables">
-    ...
-    <make table="master"...
-
-  <data id="import_identified" recreateAfter="gfhtables">
-    ...
-    <make table="identified"...
-
-
-  <data id="gfhtables" auto="False">
-    <make table="id"/>
-  </data>
-
-– essentially, you make the view in a non-auto data which gets imported
-every time the source tables are re-made.  Note that making the ``data``
-for one source table when the other doesn't exist and will not be made
-in the same import will lead to an error in the view creation.  This is
-harmless for the import of the table you imported, as ``data`` creation
-on ``recreateAfter`` happens in a separate transaction.
 
 
 The Registry Interface
