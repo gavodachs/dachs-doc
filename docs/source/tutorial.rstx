@@ -4409,10 +4409,12 @@ write the equivalent vizier-like expressions)::
 Writing Examples
 ----------------
 
-In the VO, there is a (as of this writing, fledgling) standard for
+As part of the `DALI standard`_, there is a convention for
 giving examples for service usage; the idea is to produce HTML that's
 useful for human consumption with additional, RDFa-based, markup to let
-clients figure out how to fill their interface forms.
+clients figure out how to fill their interface forms; the prime example
+of where that works nicely is in TOPCAT's TAP client (check the examples
+button, the service-provided entry).
 
 DaCHS lets you write such examples in ReStructuredText with some
 extra markup that is turned into the machine-readable semantics.
@@ -4420,19 +4422,23 @@ extra markup that is turned into the machine-readable semantics.
 TAP examples
 ''''''''''''
 
-The most prominent kind of examples are the one for TAP/ADQL.
-These reside in userconfig – please read
-:dachsdoc:`opguide.html#userconfig-rd` before writing examples.
+The most immediately useful examples are those for TAP/ADQL.  While
+examples normally reside in the service elements they illustrate, that
+doesn't work for TAP, because the service is defined in the built-in RD
+``//tap``.
 
-TAP examples are taken from a STREAM
-with id ``tapexamples``.  One such example is already given in the
-userconfig.rd of the distribution which you can take as a template for
+Rather than change that (with all the trouble that would give when
+upgrading DaCHS, instead add the TAP examples in userconfig.rd; to
+prepare for that, see `The userconfig RD`_
+
+Once you have your userconfig.rd, locate the STREAM
+with the id ``tapexamples``.  One example is already given in the
+userconfig.rd of the distribution; take that as a template for
 your own examples.
 
-In the stream, there are ``_example`` meta elements with a mandatory
-``title`` attribute and ReStructuredText contents.  The built-in example
-looks like this::
-
+Each example resides in a ``_example`` meta element.  This has a
+mandatory ``title`` attribute, and its content format is fixed to
+ReStructuredText.  The built-in example looks like this::
 
     <meta name="_example" title="tap_schema example">
       To locate columns "by physics", as it were, use UCD in
@@ -4446,8 +4452,14 @@ looks like this::
           WHERE description LIKE '%em.IR.8-15um%'
     </meta>
 
-You must give a query in a block marked ``..tapquery::``.  A typical
-client would fill this into whatever its UI provides to write queries.
+In addition to title, the only thing mandatory is
+a block marked ``..tapquery::`` that contains the ADQL query you want to
+show.  A typical client would fill this into whatever its UI provides to
+write queries.
+
+Of course, you should explain what the query does and how it does this.
+ReStructuredText lets you have basic markup, including, if necessary,
+section headings if your example gets long enough.
 
 Optionally, you can give the client a hint what table the example
 pertains to using the ``:taptable:`` interpreted text role.  A client
@@ -4455,13 +4467,13 @@ would typically use that to restrict the display of the example to
 states in which it assumes the user wishes to runs queries against that
 particular table.
 
-As is described in the operator's guide, DaCHS does not pick up changes
+Note again that DaCHS does not pick up changes
 to ``userconfig`` automatically.  Hence, after adding or changing
 examples, you have to run::
 
   dachs serve exp % //tap
 
-as the gavo user on the server.
+on the server (this needs ``[web]adminpasswd`` set).
 
 To see your shiny new example(s), point your browser to ``<server
 url>/tap/examples``.
@@ -4471,12 +4483,12 @@ Datalink examples
 '''''''''''''''''
 
 DaCHS also contains provisional support for examples associated with
-datalink services.  Since client support for it is not in the pipeline
-and it's not planned for the standard either, it's of questionable
-utility so far, but hopefully that's going to change.
+datalink services.  We cannot recommend a client to try them with at
+this point, but of course having services with useful examples will make
+client support more attractive.
 
 To add an example to a datalink service, add an ``_example`` meta with a
-title attribute directly to the service definition; for instance::
+title attribute to the service definition; for instance::
 
   <service id="sdl" allowed="dlget,dlmeta">
     <meta name="title">FEROS Datalink Service</meta>
@@ -4493,13 +4505,13 @@ That's a PubDID the service will generate a datalink document for.
 To see the example, point your browser to the service URL with the
 examples renderer.  If the above fragment were in the RD ``flash/q``,
 the URL would thus work out to be ``<server url>/flash/q/sdl/examples``.
-No manual reloading is necessary here, changes will be picked up
-automatically.
+Since DaCHS picks up changes to “normal” RDs automatically,  you will
+immediately see changes to your example text.
 
 Generic examples
 ''''''''''''''''
 
-The DALI standard defines a term *generic-parameter* which can be used
+The `DALI standard`_ defines a term *generic-parameter* which can be used
 to annotate all kinds of services; this may come in particularly handy
 with the api renderer.
 
@@ -4516,6 +4528,13 @@ To use it, you can write something like::
     vstd:Standard records, as in
     :genparam:`uri(ivo://org.gavo.dc/std/glots#tables-1.0)`
   </meta>
+
+As you can see, generic parameters are defined using a ``genparam``
+interpreted text role; the content of that role is the parameter name
+and then, in parentheses, the parameter value.  Don't worry if your
+parameter value has a closing parenthesis in it; DaCHS only recognises
+the parenthesis that ends the genparam if it is at the end of the
+interpreted text.
 
 Note that such examples best sit in the service rather than top-level in
 the RD; if the are direct children of the RD, they would appear in all
