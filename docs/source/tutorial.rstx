@@ -78,10 +78,10 @@ browsers, too.  If you are not sure what the Virtual Observatory is:
 Technically, it is a set of APIs and a registry in which these API URLs
 are associated with a bunch of relatively formalised metadata.  What
 that actually means is probably best illustrated by trying some of the
-tutorials involving TOPCAT or Aladin from VOTT_.
+tutorials involving TOPCAT or Aladin_ from VOTT_.
 
 The tutorial supplants the DaCHS documentation, in particular the
-`Installation Guide`_, the `Operator's Guide`_, and the `Reference
+`Installation Guide`_ and the `Reference
 Documentation`_.  The goal is that the tutorial provides just enough
 information to let users prublish simple and plain data in the most
 typcial scenarios.  Anything more complicated will probably require
@@ -245,8 +245,8 @@ This file comes from the colleciton of RDs active at GAVO's Heidelberg
 Data Center (https://dc.g-vo.org), which you can inspect at
 http://svn.ari.uni-heidelberg.de/svn/gavo/hdinputs – in particular,
 you're welcome to copy as much as you want.  To locate examples for
-concrete elements, meta items, and such, have a look at our `RD element
-reference`_ for these.
+concrete elements, meta items, and such, have a look at
+:dachsdoc:`elemref.html` for these.
 
 Our example RD starts out with...
 
@@ -483,8 +483,8 @@ coordinates::
 
 What this says is that there's a number of coordinate structures in the
 table, grouping together positions, errors, and proper motions in a
-specific reference frame.  This will soon look differently; until then,
-what's going on right now is discussed in `STC`_ .
+specific reference frame.  See `Space-Time Metadata`_ for more
+information.
 
 
 Column definitions
@@ -570,7 +570,7 @@ Futher metadata on columns includes:
   attribute.  In both cases, whitespace is normalized, so you can enter
   line breaks and similar for readability in the source, and they will
   always be rendered as a single blank.  For even longer, note-like
-  material, see Notes_.  An example for a long descripton::
+  material, see `Tablee Notes`_.  An example for a long descripton::
 
     <column name="aperture">
       <description>The aperture is the full-width-half-max of the
@@ -642,7 +642,7 @@ Scrolling a bit further down in the arihip RD, you'll notice some LOOP
 constructs.  These are discussed below under `active tags`_.
 
 After the column definitions, there are meta elements called “note”;
-for those, see Notes_.
+for those, see `Table Notes`_.
 
 
 Parsing Input Data
@@ -767,7 +767,7 @@ The arihip RD then goes on with::
       <map dest="vrad">parseWithNull(
         @vrad, lambda a:float(killBlanks(a)), "")</map>
 
-The make_ element brings together a table (in the ``table``
+The :dachsref:`Element make` brings together a table (in the ``table``
 attribute) with a recipe for how to fill it from the output of the grammar
 (the row maker).
 
@@ -988,12 +988,13 @@ special requirements on cores.  Don't be too disappointed of a given
 renderer won't work with your core.
 
 The most common core for catalogue services (and the one you'll typically
-use for SCS services) is the dbCore_, as used here.  Other cores you
+use for SCS services) is the :dachsref:`Element dbCore`_, 
+as used here.  Other cores you
 should know about include the :dachsref:`Element nullCore` (for services
 that don't do any server-side computation at all), :dachsref:`Element
 datalinkCore` (which can define all sorts of manipulations on and
-linking of datasets), the python and custom cores (discussed in the
-reference's `Write Your Own Core`_ section), and several
+linking of datasets), the python and custom cores (cf.
+:dachsref:`writing-custom-cores`), and several
 protocol-specific cores discussed below.
 
 The dbCore generates a (single-table) query from condition descriptors
@@ -1249,8 +1250,8 @@ The good news: This is essentially how far RD wizardry goes
 that).  Once you write your first RD with LOOPs and macros, you have
 ascended into the ranks of DaCHS grand mastery.
 
-Most operators lead happy lives without such aspirations.
-
+Most operators lead happy lives without such aspirations.  The others
+can go on to a gentler introduction to `active tags`_ below.
 
 
 Quick start with DaCHS
@@ -1507,7 +1508,7 @@ just restart the DaCHS server.
 
 For ``ivo_published`` services, publication means that their metadata
 will be served whenever DaCHS is harvested by VO registries using a
-protocol called OAI-PMH.  DaCHS' implemenation of that protocol is done
+protocol called `OAI-PMH`_.  DaCHS' implemenation of that protocol is done
 such that XSLT-aware user agents (which, at least in 2020, still means:
 all major web browsers) can be used to (somewhat clumsily) operate it.
 
@@ -1710,7 +1711,7 @@ headers is going to be fiddly – and of course, FITS+modern WCS is about
 the only thing that will work nicely on all relevant clients.
 
 If you have to have images of a different sort, it is probably a good
-idea to inquire on the dachs-support mailing list before spending a
+idea to inquire on the `dachs-support`_ mailing list before spending a
 major effort on local development.
 
 
@@ -1797,7 +1798,7 @@ Filling SIAP Tables
 When filling SIAP tables, you will almost always use:
 
 * :dachsref:`Element fitsProdGrammar` as the grammar; see also
-  `fitsGrammars`_ further down.
+  `fitsProductGrammars`_ further down.
 * the :dachsref:`//siap#computePGS` apply to interpret the FITS WCS to
   fill the coverage-related columns in the table.
 * the :dachsref:`//siap#setMeta` apply to fill the non-spatial
@@ -1916,7 +1917,7 @@ Cores
 
 There are two cores you may want for SIAP services:
 
-* dbCore_, to which you add the necessary
+* :dachsref:`Element dbCore`, to which you add the necessary
   condDescs manually as below, for “normal” SIAP services.
 * `siapCutoutCore <ref.html#element-siapcutoutcore>`_, which speaks SIAP
   but returns cutouts rather than full images; the size of these cutouts
@@ -2012,7 +2013,7 @@ SIAP and Datalink
 If you have larger  images or cubes and serve them SIAP, consider
 offering datalinks instead or perhaps even have `Datalinks as Products`_.
 The latter case is particularly attractive if your images are so large
-that people just clicking on some row in Aladin might not expect a
+that people just clicking on some row in Aladin_ might not expect a
 download of that size (in 2020, I'd set that limit at, perhaps, 100 MB).
 In both cases, people can select and download only parts of the image or
 request scaled versions of it (a less powerful and transparent
@@ -2797,8 +2798,8 @@ on how to Obscore-publish typed data.
 Obscore Notes
 '''''''''''''
 
-Dataset Identifiers (DID)
-.........................
+Dataset Identifiers
+...................
 
 Obscore uses the concept of dataset identifiers rather extensively, and
 it is not unlikely that queries against the ``obs_publisher_did`` column
@@ -3404,7 +3405,8 @@ within the table, you add something like::
 
 This implies that the service ``dl`` within the current RD will produce
 a datalink document if passed a string from ``idColumn``.  The example
-implies that this column ought to contain `publisher DIDs`_, which is
+implies that this column ought to contain publisher DIDs (see `Dataset
+Identifiers`_), which is
 what the standard descriptor generators that come with DaCHS like to
 see.  Since publisher DIDs tend to be a bit unwieldy (they are supposed
 to be globally unique, after all), the standard descriptor generators
@@ -3438,7 +3440,7 @@ One way to effect that is by defining a column like this::
   </column>
 
 The property declaration adds some elements to response VOTables that
-inform clients like Aladin what to expect when following that link.  At
+inform clients like Aladin_ what to expect when following that link.  At
 this point, this is a nonstandard convention.
 
 You will then have to fill that column in the rowmaker.  As long as the
@@ -5184,7 +5186,7 @@ Given enough client support, however, we will certainly add support for
 fancier authentication schemes (OAuth2?); the authorisation mechanisms
 discussed here should not be (materially) affected.
 
-At this point, recent versions of TOPCAT, Aladin, pyVO, and Splat_
+At this point, recent versions of TOPCAT, Aladin_, pyVO, and Splat_
 support HTTP basic authentication, so if you can live without federation
 and accept that the various tools will request the credentials
 separately, your users can probably work with proprietary data
@@ -5311,7 +5313,9 @@ Active Tags
 -----------
 
 Sometimes RDs need to contain material in several places, or there are
-tags that basically are copies of each other with minimal variation.
+tags that basically are copies of each other with minimal variation; we
+have already introduced the case in the DaCHS Basics as `Metaprogramming:
+Macros and LOOPs`_.
 
 In the spirit of DRY_, it is desirable to avoid the repetition, if only
 because when the RD develops, you may edit some repeated item in one
@@ -5538,7 +5542,6 @@ labeled items using macros.  For example::
       <make table="mags"/>
     </data>
   </resource>
-
 
 You can take this even further and generate the replacements with python
 code.  For instance, in :samplerd:`califa/q3`, I needed to pull dozens
@@ -5963,52 +5966,30 @@ definitions`_ for now.  Apologies that this is so obscure, but for once
 that's really not our fault.
 
 
-.. _//epntap2#populate-2_0: http://docs.g-vo.org/DaCHS/ref.html#epntap2-populate-2-0
-.. _//epntap2#table-2_0: http://docs.g-vo.org/DaCHS/ref.html#the-epntap2-table-2-0-mixin
 .. _EPN-TAP proposed specification: https://voparis-confluence.obspm.fr/display/VES/EPN-TAP+v2+parameter+description
 .. _ESAVO registry: http://esavo.esa.int/registry/index.jsp
 .. _IVOA identifiers: http://www.ivoa.net/documents/IVOAIdentifiers/20150709/index.html
-.. _Mapping data: http://docs.g-vo.org/DaCHS/tutorial.html#mapping-data
 .. _OAI-PMH: http://www.openarchives.org/OAI/openarchivesprotocol.html
 .. _PyPDS: https://github.com/RyanBalfanz/PyPDS
-.. _RD element reference: http://docs.g-vo.org/DaCHS/elemref.html
-.. _RMI-Style Metadata in the reference: http://docs.g-vo.org/DaCHS/ref.html#rmi-style-metadata
-.. _Resource Metadata for the Virtual Observatory: http://www.ivoa.net/Documents/latest/RM.html
 .. _RofR: http://rofr.ivoa.net/
-.. _VAO registry: http://nvo.stsci.edu/vor10/index.aspx
 .. _Virtual Observatory: http://ivoa.net
 .. _VOTT: http://dc.g-vo.org/VOTT
 .. _aladin: http://aladin.u-strasbg.fr/aladin.gml
-.. _apply: http://docs.g-vo.org/DaCHS/ref.html#element-apply
 .. _authority query: http://dc.g-vo.org/WIRR/?field0=ivorn&operator0=%3D&operand0=your.authority.here&MAXREC=20&OFFSET=0
-.. _chapter on scripting in the reference: http://docs.g-vo.org/DaCHS/ref.html#scripting
-.. _cores available: http://docs.g-vo.org/DaCHS/ref.html#cores-available
-.. _customization info in the operators' guide: http://docs.g-vo.org/opguide.html#adapting-dachs-for-your-site
 .. _dachs-support: http://lists.g-vo.org/cgi-bin/mailman/listinfo/dachs-support
-.. _dbCore: http://docs.g-vo.org/DaCHS/ref.html#element-dbcore
-.. _dispatching grammars: http://docs.g-vo.org/DaCHS/ref.html#dispatching-grammars
-.. _fancyQueryCore: ref.html#element-fancyquerycore
+.. _dali standard: http://ivoa.net/documents/DALI
 .. _gavo ucd resolver: http://dc.g-vo.org/ucds/ui/ui/form
 .. _gavo's adql short course: http://www.g-vo.org/adql
 .. _hints on common problems: http://docs.g-vo.org/commonproblems.html
 .. _installation guide: http://docs.g-vo.org/DaCHS/install.html
-.. _make: http://docs.g-vo.org/DaCHS/ref.html#element-make
 .. _manually add our repository: http://soft.g-vo.org/repo
-.. _map: http://docs.g-vo.org/DaCHS/ref.html#element-map
-.. _Operator's Guide: http://docs.g-vo.org/DaCHS/opguide.html
 .. _pgsphere: http://pgsphere.projects.pgfoundry.org/
 .. _RDs used in Heidelberg: http://svn.ari.uni-heidelberg.de/svn/gavo/hdinputs/
 .. _reStructuredText: http://docutils.sourceforge.net/rst.html
 .. _reference documentation: http://docs.g-vo.org/DaCHS/ref.html
-.. _registry section in the operator's guide: opguide.html#registry-matters
-.. _scs.xml: http://docs.g-vo.org/DaCHS/ref.html#the-scs-xml-renderer
-.. _sources: http://docs.g-vo.org/DaCHS/ref.html#element-sources
 .. _splat: http://star-www.dur.ac.uk/~pdraper/splat/splat-vo
-.. _ssap#setMeta: ref.html#ssap-setmeta
 .. _topcat: http://www.star.bris.ac.uk/~mbt/topcat/
-.. _var: http://docs.g-vo.org/DaCHS/ref.html#element-var
 .. _vounits: http://www.ivoa.net/documents/VOUnits/index.html
-.. _write your own core: http://docs.g-vo.org/DaCHS/ref.html#writing-custom-cores
 
 .. [#port] Another reason this may fail is if you have something else
    listening on port 8080 already, in with case you can create a file
