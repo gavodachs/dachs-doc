@@ -4247,16 +4247,19 @@ you use a literal here, the implicit unit is day.
 Defining Views
 ''''''''''''''
 
-Sometimes a service should execute queries spanning several tables.  One
-way to go about this would be to use a fancyQueryCore_.
+It is quite regularly preferable to represent data in multiple tables
+(for instance, for normal form reasons); however, outside of TAP you
+cannot expose such table structures in VO protocols unless you re-join
+the various tables to some de-normalised table or, in SQL terms, views.
+Other reasons to define views include the mapping of nonstandard data to
+standard table structures, which is what DaCHS does internally for
+`SSAP tables`_ and when `publishing anything through obscore`_.
 
-However, since metadata generation is much more straightforward if a
-service sits on top of something that's actually pretty much a table,
-the better way usually is to define a view executing the query.  There
-are some subtleties with this, though, so here's a few words on how we
-recommend you go about that.
+If you want to manually define a view, declare a table as usual and then
+give it a ``viewStatement`` – done.  In practice, there are a few things
+you should keep in mind to make such a view definition maintainable.
 
-First, you'll obviously define the tables involved::
+First, you will obviously define the tables involved, for instance::
 
   <table onDisk="True" id="master" mixin="//scs#q3cindex"
       primary="catno" adql="True">
@@ -4278,30 +4281,40 @@ First, you'll obviously define the tables involved::
     <column name="masterNo" type="integer" required="True"
       ...
 
-A good approach might be to stuff the columns that will later show up in
-the view into a STREAM and then replay that stream in both the table
-definitions and the view definition, but since the RD we're using as an
-`example <http://svn.ari.uni-heidelberg.de/svn/gavo/hdinputs/arigfh/q.rd>`_
-here worked with ``original``, this we use in this introduction; with
-STREAMs, sharing the columns looks differently, the rest remains the
-same.
+Note, in particular, that postgres does not let you define indices over
+views.  This means that anything you want to index must be indexed on
+the table level (hence the ``//scs#q3cindex`` mixin on the ``master``
+table).
 
-To save typing and make things a bit clearer, we use LOOPs for copying
-the source columns.  The view definition then looks somewhat like this::
+A good approach is to keep the columns that will later show up in
+the view into a STREAM and then replay that stream in both the table
+definitions and the view definition.  This is used in, for instance
+:samplerd:`gedr3mock/q`.  An alternative that lets you keep the table
+definition as-is is to go through ``original``; this is what we do here,
+inspired by :samplerd:`arigfh/q`.
+
+One reason we are going for original rather than STREAM is that with
+original, we can straightforwardly rename some columns, which here we
+want because in the view, we want to mark columns coming from the master
+table, like this::
 
   <table onDisk="true" id="id" adql="True">
     <meta name="description">
       The stars from the gfh table having counterparts in the master
       catalogue, together with those counterparts.
     </meta>
-    <column original="master.catno" name="masterNo"/>
-    <column original="master.component" name="compMaster"/>
+    <column original="master.catno" name="master_no"/>
+    <column original="master.component" name="comp_master"/>
     <column original="master.raj2000"/>
     <column original="master.dej2000"/>
-    <column original="master.pmra" name="pmraMaster"/>
-    <column original="master.pmde" name="pmdeMaster"/>
-    <column original="master.mv" name="mvMaster"/>
-    <column original="master.mb" name="mbMaster"/>
+    <column original="master.pmra" name="pmra_master"/>
+    <column original="master.pmde" name="pmde_master"/>
+    <column original="master.mv" name="mv_master"/>
+    <column original="master.mb" name="mb_master"/>
+
+When just copying columns, `active tags`_ come in handy to copy over
+column definitions from the two tables; note the use of
+``<tablename>.<columnname>`` in referencing::
 
     <LOOP listItems="catid catan dist iq">
       <events>
@@ -4318,6 +4331,13 @@ the source columns.  The view definition then looks somewhat like this::
         <column original="gfh.\item"/>
       </events>
     </LOOP>
+
+As shown in the second loop, you can go as far as to programmatically
+obtain the column names for your source tables.  Only do that if you are
+sure you actually want to follow changes in source table structure.
+
+After declaring the columns, what is left is actually defining the
+view::
 
     <viewStatement>
       CREATE VIEW \curtable AS (
@@ -4336,21 +4356,17 @@ the source columns.  The view definition then looks somewhat like this::
     </viewStatement>
   </table>
 
-As you can see, you can rename columns, and the second loop actually
-gets column names from some table obtained via its id programmatically
-(only do that if you're sure you actually want to follow changes in
-source table structure; the reason this is no one of the joined tables
-in the view has to do with the specific dataset).
 
 The viewStatement essentially is more or less arbitrary SQL.  For
 robustness against changes of table structure or schema or table name
-changes, however, you should probably always start with::
+changes (as in: you should get errors quickly if things are broken),
+however, you should probably always start with::
 
       CREATE VIEW \curtable AS (
         SELECT \colNames FROM
 
-– ``\\curtable`` will automatically adjust to whatever schema and table
-name is given in the RD, and ``\\colNames`` gives all the names of the
+The macro ``\curtable`` will automatically adjust to whatever schema and table
+name is given in the RD, and ``\colNames`` gives all the names of the
 columns; using it, you'll get errors instead of silent failures if you
 add or remove columns in the table definition but fail to adjust the
 view statement.
@@ -4363,11 +4379,11 @@ re-make it.  The recommended setup for this looks like this::
 
   <data id="import_master" recreateAfter="gfhtables">
     ...
-    <make table="master"...
+    <make table="master"...></data>
 
   <data id="import_identified" recreateAfter="gfhtables">
     ...
-    <make table="identified"...
+    <make table="identified"...></data>
 
 
   <data id="gfhtables" auto="False">
@@ -4380,7 +4396,6 @@ for one source table when the other doesn't exist and will not be made
 in the same import will lead to an error in the view creation.  This is
 harmless for the import of the table you imported, as ``data`` creation
 on ``recreateAfter`` happens in a separate transaction.
-
 
 
 More on CondDescs
