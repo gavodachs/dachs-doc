@@ -4245,18 +4245,15 @@ you use a literal here, the implicit unit is day.
 
 
 
-More on Cores
--------------
-
-CondDescs
-'''''''''
+More on CondDescs
+-----------------
 
 CondDescs were introduced in `Service Definitions`_ above.  Since they
 are powerful tools when building service interfaces, we cast a second
 look at them here.
 
 Automatic and manual control
-............................
+''''''''''''''''''''''''''''
 
 The standard idiom introduced above::
 
@@ -4305,7 +4302,7 @@ instance, this will translate into a pop-up menu.
 
 
 Limiting condDescs by renderer
-..............................
+''''''''''''''''''''''''''''''
 
 In order to let you emulate ``buildFrom`` behaviour of making different
 input key types depending on the renderer even when you cannot use
@@ -4326,7 +4323,7 @@ key that is only used for the form renderer::
 
 
 Phrase makers
-.............
+'''''''''''''
 
 In all the condDescs we have seen so far, the SQL generated becomes
 conjunction (i.e., OR expression) of the condDesc's input key's
@@ -4408,6 +4405,124 @@ write the equivalent vizier-like expressions)::
       </phraseMaker>
     </condDesc>
 
+
+Writing Examples
+----------------
+
+In the VO, there is a (as of this writing, fledgling) standard for
+giving examples for service usage; the idea is to produce HTML that's
+useful for human consumption with additional, RDFa-based, markup to let
+clients figure out how to fill their interface forms.
+
+DaCHS lets you write such examples in ReStructuredText with some
+extra markup that is turned into the machine-readable semantics.
+
+TAP examples
+''''''''''''
+
+The most prominent kind of examples are the one for TAP/ADQL.
+These reside in userconfig – please read
+:dachsdoc:`opguide.html#userconfig-rd` before writing examples.
+
+TAP examples are taken from a STREAM
+with id ``tapexamples``.  One such example is already given in the
+userconfig.rd of the distribution which you can take as a template for
+your own examples.
+
+In the stream, there are ``_example`` meta elements with a mandatory
+``title`` attribute and ReStructuredText contents.  The built-in example
+looks like this::
+
+
+    <meta name="_example" title="tap_schema example">
+      To locate columns "by physics", as it were, use UCD in
+      :taptable:`tap_schema.columns`.  For instance,
+      to find everything talking about the mid-infrared about 10µm, you
+      could write:
+
+      .. tapquery::
+
+        SELECT * FROM tap_schema.columns
+          WHERE description LIKE '%em.IR.8-15um%'
+    </meta>
+
+You must give a query in a block marked ``..tapquery::``.  A typical
+client would fill this into whatever its UI provides to write queries.
+
+Optionally, you can give the client a hint what table the example
+pertains to using the ``:taptable:`` interpreted text role.  A client
+would typically use that to restrict the display of the example to
+states in which it assumes the user wishes to runs queries against that
+particular table.
+
+As is described in the operator's guide, DaCHS does not pick up changes
+to ``userconfig`` automatically.  Hence, after adding or changing
+examples, you have to run::
+
+  dachs serve exp % //tap
+
+as the gavo user on the server.
+
+To see your shiny new example(s), point your browser to ``<server
+url>/tap/examples``.
+
+
+Datalink examples
+'''''''''''''''''
+
+DaCHS also contains provisional support for examples associated with
+datalink services.  Since client support for it is not in the pipeline
+and it's not planned for the standard either, it's of questionable
+utility so far, but hopefully that's going to change.
+
+To add an example to a datalink service, add an ``_example`` meta with a
+title attribute directly to the service definition; for instance::
+
+  <service id="sdl" allowed="dlget,dlmeta">
+    <meta name="title">FEROS Datalink Service</meta>
+    <meta name="_example" title="Usage Example">
+      On published datasets like
+      :dl-id:`ivo://org.gavo.dc/~?feros/q/f04031.bdf`,
+      this service lets you to cutouts, translations into FITS binary
+      tables, ASCII, and possibly more, as well as simple recalibration.
+    </meta>
+
+There is only one interpreted text role in there so far, ``dl-id``.
+That's a PubDID the service will generate a datalink document for.
+
+To see the example, point your browser to the service URL with the
+examples renderer.  If the above fragment were in the RD ``flash/q``,
+the URL would thus work out to be ``<server url>/flash/q/sdl/examples``.
+No manual reloading is necessary here, changes will be picked up
+automatically.
+
+Generic examples
+''''''''''''''''
+
+The DALI standard defines a term *generic-parameter* which can be used
+to annotate all kinds of services; this may come in particularly handy
+with the api renderer.
+
+To use it, you can write something like::
+
+  <meta name="_example" title="Dataset identifier">
+    Publisher dataset identifiers have a query part, but the
+    IVORN part still has to resolve:
+    :genparam:`uri(ivo://org.gavo.dc/~?feros/data/f89411.vot)`
+  </meta>
+
+  <meta name="_example" title="Standard identifier">
+    New-style standardIds use fragments to refer to standard keys within
+    vstd:Standard records, as in
+    :genparam:`uri(ivo://org.gavo.dc/std/glots#tables-1.0)`
+  </meta>
+
+Note that such examples best sit in the service rather than top-level in
+the RD; if the are direct children of the RD, they would appear in all
+services defined in the RD.
+
+DaCHS does not yet have support for the *capability* and *continuation*
+properties defined by DALI.  Ask if you need them.
 
 
 Debugging
@@ -5129,123 +5244,6 @@ parsed, and so there are limits to what you can see) and retrieving all
 
 
 
-Writing Examples
-================
-
-In the VO, there is a (as of this writing, fledgling) standard for
-giving examples for service usage; the idea is to produce HTML that's
-useful for human consumption with additional, RDFa-based, markup to let
-clients figure out how to fill their interface forms.
-
-DaCHS lets you write such examples in ReStructuredText with some
-extra markup that is turned into the machine-readable semantics.
-
-TAP examples
-------------
-
-The most prominent kind of examples are the one for TAP/ADQL.
-These reside in userconfig – please read
-:dachsdoc:`opguide.html#userconfig-rd` before writing examples.
-
-TAP examples are taken from a STREAM
-with id ``tapexamples``.  One such example is already given in the
-userconfig.rd of the distribution which you can take as a template for
-your own examples.
-
-In the stream, there are ``_example`` meta elements with a mandatory
-``title`` attribute and ReStructuredText contents.  The built-in example
-looks like this::
-
-
-    <meta name="_example" title="tap_schema example">
-      To locate columns "by physics", as it were, use UCD in
-      :taptable:`tap_schema.columns`.  For instance,
-      to find everything talking about the mid-infrared about 10µm, you
-      could write:
-
-      .. tapquery::
-
-        SELECT * FROM tap_schema.columns
-          WHERE description LIKE '%em.IR.8-15um%'
-    </meta>
-
-You must give a query in a block marked ``..tapquery::``.  A typical
-client would fill this into whatever its UI provides to write queries.
-
-Optionally, you can give the client a hint what table the example
-pertains to using the ``:taptable:`` interpreted text role.  A client
-would typically use that to restrict the display of the example to
-states in which it assumes the user wishes to runs queries against that
-particular table.
-
-As is described in the operator's guide, DaCHS does not pick up changes
-to ``userconfig`` automatically.  Hence, after adding or changing
-examples, you have to run::
-
-  dachs serve exp % //tap
-
-as the gavo user on the server.
-
-To see your shiny new example(s), point your browser to ``<server
-url>/tap/examples``.
-
-
-Datalink examples
------------------
-
-DaCHS also contains provisional support for examples associated with
-datalink services.  Since client support for it is not in the pipeline
-and it's not planned for the standard either, it's of questionable
-utility so far, but hopefully that's going to change.
-
-To add an example to a datalink service, add an ``_example`` meta with a
-title attribute directly to the service definition; for instance::
-
-  <service id="sdl" allowed="dlget,dlmeta">
-    <meta name="title">FEROS Datalink Service</meta>
-    <meta name="_example" title="Usage Example">
-      On published datasets like
-      :dl-id:`ivo://org.gavo.dc/~?feros/q/f04031.bdf`,
-      this service lets you to cutouts, translations into FITS binary
-      tables, ASCII, and possibly more, as well as simple recalibration.
-    </meta>
-
-There is only one interpreted text role in there so far, ``dl-id``.
-That's a PubDID the service will generate a datalink document for.
-
-To see the example, point your browser to the service URL with the
-examples renderer.  If the above fragment were in the RD ``flash/q``,
-the URL would thus work out to be ``<server url>/flash/q/sdl/examples``.
-No manual reloading is necessary here, changes will be picked up
-automatically.
-
-Generic examples
-----------------
-
-The DALI standard defines a term *generic-parameter* which can be used
-to annotate all kinds of services; this may come in particularly handy
-with the api renderer.
-
-To use it, you can write something like::
-
-  <meta name="_example" title="Dataset identifier">
-    Publisher dataset identifiers have a query part, but the
-    IVORN part still has to resolve:
-    :genparam:`uri(ivo://org.gavo.dc/~?feros/data/f89411.vot)`
-  </meta>
-
-  <meta name="_example" title="Standard identifier">
-    New-style standardIds use fragments to refer to standard keys within
-    vstd:Standard records, as in
-    :genparam:`uri(ivo://org.gavo.dc/std/glots#tables-1.0)`
-  </meta>
-
-Note that such examples best sit in the service rather than top-level in
-the RD; if the are direct children of the RD, they would appear in all
-services defined in the RD.
-
-DaCHS does not yet have support for the *capability* and *continuation*
-properties defined by DALI.  Ask if you need them.
 
 
 Services Over Views
