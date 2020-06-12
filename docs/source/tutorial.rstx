@@ -5163,24 +5163,32 @@ and then use the python debugger to figure things out.
 Restricting Access
 ------------------
 
-Unfortunately, many data providers believe they want to have their data
-proprietary for a while.   Although they are almost certainly misguided
-in this, it is hard to enlighten them, and so it's preferable to have
-the data in a data center with encumbered access rather than just on the
-providers' machines.
+For one reason or another, you may need to restrict access to services
+or data products for a while.
 
-Therefore, DaCHS has features to restrict access.  Right now, this is
-very basic and only provides what is known as “mild security”, since it
-is based on HTTP basic authentication over (usually) unencrypted  lines.
+To support this, DaCHS has a simple user and group management and
+lets you declare individual services or datasets as requiring
+authorisation.
+
+Right now, this is
+rather basic and only provides what is known as “mild security”, since it
+is based on HTTP basic authentication, which, unless you run HTTPS only,
+means that eavesdroppers can trivially find out passwords.  Also, the
+passwords are stored in the database in clear text.
 Given that we are not dealing with sensitive information and snooping
-attacks on our connections would be too much honor, we consider  this
-enough.  However, if you were interested in contributing support for
-OAuth (say), we'd gladly help.
+attacks on our connections don't sound likely, we consider that
+marginally ok.  Still, admonish your users to not use valuable passwords
+in DaCHS.
 
-Note, however, that even HTTP basic authentication needs client support.
-Recent versions of TOPCAT and Splat_ have that, others do not, and they
-simply will not work with password-encumbered services.  The situation
-with OAuth is much worse.
+Given enough client support, however, we will certainly add support for
+fancier authentication schemes (OAuth2?); the authorisation mechanisms
+discussed here should not be (materially) affected.
+
+At this point, recent versions of TOPCAT, Aladin, pyVO, and Splat_
+support HTTP basic authentication, so if you can live without federation
+and accept that the various tools will request the credentials
+separately, your users can probably work with proprietary data
+reasonably well.
 
 
 User/Group management
@@ -5195,12 +5203,9 @@ this::
 
 This command adds the user kroisos with the password notsecret and an
 optional comment reminding future operators what to do with the
-identity.  Note that the password is stored in clear text in the
-database – which allows you to handle “I forgot my password” requests
-gracefully; as long as we only do HTTP Basic authentication, this
-doesn't matter much since with it, the passwords traverse the net in
-basically cleartext anyway. Again: all this is mild deterrence rather
-than hard security.
+identity.  Note again that the password is stored in clear text in the
+database – which at least allows you to handle “I forgot my password” requests
+gracefully.
 
 To add existing users to groups, use ``dachs admin addtogroup``, like
 this::
@@ -5208,7 +5213,7 @@ this::
   dachs admin addtogroup kroisos happy
 
 – this adds kroisos to the happy group, and whoever can authenticate as
-kroisos will be allowed access to any products or services retstricted
+kroisos will be allowed access to any products or services restricted
 to happy.
 
 To discover further commands manipulating the user table, try::
@@ -5217,9 +5222,9 @@ To discover further commands manipulating the user table, try::
 
 *Important*: When you use authentication, please set the ``[web]realm``
 configuration item to some string reasonably characteristic for your
-site.  Many systems will store credentials by realm, and if different
-sites use the same realm, their credentials will clobber each other.
-For details see the `customization info in the operators' guide`_
+site.  DaCHS sends that realm with the authentication challenge, and
+even if these days, it's not terribly common to show it any more since
+it's been abused in various ways, it may still be shown to users.
 
 
 Protecting Services
@@ -5233,7 +5238,7 @@ To password-protect entire services, use the ``limitTo`` child of the
      ...
    </service>
 
-Any access to the service will then require a client to authenticate as
+Any access to the service will then challenge the client to authenticate as
 a user belonging to the group given in ``limitTo``.  Only one such group
 can be given.  If you forsee the need for complex authorization schemes
 (rather than “there's one user on my system, and whoever's authorized
@@ -5251,7 +5256,7 @@ authorized clients.  The embargo will automatically be lifted once the
 proprietarity period is over.
 
 To make a ”product” (e.g., spectrum or image) proprietary, in the
-:dachsref:`//products#define` application building the rowdict, set the ``owner``
+:dachsref:`//products#define` rowfilter, set the ``owner``
 and ``embargo`` keys.  Owner is the name of a user created as described
 above, embargo must eventually become a timestamp, so you'll in general
 come up with an ISO datetime string or a python ``datetime.datetime``
@@ -5297,7 +5302,7 @@ two objects made in 2003::
 
 An embargoed product can only be retrieved by the owner until the
 embargo period is over.  What you give as ``owner`` is a group name; if
-someone can authenticate as the member of a group, she can access the
+someone can authenticate as the member of a group, they can access the
 data – see above for details on how to create users and groups.
 
 
