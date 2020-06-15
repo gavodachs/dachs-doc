@@ -5562,15 +5562,280 @@ parsed, and so there are limits to what you can see) and retrieving all
   </LOOP>
 
 
-Adapting DaCHS for Your Site
-============================
+Configuring DaCHS
+=================
+
+While you can run services on DaCHS without further configuration, as
+soon as other people on the network get involved, you must or should
+configure your server in various ways.  This section starts with a
+walkthrough though the various items you *must* configure in order to
+let your services work within the wider network and then covers a few
+more advanced topics.
 
 As delivered, the web interface of DaCHS will make it seem you're
 running a copy of the GAVO data center, with some metadata defused such
 that you are not actually disturbing our operation if you accidentally
-activate your registry interface.  You should thus first customize the
-items given in ``etc/defaultmeta.txt`` (as discussed in `Registry
-Matters`_).
+activate your registry interface.  To change this and make the site
+“yours”, you need to:
+
+* Set up a few basic items in gavorc
+* Set the fallback metadata
+* Adapt a few things facing the web
+
+
+Basic Gavo.rc Settings
+----------------------
+
+DaCHS keeps basic settings in ``/etc/gavo.rc``; a few of them you must
+set before you can go public.  Here is a reference for what you
+minimally should give on a standalone server::
+
+  [general]
+  maintainerAddress: you@mx.example.org
+
+  [ivoa]
+  authority: sampleobs.archive
+
+  [web]
+  bindAddress:
+  serverURL: http://mydc.example.org:8080
+  sitename: Example Observatory Archive
+
+The next few subsections explain the items here (and a few more that you
+will need in certain common deployment scenarios).
+
+The Authority
+'''''''''''''
+
+In the VO, every data center has something like a “namespace”, within
+which you are allowed to name things; that namespace is called your
+authority, and it's the way the VO makes sure that identifiers are
+globally unique.
+
+To pick one, think of a resonably short string defining your site; use
+dots to structure this as necessary.  In Heidelberg, we are using
+``org.gavo.dc``, somewhat reflecting our DNS name.  Today, I'd probably
+choose ``gavo.dc``, since astronomy is small enough we don't have to
+have too much hierarchy.
+
+If you have picked a string, make sure it is not taken yet.  A
+conventient way to do that is through WIRR_. There, constrain 
+*Resource Type* to *Authority*, then *Add Constraint* and constrain
+IVOID to the authority you have chosen (`preconfigured WIRR query`).
+
+.. _WIRR: https://dc.g-vo.org/WIRR
+.. _preconfigured WIRR query: http://dc.zah.uni-heidelberg.de/wirr/q/ui/fixed?field0=restype&operator0=%3D&operand0=vg%3Aauthority&field1=ivorn&operator1=%3D&operand1=gavo.dc&MAXREC=20&OFFSET=0
+
+If nothing comes back, the authority is still free and you can enter it
+in your gavo.rc in the ``[ivoa]authority`` item, like this::
+
+  [ivoa]
+  authority: my-auth
+
+The authority truly only belongs to you once you have added an authority
+record to the VO Registry (see `Registry Operations`_).  The chances
+that someone else will beat you to a non-trivial authority are slim,
+though.  It doesn't hurt to re-run the WIRR check before you actually go
+live, though.
+
+The Server URL, Ports, and Addresses
+''''''''''''''''''''''''''''''''''''
+
+In today's internet with it's reverse proxies and firewalls, a service
+cannot usually figure out by itself what it can be reached as.  That is
+why you will almost certainly have to tell DaCHS in ``[web]serverURL``.
+
+For the basic setup, we recommend you try things with HTTP first.  HTTPS
+adds quite a bit that can go wrong.  See `Enabling HTTPS`_ on how to
+enable HTTPS once the rest runs as you would like it to run.
+
+There are a few scenarios:
+
+Standalone DaCHS
+................
+
+Connecting the DaCHS server directly to the internet is simpler and
+preferable if you can convince your network folks.  You will still have
+to configure things, because DaCHS still cannot reliably figure out what
+its machine is called.
+
+Also, by default DaCHS only listens on the loopback address, which in
+practice means you can only reach it from the host it runs on.  This is
+mainly a matter of precaution: We feel a programme should have informed
+consent before running a public service.  To make it listen on all
+addresses configured for your machine, set ``[web]bindAddress`` to the
+empty string (you could also use the public IP here, but then DaCHS
+won't listen on localhost any more, and you will have to adapt some
+examples).
+
+Hence, the minimal configuration required for a public site is::
+
+  [web]
+  bindAddress:
+  serverURL: http://mydc.example.org:8080
+
+In practice, it looks a lot less provisional if you run on port 80; on
+the other hand, DaCHS needs to be started as root when ordered to listen
+on a privileged port (it drops privileges soon, though).  That would
+then look like this:
+
+  [web]
+  bindAddress:
+  serverPort: 80
+  serverURL: http://mydc.example.org
+
+
+Reverse Proxy
+.............
+
+If there is an nginx or apache that serves as a reverse proxy and DaCHS
+does not talk with the net itself, you need to use the virtual host of
+that reverse proxy, perhaps like::
+
+  [web]
+  serverURL: http://the.proxy.url
+
+If the reverse proxy runs on a different machine, you will additionally
+need an empty ``bindAddress`` as above.
+
+If the reverse proxy runs on the same machine, it may proxy other
+servers as well, and then it is likely that something else is already
+listening on port 8080.  In that case, change serverPort without
+changing the serverURL, like this::
+
+  [web]
+  serverURL: http://the.proxy.url
+  serverPort: 8081
+
+(or course, you need to fix the configuration of the reverse proxy,
+too).
+
+If the reverse proxy does HTTPS termination, but it speaks HTTP with
+DaCHS, you have to keep DaCHS from fixing absolute URLs to what it
+thinks it speaks by setting ``[web]adaptProtocol`` to false::
+
+  [web]
+  serverURL: https://terminating.pro.xy
+  adaptProtocol: False
+
+
+The Site Name
+'''''''''''''
+
+The machinery needs some short name for the site in so many places that
+this is in the basic configuration (rather than the basic metadata,
+where it should reasonably be).  This should be a very terse phrase
+saying who you are; for Heidelberg, that's “GAVO Data Center”.  That
+phrase goes into the ``[web]sitename`` item.
+
+
+The Maintainer Address
+''''''''''''''''''''''
+
+There are many situations in which the server may want to contact you
+(e.g., failed cron jobs).  To let it contact you, teach the server it is
+on to send mail (we like the nullmailer package for things like that)
+and set ``[general]maintainerAddress``.
+
+
+Basic Metadata
+--------------
+
+Then, add metadata about yourself in ``$GAVO_ROOT/etc/defaultmeta.txt``;
+these provide some values that stand in in registry records you generate
+whenever their values are not overridden in actual records, which
+obviously is particularly pertinent to things like the publisher, which
+very typically will be you for all the resources.
+It is a file in the `meta stream format`_; basically it's lines
+of ``<key>: <value>``.
+
+* publisher – A short, human-readable name for you
+* publisherID – An IVOA id for yourself;  leave this empty, or create
+  an ivo://<authority>/org resource in your userconfig.rd (see
+  `Creating an organisation record`_).
+* contact.name – A human-readable name for some entity people should
+  write to.  This is not necessarily different from publisher, but
+  ideally people can write "Dear <contact.name>" in their mails.
+* contact.address – A contact address for surface mail
+* contact.email – An email address.  It will be published on web pages,
+  so there probably should be some kind of spam filter in front of it.
+* contact.telephone – A telephone number people can call if things
+  really look bad.
+* creator.name – A name to use when you give no creator in your
+  resource descriptors.  Could be some error sentinel ("we foget to
+  give credit, please complain") or just contact.name if you produce
+  resources yourself.
+* creator.logo – A URL for a logo to use when none is given in the
+  resource metadata. Use a small PNG here; if you've put in a
+  logo_medium.png (see `Simple Web Resources`_), just use
+  <your-DaCHS-url>/favicon.png, which is a suitably scaled version
+  of that provided by DaCHS.
+* site.description – A description of your site (i.e., "data center")
+  Example: ``The GAVO data center provides VO publication services to
+  all interested parties on behalf of the German Astrophysical Virtual
+  Observatory.`` (use backslashes an the end of the lines to break long
+  lines).
+
+
+.. _tutorial chapter on the registry: tutorial.html#the-registry-interface
+.. _meta stream format: ref.html#meta-stream-format
+
+
+Then, fill out the metadata for the system registry resources
+in your userconfig RD.  See `Userconfig RD`_ below if you are not sure
+what we are talking about.
+
+The registry is configured in the
+``registry-interfacerecords`` stream (which you can copy from
+//userconfig if it's not yet in your ``etc/userconfig.rd``).
+
+In authority, change in particular
+
+* creationDate – A UTC datetime (with trailing Z);
+  technically, it should be the date the resource record is created, but
+  realistically, just use "now" at the time your're writing the
+  defaultmeta.txt.  Example: ``2007-12-19T12:00:00Z``.
+* title – A human-readable descriptor of what the authority
+  corresponds to.  Example: ``The Utopia Observatory Data Center``
+* description – A sentence or two on what the authority
+  you are using means.  This could be the same as site.description if
+  all you're claiming authority for is that; if you're claiming
+  authority for your institute or organisation, this obviously should
+  be different.  Example: ``The Data Center at the Observatory of Utopia
+  manages lots of substantial data sets created by the bright scientists
+  all over the world`` (use backslashes an the end of the lines to break
+  long lines).
+* shortName – a short (about 16 chars) identifier for your
+  authority.  Example: GAVO DC.
+* referenceURL – A URL at which people can learn more about
+  your data center.  Example: ``http://www.g-vo.org``.
+* managingOrg – A human-readable name for the organisation running this
+  authority.  The default is what you gave as publisher, which should
+  be ok most of the time.  If you make a registry record for yourself,
+  you can also give managingOrg.ivo-id.
+
+After you've specificed all that, you're ready to define your first
+resources, viz, your registry itself, the authority, and the
+organisation that's managing it.  These are predefined using the data
+you just filled in in the //services RD.  To publish them, you say::
+
+  dachs pub //services
+
+Depending on other services you're running, you may want to publish the
+following additional build-in resources::
+
+  # If you're publishing spectra, images, and the like, in particular
+  # if you produce pubDIDs
+  dachs pub //products
+  # If you run a TAP service
+  dachs pub //tap
+  # If you run a TAP service and want to point people to the built-in
+  # web interface
+  dachs pub //adql
+  # If you have an obscore service with images and want to also
+  # offer the material via SIAv2
+  dachs pub //siap2
+
 
 The next adaptations are done through the configuration (as discussed in
 `Configuration Settings`_, i.e., usually in /etc/gavo.rc).  The most
@@ -5888,49 +6153,6 @@ logDir too to keep actions from seperate users seperate.
 The web Section
 '''''''''''''''
 
-You typically want to adapt several settings here.  First
-``bindAddress`` gives the IP address of the interface DaCHS will accept
-requests from.  By default, that's localhost, meaning that your server
-will only talk to the machine it runs on.  Once you want to serve other
-people, you will need to change this.  For most systems, binding to all
-interfaces is what you want; keep bindAddress empty to accomplish that.
-
-You may also want to change ``serverPort``.  That is the TCP port DaCHS
-listens to.  The default, 8080, is what's commonly used in test setups.
-On machines dedicated to DaCHS, you would set it to 80, the standard
-HTTP port; this will of course fail if there's already another web
-server running.
-
-DaCHS frequently needs to produce full URLs to itself.  To do that, it
-uses ``serverURL``.  While we could potentially infer that from
-``bindAddress`` and ``serverPort``, today's web setups are frequently
-too complicated to make that work.  So, adapt ``serverURL``, too, to the
-base URL of your server, without any trailing slash.  A complete setup
-for a public server would thus look like this::
-
-  [web]
-  bindAddress:
-  serverPort: 80
-  serverURL: http://mydc.myvo.org
-
-Note that ``serverURL`` *must* include the port if it is not 80; for
-https, DaCHS does not support nonstandard URLs.  If you actually kept
-the default and just put the machine on the net, your web section would
-need to include something like::
-
-  [web]
-  bindAddress:
-  serverURL: http://your.machine.example.org:8080
-
-– the empty ``bindAddress`` is necessary so DaCHS doesn't just bind to
-the loopback address, the ``serverURL`` because DaCHS has no way of
-knowing the preferred name of the machine it's running under; it *could*
-add the port, which it knows, but doing that would, e.g., make  the
-lives of people operating behind reverse proxies hard.
-
-While you are at it, set ``sitename`` to a short string describing your
-server (this is currently only used in the registry interface).
-
 You will probably also want to set ``adminpasswd``.  If set, you can
 log in on your server as user gavoadmin with this password.  Gavoadmin
 basically may do everything (access protected resources, clear caches,
@@ -5939,57 +6161,6 @@ encryption would only make sense if you were prepared to enter some kind
 of passphrase every time you start the server.  As in other places,
 DaCHS assumes the machine it runs on is trusted.
 
-
-The db Section
-''''''''''''''
-
-In the db section, some global properties of the database access layer
-are defined.  Currently, the most releveant one is profilePath.  This is
-a colon-separated list of rootDir-relative paths in which DaCHS looks for
-database profiles (expansion of home directories is supported).  The
-first match in any of these directories wins.  This is useful when you
-have a test setup and a production setup -- just say ``include dsn`` in
-the common profiles (by default in configDir) and have separate dsn
-files in the ~/.gavo directories of the accounts feeding the test and
-production databases.
-
-You probably do not want to to mess with any settings ending in Roles.
-These are for rather exotic setups where DaCHS needs to accomodate other
-software.
-
-
-The profiles Section
-''''''''''''''''''''
-
-The profile section maps profile names to file names.  These file names
-are relative to any of the directories in db.profilePath.  Usually, you
-should keep whatever gavo init has come up with and hence not change
-anything here.
-
-The profiles contain a specification of the access to the database in
-(unfortunately yet another, but simple) language.  Each line in
-such a profile is either a comment (starting with #), an assignment
-(with "=") or an instruction (consisting of a command and arguments,
-separated by whitespace).
-
-Keywords available for assignment are
-
-* host -- the host the database resides on.  Leave empty for a Unix
-  socket connection.
-* port -- the port the database listens on.  Leave empty for default
-  5432.
-* database -- the database your tables live in.
-* user -- the user through which the db is accessed.
-* password -- the password of user.
-
-There's just one command available, viz.,
-
-* include -- read assignments and instructions from the profile given in
-  the argument
-
-``gavo init`` creates four profile files, ``dsn``, ``feed``,
-``trustedquery``, and ``untrustedquery``.  These are referred to in the
-default profiles section, and are basically required by the python code.
 
 
 Starting and stopping the server
@@ -6215,114 +6386,6 @@ automatically be made aware of these changes.  Otherwise, you need to
 prod the server as discussed in `Managing Runtime Resources`_.
 
 
-Defining Basic Metadata
------------------------
-
-The first step is to define your authority (i.e., something like
-org.g-vo.dc) in your config (``/etc/gavo.rc``), in the
-``[ivoa]authority`` item.  Please make sure that the authority is not
-already taken by someone else; you have probably fulfilled your due
-diligence if you've run an `authority query against the registry`_ and
-did not find a match.  Using your DNS name is not a bad idea.  Please
-don't repeat our (the GAVO DC's) mistake and invert the sequence of
-particles in your DNS name.  Also, this is just the name, there is no
-ivo:// or other decoration.
-
-Then, add metadata about yourself in ``$GAVO_ROOT/etc/defaultmeta.txt``;
-these provide some values that stand in in registry records you generate
-whenever their values are not overridden in actual records, which
-obviously is particularly pertinent to things like the publisher, which
-very typically will be you for all the resources.
-It is a file in the `meta stream format`_; basically it's lines
-of ``<key>: <value>``.
-
-* publisher – A short, human-readable name for you
-* publisherID – An IVOA id for yourself;  leave this empty, or create
-  an ivo://<authority>/org resource in your userconfig.rd (see
-  `Creating an organisation record`_).
-* contact.name – A human-readable name for some entity people should
-  write to.  This is not necessarily different from publisher, but
-  ideally people can write "Dear <contact.name>" in their mails.
-* contact.address – A contact address for surface mail
-* contact.email – An email address.  It will be published on web pages,
-  so there probably should be some kind of spam filter in front of it.
-* contact.telephone – A telephone number people can call if things
-  really look bad.
-* creator.name – A name to use when you give no creator in your
-  resource descriptors.  Could be some error sentinel ("we foget to
-  give credit, please complain") or just contact.name if you produce
-  resources yourself.
-* creator.logo – A URL for a logo to use when none is given in the
-  resource metadata. Use a small PNG here; if you've put in a
-  logo_medium.png (see `Simple Web Resources`_), just use
-  <your-DaCHS-url>/favicon.png, which is a suitably scaled version
-  of that provided by DaCHS.
-* site.description – A description of your site (i.e., "data center")
-  Example: ``The GAVO data center provides VO publication services to
-  all interested parties on behalf of the German Astrophysical Virtual
-  Observatory.`` (use backslashes an the end of the lines to break long
-  lines).
-
-
-.. _tutorial chapter on the registry: tutorial.html#the-registry-interface
-.. _authority query against the registry: http://dc.zah.uni-heidelberg.de/__system__/adql/query/form?query=select%20ivoid%20from%20rr.resource%20where%20res_type%3D%27vg%3Aauthority%27%20and%20ivoid%3D%27ivo%3A%2F%2Forg.gavo.dc%27
-.. _meta stream format: ref.html#meta-stream-format
-
-
-Then, fill out the metadata for the system registry resources
-in your userconfig RD.  See `Userconfig RD`_ below if you are not sure
-what we are talking about.
-
-The registry is configured in the
-``registry-interfacerecords`` stream (which you can copy from
-//userconfig if it's not yet in your ``etc/userconfig.rd``).
-
-In authority, change in particular
-
-* creationDate – A UTC datetime (with trailing Z);
-  technically, it should be the date the resource record is created, but
-  realistically, just use "now" at the time your're writing the
-  defaultmeta.txt.  Example: ``2007-12-19T12:00:00Z``.
-* title – A human-readable descriptor of what the authority
-  corresponds to.  Example: ``The Utopia Observatory Data Center``
-* description – A sentence or two on what the authority
-  you are using means.  This could be the same as site.description if
-  all you're claiming authority for is that; if you're claiming
-  authority for your institute or organisation, this obviously should
-  be different.  Example: ``The Data Center at the Observatory of Utopia
-  manages lots of substantial data sets created by the bright scientists
-  all over the world`` (use backslashes an the end of the lines to break
-  long lines).
-* shortName – a short (about 16 chars) identifier for your
-  authority.  Example: GAVO DC.
-* referenceURL – A URL at which people can learn more about
-  your data center.  Example: ``http://www.g-vo.org``.
-* managingOrg – A human-readable name for the organisation running this
-  authority.  The default is what you gave as publisher, which should
-  be ok most of the time.  If you make a registry record for yourself,
-  you can also give managingOrg.ivo-id.
-
-After you've specificed all that, you're ready to define your first
-resources, viz, your registry itself, the authority, and the
-organisation that's managing it.  These are predefined using the data
-you just filled in in the //services RD.  To publish them, you say::
-
-  dachs pub //services
-
-Depending on other services you're running, you may want to publish the
-following additional build-in resources::
-
-  # If you're publishing spectra, images, and the like, in particular
-  # if you produce pubDIDs
-  dachs pub //products
-  # If you run a TAP service
-  dachs pub //tap
-  # If you run a TAP service and want to point people to the built-in
-  # web interface
-  dachs pub //adql
-  # If you have an obscore service with images and want to also
-  # offer the material via SIAv2
-  dachs pub //siap2
 
 
 Creating an Organisation Record
