@@ -78,7 +78,7 @@ browsers, too.  If you are not sure what the Virtual Observatory is:
 Technically, it is a set of APIs and a registry in which these API URLs
 are associated with a bunch of relatively formalised metadata.  What
 that actually means is probably best illustrated by trying some of the
-tutorials involving TOPCAT or Aladin_ from VOTT_.
+tutorials involving TOPCAT_ or Aladin_ from VOTT_.
 
 The tutorial supplants the DaCHS documentation, in particular the
 `Installation Guide`_ and the `Reference
@@ -211,7 +211,7 @@ user:
   replace with customised versions.  There is also templates, where you
   can put HTML templates of override distributed ones.  One template you
   will quite certainly want to override is root.html as discussed in
-  `Definiting Your Site`_.
+  `Defining Your Site`_.
 
 
 The Resource Descriptor
@@ -570,7 +570,7 @@ Futher metadata on columns includes:
   attribute.  In both cases, whitespace is normalized, so you can enter
   line breaks and similar for readability in the source, and they will
   always be rendered as a single blank.  For even longer, note-like
-  material, see `Tablee Notes`_.  An example for a long descripton::
+  material, see `Table Notes`_.  An example for a long descripton::
 
     <column name="aperture">
       <description>The aperture is the full-width-half-max of the
@@ -1373,8 +1373,8 @@ the comments).
 
 If you have skimmed the `DaCHS Basics`_
 above, not much of what you'll be seeing should surprise you.  If you're
-wondering about a particular thing, you can always refer to the `RD
-element reference`_ to see how it's used in our data center, or go to
+wondering about a particular thing, you can always refer to the
+:dachsdoc:`elemref.html` to see how it's used in our data center, or go to
 the `reference documentation`_.  Also, please give us hints if you see a
 way to make the material more helpful.
 
@@ -1798,7 +1798,7 @@ Filling SIAP Tables
 When filling SIAP tables, you will almost always use:
 
 * :dachsref:`Element fitsProdGrammar` as the grammar; see also
-  `fitsProductGrammars`_ further down.
+  `fitsProdGrammars`_ further down.
 * the :dachsref:`//siap#computePGS` apply to interpret the FITS WCS to
   fill the coverage-related columns in the table.
 * the :dachsref:`//siap#setMeta` apply to fill the non-spatial
@@ -3851,8 +3851,8 @@ comes in handy: When a record matches that RE, the entire remainder of
 the input is ignored.
 
 
-fitsProdGrammar
-'''''''''''''''
+fitsProdGrammars
+''''''''''''''''
 
 This grammar exposes FITS headers as rawdicts.  Since both 
 represent essentially the same data structure – sequences of
@@ -5701,8 +5701,8 @@ artificial collection of the tables, as in this example taken from
 
 
 
-Sets
-----
+OAI Sets
+--------
 
 The ``ivo_managed`` set that came up in some of the examples above (it
 is the default for ``publish`` in data publications) has the special

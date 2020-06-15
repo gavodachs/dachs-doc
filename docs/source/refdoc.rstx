@@ -283,6 +283,46 @@ Other Streams
       "spoint-index-def"]])
 
 
+Configuration Reference
+=======================
+
+DaCHS' basic configuration is done through one or more INI-style files,
+which are parsed using Python's configparser module; in case of doubt on
+features and syntax, refer to the Python reference documentation of the
+Python version you are using.  
+
+Some of the more common items are discussed in the tutorial
+(:dachsdoc:`tutorial.html#configuration-settings`).
+
+DaCHS first looks for the configuration in ``/etc/gavo.rc``, and on
+production sites, it is recommended to only use this file to avoid
+surprises.  For special situations and development systems, the
+following extra features are available:
+
+* DaCHS will also pick up configuration from ``.gavorc`` in the calling
+  user's home directory.  Configuration there is merged with what is in
+  the main configuration.  You can use this to, for instance, run a
+  second, development-type server on a production instance (obviously,
+  you will have to run it on a different port), or for configuring extra
+  debugging features, or whatever.
+* You can override the location of ``/etc/gavo.rc`` using the
+  ``GAVOSETTINGS`` environment variable.  This is intended mainly for
+  when everything DaCHS-related should be in a single, non-OS directory,
+  such as when the DaCHS binaries sit in a container that should be readily
+  exchangable.  Another usage is when, on a development system, you want
+  to be able to run DaCHS using the resources of the production system
+  (but that is, obviously, a bit dangerous if the DaCHS versions on
+  development and production are significantly different).
+* You can even override the location of the per-user configuration
+  (i.e., ``~/.gavorc``) using ``GAVOCUSTOM``.  This is mainly for
+  quickly switching between configurations on development systems and
+  thus probably irrelevant for operators.
+
+The configuration items available are, by section:
+
+.. replaceWithResult config.getRSTReference("'")
+
+
 Data Descriptors
 ================
 

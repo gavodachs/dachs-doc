@@ -1509,7 +1509,7 @@ Atomic Children
   contributing to a published view.  Warning: adql=hidden is
   incompatible with setting readProfiles manually.
 * **allProfiles** (Comma separated list of profile names.; defaults to
-  'msdemlei, admin') -- A (comma separated) list of profile names
+  'admin, msdemlei') -- A (comma separated) list of profile names
   through which the object can be written or administred (oh, and the
   default is not admin, msdemlei but is the value of [db]maintainers)
 * **autoCols** (Comma-separated list of strings; defaults to '') --
@@ -2142,7 +2142,7 @@ Atomic Children
 ...............
 
 * **allProfiles** (Comma separated list of profile names.; defaults to
-  'msdemlei, admin') -- A (comma separated) list of profile names
+  'admin, msdemlei') -- A (comma separated) list of profile names
   through which the object can be written or administred (oh, and the
   default is not admin, msdemlei but is the value of [db]maintainers)
 * **readProfiles** (Comma separated list of profile names.; defaults
@@ -2267,7 +2267,9 @@ A definition of the mapping between grammar input and finished rows
 ready for shipout.
 
 Rowmakers consist of variables, procedures and mappings.  They
-result in a python callable doing the mapping.
+result in a python callable doing the mapping.  In python code
+withing rowmaker elements, you can use a large number of functions.
+See `Functions available for row makers`_ in the reference documentation.
 
 RowmakerDefs double as macro packages for the expansion of various
 macros.  The standard macros will need to be quoted, the rowmaker macros
@@ -2277,7 +2279,7 @@ Within map and var bodies as well as late apply pars and apply bodies,
 you can refer to the grammar input as vars["name"] or, shorter @name.
 
 To add output keys, use map or, in apply bodies, add keys to the
-result dictionary.
+``result`` dictionary.
 
 May occur in `Element data`_, `Element resource`_.
 
@@ -2543,7 +2545,7 @@ Atomic Children
   contributing to a published view.  Warning: adql=hidden is
   incompatible with setting readProfiles manually.
 * **allProfiles** (Comma separated list of profile names.; defaults to
-  'msdemlei, admin') -- A (comma separated) list of profile names
+  'admin, msdemlei') -- A (comma separated) list of profile names
   through which the object can be written or administred (oh, and the
   default is not admin, msdemlei but is the value of [db]maintainers)
 * **dupePolicy** (One of: check, drop, dropOld, overwrite; defaults to
@@ -3480,6 +3482,15 @@ This could look like this, when the grammar input is some iterable::
       </code>
     </iterator>
   </embeddedGrammar>
+
+If you need to raise an error from within an embeddedGrammar, use
+a SourceParseError, somewhat like this::
+
+  raise utils.SourceParseError(
+    "Bad line", 
+    offending=inputLine, 
+    location=str(lineNumber+1),
+    source=inputFile.name)
 
 
 Atomic Children
@@ -5075,19 +5086,36 @@ structures.  Hence, a metaMaker returning an InputKey could look like this::
     <code>
       yield MS(InputKey, name="format", type="text",
         description="Output format desired",
-        values=MS(Values,
+          values=MS(Values,
           options=[MS(Option, content_=descriptor.mime),
-            MS(Option, content_="text/plain")]))
+                MS(Option, content_="text/plain")]))
     </code>
   </metaMaker>
 
 (of course, you should give more metadata -- ucds, better description,
 etc) in production).
 
-Note that MetaMakers cannot rely on descriptor.pubDID to actually have 
+Note that InputKey-returning MetaMakers cannot rely 
+on descriptor.pubDID to actually have 
 a value; in particular SSA may construct cores to produce "direct"
 processing datalink descriptors.  When you need a pubDID, just return if
 descriptor.pubDID is None.
+
+Alternatively, yield link definitions, i.e., rows for the links response.
+You will usually define a semantics attribute for the meta maker then
+(this lets DaCHS use the right semantics in case something goes wrong),
+and you will usually create links from the descriptor so the pubDID will
+be right automatically::
+
+  <metaMaker semantics="#flat">
+      <code>
+         yield descriptor.makeLink(
+           "http://example.org/flats/master-flat.fits",
+           contentType="image/fits",
+           description="The master flat for this epoch",
+           contentLength=2048x2048*2)
+      </code>
+   </metaMaker>
 
 It's ok to yield None; this will suppress a Datalink and is convenient
 when some component further down figures out that a link doesn't exist
@@ -7944,7 +7972,7 @@ set a property ``internal`` on the table (the value is ignored).
 The scs.xml Renderer
 ''''''''''''''''''''
 
-*This renderer's parameter style is "pql".*
+*This renderer's parameter style is "dali".*
 
 
 A renderer for the Simple Cone Search protocol.
@@ -8556,9 +8584,9 @@ Parameter *naxis*
 sets the bandpassId, bandpassUnit, bandpassRefval, bandpassHi,
 and bandpassLo from a set of standard band Ids.
 
-The bandpass ids known are contained in a file supplied file
-that you should consult for supported values.  Run
-gavo admin dumpDF data/filters.txt for details.
+The bandpass ids known are contained in a file supplied by
+DaCHS that you should consult for supported values by running
+``dachs admin dumpDF data/filters.txt``.
 
 All values filled in here are in meters.
 
@@ -9490,6 +9518,373 @@ defines a tablename macro).
 
 
 
+Configuration Reference
+=======================
+
+DaCHS' basic configuration is done through an INI-style file; it is
+parsed using Python's configparser module; in case of doubt on features
+and syntax, refer to the Python reference documentation of the Python
+version you are using.  
+
+Some of the more common items are discussed in the tutorial
+(:dachsdoc:`tutorial.html#configuration-settings`).
+
+DaCHS first looks for the configuration in ``/etc/gavo.rc``, and on
+production sites, it is recommended to only use this file to avoid
+surprises.  For special situations and development systems, the
+following extra features are available:
+
+* DaCHS will also pick up configuration from ``.gavorc`` in the calling
+  user's home directory.  Configuration there is merged with what is in
+  the main configuration.  You can use this to, for instance, run a
+  second, ``development`` server on a production instance (obviously,
+  you will have to run it on a different port), or for configuring extra
+  debugging features, or whatever.
+* You can override the location of ``/etc/gavo.rc`` using the
+  ``GAVOSETTINGS`` environment variable.  This is intended mainly for
+  when everything DaCHS-related should be in a single, non-OS directory,
+  such as when DaCHS sits in a container that should be readily
+  exchangable.  Another usage is when, on a development system, you want
+  to be able to run DaCHS using the resources of the production system
+  (but that is, obviously, a bit dangerous if the DaCHS versions on
+  development and production are significantly different).
+* You can even override the location of the per-user configuration
+  (i.e., ``~/.gavorc) using ``GAVOCUSTOM``.  This is mainly for
+  quickly switching between configurations on development systems and
+  thus probably irrelevant for operators.
+
+The configuration items available are, by section:
+
+
+Section [general]
+'''''''''''''''''
+
+Paths and other general settings.
+
+* cacheDir: path relative to rootDir; 
+  defaults to 'cache' --
+  Path to the DC's persistent scratch space
+* configDir: path relative to rootDir; 
+  defaults to 'etc' --
+  Path to the DC's non-ini configuration (e.g., DB profiles)
+* defaultProfileName: string; 
+  defaults to '' --
+  Deprecated and ignored.
+* gavoGroup: string; 
+  defaults to 'gavo' --
+  Name of the unix group that administers the DC
+* group: string; 
+  defaults to 'gavo' --
+  Name of the group that may write into the log directory
+* inputsDir: path relative to rootDir; 
+  defaults to 'inputs' --
+  Path to the DC's data holdings
+* logDir: path relative to rootDir; 
+  defaults to 'logs' --
+  Path to the DC's logs (should be local)
+* logLevel: value from the list warning, info, debug, error; 
+  defaults to 'info' --
+  How much should be logged?
+* maintainerAddress: string; 
+  defaults to '' --
+  An e-mail address to send reports and warnings to; this could be the
+  same as contact.email; in practice, it is shown in more technical
+  circumstances, so it's adviable to have a narrower distribution here.
+* operator: string; 
+  defaults to '' --
+  Deprecated and ignored.  maintainerAddress instead.
+* platform: string; 
+  defaults to '' --
+  Platform string (can be empty if inputsDir is only accessed by
+  identical machines)
+* rootDir: string; 
+  defaults to '/var/gavo' --
+  Path to the root of the DC file (all other paths may be relative to
+  this
+* sendmail: string; 
+  defaults to 'sendmail -t' --
+  Command that reads a mail from stdin, taking therecipient address from
+  the mail header, and transfers the mail (this is for sending mails to
+  the administrator). This command is processed by a shell (generally
+  running as the server user), so you can do tricks if necessary.
+* stateDir: path relative to rootDir; 
+  defaults to 'state' --
+  Path to the DC's state information (last imported,...)
+* tempDir: path relative to rootDir; 
+  defaults to 'tmp' --
+  Path to the DC's scratch space (should be local)
+* uwsWD: path relative to rootDir; 
+  defaults to 'state/uwsjobs' --
+  Directory to keep uws jobs in.  This may need lots of space if your
+  users do large queries
+* webDir: path relative to rootDir; 
+  defaults to 'web' --
+  Path to the DC's web related data (docs, css, js, templates...)
+* xsdclasspath: shell-type path; 
+  defaults to 'None' --
+  Classpath necessary to validate XSD using an xsdval java class.  You
+  want GAVO's VO schemata collection for this.  Deprecated, we're now
+  using libxml2 for validation.
+
+Section [adql]
+''''''''''''''
+
+(ignored, only left for backward compatibility)
+
+* webDefaultLimit: integer; 
+  defaults to '2000' --
+  (ignored, only present for backwards compatibility; use
+  [async]defaultMAXREC instead.
+
+Section [async]
+'''''''''''''''
+
+Settings concerning TAP, UWS, and friends
+
+* csvDialect: string; 
+  defaults to 'excel' --
+  CSV dialect as defined by the python csv module used when writing CSV
+  files.
+* defaultExecTime: integer; 
+  defaults to '3600' --
+  Default timeout for UWS jobs, in seconds
+* defaultExecTimeSync: integer; 
+  defaults to '60' --
+  Default timeout for synchronous UWS jobs, in seconds
+* defaultLifetime: integer; 
+  defaults to '172800' --
+  Default time to destruction for UWS jobs, in seconds
+* defaultMAXREC: integer; 
+  defaults to '20000' --
+  Default match limit for ADQL queries via the UWS/TAP
+* hardMAXREC: integer; 
+  defaults to '20000000' --
+  Hard match limit (i.e., users cannot raise MAXREC or TOP beyond that)
+  for ADQL queries via the UWS/TAP
+* maxSlowPollWait: integer; 
+  defaults to '300' --
+  Maximal time a UWS 1.1-WAIT request will delay the response.  This
+  should be smaller than what you have as timeout on outgoing
+  connections.
+* maxTAPRunning: integer; 
+  defaults to '2' --
+  Maximum number of TAP jobs running at a time
+* maxUserUWSRunningDefault: integer; 
+  defaults to '2' --
+  Maximum number of user UWS jobs running at a time
+
+Section [db]
+''''''''''''
+
+Settings concerning database access.
+
+* adqlProfiles: set of strings; 
+  defaults to 'untrustedquery' --
+  Name(s) of profiles that get access to tables opened for ADQL
+* defaultLimit: integer; 
+  defaults to '100' --
+  Default match limit for DB queries
+* dumpSystemTables: boolean; 
+  defaults to 'False' --
+  Dump the tables from //users and //system to stateDir/system_tables
+  once a day?
+* indexWorkMem: integer; 
+  defaults to '2000' --
+  Megabytes of memory to give to postgres while making indices.  Set to
+  roughly half your RAM when you have big tables.
+* interface: string; 
+  defaults to 'psycopg2' --
+  Don't change
+* maintainers: set of strings; 
+  defaults to 'admin' --
+  Name(s) of profiles that should have full access to gavo imp-created
+  tables by default
+* managedExtensions: list of strings; 
+  defaults to 'pg_sphere' --
+  Name(s) of postgres extensions gavo upgrade -e should watch
+* msgEncoding: string; 
+  defaults to 'utf-8' --
+  Encoding of the messages coming from the database
+* profilePath: shell-type path; 
+  defaults to '~/.gavo:$configDir' --
+  Path for locating DB profiles
+* queryProfiles: set of strings; 
+  defaults to 'trustedquery' --
+  Name(s) of profiles that should be able to read gavo imp-created
+  tables by default
+
+Section [ivoa]
+''''''''''''''
+
+The interface to the Greater VO.
+
+* authority: string; 
+  defaults to 'x-unregistred' --
+  The authority id for this DC; this has *no* leading ivo://
+* dalDefaultLimit: integer; 
+  defaults to '10000' --
+  Default match limit on SCS/SSAP/SIAP queries
+* dalHardLimit: integer; 
+  defaults to '1000000' --
+  Hard match limit on SCS/SSAP/SIAP queries (be careful: due to the way
+  these protocols work, the results cannot be streamed, and the results
+  have to be kept in memory; 1e7 rows requiring 1k of memory each add up
+  to 10 Gigs...)
+* oaipmhPageSize: integer; 
+  defaults to '500' --
+  Default number of records per page in the OAI-PMH interface
+* registerAlternative: boolean; 
+  defaults to 'False' --
+  Give access URLs for the alternative protocol (https when serverURL is
+  http and vice versa) as a mirrorURL?  If you're listening to HTTPS,
+  this is probably a good idea.
+* sdmVersion: value from the list 2, 1; 
+  defaults to '1' --
+  Obsolete (SDM version 2 is shelved).  Don't use.
+* validOAISets: list of strings; 
+  defaults to 'ivo_managed, vosi, local' --
+  Comma-separated list of OAI sets DaCHS should accept for publication.
+  This must always include ivo_managed and vosi, and you will want local
+  if you run a web interface.
+* VOSITableDetail: value from the list max, min; 
+  defaults to 'max' --
+  Default level of detail to return on the VOSI endpoint (change to min
+  when you have more than 100 or tables).
+* votDefaultEncoding: value from the list binary, td; 
+  defaults to 'binary' --
+  Default 'encoding' for VOTables in many places (like the DAL
+  responses; this can be user-overridden using the _TDENC local HTTP
+  parameter.
+
+Section [ui]
+''''''''''''
+
+Settings concerning the local user interface
+
+
+Section [web]
+'''''''''''''
+
+Settings related to serving content to the web.
+
+* adaptProtocol: boolean; 
+  defaults to 'True' --
+  Adapt internal absolute links to http/https by request method used.
+  You must switch this off if running behind a reverse proxy.
+* adminpasswd: string; 
+  defaults to '' --
+  Password for online administration, leave empty to disable
+* adsMirror: string; 
+  defaults to 'http://ads.g-vo.org' --
+  Root URL of ADS mirror to be used (without a trailing slash)
+* alternateHostnames: list of strings; 
+  defaults to '' --
+  A comma-separated list of hostnames this server is also known under.
+  Only set this if you're running https. With this, you can handle a
+  situation where your data center can be reached as both example.org
+  and www.example.org.
+* bindAddress: string; 
+  defaults to '127.0.0.1' --
+  Interface to bind to
+* corsOriginPat: string; 
+  defaults to '' --
+  A regular expression for URLs from which to authorise cross-origin
+  requests. This is matched, i.e., the RE must account for the whole URL
+  including the schema. Example: https?://example\.com/apps/.*.
+* enableTests: boolean; 
+  defaults to 'False' --
+  Enable test pages (don't if you don't know why)
+* favicon: path relative to webDir; 
+  defaults to 'None' --
+  Webdir-relative path to a favicon; this overrides the default of a
+  scaled version of the logo.
+* graphicMimes: list of strings; 
+  defaults to 'image/fits,image/jpeg,application/x-votable+xml;content=datalink' --
+  MIME types considered as graphics (for SIAP, mostly)
+* jsSource: boolean; 
+  defaults to 'False' --
+  If True, Javascript will not be minified on delivery (this is for
+  debugging)
+* logFormat: value from the list default, combined; 
+  defaults to 'default' --
+  Log format to use.  Default doesn't log IPs, user agents, or referrers
+  and thus should be ok in terms of not processing personal data, which
+  in turn means you probably don't have to declare anything in EU
+  jurisdictions.
+* maxPreviewWidth: integer; 
+  defaults to '300' --
+  Ignored, only present for backward compatiblity
+* maxSyncUploadSize: integer; 
+  defaults to '500000' --
+  Maximal size of file uploads for synchronous TAP in bytes.
+* maxUploadSize: integer; 
+  defaults to '20000000' --
+  Maximal size of (mainly TAP) file uploads in async requests in bytes;
+  sync requests use maxSyncUploadSize.
+* nevowRoot: path fragment; 
+  defaults to '/' --
+  Path fragment to the server's root for operation off the server's
+  root; this must end with a slash (setting this will currently break
+  essentially the entire web interface. If you must use it, contact the
+  authors and we will fix things.)
+* operatorCSS: string; 
+  defaults to '' --
+  URL of an operator-specific CSS.  This is included as the last item
+  and can therefore override rules in the distributed CSS.
+* preloadPublishedRDs: boolean; 
+  defaults to 'False' --
+  Preload all RDs of services you've published.  This is mainly helpful
+  when code in such RDs might, for instance, lock and such failures
+  don't suddenly occur in operation.
+* preloadRDs: list of strings; 
+  defaults to '' --
+  RD ids to preload at the server start.  Load time of RDs listed here
+  goes against startup time, so only do this for RDs that have execute
+  children that should run regularly.  For everything else consider
+  preloadPublishedRDs.
+* previewCache: path relative to webDir; 
+  defaults to 'previewcache' --
+  Webdir-relative directory to store cached previews in
+* realm: string; 
+  defaults to 'X-Unconfigured' --
+  Authentication realm to be used (currently, only one, server-wide, is
+  supported)
+* serverFDLimit: integer; 
+  defaults to '4000' --
+  A hard limit of the number of file handles DaCHS should try to set.
+  This will only take effect if DaCHS is started as root.  Otherwise,
+  DaCHS will just adjust its soft limit to the external limit
+  irrespective of this setting.
+* serverPort: integer; 
+  defaults to '8080' --
+  Port to bind the http port of the server to; https, if present at all,
+  is always on 443.
+* serverURL: string; 
+  defaults to 'http://localhost:8080' --
+  URL fragment used to qualify relative URLs where necessary.  Note that
+  this must contain the port the server is accessible under from the
+  outside if that is not 80; nonstandard ports are not supported for
+  https. If you offer both http and https, use your preferred protocol
+  here; for robustness, we recommend preferring http.
+* sitename: string; 
+  defaults to 'Unnamed data center' --
+  A short name for your site
+* sqlTimeout: integer; 
+  defaults to '15' --
+  Default timeout for db queries via the web
+* templateDir: path relative to webDir; 
+  defaults to 'templates' --
+  webDir-relative location of global nevow templates
+* user: string; 
+  defaults to 'gavo' --
+  Run server as this user.
+* voplotCodeBase: URL fragment relative to the server's root; 
+  defaults to 'None' --
+  Deprecated and ignored.
+* voplotUserman: URL fragment relative to the server's root; 
+  defaults to 'Deprecated and ignored' --
+  URL to the documentation of VOPlot
+
 Data Descriptors
 ================
 
@@ -9640,7 +10035,7 @@ publisher.address.email.  There may be multiple items for each meta
 key.
 
 
-Inputing Metadata
+Defining Metadata
 '''''''''''''''''
 
 In RDs, there are two ways to define metadata: Meta elements and meta
@@ -9770,83 +10165,6 @@ Comments and empty lines are easy: Empty lines are allowed, and a
 comment is a line with a hash (#) as its first non-whitespace
 character.  Both constructs are ignored, and you can even continue
 comments (though you should not).
-
-A Pitfall with Sequential Nested Meta
-......................................
-
-The creator.name meta illustrates a pitfall with our metadata
-definition.  Suppose you had more than one creator.  What you'd want is
-a metadata structure like this::
-
-  +-- creator -- name (Arthur)
-  |
-  +-- creator -- name (Berta)
-
-However, if you write::
-
-  creator.name: Arthur
-  creator.name: Berta
-
-or, equivalently::
-
-  <meta name="creator.name">Arthur</meta>
-  <meta name="creator.name">Berta</meta>
-
-by the above rules, you'll get this::
-
-  +-- creator -- name (Arthur)
-         |
-         +------ name (Berta)
-
-i.e., one creator with two names.
-
-To avoid this, make a new creator node in between, i.e., write::
-
-  creator.name: Arthur
-  creator:
-  creator.name: Berta
-
-In the creator.name case, where this is so common, DaCHS provides a
-shortcut, which you should use as a default; if you set ``creator``
-directly, DaCHS will expect a string of the form::
-
-  <author1>, <inits1> {; <authorn>, <initsn>}
-
-(i.e., Last, I.-form separated by semicolons, as in "Foo, X.; Bar, Q.;
-et al") and split it up into the proper structure.  You can mix the two
-notations, for instance if you want to set a logo on the first creator::
-
-  <meta name="creator">
-    <meta name="name">Chandrasekhar, S.</meta>
-    <meta name="logo">http://sit.in/chandra.png</meta>
-  </meta>
-  <meta name="creator">Copernicus, N.; Gallilei, G.</meta>
-
-Meta information can have a complex tree structure.  With meta streams,
-you can build trees by referencing dotted meta identifiers.  If you
-specify meta information for an item that already exists, a sibling will
-be created.  Thus, after::
-
-  creator.name: A. Author
-  creator:
-  creator.name: B. Buthor
-
-there are two creator elements, each specifying a name meta.  For the
-way creators are specified within VOResource, the following would be
-wrong::
-
-  creator.name: This is wrong.
-  creator.name: and will not work
-
--- you would have a single creator meta with two name metas, which is
-not allowed by VOResource.
-
-If you write::
-
-  contact.address: 7 Miner's Way, Behind the Seven Mountains
-  contact.email: dwarfs@fairytale.fa
-
-you have a single contact meta giving address and email.
 
 
 Meta inheritance
@@ -10562,7 +10880,8 @@ renderers -- include:
 * subject -- as noted in the explanatory leaflet, these should be taken
   from the `IVOA Vocabulary Explorer
   <http://explicator.dcs.gla.ac.uk/WebVocabularyExplorer/>`_.
-* rights -- freetext copyright notice.
+* rights -- freetext copyright notice.  See 
+  :dachsdoc:tutorial.html#Licensing for details.
 * rightsURI -- machine readable license URI.  There's no formal list of
   acknowledged URIs yet, but the common CC URIs are a good start.
 * source -- bibcodes will be expanded to ADS links here.
@@ -10570,13 +10889,18 @@ renderers -- include:
   presentation purposes.  If you give no referenceURL, the service's
   info page will be used.
 * creator.name -- this should be the name of the "author" of the data
-  set.  See below for multiple creators.  If you set this, you may want
-  to override creator.logo as well.
+  set.  If you set this, you may want to override creator.logo as well.
+  For persons, always use the form “Last, F.I.“; this saves all
+  components the unsolvable problem to tell first from last names, and
+  sorting these strings will naturally yield the sequence people expect.
+  Also, if you have multiple creators, better just set ``creator`` as
+  discussed in `Typed Meta Elements`_.
 * type – one of Other, Archive, Bibliography, Catalog, 
   Journal, Library, Simulation, Survey, Transformation, Education, 
   Outreach, EPOResource, Animation, Artwork, Background, BasicData, 
   Historical, Photographic, Press, Organisation, Project, Registry –
-  it's optional and we doubt its usefulness.
+  it's optional and we doubt its usefulness.  You may repeat the content
+  type if you need to; see also [RMI]_, sect. 3.3.
 * contentLevel – addresse(s) of the data: Research, Amateur, General
 * facility – no IVOA ids are supported here yet, but probably this
   should change.
