@@ -5964,14 +5964,50 @@ various hooks, roughly going from things everyone will want to do to
 things interesting if you want your site to look more insteresting than
 our rather plain default look.
 
+The Logo
+''''''''
+
+The least you should do is replace the DaCHS logo in
+``/var/gavo/web/nv_static/img/logo_medium.png`` with something
+pertaining to. scale it to about 250 pixels width or so (it will
+typically be used at 100 pt in the CSS).
+
+In general, anything you put into ``/var/gavo/web/nv_static`` will be
+visible underneath ``/static/`` on the web.  See also `Overriding
+Built-in Web Resource`_
+
+
+The Root Page
+'''''''''''''
+
+When people dereference your data center URI, they will see the
+root.html template rendered.  The default is a simple list of services
+published in the local set (see `OAI Sets`_), together with
+site.description from your defaultmeta.
+
+This may do when you plan to publish more than a few but less than many
+services.
+
+If you only have some very few services that furthermore will rarely, if
+ever, change, it is probably perferable to just write a static root page
+in plain XHTML in ``/var/gavo/web/templates/root.html`` (use
+``nv_static`` from ancillary material as mentioned in `The Logo`_).
+
+If you expect to have many services, you should probably derive your
+root page from the root page that we use in Heidelberg; more on all this
+in :dachsdoc:templating.html#the-root-template.
+
+Note that for DaCHS to notice you have overridden a built-in file, you
+must restart it once.
+
 
 Operator CSS
 ''''''''''''
 
 To override css rules we distribute or add new rules, avoid changing
-gavo_dc.css as described in `Simple Web Resources`_, as that will be
+or overriding gavo_dc.css, as that will be
 a liability when upgrading.  Instead, drop a CSS file somewhere
-(recommended location: ``$GAVO_ROOT/web/nv_static/user.css``) and add a
+(recommended location: ``/var/gavo/web/nv_static/user.css``) and add a
 configuration item in ``[web]operatorCSS``.  With the recommended
 location, this would work out to be::
 
@@ -6002,64 +6038,44 @@ lines, just put::
 into your operator CSS.
 
 
-XSL configuration
-'''''''''''''''''
+Overiding Built-in Web Resources
+''''''''''''''''''''''''''''''''
 
-DaCHS employs client-side XSLT for some purposes -- for instance, to
-show OAI-PMH (registry) responses in web browsers, to allow perusing
-datalink results in the browser, and to allow web browsers some
-rudimentary interaction with UWS applications like TAP.
+As mentioned in `The Logo`_, you can put files and directories into
+``/var/gavo/web/nv_static`` and have them show up on the web under
+``static``.  These files will override built-in resources of DaCHS if
+they overwrite their names.  This might be intersting if you would like
+to fix a bug or try something out.  
 
-The default XSLT contains references to the GAVO data center; to change
-these (or something else), override the xsl config stylesheet, which is
-expected at /static/xsl/dachs-xsl-config.xsl.  The recommended way to go
-about this is::
+The originals sit in DaCHS' resource tree under web.  Hence, if you want
+a local help file, in ``nv_static`` say::
 
-  cd /var/gavo  # or whereever your DaCHS root is
-  cd web/nv_static
-  mkdir -p xsl
-  cd xsl
-  gavo admin dumpDF web/xsl/dachs-xsl-config.xsl > dachs-xsl-config.xsl
+  dachs adm dump web/help.shtml > help.shtml
 
-Then edit ``dachs-xsl-config.xsl``.  Note that you have to restart the
-server once to make it notice the override.
+DaCHS decides between built-in and overridden when a resource is first
+accessed.  Hence, when you first override a given resource, you have to
+restart the server.  DaCHS will then pick up updates by itself.
 
+Here are some built-in resources that you might want to override:
 
-
-Simple Web Resources
---------------------
-
-For items coming from ``static`` (e.g., images, css, javascript), this
-overriding works by dropping same-named files in ``$GAVO_ROOT/web/nv_static``.
-
-Thus, you should put a PNG of your logo into
-``$GAVO_ROOT/web/nv_static/img/logo_medium.png``; scale it to about 250
-pixels width or so (it will typically be used at 100 pt in the CSS).
-
-Other files you may want to override in this way include
-
-* ``css/gavo_dc.css`` – the central CSS; you could use this for
-  skinning.  However, you are *strongly* advised not to replace this
-  file since some of the css is almost necessary for the web interface
-  to do useful things, and the upstream CSS gets changed fairly
-  regularly.  Instead, use `Operator CSS`_.
 * ``help.shtml`` – the help file.  Unfortunately, we blurb quite
   a lot about GAVO in there right now.  We'll think of something
-  more parametrisable, but meanwhile you may want to have your own version
-* ``js/gavo.js`` – could be the place for additional javascript;
-  but frankly, if you want custom javascript, write to us and we'll
-  think of a sane mechanism.
-* ``xsl/oai.xsl``, ``xsl/uws-joblist-to-html.xsl``,
-  ``xsl/uws-job-to-html.xsl``, and ``vosi.xsl`` – XSLT stylesheet files.
-  If you override these to customize them, please let us know.  We'd try
-  to put out generic stylesheets that are customisable without having
-  to muck around in stuff that's basically functionality.
+  more parametrisable, but meanwhile you may want to have your own
+  version.  This changes rarely, so it probably won't hurt to just fork
+  it.
+* ``xsl/dachs-xsl-config.xsl`` – this lets you customise (somewhat) the
+  responses of various pages that are just XML with XSLT when viewed
+  through the browser.  This includes the OAI-PMH pages, UWS management,
+  and VOSI responses.
+* ``css/gavo_dc.css`` – the central CSS; only override this during
+  bug fixing or similar.  For anything more permanent, use `Operator CSS`_.
+* ``js/gavo.js`` – this is most of the custom javascript that DaCHS
+  uses here and there.  Again, only override this for debugging (in
+  which case you will always want to set ``[web]jsSource`` to ``True``
+  to keep DaCHS from minifying your code.  If you need custom javascript
+  globally on a permanent basis, let us know and we'll do something
+  similar to the operator CSS.
 
-
-Templates
----------
-
-There is now a document on :dachsdoc:`HTML templating in DaCHS <templating.html>`
 
 
 Overridden System RDs
@@ -6328,7 +6344,7 @@ Also, if you run a TAP service, you should run something like::
 
   stilts taplint tapurl=<root-url>/tap | grep "^E-"
 
-– stilts you can get from `Mark Taylor's TOPCAT page`_; this will output
+– stilts you can get from where you get TOPCAT_ from; this will output
 errors with your service.  A fairly typical reason for errors is that
 you changed metadata without running ``gavo imp -m``.  If the metadata is
 wrong for just a few tables, just ``gavo imp -m`` their respective RDs.
@@ -7228,7 +7244,6 @@ Upgrading Postgres
 There's a howto over at :dachsdoc:`howDoI <howDoI.html#upgrade-the-database-engine>`
 
 .. _DaCHS-users: http://lists.g-vo.org/cgi-bin/mailman/listinfo/dachs-users
-.. _Mark Taylor's TOPCAT page: http://www.star.bris.ac.uk/~mbt/topcat/
 
 
 Conventions and Advocacy
