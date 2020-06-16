@@ -6043,6 +6043,15 @@ following data into privacy.shtml::
     store our logs for a year, we never keep the source IPs.</p>
   </body>
 
+You will see the result at http://localhost:8080/static/privacy.shtml.
+
+To have this linked from your sidebar, just add the following to your
+default meta::
+
+_sidebarlocal: raw:<div class="sidebarmicro">\
+		<p><a href="/static/doc/privpol.shtml">Privacy</a></p>
+	</div>
+
 
 Operator CSS
 ''''''''''''
@@ -6991,33 +7000,6 @@ Physically, there are several services that keep and update this set and
 let people query them (a “full registry”), e.g., the `ESAVO registry`_
 or the DaCHS network of RegTAP services [#rr], with a web interface at
 http://dc.g-vo.org/WIRR.
-
-
-Choose your Authority
----------------------
-
-To actually be part of the VO, you have to register your services.  
-Registration means assigning a (globally unique) identifier to it.
-This identifier has the form
-
-  ivo://<authority>/<stuff>
-
--- <stuff> is defined by the DaCHS software (to be ``<RD id>/<XML id of
-registred object``), whereas <authority> is a globally unique string
-identifying your.  It is recommended that you use your DNS name (or some
-appropriate part of it), which will provide some uniqueness.  Details on
-VO identifiers can be found in `IVOA Identifiers`_.
-
-Before you settle for an authority, do an `authority query`_ for your
-chosen string.  Make sure nobody else has registered it, then enter it
-into the [ivoa]authority field in your /etc/gavo.rc, like this::
-
-  [ivoa]
-  authority: org.gavo.dc
-
-To keep others from claiming your authority later, you will have to
-register your authority, too.  How to do this depends on how you intend
-to feed the registry (see below).
 
 
 Adding Publish Elements
