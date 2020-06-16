@@ -6001,6 +6001,49 @@ Note that for DaCHS to notice you have overridden a built-in file, you
 must restart it once.
 
 
+Extra Sidebar Items
+'''''''''''''''''''
+
+It is rather common to want to stick extra material into the sidebar.
+Overriding the sidebar template is a possibility, and it will probably
+survive several upgrades without breaking big time.
+
+However, if it is just a few links or lines of text you want in there,
+there is the ``_sidebarlocal`` meta item that the default sidebar
+templates includes near its foot.  There are the ``sidebarnote`` and
+``sidebarmicro`` classes you can use make things fit; and, in order to
+pull raw HTML all the way through DaCHS's guts, you have to use the raw
+metadata format.  Hence, in ``etc/defaultmeta.txt``, you would put
+something like (see :dachsref:`Stream Metadata` for details)::
+
+  _sidebarlocal:	raw:<div class="sidebarnote">\
+		  <a href="/adql">Try ADQL</a> to query our data.</div>
+
+Note that you can easily ruin the well-formedness of your document in
+this way; the material is really included in the HTML without any
+adaptation (except UTF-8 encoding).
+
+A recommended use for this is to formulate a privacy policy.  DaCHS
+tries hard not to store any data that could fall under the GDPR or
+similar legislation, but it's still nice to tell that to people; if you
+do process personal data, you must have some declaration like that in
+most juristictions anyway.
+
+To have a privacy policy, go to ``/var/gavo/web/nv_static`` and put the
+following data into privacy.shtml::
+
+  <html xmlns="http://www.w3.org/1999/xhtml"
+	  xmlns:n="http://nevow.com/ns/nevow/0.1">
+  <head n:render="commonhead">
+  <title>Privacy Policy</title>
+  </head>
+  <body n:render="withsidebar">
+    <h1>Privacy Policy</h1>
+    <p>It's nothing personal.  Really.  In particular, while we do
+    store our logs for a year, we never keep the source IPs.</p>
+  </body>
+
+
 Operator CSS
 ''''''''''''
 
@@ -6076,31 +6119,27 @@ Here are some built-in resources that you might want to override:
   globally on a permanent basis, let us know and we'll do something
   similar to the operator CSS.
 
+The somewhat odd extension shtml (as in help.shtml) for DaCHS means that
+the file will be interpreted as a template  over the service
+``//services/root``, which means that you can use the usual render
+functions and data items as per :dachsdoc:`templating.html`. This is
+be an easy way to have your page fit into the look of the remaining
+site.
+
+You may want to use that to add, for instance, a privacy policy by
+dumping something like this into ``web/nv_static/privacy.shtml``::
 
 
 Overridden System RDs
----------------------
+'''''''''''''''''''''
 
-You can copy system RDs from ``gavo/resources/inputs/__system__`` in the
-distribution to ``$GAVO_ROOT/inputs/__system__`` (adapt if you have
-played tricks with ``inputsDir``) and edit them there.  Again, if you
-feel you need to do that, contact us first, maybe we can work something
-out; it's a liability for upgrades.
+You can also dump system RDs into ``/var/gavo/inputs/__system__`` and
+edit them there; after a restart, DaCHS will use your copy then.  Doing
+this is even more of a liability for upgrades than overriding the CSS or
+the Javascript.  Only do that when debugging or to fix a transient bug
+until a fixed package is released.
 
 
-Other documents
----------------
-
-The default help file and the default sidebar link to a privacy policy
-that you should put down in
-``$GAVO_ROOT/web/nv_static/doc/privpol.shtml``.  The document must be
-well-formed XHTML.  Also, files with an extension shtml will be
-interpreted as templates over the service ``//services/root``, which
-means that you can use the usual render functions and data items; the
-same goes for ``disclaimer.html`` (referenced from the standard
-sidebar) and, if you offer SOAP services, ``soaplocal.html``.  See the
-respective pages in the GAVO DC (``http://dc.g-ov.org/static/doc/...``)
-for ideas as to what to include.
 
 
 The Vanity Map
