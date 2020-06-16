@@ -5763,6 +5763,95 @@ what DaCHS gives you after installation include:
 .. _meta stream format: ref.html#meta-stream-format
 
 
+The Userconfig RD
+-----------------
+
+In addition to gavo.rc and defaultmeta.conf, there is a third source for
+configuration information in DaCHS: the userconfig RD.  As the name
+says, it is a DaCHS resource descriptor, but it mainly contains STREAMs
+or similar material for inclusion somewhere else.
+
+Doing this in a way that doesn't break regularly on updates is not
+simple, and therefore there a bit procedure involved.
+
+
+Creating a Userconfig RD
+''''''''''''''''''''''''
+
+DaCHS has a builtin RD ``//userconfig`` that is updated as you update
+DaCHS.  It always contains fallbacks for everything that can be in
+userconfig used by the core code.  If an item is searched in the
+Userconfig RD, it is first searched in your local copy (which resides in
+``/var/gavo/etc``) and then in the distributed userconfig.  That way,
+DaCHS can add new things in the userconfig without forcing you to merge
+on every update.
+
+To create your local, editable copy, pull this distributed into
+``/var/gavo/etc/userconfig.rd`` (unless, of course, that file already
+exists)::
+
+  cd `gavo config configDir`
+  dachs admin dumpDF //userconfig > userconfig.rd
+
+
+Maintaining and Changing the Userconfig RD
+''''''''''''''''''''''''''''''''''''''''''
+
+If you already have a local userconfig.rd and cannot find something
+referenced in a userconfig in there, instead run::
+
+  dachs admin dumpDF //userconfig | less
+
+then pick out the templates for whatever elements you want to change and
+copy them into your own ``etc/userconfig.rd``.
+
+Changes to userconfig.rd are picked up by DaCHS but will usually not be
+visible in the RDs they end up in.  This is because DaCHS does not
+track which RDs make use of userconfig, so these will typically need to
+be reloaded manually.  For instance, if you changed TAP examples, you'd
+need to run::
+
+  gavo serve exp //tap
+
+to make your change show up in the web interface.  Although usually not
+necessary, you can reload userconfig itself using::
+
+  gavo serve exp %
+
+Note that for ``gavo serve exp`` to work, you need ``[web]adminpasswd``
+set in your ``/etc/gavo.rc``.
+
+
+Referencing into the Userconfig RD
+''''''''''''''''''''''''''''''''''
+
+While `Referencing in DaCHS`_ in principle applies to the userconfig
+RD, normal RDs cannot do the fallback between the local and built-in RD.
+For this, there is a special syntax that denotes this “magic” RD ``%``.
+This is what the ``exp %`` abover was about.
+
+Within an RD, you reference items from userconfig as ``%#id``, as in
+``%#obscore-extracolumns``.
+
+You can also define your own material in the userconfig RD.  As an
+example, if you have a list of authors that publish a lot of data
+collections between them and you want to re-use that declaration in
+multiple RDs, you would put something like::
+
+  <STREAM id="thegang">
+    <meta>
+      creator.name: Author, F.
+      creator.logo: http://example.org/logos/author_f.png
+    </meta>
+    <meta name="creator">Author, S.; Co-Author, N.; Ontributor, C.</meta>
+  </STREAM>
+
+into your userconfig.rd and then, in each RD that describes work from
+them, just have::
+
+  <FEED source="%#thegang"/>
+
+
 Claiming an Authority
 ---------------------
 
@@ -5801,7 +5890,6 @@ in your gavo.rc in the ``[ivoa]authority`` item, like this::
 
   [ivoa]
   authority: my-auth
-
 
 
 Registering your Authority
@@ -5867,10 +5955,15 @@ Records` to make the VO Registry see all this.  Or you can keep
 customising your DaCHS installation first.
 
 
+Customising the Web Interface
+-----------------------------
 
+DaCHS talks to web browsers, too.  To customise the appearance, you can
+override almost everything DaCHS delivers.  This section discusses the
+various hooks, roughly going from things everyone will want to do to
+things interesting if you want your site to look more insteresting than
+our rather plain default look.
 
-Customisation Hooks
--------------------
 
 Operator CSS
 ''''''''''''
@@ -5932,46 +6025,6 @@ Then edit ``dachs-xsl-config.xsl``.  Note that you have to restart the
 server once to make it notice the override.
 
 
-Userconfig RD
--------------
-
-Fairly new in DaCHS is an RD exclusively for configuration.  This is a
-place in which you can put streams that fill certain  hooks; we expect
-to move more configuration into userconfig.
-
-DaCHS has a builtin RD ``//userconfig`` that is updated as you update
-DaCHS.  It always contains fallbacks for everything that can be in
-userconfig used by the core code.  To override something, pull the
-elements in questions in your own userconfig RD and edit it there.
-
-Your own userconfig RD is expected in ``$GAVO_DIR/etc/userconfig.rd``.
-If it's not there yet, there's nothing wrong with starting with the
-distributed one::
-
-  cd `gavo config configDir`
-  gavo admin dumpDF //userconfig > userconfig.rd
-
-Once it's already there, use ``dumpDF //userconfig`` and, say, ``less``
-to pick out the templates for whatever elements you need to copy.
-Currently, userconfig is already used in configuring the registry
-interface, extending the built-in obscore schema, and providing SIAPv2
-metadata, and its use is growing.
-
-Changes to userconfig.rd are picked up by DaCHS but will usually not be
-visible in the RDs they end up in.  This is because DaCHS does not
-track which RDs make use of userconfig, so these will typically need to
-be reloaded manually.  For instance, if you changed TAP examples, you'd
-need to run::
-
-  gavo serve exp //tap
-
-to make your change show up in the web interface.  Although usually not
-necessary, you can reload userconfig itself using::
-
-  gavo serve exp %
-
-Note that for ``gavo serve exp`` to work, you need ``[web]adminpasswd``
-set in your ``/etc/gavo.rc``.
 
 Simple Web Resources
 --------------------
