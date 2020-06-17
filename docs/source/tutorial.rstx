@@ -5816,8 +5816,16 @@ what DaCHS gives you after installation include:
   services may want to override it, it is configured through the
   meta system.
 
+Since favicon.png was mentioned in there: You can tell DaCHS a URL to a
+Favicon_ in the ``[web]favicon`` configuration item.  This could be
+something in static (in which case you would write
+``/static/my-fav-icon.png``) or a full URL.  DaCHS provides a scaled
+copy of your logo that might be suitable on
+``<your-DaCHS-url>/favicon.png``, which you might use as well.
+
 .. _tutorial chapter on the registry: tutorial.html#the-registry-interface
 .. _meta stream format: ref.html#meta-stream-format
+.. _favicon: https://en.wikipedia.org/wiki/Favicon
 
 
 The Userconfig RD
@@ -6196,7 +6204,8 @@ Here are some built-in resources that you might want to override:
   globally on a permanent basis, let us know and we'll do something
   similar to the operator CSS.
 
-On the ``.shtml``, see the end of `Extra Sidebar Items`_.
+On the meaning of the ``.shtml`` extension, see the end of `Extra
+Sidebar Items`_.
 
 
 Overridden System RDs
@@ -6215,6 +6224,7 @@ Interacting with the VO Registry
 This chapter discusses aspects of running DaCHS within the greater
 Virtual Observatory, and of adapting its appearance when used through a
 web browser.
+
 
 Publishing Infrastructure Records
 ---------------------------------
@@ -6242,65 +6252,20 @@ following additional build-in resources::
   dachs pub //siap2
 
 
-The next adaptations are done through the configuration (as discussed in
-`Configuration Settings`_, i.e., usually in /etc/gavo.rc).  The most
-relevant item here is ``[web]sitename``, which should contain a terse
-identifier for the site (like "GAVO Data Center").  It is shown in
-titles and top headlines in many places.  If you plan to use DaCHS'
-embargo feature together with user authorisation, you must also set
-``[web]realm`` to some characteristic string.  You could use the site
-name here; some user agents use it to display a prompt like "Credentials
-for <realm>" or similar.
 
-Unless you plan to publish a sizeable number of services, you may want
-to override the root page.  Essentially, you can just dump an XHTML page
-to ``web/templates/root.html``, and DaCHS will use it as its root page.
-However, you may still want to consult the guide on
-:dachsdoc:`HTML templating in DaCHS <templating.html>`.
+Server Operations
+=================
 
-If you want, you can set ``[web]favicon`` to either a webDir-relative
-path or a full URL to a `favicon`_.
-
-It is also advisable to configure ``[general]maintainerAddress`` to a
-mail address of a person who will read problem reports.  DaCHS doesn't
-send many of those yet, but it's still valuable if the software can
-cry for help if necessary.  Sending mail only works if the local machine
-can actually send mail.  If there is no MTA on your machine yet, we
-recommend ``nullmailer`` as a lightweight and easy-to-configure sendmail
-stand-in.  If you use something else, you may need to adapt
-``[general]sendmail``.
-
-For the rest, you can customize almost everything by overriding built-in
-resources.  There are five major entities that you can override:
-
-* `customisation hooks`_
-* `userconfig RD`_
-* `Simple Web Resources`_
-* `Templates`_
-* `Overridden System RDs`_
-
-If you find you need to override anything but the logo, please talk to
-us first – we'd in general prefer to provide customisation hooks.
-Overridden distribution files are always a liability on upgrades.
-
-.. _favicon: https://en.wikipedia.org/wiki/Favicon
-
-This mainly sets paths.  The most important is ``rootDir``, a directory
-most other paths are relative to.  This is the one you'll most likely
-want to change.  If you, e.g., wanted to have a private DaCHS tree, you
-could put::
-
-
+This section covers a few topics that may help you run the service more
+smoothly.
 
 Starting and stopping the server
 --------------------------------
 
 The ``gavo serve`` subcommand is used to control the server.  ``gavo
 serve start`` starts the server, changes the user to what is specified
-in the [web] user config item if it has the privileges to do so
-(that's "gavo" by default; you will already have
-created that user if you followed the installation instructions) and
-detaches from the terminal.
+in the ``[web]user`` config item if it has the privileges to do so
+and detaches from the terminal.
 
 Analoguosly, ``gavo serve stop`` stops the server.  To reload some of
 the server configuration (e.g., the resource descriptors, the vanity
@@ -6317,15 +6282,16 @@ can run them as the server user (by default, gavo), too, as long as the
 server doesn't try to bind to a privileged port (lower than 1025).
 
 All this can and should be packed into a startup script or the
-equivalent entity for the init systme of your choice.  Our Debian
+equivalent entity for the init system of your choice.  Our Debian
 package provides both a `System V-style init script`_ and a `systemd
-unit`_.  They would typically be installed to /etc/init.d/dachs or
-/etc/systemd/system/dachs (but this might, of course, be different if
-you're running non-Debian systems).
+unit`_.  They would typically be installed to /etc/init.d/dachs and
+/etc/systemd/system/dachs, respectively (but this might, of course, be
+different if you're running non-Debian systems).
 
 For development work or to see what is going on, you can run ``gavo
 serve debug``; this does not detach and does not change users, and it
-also gives a lot more tracebacks in the logs.
+also gives a lot more tracebacks in the logs. See `Debugging`_ for how
+to use this to figure out misbehaviour.
 
 .. _System V-style init script: https://salsa.debian.org/debian-astro-team/gavodachs/blob/gavo/debian/gavodachs-server.dachs.init
 .. _systemd unit: https://salsa.debian.org/debian-astro-team/gavodachs/blob/gavo/debian/gavodachs-server.dachs.service
