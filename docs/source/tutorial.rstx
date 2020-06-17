@@ -1103,7 +1103,6 @@ We have tried to write the reference documentation's section on
 point you there for further details.
 
 
-
 Referencing in DaCHS
 --------------------
 
@@ -1175,7 +1174,6 @@ What it looks for here are columns with UCDs of
 to mixins for other standard protocols, it does not automatically insert
 these columns (and neither the only other required column in SCS, the
 main row identifier with the UCD ``meta.id;meta.main``).
-
 
 
 Metaprogramming: Macros and LOOPs
@@ -1435,6 +1433,18 @@ apart from the host name and port (see
 the `operator's guide`_ on how to change those), there is the path to the
 RD (without the file extension), then the id of the service element, and
 finally the renderer name.  In this case, that's ``form`` for an HTML form.
+
+This systematics makes for longish URLs, which is inconvenient when you
+would like to include them on paper publications.  To get around that,
+DaCHS supports **vanity names**, short aliases that let you absorb all
+these extra segments.  In the present case, you could, for instance,
+add::
+
+  arihip/q/cone/form ARIHIP
+
+to ``/var/gavo/etc/vanitynames.txt`` and then reach your form as
+http://localhost:8080/ARIHIP.  For details, see :dachsref:`The Vanity
+Map` in the reference documentation.
 
 By the way, a convenient backdoor to find such links without looking
 up the individual parts is the RD browser.  To enter that, just append
@@ -2472,6 +2482,7 @@ This is in keeping with the general SSAP parameter style, while
 more modern VO services use 2-arrays for intervals (“DALI style”).
 
 To expose SSAP cores, use :dachsref:`the ssap.xml renderer`.  
+
 
 Form-based Spectral services
 ''''''''''''''''''''''''''''
@@ -5964,6 +5975,7 @@ various hooks, roughly going from things everyone will want to do to
 things interesting if you want your site to look more insteresting than
 our rather plain default look.
 
+
 The Logo
 ''''''''
 
@@ -6048,9 +6060,19 @@ You will see the result at http://localhost:8080/static/privacy.shtml.
 To have this linked from your sidebar, just add the following to your
 default meta::
 
-_sidebarlocal: raw:<div class="sidebarmicro">\
-		<p><a href="/static/doc/privpol.shtml">Privacy</a></p>
-	</div>
+  _sidebarlocal: raw:<div class="sidebarmicro">\
+		  <p><a href="/static/doc/privpol.shtml">Privacy</a></p>
+	  </div>
+
+The somewhat odd extension ``.shtml`` for DaCHS means that
+the file will be interpreted as a template  over the service
+``//services#root``, which means that you can use the usual render
+functions and data items as per :dachsdoc:`templating.html`. This is
+be an easy way to have your page fit into the look of the remaining
+site.
+
+You could also use plain ``.html``, in which case you could even escape
+the necessity to provide well-formed XHTML.
 
 
 Operator CSS
@@ -6124,19 +6146,11 @@ Here are some built-in resources that you might want to override:
 * ``js/gavo.js`` – this is most of the custom javascript that DaCHS
   uses here and there.  Again, only override this for debugging (in
   which case you will always want to set ``[web]jsSource`` to ``True``
-  to keep DaCHS from minifying your code.  If you need custom javascript
+  to keep DaCHS from minifying your code).  If you need custom javascript
   globally on a permanent basis, let us know and we'll do something
   similar to the operator CSS.
 
-The somewhat odd extension shtml (as in help.shtml) for DaCHS means that
-the file will be interpreted as a template  over the service
-``//services/root``, which means that you can use the usual render
-functions and data items as per :dachsdoc:`templating.html`. This is
-be an easy way to have your page fit into the look of the remaining
-site.
-
-You may want to use that to add, for instance, a privacy policy by
-dumping something like this into ``web/nv_static/privacy.shtml``::
+On the ``.shtml``, see the end of `Extra Sidebar Items`_.
 
 
 Overridden System RDs
@@ -6147,64 +6161,6 @@ edit them there; after a restart, DaCHS will use your copy then.  Doing
 this is even more of a liability for upgrades than overriding the CSS or
 the Javascript.  Only do that when debugging or to fix a transient bug
 until a fixed package is released.
-
-
-
-
-The Vanity Map
---------------
-
-DaCHS' URL scheme leads to somewhat clunky URLs that, in particular,
-reflect the file system underneath.  While this doesn't matter to the VO
-registry, it is possibly unwelcome when publishing URLs outside of the
-VO.  To overcome it, you can define "vanity names", single path elements
-that are mapped to paths.
-
-These mappings are read from the file ``$GAVO_ROOT/etc/vanitynames.txt``.
-The file contains lines of the format::
-
-    <target> <key> [<option>]
-
-Target is a path that must *not* include nevowRoot and must *not* start
-with a slash (unless you're going for very special effects).
-
-Key normally is a single path element (i.e., a string without a slash).
-If this path element is found in the first segment, it is replaced with
-the segments in target.
-
-<option> can only be ``!redirect`` or empty right now.
-
-If it is ``!redirect``, ``<key>`` may be a path fragment (as opposed to
-a single path element); leading and trailing slashes are ignored.  If
-the *enire* query path matches this key, a redirect to this key is
-generated.  This is intended to let you shut down services and introduce
-replacements.  If the incoming URL contains a query, it will be appended
-to the replacement URL.  Thus, even stored queries or forms can
-potentially work across such a redirect.
-
-You can also (ab)use the redirect option to give vanity names, but since
-the target will show up in the browser address line, normal maps are
-highly preferred.  The only time normal maps don't work for this is when
-the resource directory is identical to the vanity name (you'll get an
-endless loop then), so you should avoid that situation.
-
-Empty lines and #-on-a-line-comments are allowed in the input.
-
-As an example, here's the vanity map that DaCHS had builtin as of
-version 0.6::
-
-  __system__/products/p/get getproduct
-  __system__/services/registry/pubreg.xml oai.xml
-  __system__/services/overview/external odoc
-  __system__/dc_tables/show/tablenote tablenote
-  __system__/dc_tables/show/tableinfo tableinfo
-  __system__/services/overview/admin seffe
-  __system__/tap/run/tap tap
-  __system__/adql/query/form adql !redirect
-
-
-Note again that ``<key>`` must be a *single* path element only.
-
 
 
 Interacting with the VO Registry
