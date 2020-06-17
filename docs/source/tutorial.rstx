@@ -1510,7 +1510,7 @@ This will enter all the published services and tables in the RD q.rd
 into the table of published resources.  For ``local`` publications, this
 means they will appear on the default front page.  However, DaCHS caches
 the front page, and to see changes, you will have to invalidate the
-cache.  If you've set ``[web]adminpasswd``, and it fits what the
+cache.  If you have set `The Admin Password`_, and it fits what the
 ``serverURL`` says, ``dachs pub`` will do that itself.  If in doubt,
 just restart the DaCHS server.
 
@@ -4637,7 +4637,7 @@ examples, you have to run::
 
   dachs serve exp % //tap
 
-on the server (this needs ``[web]adminpasswd`` set).
+on the server (if you have set `The Admin Password`_).
 
 To see your shiny new example(s), point your browser to ``<server
 url>/tap/examples``.
@@ -5741,7 +5741,8 @@ The Admin Password
 
 You can influence a running DaCHS server through its web interface after
 authenticating as ``gavoadmin``.  The password to use for that is set in
-``[web]adminpasswd`` (and has no default, which means no remote
+the ``[web]adminpasswd`` configuration item 
+(and has no default, which means no remote
 administration is possible).  You normally want this on a site
 that has publications now and then, as having it lets ``dachs imp`` and
 ``dachs pub`` tell the web component to release some caches, and it also
@@ -5883,8 +5884,8 @@ necessary, you can reload userconfig itself using::
 
   gavo serve exp %
 
-Note that for ``gavo serve exp`` to work, you need ``[web]adminpasswd``
-set in your ``/etc/gavo.rc``.
+Note that for ``gavo serve exp`` to work, you need to set `The Admin
+Password`_.
 
 
 Referencing into the Userconfig RD
@@ -6301,7 +6302,16 @@ Managing Runtime Resources
 --------------------------
 
 There are a few things you should do to keep your data center function
-well.  Most importantly, see how your services do in the VO ecosystem.
+well.  This chapter has a few hints on what to do.
+
+Validating your services
+''''''''''''''''''''''''
+
+While DaCHS tries to follow the standards in order to ensure maximum
+interoperability, there are always things that can go wrong; in
+particular, there are many ways write RDs such that the resulting
+services are invalid.
+
 Some places operate validators that tell you if there is something wrong
 with your site.  If you are logged in as gavoadmin, you can run some of
 these interactively from the service info pages.  We recommend, however,
@@ -6313,10 +6323,13 @@ Also, if you run a TAP service, you should run something like::
 
   stilts taplint tapurl=<root-url>/tap | grep "^E-"
 
-– stilts you can get from where you get TOPCAT_ from; this will output
-errors with your service.  A fairly typical reason for errors is that
-you changed metadata without running ``gavo imp -m``.  If the metadata is
-wrong for just a few tables, just ``gavo imp -m`` their respective RDs.
+– stilts you can get from where you get TOPCAT_ from.  Errors here could
+be due to DaCHS mis-implementing TAP or because DaCHS implements some
+TAP proposals stilts doesn't expect; in case of doubt, as on
+dachs-support.  However, it is far more common that your metadata got
+our of whack for some reason or other.  For instance, you may have
+changed RD metadata (which controls the output on the tables endpoint)
+without running ``gavo imp -m`` which updates TAP_SCHEMA).
 An easy way to fix all such problems is to just run::
 
   gavo admin updateTAPSchema
@@ -6325,30 +6338,32 @@ which goes over all RDs that have contributed metadata to TAP_SCHEMA and
 re-ingests that metadata.
 
 
-DaCHS caches quite a lot of information rather aggressively, which means
-that editing information on disk may not immediately influence the
-behaviour of the server.  This is particularly true for the default
-meta (``etc/defaultmeta.txt``), the vanity name translations
-(``etc/vanitynames.txt``), and the database profiles.  Most
-of this can is reloaded on ``gavo serve reload``, but certain settings
-(like ``serverPort`` and ``bindAddress``) only take effect on a restart.
+Dealing with RD Changes
+'''''''''''''''''''''''
 
-The resource descriptors are special.  The server should pick up edits
-on RDs automatically, with the following exceptions:
+A DaCHS server will in general try to reload an RD if it finds it is
+changed on disk.  If the updated RD cannot be loaded (for instance,
+because it is invalid XML), it will keep the old RD and leave error
+messages in the (dcErrors and dcInfos) – so, keep these in view when
+editing RDs under live services.
+
+DaCHS will *not* pick up changed RDs under some circumstances:
 
 * Built-in ``__system__`` RDs are not controlled.  The main reason here
   is that these may not actually have disk files behind them, depending
   on the installation they may come from an archive.
 * Only the file the RD was loaded from is checked.  This means that if
   you override a built-in ``__system__`` RD with your own version in
-  ``inputs/__system__``, DaCHS will not automatically pick that up
+  ``inputs/__system__``, DaCHS will not automatically pick that up.
+* Of course, if you edit a file only used by an RD (e.g., a custom
+  core), DaCHS will also not notice a change; it only looks at the RD.
 * If you access an RD with no corresponding file and create that file
   afterwards, that change will also not be picked up automatically.
 
-``gavo serve reload`` will reload even those RDs.  To selectively
-invalidate RDs that fall under these categories when you don't want to
-reload or restart the server, use the administration panel for the RD
-through the webserver; see `Admin Web Interfaces`_
+When DaCHS doesn't notice a change to the RD, you can still expunge it
+from the server using ``dachs serve exp`` if you have set `The Admin
+Password`_).
+
 
 Admin Interfaces
 ----------------
@@ -6357,8 +6372,8 @@ Admin Web Interfaces
 ''''''''''''''''''''
 
 Some operation on the data center can be done from its web interface.
-To use these features, you have to set the ``[web] adminpasswd``
-configuration item.  You can then use the "Log in" link in the side bar
+To use these features, you have to set `The Admin Password`_.
+You can then use the "Log in" link in the side bar
 using ``gavoadmin`` as the user name.
 
 If you are logged in as gavoadmin, you should see an "Admin me"-link in
