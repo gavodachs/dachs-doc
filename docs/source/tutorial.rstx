@@ -5610,7 +5610,9 @@ minimally should give on a standalone server::
   sitename: Example Observatory Archive
 
 The next few subsections explain the items here (and a few more that you
-will need in certain common deployment scenarios).
+will need in certain common deployment scenarios).  More information on
+syntax and contents of gavo.rc is in the reference documentation's
+:dachsref:`Configuration Reference`.
 
 
 The Server URL, Ports, and Addresses
@@ -5711,6 +5713,50 @@ There are many situations in which the server may want to contact you
 (e.g., failed cron jobs).  To let it contact you, teach the server it is
 on to send mail (we like the nullmailer package for things like that)
 and set ``[general]maintainerAddress``.
+
+
+Path Configuration
+''''''''''''''''''
+
+If you would like to (perhaps temporarily, for instance in a
+``~/.gavorc``) override where DaCHS looks for its tree (the
+``/var/gavo`` we have been assuming here; this is often called
+``$GAVO_ROOT`` in the reference documentation), set
+``[general]rootDir``, perhaps like this::
+
+  [general]
+  rootDir: /home/user/gavo
+
+You can also override other paths (see :dachsref:`Section [general]`),
+which are then are interpreted relative to rootDir unless they start
+with a slash.
+
+Two items you may want to change if your rootDir is on a network
+file system are ``[general]tempDir`` and ``[general]cacheDir`` – things
+probably run more smoothly if they are local.
+
+
+The Admin Password
+''''''''''''''''''
+
+You can influence a running DaCHS server through its web interface after
+authenticating as ``gavoadmin``.  The password to use for that is set in
+``[web]adminpasswd`` (and has no default, which means no remote
+administration is possible).  You normally want this on a site
+that has publications now and then, as having it lets ``dachs imp`` and
+``dachs pub`` tell the web component to release some caches, and it also
+makes ``dachs serve expire`` work (which is sometimes useful to expunge
+cached RDs).
+
+Authenticated gavoadmin can also access all restricted resources.
+
+The password is stored in clear text in gavo.rc; doing some kind of
+encryption would only make sense if you were prepared to enter some kind
+of passphrase every time you start the server.  As in other places,
+DaCHS assumes the machine it runs on is trusted.  You can restrict
+gavo.rc access to the gavo group, but of course that only helps against
+people who do not need to run the ``dachs`` command (which needs access
+to ``gavo.rc``).
 
 
 Basic Metadata
@@ -6239,57 +6285,10 @@ Overridden distribution files are always a liability on upgrades.
 
 .. _favicon: https://en.wikipedia.org/wiki/Favicon
 
-Configuration Settings
-----------------------
-
-Many aspects of the data center can be configured using INI-style
-configuration files.  DaCHS tries to obtain them from a global location
-(``/etc/gavo.rc`` or whatever is in the ``GAVOSETTINGS`` environment variable)
-and a user-specific file (``~/gavo.rc`` or whatever is in the
-``GAVOCUSTOM`` variable).  The server should probably be configured in
-the global location exclusively, since otherwise it will behave
-differently depending on which user starts the server.
-
-This section starts with a walkthrough through the more relevant
-settings, section by section; below, there is a reference of all
-supported configuration items.
-
-
-The general Section
-'''''''''''''''''''
-
 This mainly sets paths.  The most important is ``rootDir``, a directory
 most other paths are relative to.  This is the one you'll most likely
 want to change.  If you, e.g., wanted to have a private DaCHS tree, you
 could put::
-
-  [general]
-  rootDir: /home/user/gavo
-
-into the personal configuration file (which DaCHS searches in
-``~/.gavorc``) by default; this would then override the analogous
-specification in ``/etc/gavorc``.
-
-The other paths in this section are interpreted relative to rootDir
-unless they start with a slash.
-
-You may want to set tempDir and cacheDir to a directory local to your
-machine if rootDir is mounted via a network.  Also note that we do
-no synchronisation for writing to the log (and never will -- we will
-provide syslog based logging if necessary), so you may want to tweak
-logDir too to keep actions from seperate users seperate.
-
-
-The web Section
-'''''''''''''''
-
-You will probably also want to set ``adminpasswd``.  If set, you can
-log in on your server as user gavoadmin with this password.  Gavoadmin
-basically may do everything (access protected resources, clear caches,
-etc).  The password is given in clear text; doing some kind of
-encryption would only make sense if you were prepared to enter some kind
-of passphrase every time you start the server.  As in other places,
-DaCHS assumes the machine it runs on is trusted.
 
 
 
@@ -7068,7 +7067,7 @@ So, to actually make the publication happen, run::
 (you pass RD ids instead of filenames, too, as in ``dachs pub
 arigfh/q``).  When there are ``local`` publications in the RD published,
 the ``//services`` RD on the running DaCHS instance has to be reloaded.
-If you gave the [web]adminpasswd configuration item in your ``gavo.rc``
+If you gave the ``[web]adminpasswd`` configuration item in your ``gavo.rc``
 (and you're running dachs pub on a machine that has serverURL configured
 to point to the running instance), DaCHS will automatically do this;
 otherwise, it will issue a warning.

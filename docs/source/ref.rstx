@@ -9521,10 +9521,10 @@ defines a tablename macro).
 Configuration Reference
 =======================
 
-DaCHS' basic configuration is done through an INI-style file; it is
-parsed using Python's configparser module; in case of doubt on features
-and syntax, refer to the Python reference documentation of the Python
-version you are using.  
+DaCHS' basic configuration is done through one or more INI-style files,
+which are parsed using Python's configparser module; in case of doubt on
+features and syntax, refer to the Python reference documentation of the
+Python version you are using.  
 
 Some of the more common items are discussed in the tutorial
 (:dachsdoc:`tutorial.html#configuration-settings`).
@@ -9537,19 +9537,19 @@ following extra features are available:
 * DaCHS will also pick up configuration from ``.gavorc`` in the calling
   user's home directory.  Configuration there is merged with what is in
   the main configuration.  You can use this to, for instance, run a
-  second, ``development`` server on a production instance (obviously,
+  second, development-type server on a production instance (obviously,
   you will have to run it on a different port), or for configuring extra
   debugging features, or whatever.
 * You can override the location of ``/etc/gavo.rc`` using the
   ``GAVOSETTINGS`` environment variable.  This is intended mainly for
   when everything DaCHS-related should be in a single, non-OS directory,
-  such as when DaCHS sits in a container that should be readily
+  such as when the DaCHS binaries sit in a container that should be readily
   exchangable.  Another usage is when, on a development system, you want
   to be able to run DaCHS using the resources of the production system
   (but that is, obviously, a bit dangerous if the DaCHS versions on
   development and production are significantly different).
 * You can even override the location of the per-user configuration
-  (i.e., ``~/.gavorc) using ``GAVOCUSTOM``.  This is mainly for
+  (i.e., ``~/.gavorc``) using ``GAVOCUSTOM``.  This is mainly for
   quickly switching between configurations on development systems and
   thus probably irrelevant for operators.
 
@@ -9582,7 +9582,7 @@ Paths and other general settings.
 * logDir: path relative to rootDir; 
   defaults to 'logs' --
   Path to the DC's logs (should be local)
-* logLevel: value from the list warning, info, debug, error; 
+* logLevel: value from the list info, debug, error, warning; 
   defaults to 'info' --
   How much should be logged?
 * maintainerAddress: string; 
@@ -9738,7 +9738,7 @@ The interface to the Greater VO.
   Give access URLs for the alternative protocol (https when serverURL is
   http and vice versa) as a mirrorURL?  If you're listening to HTTPS,
   this is probably a good idea.
-* sdmVersion: value from the list 2, 1; 
+* sdmVersion: value from the list 1, 2; 
   defaults to '1' --
   Obsolete (SDM version 2 is shelved).  Don't use.
 * validOAISets: list of strings; 
@@ -11725,6 +11725,7 @@ howto document.
 .. _selecting input fields with a widget: howDoI.html#make-an-input-widget-to-select-which-columns-appear-in-the-output-table
 .. _customizing generated SCS conditions: howDoI.html#change-the-query-issued-on-scs-queries
 
+
 Output tables
 '''''''''''''
 
@@ -11778,6 +11779,63 @@ The column selection is influenced by:
 
 Sorry for this mess; all this had, and by and large still has, good
 reasons.
+
+
+The Vanity Map
+''''''''''''''
+
+DaCHS' URL scheme leads to somewhat clunky URLs that, in particular,
+reflect the file system underneath.  While this doesn't matter to the VO
+registry, it is possibly unwelcome when publishing URLs outside of the
+VO.  To overcome it, you can define "vanity names", single path elements
+that are mapped to paths.
+
+These mappings are read from the file ``$GAVO_ROOT/etc/vanitynames.txt``.
+The file contains lines of the format::
+
+    <target> <key> [<option>]
+
+Target is a path that must *not* include nevowRoot and must *not* start
+with a slash (unless you're going for very special effects).
+
+Key normally is a single path element (i.e., a string without a slash).
+If this path element is found in the first segment, it is replaced with
+the segments in target.
+
+``<option>`` can only be ``!redirect`` or empty right now.
+
+If it is ``!redirect``, ``<key>`` may be a path fragment (as opposed to
+a single path element); leading and trailing slashes are ignored.  If
+the *enire* query path matches this key, a redirect to this key is
+generated.  This is intended to let you shut down services and introduce
+replacements.  If the incoming URL contains a query, it will be appended
+to the replacement URL.  Thus, even stored queries or forms can
+potentially work across such a redirect.
+
+You can also (ab)use the redirect option to give vanity names, but since
+the target will show up in the browser address line, normal maps are
+highly preferred.  The only time normal maps don't work for this is when
+the resource directory is identical to the vanity name (you'll get an
+endless loop then), so you should avoid that situation.
+
+Empty lines and #-on-a-line-comments are allowed in the input.
+
+As an example, here's the vanity map that DaCHS had builtin as of
+version 2.1::
+
+  __system__/products/p/get getproduct
+  __system__/products/p/dlasync datalinkuws
+  __system__/services/registry/pubreg.xml oai.xml
+  __system__/services/overview/external odoc
+  __system__/dc_tables/show/tablenote tablenote
+  __system__/dc_tables/show/tableinfo tableinfo
+  __system__/services/overview/admin seffe
+  __system__/services/overview/rdinfo browse
+  __system__/tap/run/tap tap
+  __system__/adql/query/form adql !redirect
+  __system__/run/genrd genrd
+
+Note again that ``<key>`` must be a *single* path element only.
 
 
 Writing Custom Cores
