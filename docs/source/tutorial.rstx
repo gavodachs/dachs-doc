@@ -5925,8 +5925,8 @@ If you want to run your own publishing registry (which you should if you
 will publish more than a handful resources), you need to claim and
 describe an authority.
 
-You can skip this section if you intend to `register through purx`_ or
-to `register using a browser`_.
+You can skip this section if you intend to `Register Through purx`_ or
+to `Register Through Web Forms`_.
 
 
 Choosing your Authority
@@ -6222,9 +6222,69 @@ until a fixed package is released.
 Interacting with the VO Registry
 ================================
 
-This chapter discusses aspects of running DaCHS within the greater
-Virtual Observatory, and of adapting its appearance when used through a
-web browser.
+If you have tried any of the VOTT examples mentioned in the
+`Introduction`_, you will have realised that you are not in the VO
+unless your service is registered.  There are several options for how to
+do that.  In this chapter, we will first discuss three options for doing
+the registration.  The remainer of the chapter is then devoted to the
+preferred option.
+
+Getting into the Registry
+-------------------------
+
+To make your services visible to the VO, you have to make things called
+**searchable registries** to index your metadata.  The first condition for
+that is that this metadata is organised in a standard structure called
+VOResource.  DaCHS does the organisation for you: on each info page
+(they're linked from the sidebar, but you can also get them by replacing
+the renderer name in the access URL with ``info``) there is a link to
+“VOResource XML”, and the fact that you are now interested in this
+proves you start becoming a VO nerd according to what it says there.
+
+This piece of XML needs to get “harvested” by the searchable registries.
+Usually, this happens through a protocol called OAI-PMH.  DaCHS speaks
+this protocol, and the rest of this chapter deals with the wonderful
+things you can do if you let it do that.
+
+However, for very small sites (one or two services, we'd say), preparing
+and running a **publishing registry** (that's what the OAI-PMH endpoints
+are called), including `Claiming an Authority`_ may be overdoing it.
+Instead you could either:
+
+* use purx, or
+* register through web forms.
+
+The remainder of this section is devoted to these two options.  If want
+to run a publishing registry, you can skip it.
+
+
+Register Through purx
+'''''''''''''''''''''
+
+purx_ is a little service run by GAVO that lets people put arbitrary
+(but valid) VOResource records on some web server and have this service
+talk to the VO Registry.  Purx will then pick up changes to these
+documents, polling them around daily, and propagate them to the VO
+Registry as necessary.
+
+To use it, get the URL of your service's VOResource XML as described
+above.  Paste this URL into purx' enrollment field, wait for a mail to
+arrive, confirm the publication, and you are done.  Your service will
+have a service identifier starting with ``ivo://purx``, but the rest
+should contain material from your RD id.
+
+To make purx stop publishing your record, you can take down the service
+and wait for purx to give up after a couple of months.  A faster way
+would be to have the VOResource link return an HTTP 403 status code,
+which so far we haven't implemented.  Let us know if you need it.
+
+The good thing about purx is that once enrolled updates are automatic.
+Still, the extra HTTP-based polling increases latency and adds
+fragility.  And you don't get to have your own authority in the
+identifiers, which sometimes is inconvenient (e.g., when `Validating
+your Services`_).
+
+.. _purx: http://dc.g-vo.org/purx/q/enroll/custom
 
 
 Publishing Infrastructure Records
@@ -6776,7 +6836,7 @@ Managing Runtime Resources
 There are a few things you should do to keep your data center function
 well.  This chapter has a few hints on what to do.
 
-Validating your services
+Validating your Services
 ''''''''''''''''''''''''
 
 While DaCHS tries to follow the standards in order to ensure maximum
@@ -7098,7 +7158,6 @@ you should provide HTTP endpoints and register your those.  If HTTPS is
 available, DaCHS will tell clients via the Registry's mirrorURL feature.
 If clients think HTTPS is worth it, they in this way can learn about
 support for it and use that as they see fit.
-
 
 
 Upgrading
