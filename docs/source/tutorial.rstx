@@ -6451,7 +6451,39 @@ can do the following::
 
 This may result in a few error messages; if you don't understand them,
 it's a good idea to just go to the respective line in toval.xml and give
-it a long, hard look.
+it a long, hard look.  You might also find hints on how to fix things in
+:dachsdoc:`commonproblems.html`.
+
+
+Backing Up the Registry State
+-----------------------------
+
+From your file system, there's no way to figure out what you have
+published when.  To ensure that your publishing 
+registry stays consistent even when
+your database disappears, you should make sure that either you have a
+safe backup of your entire database (and no, backing up the files
+doesn't count, as that probably won't let you restore the thing) or,
+simpler, just add::
+
+  [db]
+    dumpSystemTables: True
+
+to your ``/etc/gavo.rc``.  With that, DaCHS, every midnight, will dump the
+contents of the tables in //services and //users (which contain
+everything permanently operator-changable that doesn't go through imp)
+to ``$stateDir/systemtables.dump``.  You can restore this file using
+``dachs dump load`` in case of a disaster (in particular if you back it
+up off-site once more; backing up files is a lot simpler than backing up
+database tables).
+
+Note that this will currently contain cleartext passwords of your site
+users (the stuff you added through ``dachs adm adduser``).  This doesn't
+hurt much over what's the case anyway, as the passwords are unencrypted
+in the database.  But it would still be bad if anyone used valuable
+passwords with DaCHS.  If you forsee that, implement password hashing
+and salting for DaCHS' user table or find someone to do that before
+going ahead.
 
 
 Creating an Organisation Record
@@ -6497,14 +6529,14 @@ Registering DaCHS-external Services
 -----------------------------------
 
 The registry interface of DaCHS can be used to register entities
-external to DaCHS; actually, you're already doing this when you're
+external to DaCHS; actually, you are already doing this when you're
 claiming an authority.
 
-To register a non-service "resource", you can fill out a resRec_ RD
-element.  You could reserve an RD (say, ``$GAVO_ROOT/inputs/ext.rd`` to
+To register a non-service "resource", use :dachsref:`Element resRec`.
+You could reserve an RD (say, ``$GAVO_ROOT/inputs/ext.rd`` to
 collect such external registrations, or you could put them alongside
 internal services into their respective RDs.  You will then usually just
-use the resRec's id attribute to determine the IVORN of resource record.
+use the resRec's id attribute to determine the ivoid of resource record.
 It will then be ``ivo://<your authority>/<rd id>/<id of resRec>``.
 
 In all likelihood, however, you will want to register services.  To
@@ -6605,35 +6637,6 @@ Here's an example::
     ...
   </service>
 
-
-
-Ensure There's a Backup of your Registry State
-----------------------------------------------
-
-From your file system, there's no way to figure out what you have
-published when.  To ensure that your registry stays consistent even when
-your database disappears, you should make sure that either you have a
-safe backup of your entire database (and no, backing up the files
-doesn't count, as that probably won't let you restore the thing) or,
-simpler, just add::
-
-  [db]
-    dumpSystemTables: True
-
-to your /etc/gavo.rc.  With that, DaCHS will every midnight dump the
-contents of the tables in //services and //users (which contain
-everything permanently operator-changable that doesn't go through imp)
-to ``$stateDir/systemtables.dump``.  You can restore this file using
-``dachs dump load`` in case of a disaster (in particular if you back it
-up off-site once more).
-
-Note that this will currently contain cleartext passwords of your site
-users (the stuff you added through ``dachs adm adduser``).  This doesn't
-hurt much over what's the case anyway, as the passwords are unencrypted
-in the database.  But it would still be bad if anyone used valuable
-passwords with DaCHS.  If you forsee that, implement password hashing
-and salting for DaCHS' user table or find someone to do that before
-going ahead.
 
 
 
