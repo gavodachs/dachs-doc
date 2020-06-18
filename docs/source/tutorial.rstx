@@ -5749,6 +5749,50 @@ harmless for the import of the table you imported, as ``data`` creation
 on ``recreateAfter`` happens in a separate transaction.
 
 
+More on Importing Recipes
+-------------------------
+
+Doing Incremental Imports
+'''''''''''''''''''''''''
+
+When running archives of ongoing projects, it is usually desirable to
+import often, but ignore items that are already in the database to make
+the imports quick and cheap.
+
+The key ingredient to accomplish that is the :dachsdoc:`Element
+ignoreSources`, which lets you tell DaCHS which files of those it found
+in ``sources`` it should not ingest (again). What this deals with are
+paths relative to DaCHS' inputsDir.  Unless you did something special,
+the accref column in tables having data products is  inputsDir-relative
+path.
+
+There are various ways to communicate accrefs to ignore: from
+lines in a file, by a pattern, or from the database.  This last case is
+what most commonly is used in incremental imports, in the form of the
+``fromdb`` attribute of ``ignoreSources``.
+
+DaCHS, however, when you import something, will always tear down all
+tables being made, so just ignoring some sources will not be sufficient.  
+To make DaCHS keep tables mentioned in ``make``, give the
+:dachsref:`Element data` an ``update`` attribute.  
+
+In sum, the pattern is::
+
+  <data id="import" updating="True">
+    <sources pattern="data/*.fits">
+      <ignoreSources fromdb="select accref from myschema.mytable"/>
+    </sources>...
+
+Of course, you have to adapt the source pattern and the table to get the
+accrefs for (to where your data products are managed).
+
+For non-data product sources (e.g., files you feed into catalogs),
+you will have to use some other technique, because these do not have
+accrefs and you will have to manage the sources already processed
+manually.  An example for how this can be done is the ``rr.imported`` table
+in :samplerd:`rr/q`.
+
+
 More on Grammars
 ----------------
 

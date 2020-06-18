@@ -26,40 +26,6 @@ particular upgrade steps).
 Ingestion
 =========
 
-...do incremental importing?
-----------------------------
-
-...that is, only import files that were added since the last import?
-
-The key ingredient here is the :dachsdoc:`Element ignoreSources`, which
-lets you tell DaCHS which files or those it found in ``sources`` it
-should not ingest (again). What this deals with are paths relative to
-DaCHS' inputsDir.  There are various ways to communicate them: from
-lines in a file, by a pattern, or from the database, and it's the last
-case we're really interested in here.
-
-Unless you did something special, the accref column in tables having
-data products will be such an this inputsDir-relative path.  With the
-``fromdb`` attribute of the ``ignoreSource`` element, you can pull in
-these accrefs as the files to ignore.
-
-DaCHS, however, when you ``imp`` something, will always tear down all
-tables being made.  To suppress that behaviour, just give the data
-element an ``update`` attribute.  In sum, the pattern is::
-
-  <data id="import" updating="True">
-    <sources pattern="data/*.fits">
-      <ignoreSources fromdb="select accref from myschema.mytable"/>
-    </sources>...
-
-Of course, you have to adapt the source pattern and the table to get the
-accrefs for (to where your data products are managed).
-
-For non-data product sources (e.g., files you feed into catalogs),
-you'll have to use some other technique.  In case you need such a thing,
-you may want to look at :samplerd:`rr/q` (see the ``rr.imported`` table).
-
-
 ...skip a row from a rowmaker?
 ------------------------------
 
