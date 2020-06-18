@@ -323,6 +323,107 @@ The configuration items available are, by section:
 .. replaceWithResult config.getRSTReference("'")
 
 
+Code in DaCHS
+=============
+
+This section contains a few general points for python code embedded in
+DaCHS.  Most of the material applies to procedure definitions (`Element
+apply`_, `Element dataFormatter`_, `Element dataFunction`_, `Element
+descriptorGenerator`_, `Element iterator`_, `Element metaMaker`_,
+`Element mixinProc`_, `Element pargetter`_, `Element phraseMaker`_,
+`Element regTest`_, `Element rowfilter`_, `Element sourceFields`_) as
+well as to other pieces of code, such as in `Element customGrammar`_,
+`Element customCore`, or `Element customRenderer`.
+
+More information on what names DaCHS would like you to see are available
+in `Functions Available For Row Makers`_ and `The DaCHS API`_.
+
+
+Importing Modules
+'''''''''''''''''
+
+To keep the various resources as separate from each other as possible,
+DaCHS does not manipulate Python's import path.  However, one frequently
+wants to have library-like modules providing common functionality or
+configuration in a resdir (the conventional place for these would be in
+``res/``).
+
+To import these, use ``api.loadPythonModule(path)``.  Path, here, is the
+full path to the file containing the python code, but without the
+``.py``.  When you have the RD, the conventional pattern is::
+
+  mymod, _ = api.loadPythonModule(rd.getAbsPath("res/mymod"))
+
+instead of ``import mymod``.
+
+As you can see ``loadPythonModule`` returns a tuple; you're very
+typically only interested in the first element.
+
+Note in particular that for modules loaded in this way, the usual rule
+that you can just import modules next to you does not apply.  To import
+a modules “next to” you without having to go through the RD, use the
+special form::
+
+  siblingmod, _ = api.loadPythonModule("siblingmod", relativeTo=__file__)
+
+instead of ``import siblingmod``.  This will take the directory part for
+what's in ``relativeTo`` (here, the module's own path) and make a full
+path out of the first argument to pull the modules from there.
+
+
+Database Queries
+''''''''''''''''
+
+You often need to query the database from DaCHS-related code.  To get
+connections, use DaCHS' connection pool, and to make sure you return the
+connections to the pool when done, only use them through context
+managers.  Depending on what you need to do, there are four pools you
+might be interested in:
+
+* getTableConn – a sane default, lets you look at all tables but not
+  write (anything).  This is what DaCHS uses to run queries derived
+  from normal DAL requests.
+* getUntrustedConn – a connection that has the privileges of a remote
+  user coming in through TAP.
+* getWritableAdminConn – a connection that lets you read and write
+  about everywhere.  When using this, you must explicitly commit the
+  connection, or your changes will be lost.
+* getAdminConn – like getWritableAdminConn, but will automatically be 
+  committed as it is returned to the pool (unless an exception
+  happened, in which case the connection will be closed without
+  committing it).
+
+With DaCHS' connections, you usually will not obtain cursors but
+directly use one of the
+
+* ``query(q, args={}, timeout=None)`` or 
+* ``queryToDict(q, args={}, timeout=None, caseFixer=None)`` methods.
+
+The query ``q`` has psycopg2-style placeholders (``... WHERE
+mag<%(maglim)s``) which are filled, again psycopg2-like from the
+``args`` dictionary.  ``timeout`` is given in seconds.
+
+Both return an iterator; for ``query``, this yields a tuple per row, for
+``queryToDict``, that is dictionaries, the keys of which are the
+lowercased column names (or something hard to predict for expressions
+in the select clause not sporting an AS).  In case you need mixed-case
+keys (we recommend you avoid that), you can pass in a ``caseFixer``
+dictionary that maps the lowercased names to their mixed-case versions.
+
+In sum, the typical database query in the vicinity of DaCHS would look
+like this::
+
+  count_sum = 0
+  with base.getTableConn() as conn:
+    for row in conn.queryToDicts("SELECT * FROM sch.my_table"):
+       count_sum += row["count"]
+       print(row)
+
+In case you wondered: Yes, in the past we have experimented with
+abstracting away the SQL.  And we found it doesn't make the code any
+more robust, just a lot harder to figure out.
+
+
 Data Descriptors
 ================
 
@@ -4685,46 +4786,9 @@ README).
 
 
 
-Code in DaCHS
-=============
-
-This section contains a few general points for python code embedded in
-DaCHS, be it custom pages, cores, or grammars, or even procs.
-
-Importing modules
-'''''''''''''''''
-
-To keep the various resources as separate from each other as possible,
-DaCHS does not manipulate Python's import path.  However, one frequently
-wants to have library-like modules providing common functionality or
-configuration in a resdir (the conventional place for these would be in
-``res/``).
-
-To import these, use ``api.loadPythonModule(path)``.  Path, here, is the
-full path to the file containing the python code, but without the
-``.py``.  When you have the RD, the conventional pattern is::
-
-  mymod, _ = api.loadPythonModule(rd.getAbsPath("res/mymod"))
-
-instead of ``import mymod``.
-
-As you can see ``loadPythonModule`` returns a tuple; you're very
-typically only interested in the first element.
-
-Note in particular that for modules loaded in this way, the usual rule
-that you can just import modules next to you does not apply.  To import
-a modules “next to” you without having to go through the RD, use the
-special form::
-
-  siblingmod, _ = api.loadPythonModule("siblingmod", relativeTo=__file__)
-
-instead of ``import siblingmod``.  This will take the directory part for
-what's in ``relativeTo`` (here, the module's own path) and make a full
-path out of the first argument to pull the modules from there.
-
 
 The DaCHS API
-'''''''''''''
+=============
 
 User extension code (e.g., custom cores, custom grammars, processors)
 for DaCHS should only use DaCHS functions from its api as described
@@ -4750,7 +4814,9 @@ reference symbols with the explicit module name (i.e., ``api.makeData``
 rather than picking individual names) in order to help others understand
 what you've written.
 
-Here is an alphabetical list of the documented API functions:
+
+API function reference
+''''''''''''''''''''''
 
 .. replaceWithResult getAPIDocs(docStructure)
 

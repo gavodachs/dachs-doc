@@ -18,55 +18,8 @@ GAVO DaCHS Tutorial
 
 .. plan for the rewrite:
 
-  TODO: Database queries from within RDs
   TODO: customGrammar
-  TODO: mention directGrammars
-
-  Publishing data
-
-    Common Metadata
-
-    Testing
-
-    Publishing tables
-
-    Publishing Images
-
-    Publishing spectra and time series
-
-    Publishing anything to obscore
-
-    Publishing anything to epntap
-
-    Datalink
-
-  Defining your site
-  
-    on-disk layout
-
-    Take a lot out of opguide to here
-
-    mention root.html dumping
-
-    logging
-
-  Special Topics (perhaps some ought to go to ref?)
-
-    Times
-
-    Common Grammar types
-
-    On services
-
-      ...over views
-
-    On cores
-
-    Active Tags
-
-    Writing examples
-
-    Restricting access
+  TODO: logging
 
 
 Introduction
@@ -4035,6 +3988,7 @@ you are, somehwhat like this::
           offending=line,
           location=str(line_number+1),
           source=self.sourceToken)
+
 
 Grammars in C
 '''''''''''''
