@@ -5793,6 +5793,110 @@ manually.  An example for how this can be done is the ``rr.imported`` table
 in :samplerd:`rr/q`.
 
 
+Skipping Things
+'''''''''''''''
+
+Sometimes there are a few “broken” things in material that is otherwise
+just fine: A couple of broken FITSes, or some lines of a CSV that should
+not make it into a database table.
+
+While the ``-c`` flag to ``dachs import`` will let you conveniently
+ignore individual sources (not that this is rather certainly not what
+you want with the bad rows), it will also hide genuine errors and thus
+should only be used in development.  In production, you should skip the
+bad sources or rows.
+
+
+Skipping Sources
+................
+
+You can skip known-bad sources by accref using :dachsdoc:`Element
+ignoreSources``, using the ``fromfile`` attribute.
+
+More commonly, however, you can tell sources to skip by criteria like
+certain items in the file names, the presence or absence of certain FITS
+headers, or similar.  The preferred method to do that these days is
+raising ``SkipThis`` in a row filter.  For instance, to skip all files
+that have ``_failed.`` in their name::
+
+  <fitsProdGrammar>
+    <rowfilter>
+      <code>
+        if "_failed" in rowIter.sourceToken:
+          raise SkipThis("Ignoring failed observation")
+        yield row
+      </code>
+    </rowfilter>
+    ...
+
+While you could just as well make the ``yield`` conditional on the
+negation of your condition, raising ``SkipThis`` makes the intention
+clearer and may (some day) give clearer indications of what is going on
+in the UI.
+
+If you want to skip whenever a certain header is missing, do something
+like::
+
+  <fitsProdGrammar>
+    <rowfilter>
+      <code>
+        if not "CD1_1" in row:
+          raise SkipThis("Ignoring uncalibrated observation")
+        yield row
+      ...
+
+In case you need to ward off totally broken FITS (or other) files that
+will crash the FITS parser, you can abuse the `Source Fields`_ computer
+to throw them out very early on::
+
+  <fitsProdGrammar>
+     <sourceFields>
+        <code>
+          try:
+            _ = pyfits.open(
+              os.path.join(
+                base.getConfig("inputsDir"),
+                sourceToken))
+          except Exception as ex:
+            raise SkipThis("Skipping utterly broken {}: {}".format(
+              sourceToken, ex))
+          return {}
+        </code>
+     </sourceFields>
+
+– though my advice in such a situation would be to fix the broken files
+using an external processor (:dachsdoc:`processors.html`).
+
+DaCHS still contains a declarative facility for skipping sources in the
+form for :dachsref:`Element ignoreOn` and :dachsref:`Triggers`.
+Although experience has shown these to be too unflexible to be worth it,
+still feel free to use them – we will not remove them any time soon.
+
+
+Skipping Rows
+'''''''''''''
+
+To skip individual rows of a source, raise ``IgnoreThisRow`` in a
+procedure application, like this::
+
+  <rowmaker id="build_mytable" idmaps="*">
+    <apply>
+      <code>
+        if int(@colX)>22:
+          raise IgnoreThisRow()
+      </code>
+    </apply>
+  </rowmaker>
+
+Note that if you raised ``SkipThis`` here, you would skip the entire
+rest of the source, which is probably not what you want.
+
+Row makers also admit the :dachsref:`Element ignoreOn` mentioned in
+`Skipping Sources`_; as for them, we believe the declarative means
+rather typically are are not flexible enough, and skipping using Python
+code is usually about as clear and evolvable.
+
+
 More on Grammars
 ----------------
 
