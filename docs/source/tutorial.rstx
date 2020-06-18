@@ -927,7 +927,7 @@ magicians and won't be discussed here.
 
 
 Service Definitions
-...................
+'''''''''''''''''''
 
 The last but one part of the RD deals with how to get the data out of
 the database again, i.e., the services exposing the data.  This part is
@@ -1058,7 +1058,7 @@ result.
 
 
 Regression Tests
-................
+''''''''''''''''
 
 While it's admittedly boring, writing regression tests while developing
 your RD will save you a lot of fear, uncertainty, and doubt later.  In
@@ -5626,6 +5626,12 @@ For the basic setup, we recommend you try things with HTTP first.  HTTPS
 adds quite a bit that can go wrong.  See `Enabling HTTPS`_ on how to
 enable HTTPS once the rest runs as you would like it to run.
 
+Also note that serverURL is reflected in several internal tables of
+DaCHS.  If you change it later, remember to run ``dachs pub -a`` to
+update them; the side effect is that (at least if you use DaCHS'
+built-in publishing registry) this will update the links in the VO
+Registry as well.
+
 There are a few scenarios:
 
 Standalone DaCHS
@@ -6049,8 +6055,8 @@ The Root Page
 
 When people dereference your data center URI, they will see the
 root.html template rendered.  The default is a simple list of services
-published in the local set (see `OAI Sets`_), together with
-site.description from your defaultmeta.
+published in the local set (see `Registering Services and Data`_), 
+together with site.description from your defaultmeta.
 
 This may do when you plan to publish more than a few but less than many
 services.
@@ -6287,18 +6293,26 @@ your Services`_).
 .. _purx: http://dc.g-vo.org/purx/q/enroll/custom
 
 
-Publishing Infrastructure Records
----------------------------------
+Register through Web Forms
+''''''''''''''''''''''''''
 
-After you've specificed all that, you're ready to define your first
-resources, viz, your registry itself, the authority, and the
-organisation that's managing it.  These are predefined using the data
-you just filled in in the //services RD.  To publish them, you say::
+TBD.
+
+
+Preparing your Registry
+-----------------------
+
+The VO Registry needs to know a few things about you before it accepts
+you as a full member; in particular, you must register your authority
+and your publishing registry.  These are defined in the ``//services``
+RD (well, in truth, the definition is the userconfig RD, cf.
+`Registering your Authority`_), so the first records you have to add to
+your registry come from there; use ``dachs pub`` to do that::
 
   dachs pub //services
 
-Depending on other services you're running, you may want to publish the
-following additional build-in resources::
+Depending on other services you are running, you may want to publish the
+following additional build-in resources at this (or any later) point::
 
   # If you're publishing spectra, images, and the like, in particular
   # if you produce pubDIDs
@@ -6313,20 +6327,24 @@ following additional build-in resources::
   dachs pub //siap2
 
 
-Publication
------------
+Registering Services and Data
+-----------------------------
 
-To "publish" a resource – which means include it either on your site's
-home page or in what you report to the VO registry –, add a ``publish``
-element to a ``service`` (for a normal CatalogService publication),
-``data``, or
-``table`` (these are data publications, typically for the TAP service)
-elements.  The ``publish`` element lets you specify the sets the resources
-shall be published to.  Unless you have specific applications, only two
+As you have already seen in `Service Definitions`_, DaCHS will only tell
+the Registry about a service if there is an :dachsref:`Element publish`
+in it; in `Publishing DaCHS-Managed Tables via TAP`_, you have seen that
+this element can also be used in :dachsref:`Element table` or
+:dachsref:`Element data` to tell the Registry about TAP-queriable
+tables.  
+
+The ``publish`` element requires a specification of the OAI set 
+the resources shall be published to.  
+Unless you have specific applications, only two
 sets are relevant: ``ivo_managed`` for publishing to the VO (see
 `Registry Matters`_), and ``local`` for publishing to your data center's
-service roster.  Other sets can be introduced and used for, e.g.,
-specific sub-rosters.
+service roster.  Other sets could be introduced and used for, e.g.,
+specific sub-rosters, but you'd have to tell DaCHS about them in
+``[ivoa]validOAISets``.
 
 In services, the ``publish`` element needs, in addition,
 a ``render`` attribute, giving a
@@ -6339,16 +6357,14 @@ records.  For example, a typical pattern could be::
 
 This generates one capability each for the simple cone search and a
 browser-based interface; the browser-based interface is, in addition,
-listed in the local service roster.
+listed in the local service roster, typically on the root template.
 
 When you publish tables (or collection of tables via a ``data``
 element), the notion of renderers makes no
-sense.  Instead, you would have to
-define services that serve that data, except that when you publish
+sense.  Instead, you can use a ``service`` attribute to say
+which service serves that data, except that when you publish
 tables that have ``adql="True"``, the local
 TAP service is automatically considered to be a service for that data.
-Otherwise (or in addition), add service references in ``service``
-children.
 
 So, to publish an ADQL-queriable table to the VO for querying via TAP,
 just write::
@@ -6360,18 +6376,82 @@ in a SIAP service in a different RD, would require something like::
 
   <publish service="other/rd#siapsvc/>
 
-(use ``service`` elements if there are multiple services).
+(use multiple publish elements if there are multiple services).
 
-Once you have done this, run ``dachs pub <rdid>``.  This causes all
-publishable items in the RD to be published.  It also unpublishes
-everything that was published through the RD before and is no longer
-published.  If the ``[web]serverURL`` config item on the machine running gavo
+As we have already discussed in the Basic's `Doing the Publication`_
+section, just writing publish into the RD still is not enough, you also
+need to run ``dachs pub <rdid>`` to make DaCHS update its tables of
+published resources according to what is in the RD.  
+
+Looking a bit closer, ``dachs pub`` first un-publishes everything that
+was published through the RD before and is no longer published and then
+publishes everything declared in the in the current RD.  The net effect
+is that services that vanished will still be recorded as **deleted
+resources**, which are necessary in a world of incremental harvesting
+(where Registries only ask “what's new?” most of the time and wouldn't
+catch vanishing resources without a means to say “X is gone”).
+
+To unpublish everything that is defined in an RD, run ``dachs pub -u
+<rdid>``.  You definitely want to do this before renaming an RD.
+
+If the ``[web]serverURL`` config item on the machine running gavo
 pub is pointing to the actual running server and ``[web]adminpasswd``
 machtes, the server will
 automatically be made aware of these changes.  Otherwise, you need to
 prod the server as discussed in `Managing Runtime Resources`_.
 
 
+Making the VO see Your Registry
+-------------------------------
+
+The searchable registries in the VO need to know which publishing
+registries to harvest, and the place they learn that at is
+the `Registry of Registries`_ or RofR.  So, this where you need to enter
+your site to become part of the VO.  The RofR only admits publishing
+registries with no technical defects, and hence to get in, you first
+have to go to
+http://rofr.ivoa.net/regvalidate/regvalidate.html and enter your
+registry endpoint (i.e., your installation's root URL with /oai.xml
+appended).
+
+GAVO DaCHS is lenient with missing metadata and will deliver invalid
+VOResource for records missing some.  It is not unlikely that your
+registry will not validate on the first attempt.  Reading the error
+messages should give you a hint what's wrong.  You can also use the
+``gavo val`` command on the RDs that generate invalid records to figure
+out what's wrong.  Also, see `Simple OAI Operation`_ for hints.
+
+Once your registry passes the validation test, you can add it to the
+RofR, and the searchable registries will start to harvest your
+publishing registry.  They do that perhaps once a day; do not become
+nervous if nothing happens for a couple of hours.
+
+.. _Registry of Registries: http://rofr.ivoa.net/
+
+
+Simple OAI operation
+--------------------
+
+If you want to check what you have published, see the ``/oai.xml`` on
+your server, e.g., http://localhost:8080/oai.xml.  This is a plain
+OAI-PMH interface with some style sheets, and since your web browser
+does not speak OAI-PMH, you first get an error message.  However,
+the default style sheets add a
+link to "All identifiers defined here".  Just follow it to a list of all
+records you currently publish.
+
+The OAI endpoint can also be used to help you in debugging validity
+problems with your registry content.  To XSD-validate your registry
+without bothering the RofR (see `Making the VO See your Registry`_), you
+can do the following::
+
+  curl <your oai.xml url>?verb=ListRecords&metadataPrefix=ivo_vor |\
+    xmlstarlet fo > toval.xml
+  gavo admin xsdValidate toval.xml
+
+This may result in a few error messages; if you don't understand them,
+it's a good idea to just go to the respective line in toval.xml and give
+it a long, hard look.
 
 
 Creating an Organisation Record
@@ -6525,54 +6605,7 @@ Here's an example::
     ...
   </service>
 
-To publish
 
-
-Simple OAI operation
---------------------
-
-If you want to check what you have published, see the ``/oai.xml`` on
-your server, e.g., http://localhost:8080/oai.xml.  This is a plain
-OAI-PMH interface with some style sheets (if you want to customize them,
-copy them to ``rootDir/web/xsl/``).  The default style sheets add a
-link to "All identifiers defined here".  Follow it to a list of all
-records you currently publish.
-
-The OAI endpoint can also be used to help you in debugging validity
-problems with your registry content.  To XSD-validate your registry
-without bothering the RofR (see above), you can do the following::
-
-  curl <your oai.xml url>?verb=ListRecords&metadataPrefix=ivo_vor |\
-    xmlstarlet fo > toval.xml
-  gavo admin xsdValidate toval.xml
-
-This may result in a few error messages; if you don't understand them,
-it's a good idea to just go to the respective line in toval.xml and give
-it a long, hard look.
-
-
-Making the VO see your Registry
--------------------------------
-
-The VO registry is a distributed system.  There still is some sort of
-root, the `Registry of Registries`_ or RofR.  Once your system provides
-sufficient metadata, go to
-http://rofr.ivoa.net/regvalidate/regvalidate.html and enter your
-registry endpoint (i.e., your installation's root URL with /oai.xml
-appended).
-
-GAVO DaCHS is lenient with missing metadata and will deliver invalid
-VOResource for records missing some.  It is not unlikely that your
-registry will not validate on the first attempt.  Reading the error
-messages should give you a hint what's wrong.  You can also use the
-``gavo val`` command on the RDs that generate invalid records to figure
-out what's wrong.
-
-Once your registry passes the validation test, you can add it to the
-RofR, and the full registries will start to harvest your registry (after
-a while).
-
-.. _Registry of Registries: http://rofr.ivoa.net/
 
 Ensure There's a Backup of your Registry State
 ----------------------------------------------
@@ -6705,20 +6738,12 @@ artificial collection of the tables, as in this example taken from
 .. _rr/q: http://svn.ari.uni-heidelberg.de/svn/gavo/hdinputs/rr/
 .. _arigfh/q: http://svn.ari.uni-heidelberg.de/svn/gavo/hdinputs/arigfh/
 
-
-
-OAI Sets
---------
-
-The ``ivo_managed`` set that came up in some of the examples above (it
-is the default for ``publish`` in data publications) has the special
-role of indicating “put this service into the VO Registry”.
-
 While you can define as many other sets as you want (by just mentioning
 them in ``sets`` attributes), DaCHS as delivered just uses one other set
 name, ``local``.  Register a service in that set, and it will be
 displayed on the root page when you use one of the default root page
 templates.
+
 
 Doing the Publication
 ---------------------
