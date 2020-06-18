@@ -23,6 +23,7 @@ reserving this document to less common tasks and material that will
 be of historical value only rather quickly (such as instructions for
 particular upgrade steps).
 
+
 Ingestion
 =========
 
@@ -143,7 +144,6 @@ In the rowmaker, you could then do something like this::
 ...use binaries when the gavo directory is mounted from multiple hosts?
 -----------------------------------------------------------------------
 
-
 If your GAVO_ROOT is accessible from more than one machine and the
 machines have different architectures (e.g., i386 and amd64 or ppc,
 corresponding to test machine and production server), compiled binaries
@@ -177,12 +177,14 @@ building the files in $OBJECT, but otherwise it's a simple hack to make
 sure a make on the respective machine builds a suitable binary.
 
 
-
 ...transform coordinates from one coordinate system to another?
 ---------------------------------------------------------------
 
 In general, that's fairly complicated, involving proper motions, radial
-velocities, and other complications.  There's an interface in the stc
+velocities, and other complications.  Realistically: DaCHS depends on
+astropy, and so just use whatever astropy gives you.
+
+On the other hand, there's an interface in the gavo.stc
 module based on conformTo, but you'd not want to do that when filling
 tables since it's not fast and usually not what you need either.
 
@@ -230,8 +232,6 @@ not, however, re-make the view.  You can easily do that, manually,
 however::
 
   dachs imp //obscore
-
-
 
 
 Services in General
@@ -324,7 +324,7 @@ In a custom renderer or core, you can use code like::
 
 You want to use a separate connection since the default connections
 obtained by cores and friends are unprivileged and typically cannot
-write to table.
+write.
 
 The nAffected should contain the total number of records imported and
 could be used in a custom render function.
@@ -333,7 +333,6 @@ srcName and srcFile come from a formal File form item.  In
 submitActions, you obtain them like::
 
   srcName, srcFile = data["inFile"]
-
 
 Note that you can get really fancy and manipulate ``data`` in some way up
 front.  That could look like this::
@@ -403,12 +402,10 @@ defined function; drop the LOWER as you see fit.
 
 Sometime there's a proprietarity time on some data, and you may want to
 password protect your data.  DaCHS doesn't support protection of
-individual tables yet (we'll accept patches, but since this kind of
-thing is considered fairly antisocial by most of us, it looks bleak for
-an implementation of this from our side).  You can, however, protect the
+individual tables yet.  You can, however, protect the
 entire TAP service (with HTTP basic auth, so this isn't for the gold of
-Fort Knox).
-
+Fort Knox unless you restrict connections to HTTPS and change to hashed
+passwords in dc.users).
 
 First, create a group of authorized users and add a user to it:
 
@@ -416,28 +413,25 @@ First, create a group of authorized users and add a user to it:
   dachs admin adduser smart_pi his_password
   dachs admin addtogroup smart_pi tapusers
 
-Then, limit access to the TAP service itself.  To make it easy to redo
-your changes and return to mainline development, we recommend to use a
-custom TAP RD.  To do that, create a ``__system__`` directory in your
-inputs directory; with the default config::
+Then, limit access to the TAP service itself; as usual (see
+:dachsdoc:`tutorial.html#restricting-access`), you will have to add a
+``limitTo`` clause to the service element.  However, this service
+element is built-in, so you cannot easily change it.
 
-  cd /var/gavo/inputs
-  mkdir __system__
-  cd __system__
-  curl -O http://svn.ari.uni-heidelberg.de/svn/gavo/python/trunk/gavo/resources/inputs/__system__/tap.rd
+For TAP, there's a trick because the service element includes the
+tapdescription STREAM from the userconfig RD.  So, get userconfig unless
+you already have it (cf. :dachsdoc:`tutorial.html#the-userconfig-rd`)
+and simply add::
+ 
+  <limitTo>tapusers</limitTo>
+  
+after the ``<STREAM id="tapdescription">``.  To make DaCHS see the
+change, you need to restart the server or run ``dachs serve exp //tap``.
 
-(or find your local tap.rd and use that, which may be a bit safer).
-
-In tap.rd, look for the actual service element::
-
-  <service id="run" core="null" allowed="tap">
-
-In that copy, write ``limitTo="tapusers"``.  You need to restart the
-server to pick up the new RD, after that, it should pick up changes by
-itself.  To get back standard behaviour, just remove that copy.
-
-That's not enough, though; you'll need to do the same with the
-service in adql.rd (or remove that service altogether).
+That's not quite enough, though, because there is the public form-based
+ADQL service.  To shut this down, you need to override the adql.rd RD,
+probably with an empty file.  See
+:dachsdoc:`tutorial.html#overridden-system-rds` for how to do that.
 
 This is not sufficient for top secret things -- people can still
 inspect your column metadata, descriptions and so on.  But they
@@ -847,63 +841,21 @@ type, etc).
 The previews code is inserted when columns with
 ``displayHint="type=product"`` are rendered into HTML tables.  The code
 that does this recognizes a second display hint, ``nopreview``, which,
-when set to any value, inhibits the generation of previews.
+when set to any value, inhibits the generation of previews.  All you
+need to do is set the new display hint.
 
-Regrettably, at this point there is no way to change the display hint
-in the table itself (we're thinking of a general way for ad-hoc
-overriding of mixin columns, but unfortunately, that's a bit subtle).
+See the how to `...override metadata for a column coming from a mixin?`_
+for the general idea behind this; what it boils down to in this case
+is::
 
-Therefore, you need to fix the display hint when building the output
-table.  The quickest way to do this is by using the output table's
-``verbLevel`` attribute, and then overriding the accref column.  This
-could look like this::
-
-  <service...>
+  <table id="data" onDisk="True" mixin="//products#table">
+    <column original="accref"
+      displayHint="type=product,nopreview=True"/>
     ...
-    <outputTable verbLevel="20">
-      <outputField original="accref" displayHint="type=product,nopreview=1"/>
-    </outputTable>
-    ...
-  </service>
 
-``verbLevel="20"`` selects all columns in the queried table with a
-``verbLevel`` less or equal 20 (which is the default when you don't give
-an ``outputTable``); you can adapt that number to whatever fits your
-needs.
+Having said this: People love previews, so just try to make some; see
+:dachsref:`Product Previews` for how DaCHS helps you in that.
 
-A downside of this approach is that the image column ends up a the very
-beginning of each row.  For full control over which columns are
-displayed and which go where, use the following pattern::
-
-   <service...>
-    ...
-    <outputTable>
-      <LOOP listItems="source srcId confirmed lensalpha"
-        <events>
-          <outputField original="\item"/>
-        </events>
-      </LOOP>
-
-      <outputField
-        original="accref" displayHint="type=product,nopreview=1"/>
-
-      <LOOP listItems="raj2000 dej2000">
-        <events>
-          <outputField original="\item"/>
-        </events>
-      </LOOP>
-    </outputTable>
-    ...
-  </service>
-
-An added benefit of this is that the first approach only works starting
-DaCHS SVN rev. 3351, whereas this has been possible at least since about
-version 0.7.
-
-But then, the main point is: Don't do this – just provide previews.
-They're making a world of a difference, and they are in general not hard
-to make even if DaCHS doesn't support your formats out of the box. See
-:dachsref:`Product Previews` for details.
 
 ...override metadata for a column coming from a mixin?
 ------------------------------------------------------
@@ -1046,54 +998,6 @@ Incidentally, the first argument to genQuery is the table definition of
 the table queried, which sometimes comes in handy.  DaCHS 1 didn't have
 that argument, so old RDs may need an update if they used this recipe.
 
-...change a single param of ssap#hcd to being a column?
--------------------------------------------------------
-
-Sometimes spectral pipelines emit inhomogeneous data even for a single
-instrument; for instance, "most" spectra  could be normalised to the
-continuum, but for some whatever heuristics the pipeline used didn't
-work out and the spectra ended up as uncalibrated (as far as the
-spectral axis is concerned).
-
-The officially correct way to deal with this is to use ``//ssap#mixc``.
-However, moving all the params to table columns is a bit of an overkill
-when all that's varying is a single column.  Hence, we recommend the
-following workaround in such a case:
-
-(1) Set the param to null (hoping to help clients ignore it); in this
-    case it could be::
-
-      <table id="data" onDisk="true" adql="True">
-        <mixin
-          ...
-          fluxCalibration="__NULL__"
-        >//ssap#hcd</mixin>
-
-    (you only need to do this when the parameter overridden is required
-    by the mixin).
-
-(2) Add a column with the right utype to the table::
-
-       <column name="ssa_fluxcalib" type="text"
-        utype="ssa:Char.FluxAxis.Calibration"
-        tablehead="Calib Flux" verbLevel="20"
-        description="Type of flux calibration"/>
-
-(3) In the rowmaker, map whatever you need manually::
-
-      <make table="data">
-        <rowmaker id="make_data" idmaps="ssa_*, localKey">
-          <apply procDef="//ssap#setMeta" name="setSSAPMeta">
-           ...
-          </apply>
-
-          <map key="ssa_fluxcalib">@FLUXCAL</map>
-
-The disadvantage is that the (uninformative) PARAM with the utype in
-question will still be in the VOTable, so the using ``mixc`` would be
-cleaner.  On the other hand, we could add PRUNE to mixins should this really
-become a bother.
-
 
 ...figure out why an obscore query is slow?
 -------------------------------------------
@@ -1123,9 +1027,8 @@ inspection::
 slow translate essentially 1:1 to SQL; you can also pull translated
 queries from /var/gavo/logs/dcInfos.
 
-Inspect the resulting file, which is going to be large if all goes well,
-because the plan is complex when indices are begin used (as they
-should).  Watch out for “Seq Scan” – if these happen on large tables,
+Inspect the resulting file and watch out for 
+“Seq Scan” – if these happen on large tables,
 things will we slow.  For small tables (a couple of thousand records,
 perhaps), on the other hand, it doesn't really matter.
 
@@ -1193,8 +1096,9 @@ hierarchy.  These you can get rid of with something like this::
   rm -r <your-gavo-root-path>
   sudo -u postgres dropdb gavo
 
-We may be swayed into doing this by users; for now, we are reluctant to
-have a script blindly initiate a devastation of this scope.
+This probably will not become of the purge routine of the Debian
+package; we are reluctant to have a script blindly initiate a
+devastation of this scope.
 
 
 ...update my code?
@@ -1353,12 +1257,15 @@ purx-harvested URL right now, either.
 If you're using one of the browser-based publishing registries (at ESAC
 or STScI), you'll have to re-upload your registry records there.
 
+
 ...go from DaCHS 1 to DaCHS 2?
 ------------------------------
 
 Starting mid-2020, DaCHS operators ought to upgrade to DaCHS 2; don't be
 scared by the major version jump – unless you're doing higher magic, you
-will not need to change much (if anything) in your RDs.  
+will not need to change much (if anything) in your RDs.  See also
+https://blog.g-vo.org/dachs-2-1-say-hello-to-python-3/.
+
 We have dropped some exotic
 legacy, though, and in particular DaCHS 2 is Python 3 only (whereas
 DaCHS 1 in Python 2 only).  It's quite likely that if you need to change

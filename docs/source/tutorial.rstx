@@ -6626,8 +6626,8 @@ General Hints
   The messages are in the logs directory, in the file ``serverStderr``.
 
 
-Debugging Rowmaker
-''''''''''''''''''
+Debugging Rowmakers
+'''''''''''''''''''
 
 When debugging rowmakers, it helps keeping in mind that there are two
 dictionaries that play a role here: The incoming rawdict and the rowdict
@@ -6644,6 +6644,17 @@ breakpoints as discussed above (``import pdb; pdb.set_trace()``).  If
 you'd just like to have a look at what ``vars`` and ``results`` look
 like at some point, just add a ``<apply procDef="//procs#debug"/>``.  This
 will, again, drop you into a debugger.
+
+One thing that may baffle you when you write row makers are unexpected
+primary key clashes (or indeed, violations of other constraints enforced
+by the database) or just failures where invalid data is passed to the
+database.  Since DaCHS ships out rather large batches of rows (5000 by
+default) to the database if you let it, the errors will typically occur
+far from the lines that cause them.
+
+In such a situation, pass ``-b 1`` to ``dachs imp`` – this will slow
+down the import quite dramatically, but the import will fail exactly at
+the source or row that causes the problem.
 
 
 Debugging Services
