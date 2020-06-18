@@ -6300,10 +6300,20 @@ your Services`_).
 Register through Web Forms
 ''''''''''''''''''''''''''
 
-the `ESAVO registry`_
-or the DaCHS network of RegTAP services [#rr], with a web interface at
-http://dc.g-vo.org/WIRR.
+Both the `EuroVO registry`_ at ESAC and the `NAVO registry`_ at STScI
+let you register resources using a web browser and filling out web
+forms.  When you are running DaCHS, this is not terribly attractive,
+because if you have followed `Global Metadata`_ for your RD and the
+first two sections of `Configuring DaCHS`_, DaCHS already has
+essentially all information you would enter there.
 
+Going through one of the web-based services still lets you offload
+authority management to them.  And, at least on the EuroVO service, you
+can simply upload the XML DaCHS generates for you – see the “Create new
+Resource from File” (or, later, the “Edit Resource” tab in the details
+for a resource).  The material to upload is again what the “VOResource
+XML” link on your service's info page points to.  You will, however,
+probably have to edit the ``identifier``.
 
 
 Preparing your Registry
@@ -6493,45 +6503,6 @@ and salting for DaCHS' user table or find someone to do that before
 going ahead.
 
 
-Creating an Organisation Record
--------------------------------
-
-If you want to fill out the publisherID meta item – and there's no
-strong reason to do so at this point, you have to create a registry
-record for you, i.e., the organisation that runs the data center and
-hence the registry.
-
-If you still want to have a publisherId, put something like::
-
-   <resRec id="manager"> 
-    <meta>
-      resType: organization
-      creationDate: 2007-12-19T12:00:00
-      title: GAVO Heidelberg Data Center
-      subject: Organization
-      referenceURL: http://www.ari.uni-heidelberg.de
-      identifier: ivo://org.gavo.dc/org
-      sets: ivo_managed
-    </meta>
-    <meta name="description">
-      Operating at the Astronomisches Rechen-Institut (ARI) (part of 
-      Centre for Astronomy of Heidelberg University) on behalf of
-      the German VO organisation GAVO, the GAVO Heidelberg Data Center
-      is a one-stop shop for astronomical data publication projects
-      of (almost) any description.  We are also active within the
-      IVOA in standards development and Registry operations.
-    </meta>
-  </resRec>
-
-into your userconfig.rd's ``registry-interfacerecords``  and then say
-``dachs pub //services``.  
-
-Of course, you'll have to change things to match your situation; in
-particular, make sure identifier simply is
-``ivo://<your-authority>/org`` – and that is what you'll use as
-publisherID.
-
-
 Registering DaCHS-external Services
 -----------------------------------
 
@@ -6655,6 +6626,46 @@ Here's an example::
     <publish render="form" sets="ivo_managed" service="web"/>
     ...
   </service>
+
+
+Creating an Organisation Record
+-------------------------------
+
+If you want to fill out the publisherID meta item – and there's no
+strong reason to do so at this point –, you have to create a registry
+record for you, i.e., the organisation that runs the data center and
+hence the registry.
+
+If you still want to have a publisherId, put something like::
+
+   <resRec id="manager"> 
+    <meta>
+      resType: organization
+      creationDate: 2007-12-19T12:00:00
+      title: GAVO Heidelberg Data Center
+      subject: Organization
+      referenceURL: http://www.ari.uni-heidelberg.de
+      identifier: ivo://org.gavo.dc/org
+      sets: ivo_managed
+    </meta>
+    <meta name="description">
+      Operating at the Astronomisches Rechen-Institut (ARI) (part of 
+      Centre for Astronomy of Heidelberg University) on behalf of
+      the German VO organisation GAVO, the GAVO Heidelberg Data Center
+      is a one-stop shop for astronomical data publication projects
+      of (almost) any description.  We are also active within the
+      IVOA in standards development and Registry operations.
+    </meta>
+  </resRec>
+
+into your userconfig.rd's ``registry-interfacerecords``  and then say
+``dachs pub //services``.  
+
+Of course, you'll have to change things to match your situation; in
+particular, make sure identifier simply is
+``ivo://<your-authority>/org`` – and that is what you'll use as
+publisherID.
+
 
 
 
@@ -7318,7 +7329,7 @@ that's really not our fault.
 
 
 .. _EPN-TAP proposed specification: https://voparis-confluence.obspm.fr/display/VES/EPN-TAP+v2+parameter+description
-.. _ESAVO registry: http://esavo.esa.int/registry/index.jsp
+.. _EuroVO registry: http://registry.euro-vo.org
 .. _IVOA identifiers: http://www.ivoa.net/documents/IVOAIdentifiers/20150709/index.html
 .. _OAI-PMH: http://www.openarchives.org/OAI/openarchivesprotocol.html
 .. _PyPDS: https://github.com/RyanBalfanz/PyPDS
@@ -7326,7 +7337,6 @@ that's really not our fault.
 .. _Virtual Observatory: http://ivoa.net
 .. _VOTT: http://dc.g-vo.org/VOTT
 .. _aladin: http://aladin.u-strasbg.fr/aladin.gml
-.. _authority query: http://dc.g-vo.org/WIRR/?field0=ivorn&operator0=%3D&operand0=your.authority.here&MAXREC=20&OFFSET=0
 .. _dachs-support: http://lists.g-vo.org/cgi-bin/mailman/listinfo/dachs-support
 .. _dali standard: http://ivoa.net/documents/DALI
 .. _gavo ucd resolver: http://dc.g-vo.org/ucds/ui/ui/form
@@ -7334,6 +7344,7 @@ that's really not our fault.
 .. _hints on common problems: http://docs.g-vo.org/commonproblems.html
 .. _installation guide: http://docs.g-vo.org/DaCHS/install.html
 .. _manually add our repository: http://soft.g-vo.org/repo
+.. _NAVO Registry: http://vao.stsci.edu/vo-directory/publishing/
 .. _pgsphere: http://pgsphere.projects.pgfoundry.org/
 .. _RDs used in Heidelberg: http://svn.ari.uni-heidelberg.de/svn/gavo/hdinputs/
 .. _reStructuredText: http://docutils.sourceforge.net/rst.html
