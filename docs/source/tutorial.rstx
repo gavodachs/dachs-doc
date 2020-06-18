@@ -129,6 +129,14 @@ In the following, we call people running DaCHS *operators* (so, if
 you're reading this, that's you), people consuming your services
 *users*.
 
+Something like :dachsref:`Element table` is a link into the reference
+documentation, whereas :dachsdoc:`install.html` references other pieces
+of DaCHS documentation.
+
+Specifications like ``[web]serverURL`` refer to configuration items in
+``/etc/gavo.rc`` (or its alternatives; see `Basic Gavo.rc Settings`_
+and :dachsref:`Configuration Reference` for more on this).
+
 
 DaCHS Basics
 ============
@@ -2540,7 +2548,9 @@ the SSA service.  This is done using the service attribute in the
 :dachsref:`Element publish` *in the SSAP service element*::
 
     <publish render="form" sets="ivo_managed,local" service="web"/>
-  
+ 
+See `Registering Web Interfaces to DAL Services`_ for more background.
+
 
 SSAP and Obscore
 ''''''''''''''''
@@ -5693,14 +5703,6 @@ changing the serverURL, like this::
 (or course, you need to fix the configuration of the reverse proxy,
 too).
 
-If the reverse proxy does HTTPS termination, but it speaks HTTP with
-DaCHS, you have to keep DaCHS from fixing absolute URLs to what it
-thinks it speaks by setting ``[web]adaptProtocol`` to false::
-
-  [web]
-  serverURL: https://terminating.pro.xy
-  adaptProtocol: False
-
 
 The Site Name
 '''''''''''''
@@ -6588,8 +6590,8 @@ When done, run ``dachs pub //services`` to update DaCHS's resource
 tables.
 
 
-Registering Web Interfaces (And More)
--------------------------------------
+Registering Web Interfaces to DAL Services
+------------------------------------------
 
 A typical situation is that you have a standard service (SSA, SCS, SIAP,
 etc) and a form-based custom service on the same data.  Since the
@@ -6713,14 +6715,8 @@ to use this to figure out misbehaviour.
 .. _systemd unit: https://salsa.debian.org/debian-astro-team/gavodachs/blob/gavo/debian/gavodachs-server.dachs.service
 
 
-Managing Runtime Resources
---------------------------
-
-There are a few things you should do to keep your data center function
-well.  This chapter has a few hints on what to do.
-
 Validating your Services
-''''''''''''''''''''''''
+------------------------
 
 While DaCHS tries to follow the standards in order to ensure maximum
 interoperability, there are always things that can go wrong; in
@@ -6754,7 +6750,7 @@ re-ingests that metadata.
 
 
 Dealing with RD Changes
-'''''''''''''''''''''''
+-----------------------
 
 A DaCHS server will in general try to reload an RD if it finds it is
 changed on disk.  If the updated RD cannot be loaded (for instance,
@@ -6858,17 +6854,16 @@ Two-Server Operation
 --------------------
 
 When you want to run the database server on a different machine than the
-DaCHS server, the setup becomes a bit more involved.  First, you'll only
+DaCHS server, the setup becomes a bit more involved.  First, you only
 install python-gavodachs (rather than gavodachs-server) on the
 application server.
 
-Then, you need to configure the two servers to talk to each other
+Then, you need to configure the two servers to talk to each other.
 Details depend on your setup, and you may want to apply extra hardening
-over what's below, but the following should get you started; it assumes
-the machine DaCHS runs on is called appserver.local, the database server
-is dbserver.local
+over the following.  This assumes the machine DaCHS runs on is called
+appserver.local, the database server is dbserver.local
 
-To enable remote queries on the database server, on that machine, do
+To enable remote queries on the database server, on dbserver.local do
 something like::
 
   $ cd /etc/postgres/<version>/main
@@ -6890,7 +6885,7 @@ something like::
 After that, you have a database DaCHS can configure from your account
 on appserver, using the password you gave in the createuser step.
 
-To do that, on appserver say::
+To do that, on appserver.local say::
 
   $ dachs init -d "host=dbserver.local user=<yourname> password=<pwd> dbname=gavo"
 
@@ -6916,13 +6911,18 @@ the network interfaces you bind it to, though.
 If, on the other hand, you use an external HTTPS termination (usually a
 reverse proxy), your best shot is probably to configure the reverse
 proxy's HTTPS URL as serverURL.  You cannot currently have parallel HTTP
-in such a configuration, which is unfortunate (see `HTTP preferred`_).
-If you really need external HTTPS termination, please let us know and
-we'll try to think of something.
+in such a configuration, which is a bit unfortunate (see `HTTP
+preferred`_).  With external HTTPS termination, also set
+``adaptProtocol`` to ``False`` in ``/etc/gavo.rc``::
 
-To make DaCHS (attempt to) bind to an HTTPS port, all you need to do is
+  [web]
+  serverURL: https://terminating.pro.xy
+  adaptProtocol: False
+
+When, on the other hand, having DaCHS speak HTTPS natively,
+all you need to do is
 give it a secret key and a certificate (which really is a public key
-with a CA's signature); these need to come in PEM format concatenated a
+with a CA's signature); these need to come concatenated in PEM format in a
 file called ``$GAVO_DIR/hazmat/bundle.pem``.  Just so the whole crypto
 thing doesn't become a total carnival, you should have the hazmat
 directory owned by root and with permissions 700.  DaCHS will only read
@@ -6946,27 +6946,27 @@ these certificates in time.
 
 Here's how to go about it::
 
-  # DaCHS internally calls a tool called acme-tiny; we much rather trust
-  # it than any crypto code we'd hack together
+    # DaCHS internally calls a tool called acme-tiny; we much rather trust
+    # it than any crypto code we'd hack together
   $ sudo apt install acme-tiny
-  # now create the directory with the key material; we'll do all of this
-  # as root; if you don't like this, at least make it a user distinct
-  # from gavo and gavoadmin
+    # now create the directory with the key material; we'll do all of this
+    # as root; if you don't like this, at least make it a user distinct
+    # from gavo and gavoadmin
   $ sudo bash
-  $ cd `gavo config rootDir`
-  $ mkdir hazmat
-  $ chmod 700 hazmat
-  $ cd hazmat
-  # generate an account key; this is what identifies you against
-  # letsencrypt
-  $ openssl genrsa 4096 > account.key
-  # Generate your secret key; these are the holy bits if you believe
-  # in https.
-  $ openssl genrsa 4096 > server.key
-  # now tell dachs to have the certificate signed; warning: this will
-  # restart the server
-  $ dachs serve updateCertificate
-  # Done -- hit ^D to exit the root shell.
+  # cd `gavo config rootDir`
+  # mkdir hazmat
+  # chmod 700 hazmat
+  # cd hazmat
+    # generate an account key; this is what identifies you against
+    # letsencrypt
+  # openssl genrsa 4096 > account.key
+    # Generate your secret key; these are the holy bits if you believe
+    # in https.
+  # openssl genrsa 4096 > server.key
+    # now tell dachs to have the certificate signed; warning: this will
+    # try to restart the server
+  # dachs serve updateCertificate
+    # Done -- hit ^D to exit the root shell.
 
 Letsencrypt certificates are only good for three months.  It's a good
 idea to renew them every two months.  And that won't fly if you don't
@@ -6976,7 +6976,8 @@ significant time (namely if someone is doing a large download at that
 time).  As said below: HTTPS is an operational liability.
 
 Anyway, add the following to root's crontab (if you installed DaCHS from
-source, you'll probably have to add /usr/local/bin/dachs here)::
+source, you'll probably have to use the full path to 
+/usr/local/bin/dachs here)::
 
   21 4 1 1,3,5,7,9,11 * dachs serve updateCertificate
 
@@ -6984,8 +6985,8 @@ source, you'll probably have to add /usr/local/bin/dachs here)::
 likely you'll have many users.  Also, make sure you receive mails from
 cron from the machine that does this, because there's a lot that can go
 wrong here, and DaCHS will just write error messages to stderr.  That's
-probably not a big additional liability, as you should teach the service
-mails also for DaCHS itself.
+probably not a big additional liability, as you should teach the DaCHS
+server to send mails also for several other DaCHS subsystems.
 
 Finally, to register your https endpoints, add::
 
@@ -6999,7 +7000,8 @@ If your machine is reachable through different host names (or box in
 Heidelberg, for instance, is both dc.g-vo.org and
 dc.zah.uni-heidelberg.de), tell DaCHS by listing all the non-primary
 names (i.e., anything that's not in serverURL) in a comma-separated list
-in [web] alternateHostnames.
+in ``[web]alternateHostnames``.
+
 
 HTTP preferred
 ''''''''''''''
