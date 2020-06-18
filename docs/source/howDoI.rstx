@@ -15,6 +15,14 @@ Recipes and tricks for solving problems using GAVO DaCHS
   :class: toc
 
 
+In case you are missing something from here that you remember was here
+before: Some items were moved to :dachsdoc:`tutorial.html`.
+
+We will try to cover everything that is more or less routine there,
+reserving this document to less common tasks and material that will
+be of historical value only rather quickly (such as instructions for
+particular upgrade steps).
+
 Ingestion
 =========
 
