@@ -4582,21 +4582,6 @@ contain the fields with prodtblAccref, prodtblPath, etc), yield
 to the products table, too, like this: ``yield ("products", newRow)``.
 
 
-Functions Available for Row Makers
-==================================
-
-In principle, you can use arbitrary python expressions in var, map and
-proc elements of row makers.  In particular, the namespace in which
-these expressions are executed contains math, os, re, time, and datetime
-modules as well as gavo.base, gavo.utils, and gavo.coords.
-
-However, much of the time you will get by using the following functions
-that are immediately accessible in the namespace:
-
-.. replaceWithResult getRmkFuncs(docStructure)
-
-
-
 Scripting
 =========
 
@@ -4797,9 +4782,9 @@ release notes if we change it.  For various reasons, the module also
 contains a few modules.  These, and in particular their content, are
 *not* part of the API.
 
-Note that at this point this is *not* what is in the namespace of
+Note that this ”api” at this point is *not* what is in the namespace of
 rowmakers, rowfilters, and similar in-RD procedures.  We do not, at this
-point, recommend importing the api.  If you do it anyway, we'd
+point, recommend importing the api there.  If you do it anyway, we'd
 appreciate if you told us.
 
 Before using non-API DaCHS functions, please inquire on the
@@ -4813,6 +4798,24 @@ To access DaCHS API functions, say::
 reference symbols with the explicit module name (i.e., ``api.makeData``
 rather than picking individual names) in order to help others understand
 what you've written.
+
+In this chapter, we first give the functions that code in row makers see
+and then document the api available to extension code.
+
+
+Functions Available for Row Makers
+''''''''''''''''''''''''''''''''''
+
+In principle, you can use arbitrary python expressions in var, map and
+proc elements of row makers.  In particular, the namespace in which
+these expressions are executed contains math, os, re, time, and datetime
+modules as well as gavo.base, gavo.utils, and gavo.coords.
+
+However, much of the time you will get by using the following functions
+that are immediately accessible in the namespace:
+
+.. replaceWithResult getRmkFuncs(docStructure)
+
 
 
 API function reference
