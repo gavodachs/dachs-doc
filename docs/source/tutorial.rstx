@@ -7046,29 +7046,32 @@ support for it and use that as they see fit.
 
 
 Upgrading
-=========
+---------
 
 Upgrading DaCHS
----------------
+'''''''''''''''
 
 In general, we try to make upgrades painless, but with a system allowing
 people to play tricks with intestines like DaCHS guarantees are hard.
 Be sure to subscribe to `DaCHS-users`_.  We'll announce new releases
 there, together with brief release notes pointing to possible spots of
-trouble.  Ideally, you'll have a development system and regression tests
+trouble.  
+
+Ideally, you will have a development system and regression tests
 in place that let you diagnose problems before going to production.
-Poke us for hints on good and easily-maitained setups.
+
+.. _DaCHS-users: http://lists.g-vo.org/cgi-bin/mailman/listinfo/dachs-users
 
 
 Upgrading Installations from Debian Package
-'''''''''''''''''''''''''''''''''''''''''''
+...........................................
 
 (1) Make sure you have enabled the intended distribution (*release* or
     *beta*) in your ``/etc/apt.sources`` (or equivalent)
 
 (2) Make sure all RDs DaCHS sees are in order:
 
-      gavo val -c ALL
+      dachs val -vc ALL
 
     Warnings you can usually ignore, but try to understand messages you
     get.  You can hide known-broken RDs from DaCHS by dropping a file
@@ -7079,48 +7082,40 @@ Upgrading Installations from Debian Package
 
 (3) Do the actual upgrade::
 
-      apt-get update
-      apt-get upgrade
+      apt update
+      apt upgrade
 
 (4) Run::
 
-      gavo val -tc ALL
+      dachs val -tc ALL
 
     This will complain if any of our changes break your services.  If
     that is true and the Changelog did not alert you to the issue,
     please complain immediately.  We may still be able to fix things for
     other people.
 
-This last command might complain about mismatches between RD and on-disk
+``dachs val`` with a ``-c`` option might 
+complain about mismatches between RD and on-disk
 metadata; there are several reasons why that may happen, including dumb
 or clever things we've done in the software.  In any case, you should fix
-the problem, usually by re-importing the respective table.
-
-When we change dependencies, individual DaCHS packages may be held back.
-``apt-get`` will tell you this much, and you'll get DistributionNotFound
-errors from pkg_resources when starting DaCHS.
-
-If it's only our packages that are held back, it should be safe to fix
-the problem by just running ``apt-get dist-upgrade`` (which will pull in
-the new dependencies).  We can't give a generally recommendable recipe
-for how to deal with holdbacks for other packages.
+the problem, most easily by re-importing the respective table.
 
 
 Upgrading Installations from SVN
-''''''''''''''''''''''''''''''''
+................................
 
 The basic thing to remember: After every update, do, as a user with
 ingestion privileges, the restart sequence::
 
-  $ gavo val -c ALL
+  $ dachs val -c ALL
   $ sudo /etc/init.d/dachs stop # (or whatever you use to stop the server)
-  $ gavo upgrade
+  $ dachs upgrade
   $ sudo /etc/init.d/dachs start # (or whatever you use to start the server)
-  $ gavo test ALL
+  $ dachs test ALL
 
-In principle, gavo upgrade can run while the server is active, and with
+In principle, ``dachs upgrade`` can run while the server is active, and with
 most updates, users won't even see errors, but since you need to restart
-anyway, why bother.  On possible failures of the gavo val command, see
+anyway, why bother.  On possible failures of the ``dachs val`` command, see
 the text in the packaged upgrade case.
 
 The steps to update depend on what you did to install out of the
@@ -7141,11 +7136,190 @@ If you instead initially said ``setup.py install``, do::
 
 
 Upgrading Postgres
-------------------
+''''''''''''''''''
 
-There's a howto over at :dachsdoc:`howDoI <howDoI.html#upgrade-the-database-engine>`
+Postgres' on-disk formats change from version to version.  This makes
+upgrades a bit of an adventure, in particular if you have large
+databases that take days to export and ingest.  However, Debian helps a
+bit; even if you don't run Debian, the following might be helpful.
 
-.. _DaCHS-users: http://lists.g-vo.org/cgi-bin/mailman/listinfo/dachs-users
+The text assumes you are using the default cluster, which is called main.
+If – and that's likely if you installed DaCHS in the olden days – yours
+has a different name (we used to suggest "pgdata"), you'll have to
+replace "main" with that name throughout.  In case you do not remember,
+at least in Debian you can just ``ls /etc/postgresql/<pgversion>`` –
+what you see there is the name of your cluster.
+
+As it's easy to destroy all your tables at once if you mistype things
+here, it's highly recommended to dump your database somewhere before
+starting with this::
+
+  pg_dump -f (some descriptive name).pgdump -F c gavo
+
+Let's say you're upgrading from 11 to 12.  Since we will need these
+numbers quite a few times, let us set them in variables – but be *very*
+careful, if you  get this wrong, the commands further down will nuke
+your database::
+
+  export OLDVER=11
+  export NEWVER=12
+
+To upgrade, first install the new engine and extensions, for instance::
+
+   apt-get install postgresql-${NEWVER}-pgsphere postgresql-${NEWVER}-q3c postgresql-${NEWVER}
+
+If you use other extensions in your database (e.g., postgis), also
+install them now.  To see what extensions you have installed, a command
+like::
+
+  dpkg-query -W "postgresql-${OLDVER}-*"
+
+is probably helpful. Other versioned packages you may want to install
+include:
+
+* ``postgresql-server-dev-$NEWVER`` if you use locally-built extensions.
+  Rebuild and install those extensions *before* proceeding with the
+  upgrade.
+* ``postgresql-plpython-$NEWVER`` if you use python DB extensions
+* ``postgresql-contrib-$NEWVER`` for several interesting index schemes
+  and the like.
+
+You will probably first have to drop the new cluster the Debian
+maintainer scripts may already have created, as pg_upgradecluster wants
+a clean slate::
+
+  pg_ctlcluster $NEWVER main stop
+  # this is a good time to see if your data center still works; if not,
+  # you stopped the currently active cluster and should *not* drop it
+  pg_dropcluster $NEWVER main
+
+If these give errors to the effect that the “specified cluster does not
+exist”, that's fine.
+
+During the database update, postgres will be down, and hence
+your data center will not work. For a large database and a complicated
+upgrade, the update can take several hours (though, really, that last
+few upgrade for us were minute jobs although we have about 5 TB of
+tables).  You should therefore let people know what is going on.
+As long as nobody really does
+anything with VOSI availability, the next best thing is to put your
+DaCHS installation in panic mode.
+
+To do this, place a file called MAINT into DaCHS's stateDir, maybe
+somewhat like this::
+
+  cat <<EOF > `dachs config stateDir`/MAINT
+  We're currently upgrading our database and cannot properly respond to
+  requests.
+
+  We expect to be back online late afternoon UTC, 2021-08-11.
+  EOF
+
+Then say::
+
+  pg_upgradecluster -k -m upgrade -v $NEWVER $OLDVER main /var/lib/postgresql/$NEWVER
+
+You may need to change the last argument, depending on where your
+database files actually are.  You can figure out where the old ones were
+using::
+
+  grep data_directory /etc/postgresql/$OLDVER/main/postgresql.conf
+
+Do *not* use that old directory for the new cluster.
+
+Note the ``-k`` option to the above command: this makes pg_upgrade use
+hard links instead of copies.  This saves a lot of space and time.  The
+downside is that once the upgrade has succeeded, the old server may go
+haywire because its files have been changed to fit the new version.  In
+our experience, that's a price worth paying.
+
+If this fails, **do not panic**.  Most of the time it's some extension you
+forgot to install, and once you've done that, everything will be fine.
+The upgrade script points you to the logs of the operation, which should
+let you figure out what to do.
+
+When all is done, pg_upgradecluster configures the old cluster to no
+longer start automatically and the new cluster to listen where the old
+one was.   
+
+You can now probably run your services again, so, remove MAINT in the
+stateDir, restart the DaCHS server and run your regression tests (you
+wrote some, didn't you?).  
+
+However, quite typically the table stats are wrong or ununderstandable
+to the new version, so for large tables you may see timeouts and the
+like.  Starting around version 10, pg_upgradecluster helpfully provides
+a script that does all that's required to update the stats and make
+things fast again.  It is kept together with the upgrade log which you
+will find by going to ``/var/log/postgresql``, saying ``ls -lr
+--sort=time``.  The last directory shown ought to be your upgrade
+directory.
+
+In there, start a ``screen`` (the script can take a long while, and it's
+good if you can detach the screen with ^ADD and the it keeps running
+while you're going home) and run it like this::
+
+  sudo -u postgres sh ./analyze_new_cluster.sh
+
+Finally, pg_upgrade has printed a command that will remove the old
+cluster; execute it, and finally deinstall the old postgres packages to
+avoid confusion – locate them somehow like::
+
+  dpkg -l | grep "postgres.*$OLDVER"
+
+When that's all done, take a deep breath and relax.
+
+
+Possible Issues during upgrade
+..............................
+
+Frankly, there's lots.  We'll update this section based your feedback.
+
+(1) Some versions of pgsphere had bad declarations of negators and
+commutators.  These manifest themselves as errors like::
+
+  pg_restore: [archiver (db)] could not execute query: ERROR:  argument of negator must be a name
+      Command was: CREATE OPERATOR @ (
+      PROCEDURE = "sline_contains_point_com",
+      LEFTARG = "spoint",
+      RIGHTARG = "sline",
+      COMMUTAT...
+
+during upgrades.  If you see something like this, you need to remove
+dangling references from the the ``pg_operator`` system catalog before
+commencing.  So, in the *old* cluster, run::
+
+  UPDATE pg_operator AS o
+  SET oprcom=0 
+  WHERE 
+    NOT EXISTS (
+      SELECT 1 FROM pg_operator AS i 
+        WHERE i.oid=o.oprcom) 
+    AND oprcom!=0
+
+and::
+
+  UPDATE pg_operator AS o
+  SET oprnegate=0 
+  WHERE 
+    NOT EXISTS (
+      SELECT 1 FROM pg_operator AS i 
+        WHERE i.oid=o.oprnegate) 
+    AND oprnegate!=0
+
+
+(2) Remove versioned tablespaces after failures.  pg_upgrade in
+principle does the right thing with tablespaces: It has per-version
+names for the actual data directories.  However, when an upgrade has
+failed, that extra data directory is not removed.  Another attempt at
+upgrading then usually fails because that directory is already there.
+For instance, you'll see in the tablespace /media/db_overflow::
+
+  $ ls
+  PG_9.4_201409291/  PG_9.6_201608131/
+
+In that case, you will need to remove the 9.6 directory before proceeding.
+
 
 
 Conventions and Advocacy
