@@ -5386,369 +5386,6 @@ here, for instance::
   </rowfilter>
 
 
-More on Grammars
-----------------
-
-As discussed in `Parsing Input Data`_, grammars are what turn just about
-any kind of input into neat sequences of Python dictionaries that are
-then processed (and possibly multiplied) in row filters; whatever comes
-out of this is then handed over to row makers and turned into database
-rows.
-
-There are many :dachsref:`grammars available` in DaCHS.  This section
-discusses some of them in a more leisurely fashion than the terse
-descriptions in the reference documentation, and it covers a few
-additional aspects of what can go on in any grammar.
-
-
-
-Source Fields
-'''''''''''''
-
-It is a fairly common situation that you want to make available certain
-properties of a source file to the row makers; the most common case is
-that the data providers have encoded information like object names,
-times, or whatever, in file names, or that there is some auxiliary
-information in a different files.
-
-In these situations, it is often efficient to use :dachsref:`Element
-sourceFields`.  It contains a standard
-procedure definition (i.e., you could predefine those and bind
-parameters), but usually you will just fill in the code.
-
-This code is called once for each source processed, and receives the
-``sourceToken`` as argument.  It must return a dictionary, the key/value
-pairs of which will be added to all rows returned by the row iterator.
-
-In addition to the ``sourceToken``, you also have access to the data that
-will be fed from the grammar.  This can be used to, e.g., retrieve the
-resource directory (``data.dd.rd.resdir``) or data descriptor properties
-(``data.dd.getProperty("whatever")``).
-
-As a trivial example, here is how to avoid parsing the sourceToken in
-order to pull out a field identifier in each row::
-
-  <!-- this sits in a grammar element -->
-  <sourceFields>
-    <code>
-      return {"field":
-        int(sourceToken.split("bul_sc")[-1].split(".pm.gz")[0])}
-    </code>
-  </sourceFields>
-
-A more complex example, taken from :samplerd:`lightmeter/q`, looks up
-some calibration values from a different table based on an identifier
-again pulled from the source file – clearly, you wouldn't want to do
-one query per row when there's thousands of rows coming from one
-source::
-
-  <sourceFields>
-    <code>
-      stationId = os.path.split(os.path.split(sourceToken)[0])[1]
-      if re.match("[0-9]+$", stationId):
-        raise base.SkipThis("Archive directory")
-      try:
-        with base.getTableConn() as conn:
-          stationPars = list(conn.query(
-            "SELECT calibA, calibB, calibC, calibD, timeCorrection"
-            " FROM lightmeter.stations"
-            " WHERE stationId=%(stationId)s", locals()))[0]
-        calibA, calibB, calibC, calibD, timeCorrection = stationPars
-      except IndexError:
-        raise base.ValidationError("No station data for %s.  Import"
-          " stationsdata first."
-          %stationId, "stationId", stationId)
-      if calibA is None:
-        raise base.SkipThis("No calibration for %s."%stationId)
-      srcKey = "/".join(utils.getRelativePath(sourceToken,
-        base.getConfig("inputsDir"), liberalChars=True).split("/")[2:])
-      return locals()
-    </code>
-  </sourceFields>
-
-On getTableConn, see :dachsref:`Database Queries`.
-
-Note, however, that you need a special pattern when you want to query
-the table that you are filling.  This is because ``sourceFields`` run in
-the midst of a transaction updating the table.  So, something like::
-
-  <code>
-    <!-- will deadlock, don't do it like this -->
-    with base.getTableConn() as conn:
-      conn.queryToDicts("select ... from <table mentioned in make>")
-  </code>
-
-will wait for the transaction to finish.  But the transaction is waiting
-for data that will only come when the query finishes – this is a
-deadlock, and dachs imp will just sit there and wait (see also 
-:dachsdoc:`commonproblems.html#deadlocks`).
-
-To get around this, you need to query using the data's connection.  So,
-instead write::
-
-  <code>
-    yield data.connection.queryToDicts(...)
-  </code>
-
-
-preFilters
-''''''''''
-
-DaCHS Grammars parsing from files have a ``preFilter`` attribute.
-This can contain a pipeline that has to read from stdin and produce its
-output on stdout.
-
-The typical use case is to decompress input files without bothering
-DaCHS, e.g., using ``preFilter="zcat`` (for which there's the historical
-``gunzip="True"`` alias – don't use that any more),
-``preFilter="bzcat"``, or ``preFilter="xzcat"``.
-
-However, if you have some weird format for which there is a dumping tool
-that produces something that can be turned into CSV from a stream coming
-in from stdin something like the following provides an elegant way to
-get the data in with minimal code::
-
-  <csvGrammar preFilter="dump-weird-format-to-stuff | stuff-to-csv"/>
-
-
-reGrammars
-''''''''''
-
-The :dachsref:`Element reGrammar` is the swiss army knife of
-text-parsing grammars when neither :dachsref:`element columnGrammar` nor
-`csvGrammars`_ will do.  The
-idea here is that you give two regular expressions to separate the file
-into records and the records into fields, and that you simply enumerate
-the names used in the mapping.
-
-In the simplest case – whitespace separated columns in lines containing no
-whitespace, with one comment line at the top –, such a grammar could be
-specified like this::
-
-  <reGrammar topIgnoredLines="1">
-    <names>raMin, raMax, decMin, decMax, EVI, AV, AI</names>
-  </reGrammar>
-
-reGrammars have a few tricks built-in to make them a bit more versatile.
-The following lets you simulate properly parsing some bzipped database
-dump by making some strong assumptions::
-
-  <reGrammar topIgnoredLines="15" preFilter="bzcat">
-     <fieldSep>"?,(\s*")?</fieldSep>
-     <recordCleaner>\((.*)\)</recordCleaner>
-     <names>primflag, measure_no, paper_id, source_no, source_name</names>
-  </reGrammar>
-
-The ``recordCleaner`` used here is an RE matched against every record
-and that contains exactly one capturing group.  If it matches, the group
-will be used to apply the separators; in this case, it simply discards
-the parentheses you have in your typical database dump.  Records not
-matching at all are discarded (which, admittedly, makes it easy to miss
-errors in ways that will lose data silently).
-
-An alternative, and somewhat safer, way to get rid of junk in the input
-is to use the ``commentPat`` attribute.  That is an RE that is removed
-from record before trying to parse it.  The reference documentation
-mentions the classic case: ``(?m)^#.*$`` will throw away lines starting
-with a hash.
-
-Another gung-ho feature of reGrammars is the ``lax`` attribute.
-Normally, reGrammars will fail on records that do not have exactly one
-field per name you put in.  Some ugly input may skip “optional” fields
-at the end – with ``lax="True"``, DaCHS will map those to empty strings.
-
-Finally, sometimes files have junk at the end.  This is when ``stopPat``
-comes in handy: When a record matches that RE, the entire remainder of
-the input is ignored.
-
-
-fitsProdGrammars
-''''''''''''''''
-
-This grammar exposes FITS headers as rawdicts.  Since both 
-represent essentially the same data structure – sequences of
-key-value pairs, you can get away with just::
-
-  <fitsProdGrammar/>
-
-– and that would cover a lot of use cases that read FITS images.
-
-If you have FITS tables, this grammar is not for you; use
-:dachsref:`Element fitsTableGrammar` instead, and if you have large FITS
-tables, have a look at `Grammars in C`_ (even if you don't know C).
-
-DaCHS uses pyfits to parse the headers and thus supports all the major
-conventions (CONTINUE cards are transparent, as are HIERARCH-style long
-keywords).  Neither HISTORY nor COMMENT cards are present in the
-rawdicts.
-
-There are some snags, anyway.  For example, DaCHS by default reads the
-header bytes using specialized code that is somewhat more robust and has
-more desirable behaviour with odd files than the pyfits one (you can
-deselect it by setting ``qnd="False"`` if necessary).  This gives up
-collecting header blocks if it has not found the end card after
-``maxHeaderBlocks`` blocks.  The default ``maxHeaderBlocks`` is chosen
-to be 40, which is reasonable for reasonable FITSes.  However, we have
-seen in the wild massive abuse of comment cards to hold entire tables.
-If you're unlucky enough to have to handle such files, you may have to
-raise this.
-
-You also have to use ``qnd="False"`` if you parse from compressed FITS
-images.
-
-It is fairly common for FITS keywords to contain a dash (``-``).  Since
-rawdict keys are supposed to be python identifier (e.g., for
-@-referencing), fitsProdGrammars translate these to underscores.  If
-further cleanup is necessary, there is :dachsref:`Element mapKeys`
-that lets you
-write things like::
-
-  <mapKeys>
-    <map key="properName">PROP NAM</map>
-  </mapKeys>
-
-The element should only be used to fix crazy names.  Actual mapping of
-names should be performed in rowmakers, because that's where you will
-look for them in two months.
-
-FITS files are somewhat more complex, and fitsProdGrammars expose some
-of this.  If you need to parse from a header other than the primary one,
-give the 0-base extension number in `hdu` attribute.  
-For the full power of pyfits
-(but also all incompatibilities that are introduced by using that power),
-there is the ``hdusField`` attribute.  This gives the key under which
-the pyfits HDU is visible in the rawdict.  Be warned that using this
-might make your grammar *dramatically* slower, in particular when it
-operates on gzipped FITS files (which are, incidentally, transparently
-supported if their file names end in “.gz”).
-
-
-csvGrammars
-'''''''''''
-
-csvGrammar parses from files containing comma separated values.  It
-actually is a thin wrapper around python's csv module, and thus it is
-fairly forgiving about the idiosyncrasies of CSV (e.g., quotes around
-all, some, or no values).  You can configure the delimiter character via
-the same-named attribute (it defaults to, expectably, comma).
-
-CsvGrammars by default expect input files to follow the convention that
-the first row contains the column names, and it will use whatever is
-there as rawdict keys.  If these names are not usable as Python
-identifiers, use :dachsref:`Element mapKeys` to map them to other keys
-so you can have nice @-references in your row maker.
-
-If the first CSV line does not contain the names, you must use the
-``names`` child to give these names, like this::
-
-  <csvGrammar names="ra, dec, mag"/>
-
-The csvGrammar will not complain if there are more fields in the file
-than you give names for; any extra values are reachable through
-``@NOTASSIGNED`` (which should probably only be used to catch exceptional
-circumstances).
-
-If your input files follow the (silly) convention of having the colum
-names in a comment in the first line, like this::
-
-  # ra, dec, mag
-  13,2, 14.45, -0.33
-
-you have to give ``names`` as above and make the csvGrammar ignore the
-first line with ``topIgnoredLines="1"``.
-
-There is currently no way to ignore comments in any other way; if you
-need that, you should probably retrofit that functionality in Python's
-csv module.
-
-
-Python-defined grammars
-'''''''''''''''''''''''
-
-Sometimes inputs are so nasty that DaCHS' grammars really can't be used
-to parse them.  For these situations, DaCHS has :dachsref:`Element
-customGrammar` and :dachsref:`Element embeddedGrammar` that let you just
-slap in pieces of Python yielding dictionaries as grammars. 
-
-First off: before you go there, think hard if one of DaCHS' built-in
-grammars really can't do the job (including :dachsref:`binaryGrammar`).
-Long experience has shown that custom code is much more likely to break
-in the evolution of your system, Python, and DaCHS itself.
-
-Custom grammars come in modules of their own, which is a good thing
-because you can test them outside of DaCHS.  But they break the
-principle of “all you need is in the RD”, so don't use them unless you
-must.  An introduction to them is in :dachsref:`Writing Custom Grammars`
-in the reference documentation.
-
-Embedded grammars are somewhat more light-weight.  They in particular
-come in handy when you need to generate a few rows, like this::
-
-  <embeddedGrammar>
-    <iterator>
-      <setup>
-        <par name="testData">"a"*4</par>
-      </setup>
-      <code>
-        for i in self.sourceToken:
-          yield {'index': i, 'data': testData}
-      </code>
-    </iterator>
-  </embeddedGrammar>
-
-Essentially, they are usual DaCHS procedures that ``yield`` rawdicts in
-some random way.  They see the source to be parsed in
-``self.sourceToken``.  While this usually is a file name (that you
-woujld then pass to ``open``, you can also use the string for something
-else, as is done here.  Combined with::
-
-  <sources><item>ab</item><item>cd5</item></sources>
-
-the grammar above would produce the rawdicts::
-
-  {'index': 'a', 'data': 'aaaa'}
-  {'index': 'b', 'data': 'aaaa'}
-  {'index': 'c', 'data': 'aaaa'}
-  {'index': 'd', 'data': 'aaaa'}
-  {'index': '5', 'data': 'aaaa'}
-
-Embedded grammars are intended to be used for small and simple
-tasks, and if anything goes wrong, the error messages produced by
-default are not very useful.  So, when things get a bit more
-complicated, program defensively and keep a note of where in the source
-you are, somehwhat like this::
-
-  with open(self.sourceToken) as f:
-    for line_number, line in f:
-      try:
-      except Exception as ex:
-        raise utils.SourceParseError(
-          "Bad line: {}".format(ex),
-          offending=line,
-          location=str(line_number+1),
-          source=self.sourceToken)
-
-
-Grammars in C
-'''''''''''''
-
-If you have large data collections (millions to billions of rows), going
-through the all the steps of parsing, row making, and postgres ingestion
-with lots of Python in between can become prohibitively slow.  In such
-cases, you can use :dachsref:`Element directGrammar` (or “a booster”
-for short).  They let you bypass everything DaCHS and almost everything
-Postgres and produce binary dump material that is just slurped into the
-database at maximum speed.
-
-This almost requires some knowledge of C, although DaCHS tries to help
-you if you're not terribly C-savvy.  The one exception are FITS binary
-tables; DaCHS can generate C code for pulling them in without further
-intervention.
-
-Anyway, boosters are a longer story, which we tell in
-:dachsdoc:booster.html.
-
-
 More on Tables
 --------------
 
@@ -6110,6 +5747,369 @@ for one source table when the other doesn't exist and will not be made
 in the same import will lead to an error in the view creation.  This is
 harmless for the import of the table you imported, as ``data`` creation
 on ``recreateAfter`` happens in a separate transaction.
+
+
+More on Grammars
+----------------
+
+As discussed in `Parsing Input Data`_, grammars are what turn just about
+any kind of input into neat sequences of Python dictionaries that are
+then processed (and possibly multiplied) in row filters; whatever comes
+out of this is then handed over to row makers and turned into database
+rows.
+
+There are many :dachsref:`grammars available` in DaCHS.  This section
+discusses some of them in a more leisurely fashion than the terse
+descriptions in the reference documentation, and it covers a few
+additional aspects of what can go on in any grammar.
+
+
+
+Source Fields
+'''''''''''''
+
+It is a fairly common situation that you want to make available certain
+properties of a source file to the row makers; the most common case is
+that the data providers have encoded information like object names,
+times, or whatever, in file names, or that there is some auxiliary
+information in a different files.
+
+In these situations, it is often efficient to use :dachsref:`Element
+sourceFields`.  It contains a standard
+procedure definition (i.e., you could predefine those and bind
+parameters), but usually you will just fill in the code.
+
+This code is called once for each source processed, and receives the
+``sourceToken`` as argument.  It must return a dictionary, the key/value
+pairs of which will be added to all rows returned by the row iterator.
+
+In addition to the ``sourceToken``, you also have access to the data that
+will be fed from the grammar.  This can be used to, e.g., retrieve the
+resource directory (``data.dd.rd.resdir``) or data descriptor properties
+(``data.dd.getProperty("whatever")``).
+
+As a trivial example, here is how to avoid parsing the sourceToken in
+order to pull out a field identifier in each row::
+
+  <!-- this sits in a grammar element -->
+  <sourceFields>
+    <code>
+      return {"field":
+        int(sourceToken.split("bul_sc")[-1].split(".pm.gz")[0])}
+    </code>
+  </sourceFields>
+
+A more complex example, taken from :samplerd:`lightmeter/q`, looks up
+some calibration values from a different table based on an identifier
+again pulled from the source file – clearly, you wouldn't want to do
+one query per row when there's thousands of rows coming from one
+source::
+
+  <sourceFields>
+    <code>
+      stationId = os.path.split(os.path.split(sourceToken)[0])[1]
+      if re.match("[0-9]+$", stationId):
+        raise base.SkipThis("Archive directory")
+      try:
+        with base.getTableConn() as conn:
+          stationPars = list(conn.query(
+            "SELECT calibA, calibB, calibC, calibD, timeCorrection"
+            " FROM lightmeter.stations"
+            " WHERE stationId=%(stationId)s", locals()))[0]
+        calibA, calibB, calibC, calibD, timeCorrection = stationPars
+      except IndexError:
+        raise base.ValidationError("No station data for %s.  Import"
+          " stationsdata first."
+          %stationId, "stationId", stationId)
+      if calibA is None:
+        raise base.SkipThis("No calibration for %s."%stationId)
+      srcKey = "/".join(utils.getRelativePath(sourceToken,
+        base.getConfig("inputsDir"), liberalChars=True).split("/")[2:])
+      return locals()
+    </code>
+  </sourceFields>
+
+On getTableConn, see :dachsref:`Database Queries`.
+
+Note, however, that you need a special pattern when you want to query
+the table that you are filling.  This is because ``sourceFields`` run in
+the midst of a transaction updating the table.  So, something like::
+
+  <code>
+    <!-- will deadlock, don't do it like this -->
+    with base.getTableConn() as conn:
+      conn.queryToDicts("select ... from <table mentioned in make>")
+  </code>
+
+will wait for the transaction to finish.  But the transaction is waiting
+for data that will only come when the query finishes – this is a
+deadlock, and dachs imp will just sit there and wait (see also 
+:dachsdoc:`commonproblems.html#deadlocks`).
+
+To get around this, you need to query using the data's connection.  So,
+instead write::
+
+  <code>
+    yield data.connection.queryToDicts(...)
+  </code>
+
+
+preFilters
+''''''''''
+
+DaCHS Grammars parsing from files have a ``preFilter`` attribute.
+This can contain a pipeline that has to read from stdin and produce its
+output on stdout.
+
+The typical use case is to decompress input files without bothering
+DaCHS, e.g., using ``preFilter="zcat`` (for which there's the historical
+``gunzip="True"`` alias – don't use that any more),
+``preFilter="bzcat"``, or ``preFilter="xzcat"``.
+
+However, if you have some weird format for which there is a dumping tool
+that produces something that can be turned into CSV from a stream coming
+in from stdin something like the following provides an elegant way to
+get the data in with minimal code::
+
+  <csvGrammar preFilter="dump-weird-format-to-stuff | stuff-to-csv"/>
+
+
+reGrammars
+''''''''''
+
+The :dachsref:`Element reGrammar` is the swiss army knife of
+text-parsing grammars when neither :dachsref:`element columnGrammar` nor
+`csvGrammars`_ will do.  The
+idea here is that you give two regular expressions to separate the file
+into records and the records into fields, and that you simply enumerate
+the names used in the mapping.
+
+In the simplest case – whitespace separated columns in lines containing no
+whitespace, with one comment line at the top –, such a grammar could be
+specified like this::
+
+  <reGrammar topIgnoredLines="1">
+    <names>raMin, raMax, decMin, decMax, EVI, AV, AI</names>
+  </reGrammar>
+
+reGrammars have a few tricks built-in to make them a bit more versatile.
+The following lets you simulate properly parsing some bzipped database
+dump by making some strong assumptions::
+
+  <reGrammar topIgnoredLines="15" preFilter="bzcat">
+     <fieldSep>"?,(\s*")?</fieldSep>
+     <recordCleaner>\((.*)\)</recordCleaner>
+     <names>primflag, measure_no, paper_id, source_no, source_name</names>
+  </reGrammar>
+
+The ``recordCleaner`` used here is an RE matched against every record
+and that contains exactly one capturing group.  If it matches, the group
+will be used to apply the separators; in this case, it simply discards
+the parentheses you have in your typical database dump.  Records not
+matching at all are discarded (which, admittedly, makes it easy to miss
+errors in ways that will lose data silently).
+
+An alternative, and somewhat safer, way to get rid of junk in the input
+is to use the ``commentPat`` attribute.  That is an RE that is removed
+from record before trying to parse it.  The reference documentation
+mentions the classic case: ``(?m)^#.*$`` will throw away lines starting
+with a hash.
+
+Another gung-ho feature of reGrammars is the ``lax`` attribute.
+Normally, reGrammars will fail on records that do not have exactly one
+field per name you put in.  Some ugly input may skip “optional” fields
+at the end – with ``lax="True"``, DaCHS will map those to empty strings.
+
+Finally, sometimes files have junk at the end.  This is when ``stopPat``
+comes in handy: When a record matches that RE, the entire remainder of
+the input is ignored.
+
+
+fitsProdGrammars
+''''''''''''''''
+
+This grammar exposes FITS headers as rawdicts.  Since both 
+represent essentially the same data structure – sequences of
+key-value pairs, you can get away with just::
+
+  <fitsProdGrammar/>
+
+– and that would cover a lot of use cases that read FITS images.
+
+If you have FITS tables, this grammar is not for you; use
+:dachsref:`Element fitsTableGrammar` instead, and if you have large FITS
+tables, have a look at `Grammars in C`_ (even if you don't know C).
+
+DaCHS uses pyfits to parse the headers and thus supports all the major
+conventions (CONTINUE cards are transparent, as are HIERARCH-style long
+keywords).  Neither HISTORY nor COMMENT cards are present in the
+rawdicts.
+
+There are some snags, anyway.  For example, DaCHS by default reads the
+header bytes using specialized code that is somewhat more robust and has
+more desirable behaviour with odd files than the pyfits one (you can
+deselect it by setting ``qnd="False"`` if necessary).  This gives up
+collecting header blocks if it has not found the end card after
+``maxHeaderBlocks`` blocks.  The default ``maxHeaderBlocks`` is chosen
+to be 40, which is reasonable for reasonable FITSes.  However, we have
+seen in the wild massive abuse of comment cards to hold entire tables.
+If you're unlucky enough to have to handle such files, you may have to
+raise this.
+
+You also have to use ``qnd="False"`` if you parse from compressed FITS
+images.
+
+It is fairly common for FITS keywords to contain a dash (``-``).  Since
+rawdict keys are supposed to be python identifier (e.g., for
+@-referencing), fitsProdGrammars translate these to underscores.  If
+further cleanup is necessary, there is :dachsref:`Element mapKeys`
+that lets you
+write things like::
+
+  <mapKeys>
+    <map key="properName">PROP NAM</map>
+  </mapKeys>
+
+The element should only be used to fix crazy names.  Actual mapping of
+names should be performed in rowmakers, because that's where you will
+look for them in two months.
+
+FITS files are somewhat more complex, and fitsProdGrammars expose some
+of this.  If you need to parse from a header other than the primary one,
+give the 0-base extension number in `hdu` attribute.  
+For the full power of pyfits
+(but also all incompatibilities that are introduced by using that power),
+there is the ``hdusField`` attribute.  This gives the key under which
+the pyfits HDU is visible in the rawdict.  Be warned that using this
+might make your grammar *dramatically* slower, in particular when it
+operates on gzipped FITS files (which are, incidentally, transparently
+supported if their file names end in “.gz”).
+
+
+csvGrammars
+'''''''''''
+
+csvGrammar parses from files containing comma separated values.  It
+actually is a thin wrapper around python's csv module, and thus it is
+fairly forgiving about the idiosyncrasies of CSV (e.g., quotes around
+all, some, or no values).  You can configure the delimiter character via
+the same-named attribute (it defaults to, expectably, comma).
+
+CsvGrammars by default expect input files to follow the convention that
+the first row contains the column names, and it will use whatever is
+there as rawdict keys.  If these names are not usable as Python
+identifiers, use :dachsref:`Element mapKeys` to map them to other keys
+so you can have nice @-references in your row maker.
+
+If the first CSV line does not contain the names, you must use the
+``names`` child to give these names, like this::
+
+  <csvGrammar names="ra, dec, mag"/>
+
+The csvGrammar will not complain if there are more fields in the file
+than you give names for; any extra values are reachable through
+``@NOTASSIGNED`` (which should probably only be used to catch exceptional
+circumstances).
+
+If your input files follow the (silly) convention of having the colum
+names in a comment in the first line, like this::
+
+  # ra, dec, mag
+  13,2, 14.45, -0.33
+
+you have to give ``names`` as above and make the csvGrammar ignore the
+first line with ``topIgnoredLines="1"``.
+
+There is currently no way to ignore comments in any other way; if you
+need that, you should probably retrofit that functionality in Python's
+csv module.
+
+
+Python-defined grammars
+'''''''''''''''''''''''
+
+Sometimes inputs are so nasty that DaCHS' grammars really can't be used
+to parse them.  For these situations, DaCHS has :dachsref:`Element
+customGrammar` and :dachsref:`Element embeddedGrammar` that let you just
+slap in pieces of Python yielding dictionaries as grammars. 
+
+First off: before you go there, think hard if one of DaCHS' built-in
+grammars really can't do the job (including :dachsref:`binaryGrammar`).
+Long experience has shown that custom code is much more likely to break
+in the evolution of your system, Python, and DaCHS itself.
+
+Custom grammars come in modules of their own, which is a good thing
+because you can test them outside of DaCHS.  But they break the
+principle of “all you need is in the RD”, so don't use them unless you
+must.  An introduction to them is in :dachsref:`Writing Custom Grammars`
+in the reference documentation.
+
+Embedded grammars are somewhat more light-weight.  They in particular
+come in handy when you need to generate a few rows, like this::
+
+  <embeddedGrammar>
+    <iterator>
+      <setup>
+        <par name="testData">"a"*4</par>
+      </setup>
+      <code>
+        for i in self.sourceToken:
+          yield {'index': i, 'data': testData}
+      </code>
+    </iterator>
+  </embeddedGrammar>
+
+Essentially, they are usual DaCHS procedures that ``yield`` rawdicts in
+some random way.  They see the source to be parsed in
+``self.sourceToken``.  While this usually is a file name (that you
+woujld then pass to ``open``, you can also use the string for something
+else, as is done here.  Combined with::
+
+  <sources><item>ab</item><item>cd5</item></sources>
+
+the grammar above would produce the rawdicts::
+
+  {'index': 'a', 'data': 'aaaa'}
+  {'index': 'b', 'data': 'aaaa'}
+  {'index': 'c', 'data': 'aaaa'}
+  {'index': 'd', 'data': 'aaaa'}
+  {'index': '5', 'data': 'aaaa'}
+
+Embedded grammars are intended to be used for small and simple
+tasks, and if anything goes wrong, the error messages produced by
+default are not very useful.  So, when things get a bit more
+complicated, program defensively and keep a note of where in the source
+you are, somehwhat like this::
+
+  with open(self.sourceToken) as f:
+    for line_number, line in f:
+      try:
+      except Exception as ex:
+        raise utils.SourceParseError(
+          "Bad line: {}".format(ex),
+          offending=line,
+          location=str(line_number+1),
+          source=self.sourceToken)
+
+
+Grammars in C
+'''''''''''''
+
+If you have large data collections (millions to billions of rows), going
+through the all the steps of parsing, row making, and postgres ingestion
+with lots of Python in between can become prohibitively slow.  In such
+cases, you can use :dachsref:`Element directGrammar` (or “a booster”
+for short).  They let you bypass everything DaCHS and almost everything
+Postgres and produce binary dump material that is just slurped into the
+database at maximum speed.
+
+This almost requires some knowledge of C, although DaCHS tries to help
+you if you're not terribly C-savvy.  The one exception are FITS binary
+tables; DaCHS can generate C code for pulling them in without further
+intervention.
+
+Anyway, boosters are a longer story, which we tell in
+:dachsdoc:booster.html.
 
 
 More on CondDescs
