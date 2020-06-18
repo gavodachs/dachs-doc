@@ -4230,9 +4230,7 @@ taken from the SSA metadata.  You can add additional columns (e.g., a
 flux error depending on the spectral coordinate) as requried.
 
 The actual spectral instances can be built by sdmCores and delivered
-through DaCHS' product interface.  Note, however, that clients
-`supporting getData`_ wouldn't need to do this.  You'll still have to
-define the data item defined below.
+through DaCHS' product interface.
 
 sdmCores, while potentially useful with common services, are intended to
 be used by the product renderer for dcc product table paths.  They
@@ -4313,17 +4311,6 @@ your metadata table, use the ssacols stream, for example like this::
       verbLevel="1"/>
     <STREAM source="//echelle#ssacols"/>
   </table>
-
-
-
-Supporting getData
-==================
-
-DaCHS still has support the now-abandoned 2012 getData specification by
-Demleitner and Skoda.   If you think you still want this, contact the
-authors; meanwhile, you really should be using datalink for whatever you
-think you need getData for.
-
 
 
 Adapting Obscore
