@@ -169,7 +169,7 @@ user:
   replace with customised versions.  There is also templates, where you
   can put HTML templates of override distributed ones.  One template you
   will quite certainly want to override is root.html as discussed in
-  `Defining Your Site`_.
+  `Configuring DaCHS`_.
 
 
 The Resource Descriptor
@@ -1390,7 +1390,7 @@ VizieR-like expressions in those fields.
 
 Briefly have a look at the URL. A promised in `Service Definitions`_, 
 apart from the host name and port (see
-the `operator's guide`_ on how to change those), there is the path to the
+the `Configuring DaCHS`_ on how to change those), there is the path to the
 RD (without the file extension), then the id of the service element, and
 finally the renderer name.  In this case, that's ``form`` for an HTML form.
 
@@ -3742,7 +3742,7 @@ what DaCHS gives you after installation include:
   good fallback if you are unsure.
 * ``creator.logo`` – A URL for a logo to use when none is given in the
   resource metadata. Use a small PNG here; if you've put in a
-  logo_medium.png (see `Simple Web Resources`_), just use
+  logo_medium.png (see `Customising the Web Interface`_), just use
   ``<your-DaCHS-url>/favicon.png``, which is a suitably scaled version
   of that provided by DaCHS.
 * ``authority.creationDate`` – This is just a characteristic date for
@@ -3914,7 +3914,7 @@ to delay a bit before going live with the following.  It doesn't hurt to
 re-run the WIRR check before you actually go live, though.
 
 You will first have do define your authority record.  To do that, you
-have to edit your userconfig RD.   See `Userconfig RD`_ if you have not
+have to edit your userconfig RD.   See `The Userconfig RD`_ if you have not
 set one up yet.
 
 Once you have your ``etc/userconfig.rd``, look for the
@@ -3986,8 +3986,8 @@ pertaining to. scale it to about 250 pixels width or so (it will
 typically be used at 100 pt in the CSS).
 
 In general, anything you put into ``/var/gavo/web/nv_static`` will be
-visible underneath ``/static/`` on the web.  See also `Overriding
-Built-in Web Resource`_
+visible underneath ``/static/`` on the web.  See also `Customising
+the Web Interface`_.
 
 
 The Root Page
@@ -4298,7 +4298,8 @@ The ``publish`` element requires a specification of the OAI set
 the resources shall be published to.  
 Unless you have specific applications, only two
 sets are relevant: ``ivo_managed`` for publishing to the VO (see
-`Registry Matters`_), and ``local`` for publishing to your data center's
+`Interacting with the VO Registry`_), 
+and ``local`` for publishing to your data center's
 service roster.  Other sets could be introduced and used for, e.g.,
 specific sub-rosters, but you'd have to tell DaCHS about them in
 ``[ivoa]validOAISets``.
@@ -4335,7 +4336,8 @@ in a SIAP service in a different RD, would require something like::
 
 (use multiple publish elements if there are multiple services).
 
-As we have already discussed in the Basic's `Doing the Publication`_
+As we have already discussed in the quick start's `Publishing a
+Service`_
 section, just writing publish into the RD still is not enough, you also
 need to run ``dachs pub <rdid>`` to make DaCHS update its tables of
 published resources according to what is in the RD.  
@@ -4355,7 +4357,7 @@ If the ``[web]serverURL`` config item on the machine running gavo
 pub is pointing to the actual running server and ``[web]adminpasswd``
 machtes, the server will
 automatically be made aware of these changes.  Otherwise, you need to
-prod the server as discussed in `Managing Runtime Resources`_.
+prod the server as discussed in `Dealing with RD Changes`_.
 
 
 Making the VO see Your Registry
@@ -4485,7 +4487,7 @@ is::
   </service>
 
 The rest of the RD would then give all the normal metadata as per
-`GlobalMetadata`_ ``dachs pub`` should complain if there's metadata
+`Global Metadata`_ ``dachs pub`` should complain if there's metadata
 missing.
 
 What can pass as a "service" can be fairly funky, actually; here's how
