@@ -42,7 +42,7 @@ perusal of the other pieces of documentation.
 In order to have some basic understanding of what all this is about, our
 advice is to linearly skim `DaCHS Basics`_ in order to
 have an idea of DaCHS' basic concepts (yes, it's a bit more than 20
-pages, but we'd like to belive that grokking that is a half hour well
+pages, but we'd like to believe that grokking that is a half hour well
 spent) and then try the `quick start with DaCHS`_.
 
 Installation
@@ -2819,8 +2819,10 @@ perhaps s_fov on the one hand, and using s_region on the other.  That is
 a bit unfortunate because in practice you have to have two indices over
 at least three columns.  Also, DaCHS really likes it if columns are
 type-clean, and thus the mixins take quite a bit of pain to make sure
-only polygons are in s_region.  At your own risk, we will try hard to
-not break things if you put in scircles or smocs.
+only polygons are in ``s_region``.  Given ``s_region`` in our obscore
+has an xtype of ``adql:REGION`` and is thus polymorphic, you *might* get
+away with having other types in there.  No proimises on the long term,
+though.
 
 Having said all that: please make sure that whenever there is a position
 of some kind, you also fill s_region; this is not a problem in SIAP, but
@@ -2831,6 +2833,9 @@ something like::
      [alpha, delta, aperture]).asPoly(6)</map>
 
 (:dachsref:`the //ssap#setMeta mixin` already does that).
+
+See also `Creating pgSphere Geometries`_ for more information on how to
+fill geometry-valued columns.
 
 
 Pure Obscore Tables
@@ -3231,13 +3236,14 @@ When all you have are external URLs, you do not need to go through the
 products table (though you still can, as described in `Serving Local
 Products`_).  It is simpler, however, to just directly fill the
 ``access_url``, ``access_format`` and ``access_estsize`` columns using
-plain :dachsref:`Element map`s.
+plain :dachsref:`Element map`-s.
 
 
 On ``s_region`` in EPN-TAP
 ''''''''''''''''''''''''''
 
-The ``s_region`` parameter (see :dachsref:`//epntap2#populate-2_0`) is essentially
+The ``s_region`` parameter (see 
+:dachsref:`//epntap2#populate-2_0`) is essentially
 a footprint describing the area covered by 2D spatially extended data products.
 It uses pgshpere types such as ``spoly``, ``scircle``, ``smoc``, or ``spoint``
 (We advise against the use of ``spoint`` as a ``s_region`` type: only spatially
@@ -3245,77 +3251,8 @@ extended types should be used). The default type is ``spoly``, the others
 must be specified using the ``regiontype`` mixin parameter (see
 :dachsref:`//epntap2#table-2_0`).
 
-Please note that the pgSphere's ``spoly`` type 
-has some limitations that can trigger
-unclear errors when not respected: the segments can not be crossed and, more
-important, the maximum dimension of a polygon must be less than 180°.
-If you have complex, possibly non-connected shapes, consider `using
-MOCs`_.
-
-Here are some examples for how to create such objects; first, for a
-circle::
-
-  <table id ="epn_core">
-  ...
-    <mixin ... regiontype="sbox">//epntap2#table-2_0</mixin>
-  </table>
-
-  ...
-
-  <rowmaker idmaps="*">
-    ...
-    <var key = "s_region"
-      >pgsphere.SCircle.fromDALI([@c1_min , @c2_min, @aperture])</var>
-  </rowmaker>
-
-
-Then, for a polygon::
-
-  <!-- spoly is the default type for s_region, so no change to the table
-  -->
-
-   <rowmaker idmaps="*">
-    ...
-    <var key = "s_region"
-      >pgsphere.SPoly.fromDALI([@x1, @y1,
-        @x2, @y2, @x3, @y3])</var>
-  </rowmaker>
- 
-
-Finally, for a MOC; let's assume you have lists of vertices of polygons
-in polys, where each element would look like ``[(x,y), (x,y),...]`` (x
-and y from degrees); the resulting MOC should have highest order 10::
-
-  <table id ="epn_core">
-  ...
-    <mixin ... regiontype="smoc">//epntap2#table-2_0</mixin>
-  </table>
-
-  ...
-
-  <rowmaker idmaps="*">
-    ...
-    <apply name = "compute_region">
-      <setup>
-        <bind name="order">10</bind>
-      </setup>
-      <code>
-        @s_region = pgsphere.SPoly.fromDALI(polys[0]
-          ).asSMoc(order)
-        for vertices in polys[1:]:
-          @s_region.moc += pgsphere.SPoly.fromDALI(vertices
-            ).asSMoc(order)
-       </code>
-    </apply>
-  </rowmaker>
-
-This is based on the fact that a ``pgsphere.SMoc``'s ``moc`` attribute
-contains a pymoc.MOC instance.
-
-For complex polygons, the HEALPix library DaCHS uses currently (2020)
-cannot deal with non-convex polygons.  If you need to deal with that,
-use the CDS HEALPix library and use SMoc's ``fromASCII`` constructor on
-the results of that.
+For more information on how to create values for these regions, see
+`Creating pgSphere Geometries`_.
 
 
 Service
@@ -5795,6 +5732,124 @@ manually.  An example for how this can be done is the ``rr.imported`` table
 in :samplerd:`rr/q`.
 
 
+Creating pgSphere Geometries
+''''''''''''''''''''''''''''
+
+DaCHS lets you store spherical geometries (polygons, circles, and MOCs)
+in database columns.  Obscore and EPN-TAP have the bespoke ``s_region``
+parameter for that, and you can have custom columns that facilitate
+writing interesting TAP queries.  Also, DaCHS is moving towards using
+pgSphere's spoint for spatial indices (instead of q3c, which has been
+the preferred spatial index until DaCHS2).
+
+To feed such columns, you first have to choose a type for the column;
+DaCHS' geometry columns are type-clean, i.e., you cannot have polygons
+and circles in the same column in different rows.  The choice is:
+
+* ``spoint`` – a simple point.  You should not have spoints in
+  ``s_region``, as common queries will run contains or intersects against
+  them, and that rarely does what users expect with points.
+* ``scircle`` – a spherical circle.  pgSphere limits those to radii
+  smaller than pi/2.
+* ``spoly`` – a spherical polygon, defined through a number of edges.
+  pgSphere currently has rather severe limitations on what these can be;
+  in particular, you cannot have intersecting edges, and their maximum
+  size has limits, too.  For complex geometries, prefer smoc.
+* ``smoc`` – a Multi-Order Coverage map (MOC).  MOCs are, conceptually,
+  lists of HEALPixes and thus can represent arbitrarily areas on the
+  sky.  If you have possibly large, possibly non-convex, possibly
+  non-simply connected areas, they are what you are looking for.
+
+Creating values of these types in DaCHS would usually use objects from
+the ``gavo.utils.pgsphere`` module, which is available as ``pgsphere``
+in rowmakers.  These are usually constructed with arguments in rad; for
+this and other reasons, we recommend using their ``fromDALI`` class
+methods.  These take the canonical representations forseen by DALI_ for
+VOTables, which are usually just arrays for floating point values in
+degrees.
+
+So, to fill an spoint column, you would say something like::
+
+    <var key="center"
+      >pgsphere.SPoint.fromDALI([
+        float(@centerLong), 
+        float(@centerLat)])</var>
+
+A circle with a radius given in arcminutes would be::
+
+    <var key="s_region"
+      >pgsphere.SPoint.fromDALI([
+        float(@ra), float(@dec), 
+        float(@radius)/60])</var>
+
+A polygon is constructed with longitudes and latitudes interleaved::
+
+    <var key="s_region"
+      >pgsphere.SPoly.fromDALI([@x1, @y1,
+        @x2, @y2, @x3, @y3])</var>
+
+
+The DALI representation of MOCs are strings of whitespace-separated
+order/pixel lists.  The details are in section 2.3.2 of the MOC
+specification.  There are various ways in which you can come up with
+such strings.  
+
+If you have a list of points, decide on the order you want your MOC to
+give the coverage (6 is about one degree, and each order gives you a
+factor of two in linear resolution).  Then, make circles of about that
+resolution around your points, turn these into circles and join the
+MOCs.  For instance::
+
+  <apply name="compute_coverage">
+    <setup>
+      <bind name="order">10</bind>
+    </setup>
+    <code>
+      circles = []
+      for x, y in @points:
+        circles.append(
+          pgsphere.SCircle.fromDALI([x, y, 6/order]))
+
+      m = circles.pop().asSMoc(order=order)
+      for c in circles:
+        m.moc += c.asSMoc(order=order)
+
+      @s_region = m
+    </code>
+  </apply>
+
+This is based on the fact that a ``pgsphere.SMoc``'s ``moc`` attribute
+(currently) contains a pymoc.MOC instance; even if we change the backend
+implementation (which is likely), the pattern should keep working.
+
+Similarly, for a bunch of polygons, you could do this::
+
+  <apply name = "compute_region">
+    <setup>
+      <bind name="order">10</bind>
+    </setup>
+    <code>
+      @s_region = pgsphere.SPoly.fromDALI(polys[0]
+        ).asSMoc(order)
+      for vertices in polys[1:]:
+        @s_region.moc += pgsphere.SPoly.fromDALI(vertices
+          ).asSMoc(order)
+     </code>
+  </apply>
+
+Note that the HEALPix library DaCHS uses currently (2020) cannot deal
+with non-convex polygons and may slightly over- or underestimate the
+coverage of circles and polygons.  
+
+If either limitation bothers you: The `CDS HEALPix library`_ provides a
+nice alternative for which there is a convenient wrapper in
+`CDS-HEALPix-python`_.  Just obtain an ASCII MOC from whatever you
+compute using these tools and pass them to ``pgsphere.SMoc.fromASCII``.
+
+.. _CDS HEALPix library: https://github.com/cds-astro/cds-healpix-rust/
+.. _CDS-HEALPix-python: https://github.com/cds-astro/cds-healpix-python/
+
+
 Skipping Things
 '''''''''''''''
 
@@ -7612,7 +7667,7 @@ To declare them, use the procedure described in `New-style SIL
 definitions`_ for now.  Apologies that this is so obscure, but for once
 that's really not our fault.
 
-
+.. _DALI: http://ivoa.net/documents/DALI/
 .. _EPN-TAP proposed specification: https://voparis-confluence.obspm.fr/display/VES/EPN-TAP+v2+parameter+description
 .. _EuroVO registry: http://registry.euro-vo.org
 .. _IVOA identifiers: http://www.ivoa.net/documents/IVOAIdentifiers/20150709/index.html
