@@ -9582,7 +9582,7 @@ Paths and other general settings.
 * logDir: path relative to rootDir; 
   defaults to 'logs' --
   Path to the DC's logs (should be local)
-* logLevel: value from the list info, debug, error, warning; 
+* logLevel: value from the list debug, warning, error, info; 
   defaults to 'info' --
   How much should be logged?
 * maintainerAddress: string; 
@@ -9805,7 +9805,7 @@ Settings related to serving content to the web.
   defaults to 'False' --
   If True, Javascript will not be minified on delivery (this is for
   debugging)
-* logFormat: value from the list default, combined; 
+* logFormat: value from the list combined, default; 
   defaults to 'default' --
   Log format to use.  Default doesn't log IPs, user agents, or referrers
   and thus should be ok in terms of not processing personal data, which
@@ -9865,7 +9865,8 @@ Settings related to serving content to the web.
   this must contain the port the server is accessible under from the
   outside if that is not 80; nonstandard ports are not supported for
   https. If you offer both http and https, use your preferred protocol
-  here; for robustness, we recommend preferring http.
+  here.  If you change this on a running server, you *must* run dachs
+  pub -a to update internal and external links.
 * sitename: string; 
   defaults to 'Unnamed data center' --
   A short name for your site
@@ -9884,6 +9885,107 @@ Settings related to serving content to the web.
 * voplotUserman: URL fragment relative to the server's root; 
   defaults to 'Deprecated and ignored' --
   URL to the documentation of VOPlot
+
+Code in DaCHS
+=============
+
+This section contains a few general points for python code embedded in
+DaCHS.  Most of the material applies to procedure definitions (`Element
+apply`_, `Element dataFormatter`_, `Element dataFunction`_, `Element
+descriptorGenerator`_, `Element iterator`_, `Element metaMaker`_,
+`Element mixinProc`_, `Element pargetter`_, `Element phraseMaker`_,
+`Element regTest`_, `Element rowfilter`_, `Element sourceFields`_) as
+well as to other pieces of code, such as in `Element customGrammar`_,
+`Element customCore`, or `Element customRenderer`.
+
+More information on what names DaCHS would like you to see are available
+in `Functions Available For Row Makers`_ and `The DaCHS API`_.
+
+
+Importing Modules
+'''''''''''''''''
+
+To keep the various resources as separate from each other as possible,
+DaCHS does not manipulate Python's import path.  However, one frequently
+wants to have library-like modules providing common functionality or
+configuration in a resdir (the conventional place for these would be in
+``res/``).
+
+To import these, use ``api.loadPythonModule(path)``.  Path, here, is the
+full path to the file containing the python code, but without the
+``.py``.  When you have the RD, the conventional pattern is::
+
+  mymod, _ = api.loadPythonModule(rd.getAbsPath("res/mymod"))
+
+instead of ``import mymod``.
+
+As you can see ``loadPythonModule`` returns a tuple; you're very
+typically only interested in the first element.
+
+Note in particular that for modules loaded in this way, the usual rule
+that you can just import modules next to you does not apply.  To import
+a modules “next to” you without having to go through the RD, use the
+special form::
+
+  siblingmod, _ = api.loadPythonModule("siblingmod", relativeTo=__file__)
+
+instead of ``import siblingmod``.  This will take the directory part for
+what's in ``relativeTo`` (here, the module's own path) and make a full
+path out of the first argument to pull the modules from there.
+
+
+Database Queries
+''''''''''''''''
+
+You often need to query the database from DaCHS-related code.  To get
+connections, use DaCHS' connection pool, and to make sure you return the
+connections to the pool when done, only use them through context
+managers.  Depending on what you need to do, there are four pools you
+might be interested in:
+
+* getTableConn – a sane default, lets you look at all tables but not
+  write (anything).  This is what DaCHS uses to run queries derived
+  from normal DAL requests.
+* getUntrustedConn – a connection that has the privileges of a remote
+  user coming in through TAP.
+* getWritableAdminConn – a connection that lets you read and write
+  about everywhere.  When using this, you must explicitly commit the
+  connection, or your changes will be lost.
+* getAdminConn – like getWritableAdminConn, but will automatically be 
+  committed as it is returned to the pool (unless an exception
+  happened, in which case the connection will be closed without
+  committing it).
+
+With DaCHS' connections, you usually will not obtain cursors but
+directly use one of the
+
+* ``query(q, args={}, timeout=None)`` or 
+* ``queryToDict(q, args={}, timeout=None, caseFixer=None)`` methods.
+
+The query ``q`` has psycopg2-style placeholders (``... WHERE
+mag<%(maglim)s``) which are filled, again psycopg2-like from the
+``args`` dictionary.  ``timeout`` is given in seconds.
+
+Both return an iterator; for ``query``, this yields a tuple per row, for
+``queryToDict``, that is dictionaries, the keys of which are the
+lowercased column names (or something hard to predict for expressions
+in the select clause not sporting an AS).  In case you need mixed-case
+keys (we recommend you avoid that), you can pass in a ``caseFixer``
+dictionary that maps the lowercased names to their mixed-case versions.
+
+In sum, the typical database query in the vicinity of DaCHS would look
+like this::
+
+  count_sum = 0
+  with base.getTableConn() as conn:
+    for row in conn.queryToDicts("SELECT * FROM sch.my_table"):
+       count_sum += row["count"]
+       print(row)
+
+In case you wondered: Yes, in the past we have experimented with
+abstracting away the SQL.  And we found it doesn't make the code any
+more robust, just a lot harder to figure out.
+
 
 Data Descriptors
 ================
@@ -14326,9 +14428,7 @@ taken from the SSA metadata.  You can add additional columns (e.g., a
 flux error depending on the spectral coordinate) as requried.
 
 The actual spectral instances can be built by sdmCores and delivered
-through DaCHS' product interface.  Note, however, that clients
-`supporting getData`_ wouldn't need to do this.  You'll still have to
-define the data item defined below.
+through DaCHS' product interface.
 
 sdmCores, while potentially useful with common services, are intended to
 be used by the product renderer for dcc product table paths.  They
@@ -14409,17 +14509,6 @@ your metadata table, use the ssacols stream, for example like this::
       verbLevel="1"/>
     <STREAM source="//echelle#ssacols"/>
   </table>
-
-
-
-Supporting getData
-==================
-
-DaCHS still has support the now-abandoned 2012 getData specification by
-Demleitner and Skoda.   If you think you still want this, contact the
-authors; meanwhile, you really should be using datalink for whatever you
-think you need getData for.
-
 
 
 Adapting Obscore
@@ -14678,8 +14767,229 @@ contain the fields with prodtblAccref, prodtblPath, etc), yield
 to the products table, too, like this: ``yield ("products", newRow)``.
 
 
+Scripting
+=========
+
+As much as it is desirable to describe tables in a declarative manner,
+there are quite a few cases in which some imperative code helps a lot
+during table building or teardown.  Resource descriptors let you embed
+such imperative code using script elements.  These are children of the
+make elements since they are exclusively executed when actually
+importing into a table.
+
+Currently, you can enter scripts in SQL and python, which may be called
+at various phases during the import.
+
+SQL scripts
+'''''''''''
+
+In SQL scripts, you separate statements with semicolons.  Note that no
+statements in an SQL script may fail since that will invalidate the
+transaction.  This is a serious limitation since you must not commit or
+begin transactions in SQL scripts as long as Postgres  does not support
+nested transactions.
+
+You can use table macros in the SQL scripts to parametrize them; the
+most useful among those probably is ``\qName`` containing the fully
+qualified name of the table being processed.
+
+Python scripts
+''''''''''''''
+
+Python scripts can be indented by a constant amount.
+
+The table object currently processed is accessible as table.  In
+particular, you can use this to issue queries using 
+``table.query(query, arguments)`` (parallel to dbapi.execute) and to
+delete rows using ``table.deleteMatching(condition, pars)``.  The
+current RD is accessible as ``table.tableDef.rd``, so you can access items from
+the RD as ``table.tableDef.rd.getById("some_id")``, and the recommended way to
+read stuff from the resource directory is
+``table.tableDef.rd.openRes("res/some_file)``.
+
+Some types of scripts may have additional names available.  Currently:
+
+* ``newSource`` and ``sourceDone`` have the name ``sourceToken``; this 
+  is the sourceToken as passed to the grammar; usually, that's the file
+  name that's parsed from, but other constellations are possible.
+* ``sourceDone`` has ``feeder`` -- that is the DaCHS-internal glue
+  to filling tables.  The main use of this is that you can call its
+  ``flush()`` method, followed by a ``table.commit()``.  This may be
+  interesting in updating grammars where you preserve what's already
+  imported.  Note, however, that this may come with a noticeable
+  performance penalty.
+
+Script types
+''''''''''''
+
+The type of a script corresponds to the event triggering its execution.
+The following types are defined right now:
+
+* preImport -- before anything is written to the table
+* preIndex -- before the indices on the table are built
+* preCreation -- immediately before the table DDL is executed
+* postCreation -- after the table (incl. indices) is finished
+* beforeDrop -- when the table is about to be dropped
+* newSource -- every time a new source is started
+* sourceDone -- every time a source has been processed
+
+Note that preImport, preIndex, and postCreation scripts are not executed
+when the make's table is being updated, in particular, in data items with
+``updating="True"``.  The only way to run scripts in such circumstances
+is to use newSource and sourceDone scripts.
+
+
+Examples
+''''''''
+
+This snippet sets a flag when importing some source (in this case,
+that's an RD, so we can access sourceToken.sourceId::
+
+      <script type="newSource" lang="python" id="markDeleted">
+        table.query("UPDATE %s SET deleted=True"
+          " WHERE sourceRD=%%(sourceRD)s"%id, 
+          {"sourceRD": sourceToken.sourceId})
+      </script>
+
+
+This is a hacked way of ensuring some sort of referential integrity:
+When a table containing "products" is dropped, the corresponding entries
+in the products table are deleted::
+
+  <script type="beforeDrop" lang="SQL" name="clean product table">
+    DELETE FROM products WHERE sourceTable='\qName'
+  </script>
+
+Note that this is actually quite hazardous because if the table is
+dropped in any way not using the make element in the RD, this will not
+be executed.  It's usually much smarter to tell the database to do the
+housekeeping.  Rules are typically set in postCreation scripts::
+
+  <script type="postCreation" lang="SQL">
+    CREATE OR REPLACE RULE cleanupProducts AS 
+      ON DELETE TO \qName DO ALSO
+      DELETE FROM products WHERE key=OLD.accref
+  </script>
+
+The decision if such arrangements are make before the import, before the
+indexing or after the table is finished needs to be made based on the
+script's purpose.
+
+Another use for scripts is SQL function definition::
+
+      <script type="postCreation" lang="SQL" name="Define USNOB matcher">
+        CREATE OR REPLACE FUNCTION usnob_getmatch(alpha double precision, 
+          delta double precision, windowSecs float
+        ) RETURNS SETOF usnob.data AS $$
+        DECLARE
+          rec RECORD;
+        BEGIN
+          FOR rec IN (SELECT * FROM usnob.data WHERE 
+            q3c_join(alpha, delta, raj2000, dej2000, windowSecs/3600.)) 
+          LOOP
+            RETURN NEXT rec;
+          END LOOP;
+        END;
+        $$ LANGUAGE plpgsql;
+      </script>
+
+You can also load data, most usefully in preIndex scripts (although
+beforeImport would work as well here)::
+
+    <script type="preIndex" lang="SQL" name="create USNOB-PPMX crossmatch">
+        SET work_mem=1000000;
+        INSERT INTO usnob.ppmxcross (
+          SELECT q3c_ang2ipix(raj2000, dej2000) AS ipix, p.localid 
+          FROM 
+            ppmx.data AS p, 
+            usnob.data AS u 
+          WHERE q3c_join(p.alphaFloat, p.deltaFloat, 
+            u.raj2000, u.dej2000, 1.5/3600.))
+    </script>
+
+
+ReStructuredText
+================
+
+Text needing some amount of markup within DaCHS is almost always
+input as ReStructuredText (RST).  The source versions of the 
+`DaCHS documentation`_ give examples for such markup, and DaCHS users
+should at least briefly skim the `ReStructuredText primer`_.
+
+DaCHS contains some RST extensions.  Those specifically targeted at
+writing DALI-compliant examples of them are discussed with
+`the examples renderer`_
+
+Generally useful extensions include:
+
+bibcode
+  This text role formats the argument as a link into ADS when rendered
+  as HTML.  For technical reasons, this currently ignores the configured
+  ADS mirror and always uses the Heidelberg one.  Complain if this bugs
+  you.  To use it, you'd write::
+    
+    See also :bibcode:`2011AJ....142....3H`.
+
+Extensions for writing DaCHS-related documentation include:
+
+dachsdoc 
+  A text role generating a link into the current DaCHS documentation.
+  The argument is the relative path, e.g., 
+  ``:dachsdoc:`opguide.html#userconfig-rd```.
+
+dachsref 
+  A text role generating a link into the reference documentation.  The 
+  argument is a section header within the reference documentation, e.g.,
+  ``:dachsref:`//epntap2#populate-2_0``` or 
+  ``:dachsref:`the form renderer```.
+samplerd 
+  A text role generating a link to an RD used by the GAVO data center
+  (exhibiting some feature).  The argument is the relative path to
+  the RD (or, really, anything else in the VCS), e.g.,
+  ``:samplerd:`ppmxl/q.rd```.
+
+(if you add anything here, please also amend the document source's
+README).
+
+.. _DaCHS documentation: http://docs.g-vo.org/DaCHS/
+.. _ReStructuredText primer: http://docutils.sourceforge.net/docs/user/rst/quickstart.html
+
+
+
+
+The DaCHS API
+=============
+
+User extension code (e.g., custom cores, custom grammars, processors)
+for DaCHS should only use DaCHS functions from its api as described
+below.  We will try to keep it stable and at any rate warn in the
+release notes if we change it.  For various reasons, the module also
+contains a few modules.  These, and in particular their content, are
+*not* part of the API.
+
+Note that this ”api” at this point is *not* what is in the namespace of
+rowmakers, rowfilters, and similar in-RD procedures.  We do not, at this
+point, recommend importing the api there.  If you do it anyway, we'd
+appreciate if you told us.
+
+Before using non-API DaCHS functions, please inquire on the
+dachs-support mailing list (cf. http://docs.g-vo.org/DaCHS).
+
+To access DaCHS API functions, say::
+
+  from gavo import api
+
+(perhaps adding an ``as dachsapi`` if there is a risk of confusion) and
+reference symbols with the explicit module name (i.e., ``api.makeData``
+rather than picking individual names) in order to help others understand
+what you've written.
+
+In this chapter, we first give the functions that code in row makers see
+and then document the api available to extension code.
+
+
 Functions Available for Row Makers
-==================================
+''''''''''''''''''''''''''''''''''
 
 In principle, you can use arbitrary python expressions in var, map and
 proc elements of row makers.  In particular, the namespace in which
@@ -15119,261 +15429,8 @@ that are immediately accessible in the namespace:
 
 
 
-Scripting
-=========
-
-As much as it is desirable to describe tables in a declarative manner,
-there are quite a few cases in which some imperative code helps a lot
-during table building or teardown.  Resource descriptors let you embed
-such imperative code using script elements.  These are children of the
-make elements since they are exclusively executed when actually
-importing into a table.
-
-Currently, you can enter scripts in SQL and python, which may be called
-at various phases during the import.
-
-SQL scripts
-'''''''''''
-
-In SQL scripts, you separate statements with semicolons.  Note that no
-statements in an SQL script may fail since that will invalidate the
-transaction.  This is a serious limitation since you must not commit or
-begin transactions in SQL scripts as long as Postgres  does not support
-nested transactions.
-
-You can use table macros in the SQL scripts to parametrize them; the
-most useful among those probably is ``\qName`` containing the fully
-qualified name of the table being processed.
-
-Python scripts
-''''''''''''''
-
-Python scripts can be indented by a constant amount.
-
-The table object currently processed is accessible as table.  In
-particular, you can use this to issue queries using 
-``table.query(query, arguments)`` (parallel to dbapi.execute) and to
-delete rows using ``table.deleteMatching(condition, pars)``.  The
-current RD is accessible as ``table.tableDef.rd``, so you can access items from
-the RD as ``table.tableDef.rd.getById("some_id")``, and the recommended way to
-read stuff from the resource directory is
-``table.tableDef.rd.openRes("res/some_file)``.
-
-Some types of scripts may have additional names available.  Currently:
-
-* ``newSource`` and ``sourceDone`` have the name ``sourceToken``; this 
-  is the sourceToken as passed to the grammar; usually, that's the file
-  name that's parsed from, but other constellations are possible.
-* ``sourceDone`` has ``feeder`` -- that is the DaCHS-internal glue
-  to filling tables.  The main use of this is that you can call its
-  ``flush()`` method, followed by a ``table.commit()``.  This may be
-  interesting in updating grammars where you preserve what's already
-  imported.  Note, however, that this may come with a noticeable
-  performance penalty.
-
-Script types
-''''''''''''
-
-The type of a script corresponds to the event triggering its execution.
-The following types are defined right now:
-
-* preImport -- before anything is written to the table
-* preIndex -- before the indices on the table are built
-* preCreation -- immediately before the table DDL is executed
-* postCreation -- after the table (incl. indices) is finished
-* beforeDrop -- when the table is about to be dropped
-* newSource -- every time a new source is started
-* sourceDone -- every time a source has been processed
-
-Note that preImport, preIndex, and postCreation scripts are not executed
-when the make's table is being updated, in particular, in data items with
-``updating="True"``.  The only way to run scripts in such circumstances
-is to use newSource and sourceDone scripts.
-
-
-Examples
-''''''''
-
-This snippet sets a flag when importing some source (in this case,
-that's an RD, so we can access sourceToken.sourceId::
-
-      <script type="newSource" lang="python" id="markDeleted">
-        table.query("UPDATE %s SET deleted=True"
-          " WHERE sourceRD=%%(sourceRD)s"%id, 
-          {"sourceRD": sourceToken.sourceId})
-      </script>
-
-
-This is a hacked way of ensuring some sort of referential integrity:
-When a table containing "products" is dropped, the corresponding entries
-in the products table are deleted::
-
-  <script type="beforeDrop" lang="SQL" name="clean product table">
-    DELETE FROM products WHERE sourceTable='\qName'
-  </script>
-
-Note that this is actually quite hazardous because if the table is
-dropped in any way not using the make element in the RD, this will not
-be executed.  It's usually much smarter to tell the database to do the
-housekeeping.  Rules are typically set in postCreation scripts::
-
-  <script type="postCreation" lang="SQL">
-    CREATE OR REPLACE RULE cleanupProducts AS 
-      ON DELETE TO \qName DO ALSO
-      DELETE FROM products WHERE key=OLD.accref
-  </script>
-
-The decision if such arrangements are make before the import, before the
-indexing or after the table is finished needs to be made based on the
-script's purpose.
-
-Another use for scripts is SQL function definition::
-
-      <script type="postCreation" lang="SQL" name="Define USNOB matcher">
-        CREATE OR REPLACE FUNCTION usnob_getmatch(alpha double precision, 
-          delta double precision, windowSecs float
-        ) RETURNS SETOF usnob.data AS $$
-        DECLARE
-          rec RECORD;
-        BEGIN
-          FOR rec IN (SELECT * FROM usnob.data WHERE 
-            q3c_join(alpha, delta, raj2000, dej2000, windowSecs/3600.)) 
-          LOOP
-            RETURN NEXT rec;
-          END LOOP;
-        END;
-        $$ LANGUAGE plpgsql;
-      </script>
-
-You can also load data, most usefully in preIndex scripts (although
-beforeImport would work as well here)::
-
-    <script type="preIndex" lang="SQL" name="create USNOB-PPMX crossmatch">
-        SET work_mem=1000000;
-        INSERT INTO usnob.ppmxcross (
-          SELECT q3c_ang2ipix(raj2000, dej2000) AS ipix, p.localid 
-          FROM 
-            ppmx.data AS p, 
-            usnob.data AS u 
-          WHERE q3c_join(p.alphaFloat, p.deltaFloat, 
-            u.raj2000, u.dej2000, 1.5/3600.))
-    </script>
-
-
-ReStructuredText
-================
-
-Text needing some amount of markup within DaCHS is almost always
-input as ReStructuredText (RST).  The source versions of the 
-`DaCHS documentation`_ give examples for such markup, and DaCHS users
-should at least briefly skim the `ReStructuredText primer`_.
-
-DaCHS contains some RST extensions.  Those specifically targeted at
-writing DALI-compliant examples of them are discussed with
-`the examples renderer`_
-
-Generally useful extensions include:
-
-bibcode
-  This text role formats the argument as a link into ADS when rendered
-  as HTML.  For technical reasons, this currently ignores the configured
-  ADS mirror and always uses the Heidelberg one.  Complain if this bugs
-  you.  To use it, you'd write::
-    
-    See also :bibcode:`2011AJ....142....3H`.
-
-Extensions for writing DaCHS-related documentation include:
-
-dachsdoc 
-  A text role generating a link into the current DaCHS documentation.
-  The argument is the relative path, e.g., 
-  ``:dachsdoc:`opguide.html#userconfig-rd```.
-
-dachsref 
-  A text role generating a link into the reference documentation.  The 
-  argument is a section header within the reference documentation, e.g.,
-  ``:dachsref:`//epntap2#populate-2_0``` or 
-  ``:dachsref:`the form renderer```.
-samplerd 
-  A text role generating a link to an RD used by the GAVO data center
-  (exhibiting some feature).  The argument is the relative path to
-  the RD (or, really, anything else in the VCS), e.g.,
-  ``:samplerd:`ppmxl/q.rd```.
-
-(if you add anything here, please also amend the document source's
-README).
-
-.. _DaCHS documentation: http://docs.g-vo.org/DaCHS/
-.. _ReStructuredText primer: http://docutils.sourceforge.net/docs/user/rst/quickstart.html
-
-
-
-Code in DaCHS
-=============
-
-This section contains a few general points for python code embedded in
-DaCHS, be it custom pages, cores, or grammars, or even procs.
-
-Importing modules
-'''''''''''''''''
-
-To keep the various resources as separate from each other as possible,
-DaCHS does not manipulate Python's import path.  However, one frequently
-wants to have library-like modules providing common functionality or
-configuration in a resdir (the conventional place for these would be in
-``res/``).
-
-To import these, use ``api.loadPythonModule(path)``.  Path, here, is the
-full path to the file containing the python code, but without the
-``.py``.  When you have the RD, the conventional pattern is::
-
-  mymod, _ = api.loadPythonModule(rd.getAbsPath("res/mymod"))
-
-instead of ``import mymod``.
-
-As you can see ``loadPythonModule`` returns a tuple; you're very
-typically only interested in the first element.
-
-Note in particular that for modules loaded in this way, the usual rule
-that you can just import modules next to you does not apply.  To import
-a modules “next to” you without having to go through the RD, use the
-special form::
-
-  siblingmod, _ = api.loadPythonModule("siblingmod", relativeTo=__file__)
-
-instead of ``import siblingmod``.  This will take the directory part for
-what's in ``relativeTo`` (here, the module's own path) and make a full
-path out of the first argument to pull the modules from there.
-
-
-The DaCHS API
-'''''''''''''
-
-User extension code (e.g., custom cores, custom grammars, processors)
-for DaCHS should only use DaCHS functions from its api as described
-below.  We will try to keep it stable and at any rate warn in the
-release notes if we change it.  For various reasons, the module also
-contains a few modules.  These, and in particular their content, are
-*not* part of the API.
-
-Note that at this point this is *not* what is in the namespace of
-rowmakers, rowfilters, and similar in-RD procedures.  We do not, at this
-point, recommend importing the api.  If you do it anyway, we'd
-appreciate if you told us.
-
-Before using non-API DaCHS functions, please inquire on the
-dachs-support mailing list (cf. http://docs.g-vo.org/DaCHS).
-
-To access DaCHS API functions, say::
-
-  from gavo import api
-
-(perhaps adding an ``as dachsapi`` if there is a risk of confusion) and
-reference symbols with the explicit module name (i.e., ``api.makeData``
-rather than picking individual names) in order to help others understand
-what you've written.
-
-Here is an alphabetical list of the documented API functions:
+API function reference
+''''''''''''''''''''''
 
 Class ADQLTAPJob
 ................
