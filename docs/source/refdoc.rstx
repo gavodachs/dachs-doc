@@ -673,8 +673,10 @@ meta elements without a ``name`` attribute, you can give metadata as a
 “meta stream”.  This is just a sequence of lines containing pairs of
 <meta key> and <meta value>.
 
-In addition, there are comments, empty lines, and continuations.
-Continuation lines work by ending a line with a backslash.  The
+In addition, there are comments, empty lines, continuations, forced
+overwriting, and format selection.
+
+**Continuation lines** work by ending a line with a backslash.  The
 following line separator and all blanks and tabs following it are
 then ignored.  Thus, the following two meta keys end up having identical
 values::
@@ -701,9 +703,31 @@ like::
 
 
 Comments and empty lines are easy: Empty lines are allowed, and a
-comment is a line with a hash (#) as its first non-whitespace
+**comment** is a line with a hash (#) as its first non-whitespace
 character.  Both constructs are ignored, and you can even continue
 comments (though you should not).
+
+When you **repeat** a key, metadata is being added.  Hence,::
+
+  subject: active-galaxies
+  subject: meteorites
+
+will lead to two keywords in the subject meta.  Sometimes you instead
+want to **overwrite** what is already there, in particular for meta
+that needs to be unique::
+
+  !title: A revised title
+
+will make sure that there is just a single title meta, and it is “A
+revised title”.
+
+Finally, stream meta has ``format=plain`` by default.  To select raw or
+reStructuredText **format**, prefix the value with ``raw:`` or ``rst:``,
+respectively::
+
+_sidebarlocal: raw:<div class="sidebarnote">\
+  <a href="/adql">Try ADQL</a> to query our data.</div>
+description: rst:This is *nice*, **important** data.
 
 
 Meta inheritance
