@@ -16,10 +16,6 @@ GAVO DaCHS Tutorial
   
   = - ' .
 
-.. plan for the rewrite:
-
-  TODO: logging
-
 
 Introduction
 ============
@@ -6792,46 +6788,32 @@ service for this since it keeps things nicely self-contained – an
 obvious alternative with less bending could be a python core returning
 a pair of ``text/plain`` and a string.
 
-TODO: rewrite to use a python core and a qp renderer.
-
 Here's how something that fiddles out a column property would look
 like::
 
-  <resource schema="test">
-    <service id="look" allowed="dlget">
-      <datalinkCore>
-        <descriptorGenerator>
-          <code>
-            return ProductDescriptor(None, None, None, 'text/plain', )
-          </code>
-        </descriptorGenerator>
-        <dataFunction>
-          <code>
-            descriptor.data = "debugging"
-          </code>
-        </dataFunction>
-        <dataFormatter>
-          <code>
-            class DebugResult(Page):
-              def renderHTTP(self, request):
-                request.setHeader("content-type", "text/plain")
-                return "%s"%base.caches.getRD("maidanak/res/rawframes"
-                  ).getById("rawframes").getColumnByName("accref").displayHint
-            return DebugResult()
-          </code>
-        </dataFormatter>
-      </datalinkCore>
-    </service>
-  </resource>
+  <service id="cq" allowed="qp">
+    <property name="queryField">prop</property>
+    <pythonCore>
+      <inputTable>
+        <inputKey name="prop" type="text"/>
+      </inputTable>
+      <coreProc>
+        <code>
+          from gavo import base
+          col = base.resolveCrossId("arihip/q#main.hipno")
+          payload = "Result: %s"%(
+            getattr(col, inputTable.getParam("prop"), "(err)"))
+          return ("text/plain", payload.encode("ascii"))
+        </code>
+      </coreProc>
+    </pythonCore>
+  </service>
 
-All but the data formatter is just blind code for hiding our true
-intentions from the datalink machinery.  In the data formatter, you can
-return arbitrary text.  You can now access
-``http://localhost:8080/__tests/manhole/look?ID=0`` and see
-whatever gets returned from ``renderHTTP`` (the value of ID
-obviously is arbitrary here, although you could use it to transmit
-information into your debugging code; not that we think that's a good
-idea).
+See :dachsref:`the qp renderer` for how the ``queryField`` magic is to be 
+understood.  The net effect is that looking at
+http://localhost:8080/manhole/cq/qp/type you can find out what DaCHS
+things the type of arihip.main's hipno column is – and you can try
+description, ucd, or whatever in that last URI segment, too.
 
 Note that you can edit manhole.rd, save it, and reload the page; the
 server will notice your changes and display the new result without a
