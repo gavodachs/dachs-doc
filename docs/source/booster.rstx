@@ -4,6 +4,8 @@ GAVO DaCHS: DirectGrammars and Boosters
 
 :Author: Markus Demleitner
 :Email: gavo@ari.uni-heidelberg.de
+:Date: |date|
+:Copyright: Waved under `CC-0`_
 
 The import architecture of DaCHS with grammars and rowmakers producing
 material suitable for SQL INSERT statements is designed to be flexible
@@ -512,5 +514,5 @@ uninitialized).
 
 .. _directGrammar: http://docs.g-vo.org/DaCHS/ref.html#element-directgrammar
 
-
-
+.. |date| date::
+.. _CC-0: http://creativecommons.org/publicdomain/zero/1.0

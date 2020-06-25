@@ -2,15 +2,13 @@
 The GAVO STC Library
 ====================
 
-:Author: Markus Demleitner
-:Email: gavo@ari.uni-heidelberg.de
-
-
 A library to process VO STC specifications
 ========================================================================
 
 :Author: Markus Demleitner
 :Email: gavo@ari.uni-heidelberg.de
+:Date: |date|
+:Copyright: Waved under `CC-0`_
 
 
 .. contents:: 
@@ -644,3 +642,5 @@ With this, you should be done.
 
 .. _`Adding the GAVO repository`: http://vo.ari.uni-heidelberg.de/docs/DaCHS/install.html#adding-the-gavo-repository
 .. _`virtual python`: http://peak.telecommunity.com/DevCenter/EasyInstall#creating-a-virtual-python
+.. |date| date::
+.. _CC-0: http://creativecommons.org/publicdomain/zero/1.0

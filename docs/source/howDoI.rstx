@@ -8,6 +8,7 @@ Recipes and tricks for solving problems using GAVO DaCHS
 :Author: Markus Demleitner
 :Email: gavo@ari.uni-heidelberg.de
 :Date: |date|
+:Copyright: Waved under `CC-0`_
 
 .. contents::
   :depth: 2
@@ -1130,8 +1131,8 @@ starting shortly before the 1.0 release.
   saying ``from astropy import wcs`` and replacing every occurrence
   of pywcs with wcs.  On the other hand, the astropy API isn't quite
   the same any more, so be sure to test things.
-* 2.0: This is a move to python3 and is a longer thing.  See
-  `...go from DaCHS1 to DaCHS2`_
+* 2.0: This is a move to python3 and is a longer thing.  See how to
+  `...go from DaCHS 1 to DaCHS 2?`_
 
 
 ...switch between SVN and packaged DaCHS?
@@ -1377,3 +1378,4 @@ to improve it.
 
 
 .. |date| date::
+.. _CC-0: http://creativecommons.org/publicdomain/zero/1.0

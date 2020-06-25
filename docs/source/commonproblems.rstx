@@ -5,6 +5,7 @@ Common Problems with DaCHS
 :Author: Markus Demleitner
 :Email: gavo@ari.uni-heidelberg.de
 :Date: |date|
+:Copyright: Waved under `CC-0`_
 
 
 .. contents:: 
@@ -693,3 +694,4 @@ instance, cause stale registry records if you had registered services
 inside of the RD you force-drop.
 
 .. |date| date::
+.. _CC-0: http://creativecommons.org/publicdomain/zero/1.0

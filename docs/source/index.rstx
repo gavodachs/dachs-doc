@@ -5,6 +5,7 @@ GAVO DaCHS
 :Author: Markus Demleitner
 :Email: gavo@ari.uni-heidelberg.de
 :Date: |date|
+:Copyright: Waved under `CC-0`_
 
 The GAVO Data Center Helper Suite (DaCHS) is a publishing infrastructure
 for the Virtual Observatory, including a flexible component for
@@ -180,3 +181,4 @@ ASCL entry at `2018ascl.soft04005D`_.
 .. _DaCHS-users: http://lists.g-vo.org/cgi-bin/mailman/listinfo/dachs-users
 .. _DaCHS-support: http://lists.g-vo.org/cgi-bin/mailman/listinfo/dachs-support
 .. |date| date::
+.. _CC-0: http://creativecommons.org/publicdomain/zero/1.0

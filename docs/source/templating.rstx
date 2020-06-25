@@ -5,6 +5,7 @@ HTML Templates in GAVO DaCHS
 :Author: Markus Demleitner
 :Email: gavo@ari.uni-heidelberg.de
 :Date: |date|
+:Copyright: Waved under `CC-0`_
 
 
 .. contents:: 
@@ -824,3 +825,4 @@ stuck, ask back, and we'll provide a solution and a new exercise.
    sometimes leads to surprising client behaviour.
 
 .. |date| date::
+.. _CC-0: http://creativecommons.org/publicdomain/zero/1.0

@@ -5,6 +5,7 @@ DaCHS Reference Documentation
 :Author: Markus Demleitner
 :Email: gavo@ari.uni-heidelberg.de
 :Date: |date|
+:Copyright: Waved under `CC-0`_
 
 .. contents:: 
   :depth: 2
@@ -4878,3 +4879,4 @@ which, again, you can read in source using ``dachs admin dumpDF
 .. [IVOA Identifiers] Demleitner, M., et al, "IVOA Identifiers",
    http://ivoa.net/Documents/IVOAIdentifiers/index.html
 .. |date| date::
+.. _CC-0: http://creativecommons.org/publicdomain/zero/1.0

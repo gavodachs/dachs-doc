@@ -9603,7 +9603,7 @@ Paths and other general settings.
 * logDir: path relative to rootDir; 
   defaults to 'logs' --
   Path to the DC's logs (should be local)
-* logLevel: value from the list info, error, debug, warning; 
+* logLevel: value from the list debug, info, warning, error; 
   defaults to 'info' --
   How much should be logged?
 * maintainerAddress: string; 
@@ -9826,7 +9826,7 @@ Settings related to serving content to the web.
   defaults to 'False' --
   If True, Javascript will not be minified on delivery (this is for
   debugging)
-* logFormat: value from the list combined, default; 
+* logFormat: value from the list default, combined; 
   defaults to 'default' --
   Log format to use.  Default doesn't log IPs, user agents, or referrers
   and thus should be ok in terms of not processing personal data, which

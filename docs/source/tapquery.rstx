@@ -7,6 +7,8 @@ A library to query TAP servers
 
 :Author: Markus Demleitner
 :Email: gavo@ari.uni-heidelberg.de
+:Date: |date|
+:Copyright: Waved under `CC-0`_
 
 
 .. contents:: 
@@ -343,3 +345,5 @@ using the ``getErrorFromServer`` method like for ADQLTAPJobs.
 .. _API docs: http://vo.ari.uni-heidelberg.de/docs/DaCHS/apidoc/toc-gavo.votable.tapquery-module.html
 .. _GAVO VOTable Library documentation: http://vo.ari.uni-heidelberg.de/docs/DaCHS/votable.html
 .. _TAP spec: http://www.ivoa.net/Documents/TAP/
+.. |date| date::
+.. _CC-0: http://creativecommons.org/publicdomain/zero/1.0

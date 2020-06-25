@@ -5,6 +5,8 @@ GAVO DaCHS installation and configuration
 :Author: Markus Demleitner
 :Email: gavo@ari.uni-heidelberg.de
 :Date: |date|
+:Copyright: Waved under `CC-0`_
+
 
 .. contents::
   :depth: 3
@@ -814,3 +816,4 @@ or, analogously, `Docker <https://hub.docker.com/r/chbrandt/dachs/>`
 repositories.
 
 .. |date| date::
+.. _CC-0: http://creativecommons.org/publicdomain/zero/1.0

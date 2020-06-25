@@ -1,8 +1,11 @@
+==============================================
 Metadata for publication in GAVO's Data Center
 ==============================================
 
 :Author: Markus Demleitner
 :Email: gavo@ari.uni-heidelberg.de
+:Date: |date|
+:Copyright: Waved under `CC-0`_
 
 
 To make your data visible to other astronomers and the general public,
@@ -151,10 +154,9 @@ Web or within the VO), just let us know.  We can do a lot of
 customization and even if we can't, we'd still like to know about them.
 
 
-.. _Astronomy Journal Keywords: http://www.aanda.org/index2.php?option=com_content&task=view&id=170&Itemid=184
 .. _IVOA: http://www.ivoa.net
-.. _IVOA Thesaurus: http://www.ivoa.net/rdf/Vocabularies/vocabularies-20091007/IVOAT/IVOAT.html
-.. _Vizier Keywords: http://vizier.u-strasbg.fr/doc/ADCkwds.htx
+.. |date| date::
+.. _CC-0: http://creativecommons.org/publicdomain/zero/1.0
 
 
 Bibliography

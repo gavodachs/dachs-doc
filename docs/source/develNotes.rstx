@@ -4,6 +4,9 @@ Development notes for GAVO DaCHS
 
 :Author: Markus Demleitner
 :Email: gavo@ari.uni-heidelberg.de
+:Date: |date|
+:Copyright: Waved under `CC-0`_
+
 
 .. contents:: 
   :depth: 2
@@ -1314,3 +1317,5 @@ Licensing
 https://matija.suklje.name/how-and-why-to-properly-write-copyright-statements-in-your-code
 sounds rather knowledgeable and sensible.  Let's put it in next year.
 
+.. |date| date::
+.. _CC-0: http://creativecommons.org/publicdomain/zero/1.0

@@ -4,6 +4,8 @@ The GAVO VOTable Library
 
 :Author: Markus Demleitner
 :Email: gavo@ari.uni-heidelberg.de
+:Date: |date|
+:Copyright: Waved under `CC-0`_
 
 
 A library to process VOTables using python
@@ -402,3 +404,5 @@ XXX TODO: Add id management.
 .. _Rows: http://vo.ari.uni-heidelberg.de/docs/DaCHS/apidoc/gavo.votable.tableparser.Rows-class.html
 .. _VOTable spec: http://www.ivoa.net/Documents/VOTable/
 .. _VOTable elements: http://vo.ari.uni-heidelberg.de/docs/DaCHS/apidoc/gavo.votable.model.VOTable-class.html
+.. |date| date::
+.. _CC-0: http://creativecommons.org/publicdomain/zero/1.0

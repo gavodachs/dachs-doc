@@ -5,6 +5,7 @@ The GAVO ADQL Library
 :Author: Markus Demleitner
 :Email: gavo@ari.uni-heidelberg.de
 :Date: |date|
+:Copyright: Waved under `CC-0`_
 
 
 A library to deal with ADQL and have it executed by postgres
@@ -157,3 +158,4 @@ DaCHS code for the actual Simbad interface)::
   adql.registerRegionMaker(_makeSimbadRegion)
 
 .. |date| date::
+.. _CC-0: http://creativecommons.org/publicdomain/zero/1.0
