@@ -283,6 +283,147 @@ Other Streams
       "spoint-index-def"]])
 
 
+Configuration Reference
+=======================
+
+DaCHS' basic configuration is done through one or more INI-style files,
+which are parsed using Python's configparser module; in case of doubt on
+features and syntax, refer to the Python reference documentation of the
+Python version you are using.  
+
+Some of the more common items are discussed in the tutorial
+(:dachsdoc:`tutorial.html#configuration-settings`).
+
+DaCHS first looks for the configuration in ``/etc/gavo.rc``, and on
+production sites, it is recommended to only use this file to avoid
+surprises.  For special situations and development systems, the
+following extra features are available:
+
+* DaCHS will also pick up configuration from ``.gavorc`` in the calling
+  user's home directory.  Configuration there is merged with what is in
+  the main configuration.  You can use this to, for instance, run a
+  second, development-type server on a production instance (obviously,
+  you will have to run it on a different port), or for configuring extra
+  debugging features, or whatever.
+* You can override the location of ``/etc/gavo.rc`` using the
+  ``GAVOSETTINGS`` environment variable.  This is intended mainly for
+  when everything DaCHS-related should be in a single, non-OS directory,
+  such as when the DaCHS binaries sit in a container that should be readily
+  exchangable.  Another usage is when, on a development system, you want
+  to be able to run DaCHS using the resources of the production system
+  (but that is, obviously, a bit dangerous if the DaCHS versions on
+  development and production are significantly different).
+* You can even override the location of the per-user configuration
+  (i.e., ``~/.gavorc``) using ``GAVOCUSTOM``.  This is mainly for
+  quickly switching between configurations on development systems and
+  thus probably irrelevant for operators.
+
+The configuration items available are, by section:
+
+.. replaceWithResult config.getRSTReference("'")
+
+
+Code in DaCHS
+=============
+
+This section contains a few general points for python code embedded in
+DaCHS.  Most of the material applies to procedure definitions (`Element
+apply`_, `Element dataFormatter`_, `Element dataFunction`_, `Element
+descriptorGenerator`_, `Element iterator`_, `Element metaMaker`_,
+`Element mixinProc`_, `Element pargetter`_, `Element phraseMaker`_,
+`Element regTest`_, `Element rowfilter`_, `Element sourceFields`_) as
+well as to other pieces of code, such as in `Element customGrammar`_,
+`Element customCore`, or `Element customRenderer`.
+
+More information on what names DaCHS would like you to see are available
+in `Functions Available For Row Makers`_ and `The DaCHS API`_.
+
+
+Importing Modules
+'''''''''''''''''
+
+To keep the various resources as separate from each other as possible,
+DaCHS does not manipulate Python's import path.  However, one frequently
+wants to have library-like modules providing common functionality or
+configuration in a resdir (the conventional place for these would be in
+``res/``).
+
+To import these, use ``api.loadPythonModule(path)``.  Path, here, is the
+full path to the file containing the python code, but without the
+``.py``.  When you have the RD, the conventional pattern is::
+
+  mymod, _ = api.loadPythonModule(rd.getAbsPath("res/mymod"))
+
+instead of ``import mymod``.
+
+As you can see ``loadPythonModule`` returns a tuple; you're very
+typically only interested in the first element.
+
+Note in particular that for modules loaded in this way, the usual rule
+that you can just import modules next to you does not apply.  To import
+a modules “next to” you without having to go through the RD, use the
+special form::
+
+  siblingmod, _ = api.loadPythonModule("siblingmod", relativeTo=__file__)
+
+instead of ``import siblingmod``.  This will take the directory part for
+what's in ``relativeTo`` (here, the module's own path) and make a full
+path out of the first argument to pull the modules from there.
+
+
+Database Queries
+''''''''''''''''
+
+You often need to query the database from DaCHS-related code.  To get
+connections, use DaCHS' connection pool, and to make sure you return the
+connections to the pool when done, only use them through context
+managers.  Depending on what you need to do, there are four pools you
+might be interested in:
+
+* getTableConn – a sane default, lets you look at all tables but not
+  write (anything).  This is what DaCHS uses to run queries derived
+  from normal DAL requests.
+* getUntrustedConn – a connection that has the privileges of a remote
+  user coming in through TAP.
+* getWritableAdminConn – a connection that lets you read and write
+  about everywhere.  When using this, you must explicitly commit the
+  connection, or your changes will be lost.
+* getAdminConn – like getWritableAdminConn, but will automatically be 
+  committed as it is returned to the pool (unless an exception
+  happened, in which case the connection will be closed without
+  committing it).
+
+With DaCHS' connections, you usually will not obtain cursors but
+directly use one of the
+
+* ``query(q, args={}, timeout=None)`` or 
+* ``queryToDict(q, args={}, timeout=None, caseFixer=None)`` methods.
+
+The query ``q`` has psycopg2-style placeholders (``... WHERE
+mag<%(maglim)s``) which are filled, again psycopg2-like from the
+``args`` dictionary.  ``timeout`` is given in seconds.
+
+Both return an iterator; for ``query``, this yields a tuple per row, for
+``queryToDict``, that is dictionaries, the keys of which are the
+lowercased column names (or something hard to predict for expressions
+in the select clause not sporting an AS).  In case you need mixed-case
+keys (we recommend you avoid that), you can pass in a ``caseFixer``
+dictionary that maps the lowercased names to their mixed-case versions.
+
+In sum, the typical database query in the vicinity of DaCHS would look
+like this::
+
+  count_sum = 0
+  with base.getTableConn() as conn:
+    for row in conn.queryToDicts("SELECT * FROM sch.my_table"):
+       count_sum += row["count"]
+       print(row)
+
+In case you wondered: Yes, in the past we have experimented with
+abstracting away the SQL.  And we found it doesn't make the code any
+more robust, just a lot harder to figure out.
+
+
 Data Descriptors
 ================
 
@@ -433,7 +574,7 @@ publisher.address.email.  There may be multiple items for each meta
 key.
 
 
-Inputing Metadata
+Defining Metadata
 '''''''''''''''''
 
 In RDs, there are two ways to define metadata: Meta elements and meta
@@ -532,8 +673,10 @@ meta elements without a ``name`` attribute, you can give metadata as a
 “meta stream”.  This is just a sequence of lines containing pairs of
 <meta key> and <meta value>.
 
-In addition, there are comments, empty lines, and continuations.
-Continuation lines work by ending a line with a backslash.  The
+In addition, there are comments, empty lines, continuations, forced
+overwriting, and format selection.
+
+**Continuation lines** work by ending a line with a backslash.  The
 following line separator and all blanks and tabs following it are
 then ignored.  Thus, the following two meta keys end up having identical
 values::
@@ -560,86 +703,31 @@ like::
 
 
 Comments and empty lines are easy: Empty lines are allowed, and a
-comment is a line with a hash (#) as its first non-whitespace
+**comment** is a line with a hash (#) as its first non-whitespace
 character.  Both constructs are ignored, and you can even continue
 comments (though you should not).
 
-A Pitfall with Sequential Nested Meta
-......................................
+When you **repeat** a key, metadata is being added.  Hence,::
 
-The creator.name meta illustrates a pitfall with our metadata
-definition.  Suppose you had more than one creator.  What you'd want is
-a metadata structure like this::
+  subject: active-galaxies
+  subject: meteorites
 
-  +-- creator -- name (Arthur)
-  |
-  +-- creator -- name (Berta)
+will lead to two keywords in the subject meta.  Sometimes you instead
+want to **overwrite** what is already there, in particular for meta
+that needs to be unique::
 
-However, if you write::
+  !title: A revised title
 
-  creator.name: Arthur
-  creator.name: Berta
+will make sure that there is just a single title meta, and it is “A
+revised title”.
 
-or, equivalently::
+Finally, stream meta has ``format=plain`` by default.  To select raw or
+reStructuredText **format**, prefix the value with ``raw:`` or ``rst:``,
+respectively::
 
-  <meta name="creator.name">Arthur</meta>
-  <meta name="creator.name">Berta</meta>
-
-by the above rules, you'll get this::
-
-  +-- creator -- name (Arthur)
-         |
-         +------ name (Berta)
-
-i.e., one creator with two names.
-
-To avoid this, make a new creator node in between, i.e., write::
-
-  creator.name: Arthur
-  creator:
-  creator.name: Berta
-
-In the creator.name case, where this is so common, DaCHS provides a
-shortcut, which you should use as a default; if you set ``creator``
-directly, DaCHS will expect a string of the form::
-
-  <author1>, <inits1> {; <authorn>, <initsn>}
-
-(i.e., Last, I.-form separated by semicolons, as in "Foo, X.; Bar, Q.;
-et al") and split it up into the proper structure.  You can mix the two
-notations, for instance if you want to set a logo on the first creator::
-
-  <meta name="creator">
-    <meta name="name">Chandrasekhar, S.</meta>
-    <meta name="logo">http://sit.in/chandra.png</meta>
-  </meta>
-  <meta name="creator">Copernicus, N.; Gallilei, G.</meta>
-
-Meta information can have a complex tree structure.  With meta streams,
-you can build trees by referencing dotted meta identifiers.  If you
-specify meta information for an item that already exists, a sibling will
-be created.  Thus, after::
-
-  creator.name: A. Author
-  creator:
-  creator.name: B. Buthor
-
-there are two creator elements, each specifying a name meta.  For the
-way creators are specified within VOResource, the following would be
-wrong::
-
-  creator.name: This is wrong.
-  creator.name: and will not work
-
--- you would have a single creator meta with two name metas, which is
-not allowed by VOResource.
-
-If you write::
-
-  contact.address: 7 Miner's Way, Behind the Seven Mountains
-  contact.email: dwarfs@fairytale.fa
-
-you have a single contact meta giving address and email.
+_sidebarlocal: raw:<div class="sidebarnote">\
+  <a href="/adql">Try ADQL</a> to query our data.</div>
+description: rst:This is *nice*, **important** data.
 
 
 Meta inheritance
@@ -803,7 +891,8 @@ renderers -- include:
 * subject -- as noted in the explanatory leaflet, these should be taken
   from the `IVOA Vocabulary Explorer
   <http://explicator.dcs.gla.ac.uk/WebVocabularyExplorer/>`_.
-* rights -- freetext copyright notice.
+* rights -- freetext copyright notice.  See 
+  :dachsdoc:tutorial.html#Licensing for details.
 * rightsURI -- machine readable license URI.  There's no formal list of
   acknowledged URIs yet, but the common CC URIs are a good start.
 * source -- bibcodes will be expanded to ADS links here.
@@ -811,13 +900,18 @@ renderers -- include:
   presentation purposes.  If you give no referenceURL, the service's
   info page will be used.
 * creator.name -- this should be the name of the "author" of the data
-  set.  See below for multiple creators.  If you set this, you may want
-  to override creator.logo as well.
+  set.  If you set this, you may want to override creator.logo as well.
+  For persons, always use the form “Last, F.I.“; this saves all
+  components the unsolvable problem to tell first from last names, and
+  sorting these strings will naturally yield the sequence people expect.
+  Also, if you have multiple creators, better just set ``creator`` as
+  discussed in `Typed Meta Elements`_.
 * type – one of Other, Archive, Bibliography, Catalog, 
   Journal, Library, Simulation, Survey, Transformation, Education, 
   Outreach, EPOResource, Animation, Artwork, Background, BasicData, 
   Historical, Photographic, Press, Organisation, Project, Registry –
-  it's optional and we doubt its usefulness.
+  it's optional and we doubt its usefulness.  You may repeat the content
+  type if you need to; see also [RMI]_, sect. 3.3.
 * contentLevel – addresse(s) of the data: Research, Amateur, General
 * facility – no IVOA ids are supported here yet, but probably this
   should change.
@@ -1642,6 +1736,7 @@ howto document.
 .. _selecting input fields with a widget: howDoI.html#make-an-input-widget-to-select-which-columns-appear-in-the-output-table
 .. _customizing generated SCS conditions: howDoI.html#change-the-query-issued-on-scs-queries
 
+
 Output tables
 '''''''''''''
 
@@ -1695,6 +1790,63 @@ The column selection is influenced by:
 
 Sorry for this mess; all this had, and by and large still has, good
 reasons.
+
+
+The Vanity Map
+''''''''''''''
+
+DaCHS' URL scheme leads to somewhat clunky URLs that, in particular,
+reflect the file system underneath.  While this doesn't matter to the VO
+registry, it is possibly unwelcome when publishing URLs outside of the
+VO.  To overcome it, you can define "vanity names", single path elements
+that are mapped to paths.
+
+These mappings are read from the file ``$GAVO_ROOT/etc/vanitynames.txt``.
+The file contains lines of the format::
+
+    <target> <key> [<option>]
+
+Target is a path that must *not* include nevowRoot and must *not* start
+with a slash (unless you're going for very special effects).
+
+Key normally is a single path element (i.e., a string without a slash).
+If this path element is found in the first segment, it is replaced with
+the segments in target.
+
+``<option>`` can only be ``!redirect`` or empty right now.
+
+If it is ``!redirect``, ``<key>`` may be a path fragment (as opposed to
+a single path element); leading and trailing slashes are ignored.  If
+the *enire* query path matches this key, a redirect to this key is
+generated.  This is intended to let you shut down services and introduce
+replacements.  If the incoming URL contains a query, it will be appended
+to the replacement URL.  Thus, even stored queries or forms can
+potentially work across such a redirect.
+
+You can also (ab)use the redirect option to give vanity names, but since
+the target will show up in the browser address line, normal maps are
+highly preferred.  The only time normal maps don't work for this is when
+the resource directory is identical to the vanity name (you'll get an
+endless loop then), so you should avoid that situation.
+
+Empty lines and #-on-a-line-comments are allowed in the input.
+
+As an example, here's the vanity map that DaCHS had builtin as of
+version 2.1::
+
+	__system__/products/p/get getproduct
+	__system__/products/p/dlasync datalinkuws
+	__system__/services/registry/pubreg.xml oai.xml
+	__system__/services/overview/external odoc
+	__system__/dc_tables/show/tablenote tablenote
+	__system__/dc_tables/show/tableinfo tableinfo
+	__system__/services/overview/admin seffe
+	__system__/services/overview/rdinfo browse
+	__system__/tap/run/tap tap
+	__system__/adql/query/form adql !redirect
+	__system__/run/genrd genrd
+
+Note again that ``<key>`` must be a *single* path element only.
 
 
 Writing Custom Cores
@@ -4102,9 +4254,7 @@ taken from the SSA metadata.  You can add additional columns (e.g., a
 flux error depending on the spectral coordinate) as requried.
 
 The actual spectral instances can be built by sdmCores and delivered
-through DaCHS' product interface.  Note, however, that clients
-`supporting getData`_ wouldn't need to do this.  You'll still have to
-define the data item defined below.
+through DaCHS' product interface.
 
 sdmCores, while potentially useful with common services, are intended to
 be used by the product renderer for dcc product table paths.  They
@@ -4185,17 +4335,6 @@ your metadata table, use the ssacols stream, for example like this::
       verbLevel="1"/>
     <STREAM source="//echelle#ssacols"/>
   </table>
-
-
-
-Supporting getData
-==================
-
-DaCHS still has support the now-abandoned 2012 getData specification by
-Demleitner and Skoda.   If you think you still want this, contact the
-authors; meanwhile, you really should be using datalink for whatever you
-think you need getData for.
-
 
 
 Adapting Obscore
@@ -4454,21 +4593,6 @@ contain the fields with prodtblAccref, prodtblPath, etc), yield
 to the products table, too, like this: ``yield ("products", newRow)``.
 
 
-Functions Available for Row Makers
-==================================
-
-In principle, you can use arbitrary python expressions in var, map and
-proc elements of row makers.  In particular, the namespace in which
-these expressions are executed contains math, os, re, time, and datetime
-modules as well as gavo.base, gavo.utils, and gavo.coords.
-
-However, much of the time you will get by using the following functions
-that are immediately accessible in the namespace:
-
-.. replaceWithResult getRmkFuncs(docStructure)
-
-
-
 Scripting
 =========
 
@@ -4658,46 +4782,9 @@ README).
 
 
 
-Code in DaCHS
-=============
-
-This section contains a few general points for python code embedded in
-DaCHS, be it custom pages, cores, or grammars, or even procs.
-
-Importing modules
-'''''''''''''''''
-
-To keep the various resources as separate from each other as possible,
-DaCHS does not manipulate Python's import path.  However, one frequently
-wants to have library-like modules providing common functionality or
-configuration in a resdir (the conventional place for these would be in
-``res/``).
-
-To import these, use ``api.loadPythonModule(path)``.  Path, here, is the
-full path to the file containing the python code, but without the
-``.py``.  When you have the RD, the conventional pattern is::
-
-  mymod, _ = api.loadPythonModule(rd.getAbsPath("res/mymod"))
-
-instead of ``import mymod``.
-
-As you can see ``loadPythonModule`` returns a tuple; you're very
-typically only interested in the first element.
-
-Note in particular that for modules loaded in this way, the usual rule
-that you can just import modules next to you does not apply.  To import
-a modules “next to” you without having to go through the RD, use the
-special form::
-
-  siblingmod, _ = api.loadPythonModule("siblingmod", relativeTo=__file__)
-
-instead of ``import siblingmod``.  This will take the directory part for
-what's in ``relativeTo`` (here, the module's own path) and make a full
-path out of the first argument to pull the modules from there.
-
 
 The DaCHS API
-'''''''''''''
+=============
 
 User extension code (e.g., custom cores, custom grammars, processors)
 for DaCHS should only use DaCHS functions from its api as described
@@ -4706,9 +4793,9 @@ release notes if we change it.  For various reasons, the module also
 contains a few modules.  These, and in particular their content, are
 *not* part of the API.
 
-Note that at this point this is *not* what is in the namespace of
+Note that this ”api” at this point is *not* what is in the namespace of
 rowmakers, rowfilters, and similar in-RD procedures.  We do not, at this
-point, recommend importing the api.  If you do it anyway, we'd
+point, recommend importing the api there.  If you do it anyway, we'd
 appreciate if you told us.
 
 Before using non-API DaCHS functions, please inquire on the
@@ -4723,7 +4810,27 @@ reference symbols with the explicit module name (i.e., ``api.makeData``
 rather than picking individual names) in order to help others understand
 what you've written.
 
-Here is an alphabetical list of the documented API functions:
+In this chapter, we first give the functions that code in row makers see
+and then document the api available to extension code.
+
+
+Functions Available for Row Makers
+''''''''''''''''''''''''''''''''''
+
+In principle, you can use arbitrary python expressions in var, map and
+proc elements of row makers.  In particular, the namespace in which
+these expressions are executed contains math, os, re, time, and datetime
+modules as well as gavo.base, gavo.utils, and gavo.coords.
+
+However, much of the time you will get by using the following functions
+that are immediately accessible in the namespace:
+
+.. replaceWithResult getRmkFuncs(docStructure)
+
+
+
+API function reference
+''''''''''''''''''''''
 
 .. replaceWithResult getAPIDocs(docStructure)
 

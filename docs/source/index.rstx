@@ -24,8 +24,7 @@ What to read when?
 Obviously, you should start with the installation instructions (have a
 brief glance at them even if you install from Debian package).  You
 should then probably read and work through the tutorial to get a feel
-for how DaCHS works.  Once you have data and want to go live, you'll
-have to read the operator's guide.  That's about all there is to read
+for how DaCHS works.  That's about all there is to read
 sequentially.
 
 When you get error messages you don't understand, check the "Hints on
@@ -67,11 +66,6 @@ For Data Center Operators
 * :doc:`Reference <ref>`
 
   * :download:`ref.rstx <./ref.rstx>`
-
-* :doc:`Operator's guide <opguide>`
-
-  * :download:`opguide.pdf <../pdf/opguide.pdf>`
-  * :download:`opguide.rstx <./opguide.rstx>`
 
 * :doc:`How do I? <howDoI>`
 

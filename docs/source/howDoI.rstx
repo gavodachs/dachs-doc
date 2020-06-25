@@ -15,99 +15,17 @@ Recipes and tricks for solving problems using GAVO DaCHS
   :class: toc
 
 
+In case you are missing something from here that you remember was here
+before: Some items were moved to :dachsdoc:`tutorial.html`.
+
+We will try to cover everything that is more or less routine there,
+reserving this document to less common tasks and material that will
+be of historical value only rather quickly (such as instructions for
+particular upgrade steps).
+
+
 Ingestion
 =========
-
-...do incremental importing?
-----------------------------
-
-...that is, only import files that were added since the last import?
-
-The key ingredient here is the :dachsdoc:`Element ignoreSources`, which
-lets you tell DaCHS which files or those it found in ``sources`` it
-should not ingest (again). What this deals with are paths relative to
-DaCHS' inputsDir.  There are various ways to communicate them: from
-lines in a file, by a pattern, or from the database, and it's the last
-case we're really interested in here.
-
-Unless you did something special, the accref column in tables having
-data products will be such an this inputsDir-relative path.  With the
-``fromdb`` attribute of the ``ignoreSource`` element, you can pull in
-these accrefs as the files to ignore.
-
-DaCHS, however, when you ``imp`` something, will always tear down all
-tables being made.  To suppress that behaviour, just give the data
-element an ``update`` attribute.  In sum, the pattern is::
-
-  <data id="import" updating="True">
-    <sources pattern="data/*.fits">
-      <ignoreSources fromdb="select accref from myschema.mytable"/>
-    </sources>...
-
-Of course, you have to adapt the source pattern and the table to get the
-accrefs for (to where your data products are managed).
-
-For non-data product sources (e.g., files you feed into catalogs),
-you'll have to use some other technique.  In case you need such a thing,
-you may want to look at :samplerd:`rr/q` (see the ``rr.imported`` table).
-
-
-...skip a row from a rowmaker?
-------------------------------
-
-Raise IgnoreThisRow in a procedure application, like this::
-
-  <rowmaker id="build_mytable" idmaps="*">
-    <apply>
-      <code>
-        if 2+colX>22:
-          raise IgnoreThisRow()
-      </code>
-    </apply>
-  </rowmaker>
-
-
-However, it's probably more desirable to use the rowmakers' built-in
-``ignoreOn`` feature, possibly in connection with a procedure, since it is
-more declarative.
-
-Still, the following is the recommended way to selectively ignore broken
-records defined via certain identifiers::
-
-  <apply name="ignoreBrokenRecords">
-    <doc>This proc filters out records too broken to ingest.
-    for the set of ids in the toIgnorePar
-    </doc>
-    <setup>
-      <par name="toIgnore">set([
-        202, 405])
-      </par>
-    </setup>
-    <code>
-      if @catid in toIgnore:
-        raise IgnoreThisRow("Manually ignored from RD")
-    </code>
-  </apply>
-
-
-
-...skip a single source?
-------------------------
-
-If you want to skip processing of a source, you can raise SkipThis from
-an appropriate place.  Usually, this will be a sourceFields element,
-like this::
-
-  <reGrammar>
-    <sourceFields>
-      <code>
-        if len(sourceToken)>22:
-          raise base.SkipThis("%s skipped since I didn't like the name"%
-            sourceToken)
-       </code>
-    </sourceFields>
-  </sourceFields>
-
 
 ...fix duplicate values?
 ------------------------
@@ -226,7 +144,6 @@ In the rowmaker, you could then do something like this::
 ...use binaries when the gavo directory is mounted from multiple hosts?
 -----------------------------------------------------------------------
 
-
 If your GAVO_ROOT is accessible from more than one machine and the
 machines have different architectures (e.g., i386 and amd64 or ppc,
 corresponding to test machine and production server), compiled binaries
@@ -260,12 +177,14 @@ building the files in $OBJECT, but otherwise it's a simple hack to make
 sure a make on the respective machine builds a suitable binary.
 
 
-
 ...transform coordinates from one coordinate system to another?
 ---------------------------------------------------------------
 
 In general, that's fairly complicated, involving proper motions, radial
-velocities, and other complications.  There's an interface in the stc
+velocities, and other complications.  Realistically: DaCHS depends on
+astropy, and so just use whatever astropy gives you.
+
+On the other hand, there's an interface in the gavo.stc
 module based on conformTo, but you'd not want to do that when filling
 tables since it's not fast and usually not what you need either.
 
@@ -313,8 +232,6 @@ not, however, re-make the view.  You can easily do that, manually,
 however::
 
   dachs imp //obscore
-
-
 
 
 Services in General
@@ -407,7 +324,7 @@ In a custom renderer or core, you can use code like::
 
 You want to use a separate connection since the default connections
 obtained by cores and friends are unprivileged and typically cannot
-write to table.
+write.
 
 The nAffected should contain the total number of records imported and
 could be used in a custom render function.
@@ -416,7 +333,6 @@ srcName and srcFile come from a formal File form item.  In
 submitActions, you obtain them like::
 
   srcName, srcFile = data["inFile"]
-
 
 Note that you can get really fancy and manipulate ``data`` in some way up
 front.  That could look like this::
@@ -486,12 +402,10 @@ defined function; drop the LOWER as you see fit.
 
 Sometime there's a proprietarity time on some data, and you may want to
 password protect your data.  DaCHS doesn't support protection of
-individual tables yet (we'll accept patches, but since this kind of
-thing is considered fairly antisocial by most of us, it looks bleak for
-an implementation of this from our side).  You can, however, protect the
+individual tables yet.  You can, however, protect the
 entire TAP service (with HTTP basic auth, so this isn't for the gold of
-Fort Knox).
-
+Fort Knox unless you restrict connections to HTTPS and change to hashed
+passwords in dc.users).
 
 First, create a group of authorized users and add a user to it:
 
@@ -499,28 +413,25 @@ First, create a group of authorized users and add a user to it:
   dachs admin adduser smart_pi his_password
   dachs admin addtogroup smart_pi tapusers
 
-Then, limit access to the TAP service itself.  To make it easy to redo
-your changes and return to mainline development, we recommend to use a
-custom TAP RD.  To do that, create a ``__system__`` directory in your
-inputs directory; with the default config::
+Then, limit access to the TAP service itself; as usual (see
+:dachsdoc:`tutorial.html#restricting-access`), you will have to add a
+``limitTo`` clause to the service element.  However, this service
+element is built-in, so you cannot easily change it.
 
-  cd /var/gavo/inputs
-  mkdir __system__
-  cd __system__
-  curl -O http://svn.ari.uni-heidelberg.de/svn/gavo/python/trunk/gavo/resources/inputs/__system__/tap.rd
+For TAP, there's a trick because the service element includes the
+tapdescription STREAM from the userconfig RD.  So, get userconfig unless
+you already have it (cf. :dachsdoc:`tutorial.html#the-userconfig-rd`)
+and simply add::
+ 
+  <limitTo>tapusers</limitTo>
+  
+after the ``<STREAM id="tapdescription">``.  To make DaCHS see the
+change, you need to restart the server or run ``dachs serve exp //tap``.
 
-(or find your local tap.rd and use that, which may be a bit safer).
-
-In tap.rd, look for the actual service element::
-
-  <service id="run" core="null" allowed="tap">
-
-In that copy, write ``limitTo="tapusers"``.  You need to restart the
-server to pick up the new RD, after that, it should pick up changes by
-itself.  To get back standard behaviour, just remove that copy.
-
-That's not enough, though; you'll need to do the same with the
-service in adql.rd (or remove that service altogether).
+That's not quite enough, though, because there is the public form-based
+ADQL service.  To shut this down, you need to override the adql.rd RD,
+probably with an empty file.  See
+:dachsdoc:`tutorial.html#overridden-system-rds` for how to do that.
 
 This is not sufficient for top secret things -- people can still
 inspect your column metadata, descriptions and so on.  But they
@@ -930,63 +841,21 @@ type, etc).
 The previews code is inserted when columns with
 ``displayHint="type=product"`` are rendered into HTML tables.  The code
 that does this recognizes a second display hint, ``nopreview``, which,
-when set to any value, inhibits the generation of previews.
+when set to any value, inhibits the generation of previews.  All you
+need to do is set the new display hint.
 
-Regrettably, at this point there is no way to change the display hint
-in the table itself (we're thinking of a general way for ad-hoc
-overriding of mixin columns, but unfortunately, that's a bit subtle).
+See the how to `...override metadata for a column coming from a mixin?`_
+for the general idea behind this; what it boils down to in this case
+is::
 
-Therefore, you need to fix the display hint when building the output
-table.  The quickest way to do this is by using the output table's
-``verbLevel`` attribute, and then overriding the accref column.  This
-could look like this::
-
-  <service...>
+  <table id="data" onDisk="True" mixin="//products#table">
+    <column original="accref"
+      displayHint="type=product,nopreview=True"/>
     ...
-    <outputTable verbLevel="20">
-      <outputField original="accref" displayHint="type=product,nopreview=1"/>
-    </outputTable>
-    ...
-  </service>
 
-``verbLevel="20"`` selects all columns in the queried table with a
-``verbLevel`` less or equal 20 (which is the default when you don't give
-an ``outputTable``); you can adapt that number to whatever fits your
-needs.
+Having said this: People love previews, so just try to make some; see
+:dachsref:`Product Previews` for how DaCHS helps you in that.
 
-A downside of this approach is that the image column ends up a the very
-beginning of each row.  For full control over which columns are
-displayed and which go where, use the following pattern::
-
-   <service...>
-    ...
-    <outputTable>
-      <LOOP listItems="source srcId confirmed lensalpha"
-        <events>
-          <outputField original="\item"/>
-        </events>
-      </LOOP>
-
-      <outputField
-        original="accref" displayHint="type=product,nopreview=1"/>
-
-      <LOOP listItems="raj2000 dej2000">
-        <events>
-          <outputField original="\item"/>
-        </events>
-      </LOOP>
-    </outputTable>
-    ...
-  </service>
-
-An added benefit of this is that the first approach only works starting
-DaCHS SVN rev. 3351, whereas this has been possible at least since about
-version 0.7.
-
-But then, the main point is: Don't do this – just provide previews.
-They're making a world of a difference, and they are in general not hard
-to make even if DaCHS doesn't support your formats out of the box. See
-:dachsref:`Product Previews` for details.
 
 ...override metadata for a column coming from a mixin?
 ------------------------------------------------------
@@ -1129,54 +998,6 @@ Incidentally, the first argument to genQuery is the table definition of
 the table queried, which sometimes comes in handy.  DaCHS 1 didn't have
 that argument, so old RDs may need an update if they used this recipe.
 
-...change a single param of ssap#hcd to being a column?
--------------------------------------------------------
-
-Sometimes spectral pipelines emit inhomogeneous data even for a single
-instrument; for instance, "most" spectra  could be normalised to the
-continuum, but for some whatever heuristics the pipeline used didn't
-work out and the spectra ended up as uncalibrated (as far as the
-spectral axis is concerned).
-
-The officially correct way to deal with this is to use ``//ssap#mixc``.
-However, moving all the params to table columns is a bit of an overkill
-when all that's varying is a single column.  Hence, we recommend the
-following workaround in such a case:
-
-(1) Set the param to null (hoping to help clients ignore it); in this
-    case it could be::
-
-      <table id="data" onDisk="true" adql="True">
-        <mixin
-          ...
-          fluxCalibration="__NULL__"
-        >//ssap#hcd</mixin>
-
-    (you only need to do this when the parameter overridden is required
-    by the mixin).
-
-(2) Add a column with the right utype to the table::
-
-       <column name="ssa_fluxcalib" type="text"
-        utype="ssa:Char.FluxAxis.Calibration"
-        tablehead="Calib Flux" verbLevel="20"
-        description="Type of flux calibration"/>
-
-(3) In the rowmaker, map whatever you need manually::
-
-      <make table="data">
-        <rowmaker id="make_data" idmaps="ssa_*, localKey">
-          <apply procDef="//ssap#setMeta" name="setSSAPMeta">
-           ...
-          </apply>
-
-          <map key="ssa_fluxcalib">@FLUXCAL</map>
-
-The disadvantage is that the (uninformative) PARAM with the utype in
-question will still be in the VOTable, so the using ``mixc`` would be
-cleaner.  On the other hand, we could add PRUNE to mixins should this really
-become a bother.
-
 
 ...figure out why an obscore query is slow?
 -------------------------------------------
@@ -1206,9 +1027,8 @@ inspection::
 slow translate essentially 1:1 to SQL; you can also pull translated
 queries from /var/gavo/logs/dcInfos.
 
-Inspect the resulting file, which is going to be large if all goes well,
-because the plan is complex when indices are begin used (as they
-should).  Watch out for “Seq Scan” – if these happen on large tables,
+Inspect the resulting file and watch out for 
+“Seq Scan” – if these happen on large tables,
 things will we slow.  For small tables (a couple of thousand records,
 perhaps), on the other hand, it doesn't really matter.
 
@@ -1276,13 +1096,9 @@ hierarchy.  These you can get rid of with something like this::
   rm -r <your-gavo-root-path>
   sudo -u postgres dropdb gavo
 
-We may be swayed into doing this by users; for now, we are reluctant to
-have a script blindly initiate a devastation of this scope.
-
-...upgrade DaCHS?
------------------
-
-See :dachsdoc:`opguide.html#upgrading`.
+This probably will not become of the purge routine of the Debian
+package; we are reluctant to have a script blindly initiate a
+devastation of this scope.
 
 
 ...update my code?
@@ -1314,193 +1130,8 @@ starting shortly before the 1.0 release.
   saying ``from astropy import wcs`` and replacing every occurrence
   of pywcs with wcs.  On the other hand, the astropy API isn't quite
   the same any more, so be sure to test things.
-
-
-...upgrade the database engine?
--------------------------------
-
-Postgres' on-disk formats change from version to version.  This makes
-upgrages a bit of an adventure, in particular if you have large
-databases that take days to export and ingest.  However, Debian helps a
-bit; even if you don't run Debian, the following might be helpful.
-
-The text assumes you're using the default cluster, which is called main.
-If – and that's likely if you installed DaCHS in the olden days – yours
-has a different name (we used to suggest "pgdata"), you'll have to
-replace "main" with that name throughout.
-
-As it's easy to destroy all of your tables at once if you mistype things
-here, it's highly recommended to dump your database somewhere before
-starting with this::
-
-  pg_dump -f (some descriptive name).pgdump -F c gavo
-
-Let's say you're upgrading from 9.1 to 9.4.  Get a root shell and set
-these values.  Be *very* careful, if you  get this wrong, the commands
-further down will nuke your database::
-
-  export OLDVER=9.1
-  export NEWVER=9.4
-
-To upgrade, first install the new engine and extensions, for instance::
-
-   apt-get install postgresql-${NEWVER}-pgsphere postgresql-${NEWVER}-q3c postgresql-${NEWVER}
-
-If you use other extensions in your database (e.g., postgis), also
-install them now.  To see what extensions you have installed, a command
-like::
-
-  dpkg-query -W "postgresql-${OLDVER}-*"
-
-is probably helpful. Other versioned packages you may want to install
-include:
-
-* ``postgresql-server-dev-$NEWVER`` if you use locally-built extensions.
-  Rebuild and install those extensions *before* proceeding with the
-  upgrade.
-* ``postgresql-plpython-$NEWVER`` if you use python DB extensions
-* ``postgresql-contrib-$NEWVER`` for several interesting index schemes
-  and the like.
-
-You will probably first have to drop the new cluster the Debian
-maintainer scripts may already have created, as pg_upgradecluster wants
-a clean slate::
-
-  pg_ctlcluster $NEWVER main stop
-  # this is a good time to see if your data center still works; if not,
-  # you stopped the currently active cluster and should *not* drop it
-  pg_dropcluster $NEWVER main
-
-If these give errors to the effect that the “specified cluster does not
-exist”, that's fine.
-
-During the database update, postgres will be down, and hence
-your data center will not work. For a large database, the update can
-take several hours.  You should let people know that there's
-something wrong as good as you can.  As long as nobody really does
-anything with VOSI availability, the next best thing is to put your
-DaCHS installation in panic mode.
-
-To do this, place a file called MAINT into DaCHS's stateDir, maybe
-somewhat like this::
-
-  cat <<EOF > `dachs config stateDir`/MAINT
-  We're currently upgrading our database and cannot properly respond to
-  requests.
-
-  We expect to be back online late afternoon UTC, 2025-08-11.
-  EOF
-
-Then say::
-
-  pg_upgradecluster -k -m upgrade -v $NEWVER $OLDVER main /var/lib/postgresql/$NEWVER
-
-You may need to change the last argument, depending on where your
-database files actually are.  You can figure out where the old ones were
-using::
-
-  grep data_directory /etc/postgresql/$OLDVER/main/postgresql.conf
-
-Do *not* use that old directory for the new cluster.
-
-Note the ``-k`` option to the above command: this makes pg_upgrade use
-hard links instead of copies.  This saves a lot of space and time.  The
-downside is that once the upgrade has succeeded, the old server may go
-haywire because its files have been changed to fit the new version.  In
-our experience, that's a price worth paying.
-
-If this fails, **do not panic**.  Most of the time it's some extension you
-forgot to install, and once you've done this, everything will be fine.
-The upgrade script points you to the logs of the operation, which should
-let you figure out what to do.
-
-On jessie and before, you'll get unhelpful error messages ("cannot
-determine cluster locales") unless you restart the old cluster manually
-(``service postgresql restart`` should work) before re-starting
-pg_upgradecluster.
-
-When all is done, pg_upgradecluster configures the old cluster to no
-longer start automatically and the new cluster to listen where the old
-one was.   
-
-You can now probably run your services again, so, remove MAINT in the
-stateDir, restart the DaCHS server and run your regression tests (you
-wrote some, didn't you?).  
-
-However, quite typically the table stats are wrong or ununderstandable
-to the new version, so for large tables you may see timeouts and the
-like.  Starting around version 10, pg_upgradecluster helpfully provides
-a script that does all that's required to update the stats and make
-things fast again.  It is kept together with the upgrade log which you
-will find by going to ``/var/log/postgresql``, saying ``ls -lr
---sort=time``.  The last directory shown ought to be your upgrade
-directory.
-
-In there, start a ``screen`` (the script can take a long while, and it's
-good if you can detach the screen with ^ADD and the it keeps running
-while you're going home) and run it like this::
-
-  sudo -u postgres sh ./analyze_new_cluster.sh
-
-Finally, pg_upgrade has printed a command that will remove the old
-cluster; execute it, and finally deinstall the old postgres packages to
-avoid confusion – locate them somehow like::
-
-  dpkg -l | grep "postgres.*$OLDVER"
-
-When that's all done, take a deep breath and relax.
-
-Possible Issues during upgrade
-''''''''''''''''''''''''''''''
-
-Frankly, there's lots.  We'll update this section based your feedback.
-
-(1) Some versions of pgsphere had bad declarations of negators and
-commutators.  These manifest themselves as errors like::
-
-  pg_restore: [archiver (db)] could not execute query: ERROR:  argument of negator must be a name
-      Command was: CREATE OPERATOR @ (
-      PROCEDURE = "sline_contains_point_com",
-      LEFTARG = "spoint",
-      RIGHTARG = "sline",
-      COMMUTAT...
-
-during upgrades.  If you see something like this, you need to remove
-dangling references from the the ``pg_operator`` system catalog before
-commencing.  So, in the *old* cluster, run::
-
-  UPDATE pg_operator AS o
-  SET oprcom=0 
-  WHERE 
-    NOT EXISTS (
-      SELECT 1 FROM pg_operator AS i 
-        WHERE i.oid=o.oprcom) 
-    AND oprcom!=0
-
-and::
-
-  UPDATE pg_operator AS o
-  SET oprnegate=0 
-  WHERE 
-    NOT EXISTS (
-      SELECT 1 FROM pg_operator AS i 
-        WHERE i.oid=o.oprnegate) 
-    AND oprnegate!=0
-
-
-
-
-(2) Remove versioned tablespaces after failures.  pg_upgrade in
-principle does the right thing with tablespaces: It has per-version
-names for the actual data directories.  However, when an upgrade has
-failed, that extra data directory is not removed.  Another attempt at
-upgrading then usually fails because that directory is already there.
-For instance, you'll see in the tablespace /media/db_overflow::
-
-  $ ls
-  PG_9.4_201409291/  PG_9.6_201608131/
-
-In that case, you'll need to remove the 9.6 directory before proceeding.
+* 2.0: This is a move to python3 and is a longer thing.  See
+  `...go from DaCHS1 to DaCHS2`_
 
 
 ...switch between SVN and packaged DaCHS?
@@ -1626,12 +1257,15 @@ purx-harvested URL right now, either.
 If you're using one of the browser-based publishing registries (at ESAC
 or STScI), you'll have to re-upload your registry records there.
 
+
 ...go from DaCHS 1 to DaCHS 2?
 ------------------------------
 
 Starting mid-2020, DaCHS operators ought to upgrade to DaCHS 2; don't be
 scared by the major version jump – unless you're doing higher magic, you
-will not need to change much (if anything) in your RDs.  
+will not need to change much (if anything) in your RDs.  See also
+https://blog.g-vo.org/dachs-2-1-say-hello-to-python-3/.
+
 We have dropped some exotic
 legacy, though, and in particular DaCHS 2 is Python 3 only (whereas
 DaCHS 1 in Python 2 only).  It's quite likely that if you need to change

@@ -553,7 +553,13 @@ Subsubcommands
 * ``restart`` -- restart the server
 * ``start`` -- start the server and put it in the background
 * ``stop`` -- stop a running server
-
+* ``expireRD <rdId>`` -- forget the cached RD in the running server.
+  While in general, DaCHS reloads an RD if it finds it changed,
+  sometimes it does not realise some dependency has changed.  In that
+  case, this subsubcommand can expunge the RD so it will be re-parsed
+  when the next access occurs.  Note that this requires 
+  [web]adminpasswd be set; the command uses [web]serverURL to figure
+  out where to connect the running server.
 
 The ``start`` subcommand accepts a ``--foreground`` option.  If you pass
 it, the server will not double-detach and not redirect stderr to a log
