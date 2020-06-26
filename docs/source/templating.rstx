@@ -253,7 +253,7 @@ child)".  If you are curious, the code implementing that is in
     return ctx.tag["Information on Service '%s'"%
       base.getMetaText(self.service, "title")]
 
-Below is a list the more `Common Nevow Renderers`_.
+Below is a list of the more `Common Render and Data Functions`_.
 
 The other magic thing is the ``n:invisible``.  As said above, that tag
 doesn't turn up in the result DOM, it's just there so we can call the
@@ -435,8 +435,8 @@ language, except for what additional render and data functions there
 are.  The more useful of which are covered in the next chapter.
 
 
-Common Nevow Renderers
-----------------------
+Common Render and Data Functions
+--------------------------------
 
 In DaCHS templates, nevow renderers can come from nevow itself, the
 active renderer (that's usually ``form`` for templates or a variety
