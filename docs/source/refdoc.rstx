@@ -1203,6 +1203,10 @@ been added.
 
 The elements of SIL are:
 
+* The NULL literal, ``__NULL__``.  Attributes that are set to this
+  literal are elided.  This is mostly useful in the connection with
+  data model annotation within mixins.
+
 * Atomic Values.  For SIL, everything is a string (it's a problem of
   DM validation to decide otherwise).  When your string consists
   exclusively of alphanumerics and [._-], you can just write it in SIL.
