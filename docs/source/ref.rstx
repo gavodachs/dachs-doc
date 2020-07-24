@@ -9,6 +9,7 @@ DaCHS Reference Documentation
 :Author: Markus Demleitner
 :Email: gavo@ari.uni-heidelberg.de
 :Date: |date|
+:Copyright: Waived under `CC-0`_
 
 .. contents:: 
   :depth: 2
@@ -6311,6 +6312,15 @@ mixins, there are predefined procedures (both rowmaker applys and
 grammar rowfilters) that should be used in grammars and/or rowmakers
 feeding the tables mixing in a given mixin.
 
+Note that when a piece of metadata in a mixin gets in your way, you can
+selectively override attributes of columns and params by copying and
+changing them.  For instance, if your mixin ``example#m" gives you a
+column ``flux``, and you need to change its unit, you would say::
+
+  <table mixin="example#m">
+    <column original="flux" unit="mJy"/>
+  </table>
+
 The //epntap2#localfile-2_0 Mixin
 '''''''''''''''''''''''''''''''''
 
@@ -7473,6 +7483,74 @@ Parameter *ssa_timeSI*
   defaults to ``NULL``;
   It's safe to ignore this.
 
+The //timeseries#phot-0 Mixin
+'''''''''''''''''''''''''''''
+
+
+*Warning:* The specs here are strongly in flux.  The interface here
+is quite likely to change.  If you use this mixin, please tell
+gavo@ari.uni-heidelberg.de so we can inform you of incompatible
+changes, and make sure you have robust regression tests in place.
+
+A mixin for a simple photometric time series.  Mix this in to
+get columns obs_time and phot_val, properly declared for
+the `2020 time series note`_.
+
+Parameters marked with “SIL literal” can take a C-style token, a
+quoted string, or a reference to a column or param, where the name is
+prefixed by an @.
+
+.. _2020 time series note: http://ivoa.net/documents/Notes/LightCurveTimeSeries/
+
+
+This mixin has the following parameters:
+
+
+Parameter *dependent_axes*
+  defaults to ``[@phot]``;
+  Axes with values varying with time (only change if you define ones in addition to phot provided by the mixin; SIL literal)
+Parameter *effectiveWavelength*
+  Central wavelength (or similar measure) for the passband used for the photometry, in meters (SIL literal)
+Parameter *filterIdentifier*
+  Identifier for the passband the photometry is for (as defined by the Note; SIL literal).
+Parameter *independent_axes*
+  defaults to ``[@obs_time]``;
+  Axes that describe the time (only change if you define ones in addition to the obs_time provided by the mixin; SIL literal)
+Parameter *latitude*
+  defaults to ``__NULL__``;
+  Latitude/Dec of the position (SIL literal; you have to define params/columns yourself if you want to reference something here).
+Parameter *longitude*
+  defaults to ``__NULL__``;
+  Longitude/RA of the position (SIL literal; you have to define params/columns yourself if you want to reference something here).
+Parameter *magnitudeSystem*
+  defaults to ``__NULL__``;
+  Magnitude system used: Vega, AB,... (SIL literal)
+Parameter *phot_description*
+  defaults to ``Flux``;
+  Description of the photometric coordinate.
+Parameter *phot_ucd*
+  UCD of the photometric coordinate; something like phot.mag;em.opt.V or phot.flux;em.x-ray.hard
+Parameter *phot_unit*
+  Unit of the photometric coordinate; something like mag, Jy, 1e-20 W/(Hz.m**2).
+Parameter *pos_epoch*
+  defaults to ``__NULL__``;
+  Epoch you give the position for (SIL literal).
+Parameter *refframe*
+  defaults to ``__NULL__``;
+  Frame of coordinates you may be giving (SIL literal).
+Parameter *refposition*
+  Reference position for the time coordinate. Choose a value from http://www.ivoa.net/rdf/refposition (SIL literal).
+Parameter *time0*
+  JD of the epoch (“day 0”) of the time coordinate; this is 0 for JD itself, 2400000.5 for MJD (SIL literal).
+Parameter *time_description*
+  defaults to ``Time``;
+  Description of the time coordinate. We assume it's in days; if you have something else, override the obs_time coordinate as described in `mixins`_.
+Parameter *timescale*
+  Time scale of the time coordinate. Choose a value from http://www.ivoa.net/rdf/timescale (SIL literal)
+Parameter *zeroPointFlux*
+  defaults to ``__NULL__``;
+  Flux at the given zero point, in Jy; SIL literal).
+
 
 
 Triggers
@@ -7662,7 +7740,7 @@ The authcheck Renderer
 *This renderer's parameter style is "clear".  This is an unchecked renderer.*
 
 A renderer that lets people can use to see if a username/password
-name is valid on this service.
+name is valid on this service (and if there's auth on at all).
 
 It returns text/plain, with 403 with a "NO" payload if the pair doesn't 
 work, and 200 with a "PROBABLY YES" payload if it does.
@@ -9603,7 +9681,7 @@ Paths and other general settings.
 * logDir: path relative to rootDir; 
   defaults to 'logs' --
   Path to the DC's logs (should be local)
-* logLevel: value from the list debug, info, warning, error; 
+* logLevel: value from the list debug, error, warning, info; 
   defaults to 'info' --
   How much should be logged?
 * maintainerAddress: string; 
@@ -9826,7 +9904,7 @@ Settings related to serving content to the web.
   defaults to 'False' --
   If True, Javascript will not be minified on delivery (this is for
   debugging)
-* logFormat: value from the list default, combined; 
+* logFormat: value from the list combined, default; 
   defaults to 'default' --
   Log format to use.  Default doesn't log IPs, user agents, or referrers
   and thus should be ok in terms of not processing personal data, which
@@ -9900,12 +9978,6 @@ Settings related to serving content to the web.
 * user: string; 
   defaults to 'gavo' --
   Run server as this user.
-* voplotCodeBase: URL fragment relative to the server's root; 
-  defaults to 'None' --
-  Deprecated and ignored.
-* voplotUserman: URL fragment relative to the server's root; 
-  defaults to 'Deprecated and ignored' --
-  URL to the documentation of VOPlot
 
 Code in DaCHS
 =============
@@ -9914,7 +9986,8 @@ This section contains a few general points for python code embedded in
 DaCHS.  Most of the material applies to procedure definitions (`Element
 apply`_, `Element dataFormatter`_, `Element dataFunction`_, `Element
 descriptorGenerator`_, `Element iterator`_, `Element metaMaker`_,
-`Element mixinProc`_, `Element pargetter`_, `Element phraseMaker`_,
+`Element processEarly`_, `Element processLate`_, 
+`Element pargetter`_, `Element phraseMaker`_,
 `Element regTest`_, `Element rowfilter`_, `Element sourceFields`_) as
 well as to other pieces of code, such as in `Element customGrammar`_,
 `Element customCore`, or `Element customRenderer`.
@@ -10309,9 +10382,9 @@ Finally, stream meta has ``format=plain`` by default.  To select raw or
 reStructuredText **format**, prefix the value with ``raw:`` or ``rst:``,
 respectively::
 
-_sidebarlocal: raw:<div class="sidebarnote">\
-  <a href="/adql">Try ADQL</a> to query our data.</div>
-description: rst:This is *nice*, **important** data.
+  _sidebarlocal: raw:<div class="sidebarnote">\
+    <a href="/adql">Try ADQL</a> to query our data.</div>
+  description: rst:This is *nice*, **important** data.
 
 
 Meta inheritance
@@ -11327,6 +11400,10 @@ necessary for our use case have been dropped, and type annotation has
 been added.
 
 The elements of SIL are:
+
+* The NULL literal, ``__NULL__``.  Attributes that are set to this
+  literal are elided.  This is mostly useful in the connection with
+  data model annotation within mixins.
 
 * Atomic Values.  For SIL, everything is a string (it's a problem of
   DM validation to decide otherwise).  When your string consists
@@ -16032,7 +16109,7 @@ This is typically used as in::
 This contains numerous methods abstracting DB functionality a bit.
 Documented ones include:
 
-* schemaExissts(schema)
+* schemaExists(schema)
 * getColumnsFromDB(tableName)
 * getTableType(tableName) -- this will return None for non-existing tables,
   which is DaCHS' official way to determine table existence.
@@ -16647,8 +16724,8 @@ Function getXMLTree
 
 Signature: ``getXMLTree(xmlString, debug=False)``
 
-returns an ``libxml2`` etree for ``xmlString``, where, for convenience,
-all namespaces on elements are nuked.
+returns an ``libxml2`` etree-like object for ``xmlString``, where, 
+for convenience, all namespaces on elements are nuked.
 
 This will only accept strings.
 
@@ -16656,6 +16733,15 @@ The libxml2 etree lets you do xpath searching using the ``xpath`` method.
 
 Nuking namespaces is of course not a good idea in general, so you
 might want to think again before you use this in production code.
+
+To facilitate writing tests, in addition to lxml.etree methods the returned
+object also has the following methods:
+
+* uniqueXpath(xpath), returning a single match if it's there
+  and raises an assertion error otherwise.
+* getById(id), returning the unique element with id and raising an 
+  assertion error if that doesn't exist.
+* getByID(id), as getById, by for VOTable-style ID.
 
 
 Function hmsToDeg
@@ -18314,3 +18400,4 @@ originating service).
 .. [IVOA Identifiers] Demleitner, M., et al, "IVOA Identifiers",
    http://ivoa.net/Documents/IVOAIdentifiers/index.html
 .. |date| date::
+.. _CC-0: http://creativecommons.org/publicdomain/zero/1.0

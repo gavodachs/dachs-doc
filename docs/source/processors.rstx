@@ -934,4 +934,5 @@ threshold value, e.g.::
 
 
 .. _utils.imgtools: http://docs.g-vo.org/DaCHS/apidoc/gavo.utils.imgtools-module.html
+.. |date| date::
 .. _CC-0: http://creativecommons.org/publicdomain/zero/1.0

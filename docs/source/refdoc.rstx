@@ -341,7 +341,8 @@ This section contains a few general points for python code embedded in
 DaCHS.  Most of the material applies to procedure definitions (`Element
 apply`_, `Element dataFormatter`_, `Element dataFunction`_, `Element
 descriptorGenerator`_, `Element iterator`_, `Element metaMaker`_,
-`Element mixinProc`_, `Element pargetter`_, `Element phraseMaker`_,
+`Element processEarly`_, `Element processLate`_, 
+`Element pargetter`_, `Element phraseMaker`_,
 `Element regTest`_, `Element rowfilter`_, `Element sourceFields`_) as
 well as to other pieces of code, such as in `Element customGrammar`_,
 `Element customCore`, or `Element customRenderer`.
@@ -736,9 +737,9 @@ Finally, stream meta has ``format=plain`` by default.  To select raw or
 reStructuredText **format**, prefix the value with ``raw:`` or ``rst:``,
 respectively::
 
-_sidebarlocal: raw:<div class="sidebarnote">\
-  <a href="/adql">Try ADQL</a> to query our data.</div>
-description: rst:This is *nice*, **important** data.
+  _sidebarlocal: raw:<div class="sidebarnote">\
+    <a href="/adql">Try ADQL</a> to query our data.</div>
+  description: rst:This is *nice*, **important** data.
 
 
 Meta inheritance
