@@ -5,7 +5,7 @@ DaCHS Reference Documentation
 :Author: Markus Demleitner
 :Email: gavo@ari.uni-heidelberg.de
 :Date: |date|
-:Copyright: Waved under `CC-0`_
+:Copyright: Waived under `CC-0`_
 
 .. contents:: 
   :depth: 2
@@ -154,12 +154,22 @@ mixins, there are predefined procedures (both rowmaker applys and
 grammar rowfilters) that should be used in grammars and/or rowmakers
 feeding the tables mixing in a given mixin.
 
+Note that when a piece of metadata in a mixin gets in your way, you can
+selectively override attributes of columns and params by copying and
+changing them.  For instance, if your mixin ``example#m" gives you a
+column ``flux``, and you need to change its unit, you would say::
+
+  <table mixin="example#m">
+    <column original="flux" unit="mJy"/>
+  </table>
+
 .. replaceWithResult getMixinDocs(docStructure, [
   "//products#table", 
   "//scs#q3cindex", "//scs#pgs-pos-index",
   "//siap#pgs", 
   "//ssap#mixc", "//ssap#hcd",
   "//ssap#view", "//ssap#plainlocation", "//ssap#simpleCoverage",
+  "//timeseries#phot-0",
   "//obscore#publish", "//obscore#publishObscoreLike",
   "//obscore#publishSIAP", "//slap#basic",
   "//ssap#sdm-instance",

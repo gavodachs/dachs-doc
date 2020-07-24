@@ -5,7 +5,7 @@ GAVO DaCHS: DirectGrammars and Boosters
 :Author: Markus Demleitner
 :Email: gavo@ari.uni-heidelberg.de
 :Date: |date|
-:Copyright: Waved under `CC-0`_
+:Copyright: Waived under `CC-0`_
 
 The import architecture of DaCHS with grammars and rowmakers producing
 material suitable for SQL INSERT statements is designed to be flexible

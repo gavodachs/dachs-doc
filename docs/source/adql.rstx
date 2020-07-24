@@ -5,7 +5,7 @@ The GAVO ADQL Library
 :Author: Markus Demleitner
 :Email: gavo@ari.uni-heidelberg.de
 :Date: |date|
-:Copyright: Waved under `CC-0`_
+:Copyright: Waived under `CC-0`_
 
 
 A library to deal with ADQL and have it executed by postgres
