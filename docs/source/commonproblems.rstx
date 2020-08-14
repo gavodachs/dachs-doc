@@ -693,5 +693,21 @@ rest of the society.  In the VO case, ``dachs drop -f`` might, for
 instance, cause stale registry records if you had registered services
 inside of the RD you force-drop.
 
+Key 'dataproduct_type' not found in a mapping
+=============================================
+
+You will see this if you use ``idmaps="*"`` in parmakers for tables
+mixing in timeseries mixins.  This is the result of the expansion of the
+asterisk: It just looks for all params defined in the table and produces
+maps for each of them.
+
+The timeseries mixins predefine a few params (dataproduct_type,
+dataproduct_subtype).  You probably will not (and should not) have them
+in the vars of your parmaker.  But that then lets the map undefined.
+
+This means that you cannot use ``idmaps="*"`` in timeseries parmakers.
+Just enumerate the params you want to map instead (or name them so
+cleverly that you can catch them with another wildcard).
+
 .. |date| date::
 .. _CC-0: http://creativecommons.org/publicdomain/zero/1.0

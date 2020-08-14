@@ -2705,6 +2705,68 @@ producing time series, do two things:
 (2) have ``'timeseries'`` as ssa_dstype in your view definition.
 
 
+Building Time Series VOTables
+'''''''''''''''''''''''''''''
+
+**This section is under construction**
+
+Since there is no actual agreed-upon standard for the serialisation of
+time series, you will probably have to produce time series on the fly;
+DaCHS helps you to produce something that will hopefully follow
+standardisation efforts in the VO without *much* additional work later
+on, using, you guessed it, a mixin.  For now, the only mixin available
+is for photometric timeseries: See :dachsref:`the //timeseries#phot-0
+mixin` to build things.  If you have other time series, please write
+mail to dachs-support.
+
+To see things in action, refer to :samplerd:`k2c9vst/q`, the instance
+table and the corresponding makes.
+
+However, there is an additional complication, showcased in
+:samplerd:`gaia/q2` and :samplerd:`bgds/l`:
+it is quite common to have time series in multiple bands in one
+resource.  For DaCHS, this is a bit of a problem, because the band
+influences quite a bit of the table metadata in DaCHS – this is in the
+mixin, and what you set there is fixed once the table instance is made.
+
+To get around this, look at the technique shown in :samplerd:`bgds/l`.
+This first defines a STREAM ``time-series-template`` with a macros where
+the items very between bands::
+
+	<STREAM id="time-series-template">
+		<table id="instance-\band_short">
+			<mixin	
+				effectiveWavelength="\effective_wavelength"
+				filterIdentifier="\band_human"
+				longitude="@ra"
+				latitude="@dec"
+
+It then uses a LOOP to fill these slots and create one table definition
+per band::
+
+ 	<LOOP>
+		<csvItems>
+			band_short, band_human, band_ucd, effective_wavelength
+			i,          SDSS/i,     em.opt.I, 7.44e-7
+			r,          SDSS/r,     em.opt.R, 6.12e-7
+		</csvItems>
+		<events source="time-series-template"/>
+	</LOOP>
+
+The dispatch between the different table templates then happens in the
+data function of the tsdl service, using a somewhat obscure feature of
+``rsc.Data``: when using the ``createWithTable`` class function, you can
+pass in the table that the data item should make.  This obviously only
+works in specialised circumstances like the one here, but then it's
+really convenient.  So, while the make in ``make_instance`` claim to
+build ``instance-i``, this is really overridden in the data function to
+select the actual table definition::
+
+This will not scale well to many dozens of bands – if you have that,
+you probably want somewhat more hardcore means –, but for the usual
+handful of bands this is a relatively reasonable way to produce 
+time series with nice metadata.
+
 
 Publishing Anything Through Obscore
 -----------------------------------
@@ -4975,7 +5037,7 @@ Upgrading Installations from Debian Packages
 
 (2) Make sure all RDs DaCHS sees are in order:
 
-      dachs val -vc ALL
+      dachs val -vc ALL_RECURSE
 
     Warnings you can usually ignore, but try to the understand messages you
     get.  You can hide known-broken RDs from DaCHS by dropping a file

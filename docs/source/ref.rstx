@@ -1510,7 +1510,7 @@ Atomic Children
   contributing to a published view.  Warning: adql=hidden is
   incompatible with setting readProfiles manually.
 * **allProfiles** (Comma separated list of profile names.; defaults to
-  'admin, msdemlei') -- A (comma separated) list of profile names
+  'msdemlei, admin') -- A (comma separated) list of profile names
   through which the object can be written or administred (oh, and the
   default is not admin, msdemlei but is the value of [db]maintainers)
 * **autoCols** (Comma-separated list of strings; defaults to '') --
@@ -2143,7 +2143,7 @@ Atomic Children
 ...............
 
 * **allProfiles** (Comma separated list of profile names.; defaults to
-  'admin, msdemlei') -- A (comma separated) list of profile names
+  'msdemlei, admin') -- A (comma separated) list of profile names
   through which the object can be written or administred (oh, and the
   default is not admin, msdemlei but is the value of [db]maintainers)
 * **readProfiles** (Comma separated list of profile names.; defaults
@@ -2546,7 +2546,7 @@ Atomic Children
   contributing to a published view.  Warning: adql=hidden is
   incompatible with setting readProfiles manually.
 * **allProfiles** (Comma separated list of profile names.; defaults to
-  'admin, msdemlei') -- A (comma separated) list of profile names
+  'msdemlei, admin') -- A (comma separated) list of profile names
   through which the object can be written or administred (oh, and the
   default is not admin, msdemlei but is the value of [db]maintainers)
 * **dupePolicy** (One of: check, drop, dropOld, overwrite; defaults to
@@ -7512,7 +7512,7 @@ Parameter *dependent_axes*
 Parameter *effectiveWavelength*
   Central wavelength (or similar measure) for the passband used for the photometry, in meters (SIL literal)
 Parameter *filterIdentifier*
-  Identifier for the passband the photometry is for (as defined by the Note; SIL literal).
+  Identifier for the passband the photometry is for (as defined by the Note). This is a SIL literal, and since it will probably contain characters like '/', will likely have to quote it as in ``filterIdentifier='"Gaia/G"'``.
 Parameter *independent_axes*
   defaults to ``[@obs_time]``;
   Axes that describe the time (only change if you define ones in addition to the obs_time provided by the mixin; SIL literal)
@@ -9681,7 +9681,7 @@ Paths and other general settings.
 * logDir: path relative to rootDir; 
   defaults to 'logs' --
   Path to the DC's logs (should be local)
-* logLevel: value from the list debug, error, warning, info; 
+* logLevel: value from the list info, debug, error, warning; 
   defaults to 'info' --
   How much should be logged?
 * maintainerAddress: string; 
@@ -9837,7 +9837,7 @@ The interface to the Greater VO.
   Give access URLs for the alternative protocol (https when serverURL is
   http and vice versa) as a mirrorURL?  If you're listening to HTTPS,
   this is probably a good idea.
-* sdmVersion: value from the list 1, 2; 
+* sdmVersion: value from the list 2, 1; 
   defaults to '1' --
   Obsolete (SDM version 2 is shelved).  Don't use.
 * validOAISets: list of strings; 
@@ -9849,7 +9849,7 @@ The interface to the Greater VO.
   defaults to 'max' --
   Default level of detail to return on the VOSI endpoint (change to min
   when you have more than 100 or tables).
-* votDefaultEncoding: value from the list td, binary; 
+* votDefaultEncoding: value from the list binary, td; 
   defaults to 'binary' --
   Default 'encoding' for VOTables in many places (like the DAL
   responses; this can be user-overridden using the _TDENC local HTTP
@@ -9904,7 +9904,7 @@ Settings related to serving content to the web.
   defaults to 'False' --
   If True, Javascript will not be minified on delivery (this is for
   debugging)
-* logFormat: value from the list combined, default; 
+* logFormat: value from the list default, combined; 
   defaults to 'default' --
   Log format to use.  Default doesn't log IPs, user agents, or referrers
   and thus should be ok in terms of not processing personal data, which

@@ -1291,6 +1291,33 @@ The elements of SIL are:
         {attr1: b}
         {attr1: c}]}
 
+
+Photometry annotation
+'''''''''''''''''''''
+
+To produce photcal groups as per the `2020 Timeseries Note`_ and perhaps
+later specs, use an annotation like this::
+
+  <dm>
+    (phot:PhotCal) {
+      filterIdentifier: "Gaia/G"
+      zeroPointFlux: \zeroPointFlux
+      magnitudeSystem: Vega
+      effectiveWavelength: \effectiveWavelength
+      value: @phot
+    }
+  </dm>
+
+– where ``phot`` would be the column containing the photometry.
+
+When – as is most likely when you want to have the – you are using
+:dachsref:`the //timeseries#phot-0 mixin`, you would only give such a
+group when you have multiple photometry systems in one light curve
+(which you should avoid).  For the first photometry column, this
+declaration is done by the mixin.
+
+.. _2020 Timeseries Note: http://ivoa.net/documents/Notes/LightCurveTimeSeries/
+
 GeoJSON annotation
 ''''''''''''''''''
 
@@ -1850,17 +1877,17 @@ Empty lines and #-on-a-line-comments are allowed in the input.
 As an example, here's the vanity map that DaCHS had builtin as of
 version 2.1::
 
-	__system__/products/p/get getproduct
-	__system__/products/p/dlasync datalinkuws
-	__system__/services/registry/pubreg.xml oai.xml
-	__system__/services/overview/external odoc
-	__system__/dc_tables/show/tablenote tablenote
-	__system__/dc_tables/show/tableinfo tableinfo
-	__system__/services/overview/admin seffe
-	__system__/services/overview/rdinfo browse
-	__system__/tap/run/tap tap
-	__system__/adql/query/form adql !redirect
-	__system__/run/genrd genrd
+  __system__/products/p/get getproduct
+  __system__/products/p/dlasync datalinkuws
+  __system__/services/registry/pubreg.xml oai.xml
+  __system__/services/overview/external odoc
+  __system__/dc_tables/show/tablenote tablenote
+  __system__/dc_tables/show/tableinfo tableinfo
+  __system__/services/overview/admin seffe
+  __system__/services/overview/rdinfo browse
+  __system__/tap/run/tap tap
+  __system__/adql/query/form adql !redirect
+  __system__/run/genrd genrd
 
 Note again that ``<key>`` must be a *single* path element only.
 
@@ -2819,8 +2846,8 @@ To help clients notice that that is what they are, declare a target type
 by adding::
 
   <property name="targetType"
-		>application/x-votable+xml;content=datalink</property>
-	<property name="targetTitle">Datalink</property>
+    >application/x-votable+xml;content=datalink</property>
+  <property name="targetTitle">Datalink</property>
 
 into the element (``column`` or ``outputField``) content.   In VOTables,
 this will be turned into LINK elements.
@@ -2846,7 +2873,6 @@ Here is an example, adapted from :samplerd:`boydende/q.rd`::
       <descriptorGenerator procDef="//soda#fits_genDesc"/>
       <metaMaker semantics="#isMetadataFor">
         <code>
-          svc = rd.getById("dl")
           basename = descriptor.accref.split("/")[-1].split(".")[0]
           envPath = "data/static/envelopes/{0}.jpg".format(basename)
 
@@ -2913,10 +2939,12 @@ this::
     <datalinkCore .../>
   </service>
 
-Note that, of course, exposing  directory via the static renderer like
+Note that, of course, exposing a directory via the static renderer like
 this bypasses any access restrictions (e.g., embargos) on the respective
-data.  So, do not expose you primary data in this way if you want to
-enforce access control.
+data.  So, do not do with with your primary data if you want to
+enforce access control.  Also, there currently is no way to control the
+media types returned in this way except by editing the system mime.types
+information.  Let us know if that is a problem for you.
 
 A ``LinkDef`` for the product itself (semantics ``#this``) and, if
 defined in the product table, a preview (semantics ``#preview``) is
@@ -3680,16 +3708,16 @@ output table, this could look like this (the datalink service would have
 an id of “dl” here; this also assumes you have a column named
 ``pub_did``)::
 
-	<outputField name="datalink" type="text" id="datalink_output"
-		  ucd="meta.ref.url"
-		  select="'\getConfig{web}{serverURL}/\rdId/dl/dlmeta?ID='
-			  || gavo_urlescape(pub_did)"
-		  tablehead="DL"
-		  description="URL of a datalink document for this dataset."
-		  displayHint="type=url" verbLevel="1">
-		<property name="targetType"
-			>application/x-votable+xml;content=datalink</property>
-		<property name="targetTitle">Datalink</property>
+  <outputField name="datalink" type="text" id="datalink_output"
+      ucd="meta.ref.url"
+      select="'\getConfig{web}{serverURL}/\rdId/dl/dlmeta?ID='
+        || gavo_urlescape(pub_did)"
+      tablehead="DL"
+      description="URL of a datalink document for this dataset."
+      displayHint="type=url" verbLevel="1">
+    <property name="targetType"
+      >application/x-votable+xml;content=datalink</property>
+    <property name="targetTitle">Datalink</property>
   </outputField>
 
 When your product link is a datalink, you have to amend the ``accref``
