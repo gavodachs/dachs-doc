@@ -11,14 +11,4 @@ which is better suited for online use -- and
 (including the reference manual and the element reference) [at ARI,
 Heidelberg](http://docs.g-vo.org/DaCHS/) -- this lets you download PDFs.
 
-Plans for expansion include:
-
-* Features-organized examples (some sort of "gallery")
-* More accessible documentation separated by the different layers DaCHS
-  handles, i.e.:
-  * Data output/retrieved (services)
-  * Query/request interfaces (renderers)
-  * Input data processing (grammars)
-  * Resources metadata
-
 [![Documentation Status](https://readthedocs.org/projects/dachs-doc/badge/?version=latest)](http://dachs-doc.readthedocs.io/?badge=latest)
