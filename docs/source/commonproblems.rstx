@@ -709,5 +709,16 @@ This means that you cannot use ``idmaps="*"`` in timeseries parmakers.
 Just enumerate the params you want to map instead (or name them so
 cleverly that you can catch them with another wildcard).
 
+psycopg2.ProgrammingError: type "smoc" does not exist
+=====================================================
+
+This means that you are using a pgsphere (the postgres extension that
+does the spherical geometry within the database) does not support MOCs.
+This is true for the postgresql-pgsphere type that comes with Debian
+buster.
+
+To fix this, either don't use smocs – or install the
+postgresql-11-pgsphere package coming from GAVO's repository).
+
 .. |date| date::
 .. _CC-0: http://creativecommons.org/publicdomain/zero/1.0

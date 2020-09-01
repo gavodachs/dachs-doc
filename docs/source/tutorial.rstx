@@ -4048,6 +4048,18 @@ in :dachsdoc:`templating.html#the-root-template`.
 Note that for DaCHS to notice you have overridden a built-in file, you
 must restart it once.
 
+If you have special needs, there is also the ``[web]root`` configuration
+item.  Set that to a relative path to replace the root service (which
+defines custom data functions such as titleList, chunkedServicesList and
+such used in the root templates) with a completely different service.
+Typical uses for this include pointing people directly to the service on
+single-service installations, or pointing to the ADQL form when what you
+are really doing is run a TAP-only system; in that latter case, you
+would say::
+
+  [web]
+  root: __system__/adql/query/form
+
 
 Extra Sidebar Items
 '''''''''''''''''''

@@ -176,6 +176,8 @@ May occur in `Element phraseMaker`_, `Element apply`_, `Element job`_, `Element 
 Atomic Children
 ...............
 
+* **alias** (unicode string; defaults to None) -- A deprecated name
+  for the parameter
 * Character content of the element (defaulting to <Not given/empty>)
   -- The default for the parameter. The special value __NULL__
   indicates a NULL (python None) as usual. An empty content means a
@@ -891,8 +893,8 @@ most common usage here will be to just index a single column::
 
   <index columns="my_col"/>
 
-To index over functions, use  the character content; parentheses are added
-by DaCHS, so don't have them in the content.  An explicit specification
+To index over functions, use  the character content; you will have 
+to put parentheses when using expressions.  An explicit specification
 of the index expression is also necessary to allow RE pattern matches using
 indices in character columns (outside of the C locale).  That would be::
 
@@ -1326,6 +1328,8 @@ May occur in `Element mixinDef`_.
 Atomic Children
 ...............
 
+* **alias** (unicode string; defaults to None) -- A deprecated name
+  for the parameter
 * Character content of the element (defaulting to <Not given/empty>)
   -- The default for the parameter. A __NULL__ here does not directly
   mean None/NULL, but since the content will frequently end up in
@@ -1577,6 +1581,8 @@ Structure Children
   times) -- Param ("global columns") for this table.
 * registration (contains `Element publish (data)`_) -- A registration
   (to the VO registry) of this table or data collection.
+* scripts (contains `Element script`_ and may be repeated zero or more
+  times) -- Code snippets attached to this object.  See Scripting_ .
 * stc (contains `Element stc`_ and may be repeated zero or more times)
   -- STC-S definitions of coordinate systems.
 
@@ -1606,6 +1612,8 @@ May occur in `Element setup`_.
 Atomic Children
 ...............
 
+* **alias** (unicode string; defaults to None) -- A deprecated name
+  for the parameter
 * Character content of the element (defaulting to <Not given/empty>)
   -- The default for the parameter. The special value __NULL__
   indicates a NULL (python None) as usual. An empty content means a
@@ -2329,7 +2337,7 @@ for housekeeping scripts).
 
 See `Scripting`_.
 
-May occur in `Element make`_, `Element resource`_.
+May occur in `Element make`_, `Element table`_, `Element outputTable`_, `Element resource`_.
 
 Atomic Children
 ...............
@@ -2347,7 +2355,8 @@ Atomic Children
   method.  The general rules for advanced referencing in RDs apply.
 * **type** (One of: beforeDrop, newSource, postCreation, preCreation,
   preImport, preIndex, sourceDone; defaults to <Undefined>) -- Point
-  of time at which script is to run.
+  of time at which script is to run (not all script types are allowed
+  on all elements).
 
 Element service
 '''''''''''''''
@@ -2607,6 +2616,8 @@ Structure Children
   times) -- Param ("global columns") for this table.
 * registration (contains `Element publish (data)`_) -- A registration
   (to the VO registry) of this table or data collection.
+* scripts (contains `Element script`_ and may be repeated zero or more
+  times) -- Code snippets attached to this object.  See Scripting_ .
 * stc (contains `Element stc`_ and may be repeated zero or more times)
   -- STC-S definitions of coordinate systems.
 
@@ -6399,129 +6410,126 @@ in products.
 Note: you must say ``dachs imp //obscore`` before anything 
 obscore-related will work.
 
-Sorry for the stupid idea to mogrify obscore names in the mixin
-parameters.
-
 
 This mixin has the following parameters:
 
 
-Parameter *accessURL*
+Parameter *access_estsize*
+  defaults to ``accsize/1024``;
+  The estimated size of the product in kilobytes. Only touch when you do not mix in products#table.
+Parameter *access_format*
+  defaults to ``mime``;
+  The MIME type of the product file. Only touch if you do not mix in products.
+Parameter *access_url*
   defaults to ``accref``;
   URL at which the product can be obtained. Leave as is for tables mixing in products.
-Parameter *calibLevel*
+Parameter *calib_level*
   defaults to ``0``;
   Calibration level of data, a number between 0 and 3; for details, see http://dc.g-vo.org/tableinfo/ivoa.obscore#note-calib
-Parameter *collectionName*
-  defaults to ``'unnamed'``;
-  A human-readable name for this collection. This should be short, so don't just use the resource title
-Parameter *coverage*
-  defaults to ``NULL``;
-  A polygon giving the spatial coverage of the data set; this must always be in ICRS. This is cast to an pgsphere spoly, which currently means that you have to provide an spoly (reference), too.
 Parameter *createDIDIndex*
   defaults to ``False``;
   Index whatever expression you give for the dataset identifier? You probably want this on tables with more than a few hundred datasets unless the DID is in a column that you already index anyway.
-Parameter *creatorDID*
+Parameter *dataproduct_subtype*
   defaults to ``NULL``;
-  Global identifier of the data set assigned by the creator. Leave NULL unless the creator actually assigned an IVO id herself.
-Parameter *dec*
-  defaults to ``NULL``;
-  Center Dec
-Parameter *did*
-  defaults to ``$COMPUTE``;
-  Global identifier of the data set. Leave $COMPUTE for tables mixing in products.
-Parameter *emMax*
+  File subtype. Details pending
+Parameter *dataproduct_type*
+  Data product type; one of image, cube, spectrum, sed, timeseries, visibility, event, or NULL if None of the above
+Parameter *em_max*
   defaults to ``NULL``;
   Upper bound of wavelengths represented in the data set, in meters.
-Parameter *emMin*
+Parameter *em_min*
   defaults to ``NULL``;
   Lower bound of wavelengths represented in the data set, in meters.
-Parameter *emResPower*
+Parameter *em_res_power*
   defaults to ``NULL``;
   Spectral resolution as lambda/delta lambda
-Parameter *emUCD*
+Parameter *em_ucd*
   defaults to ``NULL``;
   UCD of the spectral axis as defined by the spectrum DM, plus a few values defined in obscore 1.1 for Doppler axes
-Parameter *emXel*
+Parameter *em_xel*
   defaults to ``NULL``;
   Number of samples along the spectral axis
-Parameter *expTime*
-  defaults to ``NULL``;
-  Total time of event counting. This simply is tMax-tMin for simple exposures.
-Parameter *facilityName*
+Parameter *facility_name*
   defaults to ``NULL``;
   The institute or observatory at which the data was produced
-Parameter *fov*
-  defaults to ``NULL``;
-  Approximate diameter of region covered
-Parameter *instrumentName*
+Parameter *instrument_name*
   defaults to ``NULL``;
   The instrument that produced the data
-Parameter *mime*
-  defaults to ``mime``;
-  The MIME type of the product file. Only touch if you do not mix in products.
-Parameter *oUCD*
+Parameter *o_ucd*
   defaults to ``NULL``;
   UCD of the observable quantity, e.g., em.opt for wide-band optical frames.
-Parameter *obsId*
+Parameter *obs_collection*
+  defaults to ``'unnamed'``;
+  A human-readable name for this collection. This should be short, so don't just use the resource title
+Parameter *obs_creator_did*
+  defaults to ``NULL``;
+  Global identifier of the data set assigned by the creator. Leave NULL unless the creator actually assigned an IVO id themselves.
+Parameter *obs_id*
   defaults to ``accref``;
   Identifier of the data set. Only change this when you do not mix in products.
-Parameter *polStates*
+Parameter *obs_publisher_did*
+  defaults to ``__COMPUTE__``;
+  Global identifier of the data set. Leave __COMPUTE__ for tables mixing in products.
+Parameter *obs_title*
+  defaults to ``NULL``;
+  A human-readable title of the data set.
+Parameter *pol_states*
   defaults to ``NULL``;
   List of polarization states present in the data; if you give something, use the convention of choosing the appropriate from {I Q U V RR LL RL LR XX YY XY YX POLI POLA} and write them *in alphabetical order* with / separators, e.g. /I/Q/XX/.
-Parameter *polXel*
+Parameter *pol_xel*
   defaults to ``NULL``;
   Number of polarisation states in this product
 Parameter *preview*
   defaults to ``accref || '?preview=True'``;
   The preview URL will point to the products service; if you don't have any previews, you will have to set this to NULL manually.
-Parameter *productSubtype*
+Parameter *s_dec*
   defaults to ``NULL``;
-  File subtype. Details pending
-Parameter *productType*
-  Data product type; one of image, cube, spectrum, sed, timeseries, visibility, event, or NULL if None of the above
-Parameter *ra*
+  Center Dec
+Parameter *s_fov*
   defaults to ``NULL``;
-  Center RA
-Parameter *sPixelScale*
+  Approximate diameter of region covered
+Parameter *s_pixel_scale*
   defaults to ``NULL``;
   Size of a spatial pixel (in arcsec)
-Parameter *sResolution*
+Parameter *s_ra*
+  defaults to ``NULL``;
+  Center RA
+Parameter *s_region*
+  defaults to ``NULL``;
+  A polygon giving the spatial coverage of the data set; this must always be in ICRS. This is cast to an pgsphere spoly, which currently means that you have to provide an spoly (reference), too.
+Parameter *s_resolution*
   defaults to ``NULL``;
   The (best) angular resolution within the data set, in arcsecs
-Parameter *sXel1*
+Parameter *s_xel1*
   defaults to ``NULL``;
   Number of pixels along the first spatial axis
-Parameter *sXel2*
+Parameter *s_xel2*
   defaults to ``NULL``;
   Number of pixels along the second spatial axis
-Parameter *size*
-  defaults to ``accsize/1024``;
-  The estimated size of the product in kilobytes. Only touch when you do not mix in products#table.
-Parameter *sourceTable*
+Parameter *source_table*
   defaults to ``'\qName'``;
   The table this is mixed into (you probably don't want to change this).
-Parameter *tMax*
+Parameter *t_exptime*
+  defaults to ``NULL``;
+  Total time of event counting. This simply is t_max-t_min for simple exposures.
+Parameter *t_max*
   defaults to ``NULL``;
   MJD for the upper bound of times covered in the data set. See tMin
-Parameter *tMin*
+Parameter *t_min*
   defaults to ``NULL``;
   MJD for the lower bound of times covered in the data set (e.g. start of exposure). Use ts_to_mjd(ts) to get this from a postgres timestamp.
-Parameter *tResolution*
+Parameter *t_resolution*
   defaults to ``NULL``;
-  Temporal resolution
-Parameter *tXel*
+  Temporal resolution (in seconds)
+Parameter *t_xel*
   defaults to ``NULL``;
   Number of samples along the time axis
-Parameter *targetClass*
+Parameter *target_class*
   defaults to ``NULL``;
   Class of target object(s). You should take whatever you put here from http://simbad.u-strasbg.fr/guide/chF.htx
-Parameter *targetName*
+Parameter *target_name*
   defaults to ``NULL``;
   Name of the target object.
-Parameter *title*
-  defaults to ``NULL``;
-  A human-readable title of the data set.
 
 The //obscore#publishObscoreLike Mixin
 ''''''''''''''''''''''''''''''''''''''
@@ -6677,136 +6685,134 @@ mean, refer to //obscore#publish.
 Note: you must say ``dachs imp //obscore`` before anything 
 obscore-related will work.
 
-Sorry for the stupid idea to mogrify obscore names in the mixin
-parameters.
-
 
 This mixin has the following parameters:
 
 
-Parameter *accessURL*
+Parameter *access_estsize*
+  defaults to ``accsize/1024``;
+  The estimated size of the product in kilobytes. Only touch when you do not mix in products#table.
+Parameter *access_format*
+  defaults to ``mime``;
+  The MIME type of the product file. Only touch if you do not mix in products.
+Parameter *access_url*
   defaults to ``accref``;
   URL at which the product can be obtained. Leave as is for tables mixing in products.
-Parameter *calibLevel*
+Parameter *calib_level*
   defaults to ``0``;
   Calibration level of data, a number between 0 and 3; for details, see http://dc.g-vo.org/tableinfo/ivoa.obscore#note-calib
-Parameter *collectionName*
-  defaults to ``'unnamed'``;
-  A human-readable name for this collection. This should be short, so don't just use the resource title
-Parameter *coverage*
-  defaults to ``coverage``;
-  preset for SIAP
 Parameter *createDIDIndex*
   defaults to ``False``;
   Index whatever expression you give for the dataset identifier? You probably want this on tables with more than a few hundred datasets unless the DID is in a column that you already index anyway.
-Parameter *creatorDID*
+Parameter *dataproduct_subtype*
   defaults to ``NULL``;
-  Global identifier of the data set assigned by the creator. Leave NULL unless the creator actually assigned an IVO id herself.
-Parameter *dec*
-  defaults to ``centerDelta``;
+  File subtype. Details pending
+Parameter *dataproduct_type*
+  defaults to ``'image'``;
   preset for SIAP
-Parameter *did*
-  defaults to ``$COMPUTE``;
-  Global identifier of the data set. Leave $COMPUTE for tables mixing in products.
-Parameter *emMax*
+Parameter *em_max*
   defaults to ``bandpassHi``;
   preset for SIAP
-Parameter *emMin*
+Parameter *em_min*
   defaults to ``bandpassLo``;
   preset for SIAP
-Parameter *emResPower*
+Parameter *em_res_power*
   defaults to ``NULL``;
   Spectral resolution as lambda/delta lambda
-Parameter *emUCD*
+Parameter *em_ucd*
   defaults to ``NULL``;
   UCD of the spectral axis as defined by the spectrum DM, plus a few values defined in obscore 1.1 for Doppler axes
-Parameter *emXel*
+Parameter *em_xel*
   defaults to ``NULL``;
   Number of samples along the spectral axis
-Parameter *expTime*
-  defaults to ``NULL``;
-  Total time of event counting. This simply is tMax-tMin for simple exposures.
-Parameter *facilityName*
+Parameter *facility_name*
   defaults to ``\sqlquote{\metaSeq{facility}{NULL}}``;
-  Default should work for you
-Parameter *fov*
-  defaults to ``pixelScale[1]*pixelSize[1]``;
-  preset for SIAP; we use the extent along the X axis as a very rough estimate for the size. If you can do better, by all means do.
-Parameter *instrumentName*
+  Default is to take from resource meta
+Parameter *instrument_name*
   defaults to ``instId``;
   The instrument that produced the data
-Parameter *mime*
-  defaults to ``mime``;
-  The MIME type of the product file. Only touch if you do not mix in products.
-Parameter *oUCD*
+Parameter *o_ucd*
   defaults to ``'em.opt'``;
-  preset for SIAP; fix if you either know more about the band of if your images are not in the optical.
-Parameter *obsId*
+  preset for SIAP; fix if you either know more about the band or if your images are not in the optical.
+Parameter *obs_collection*
+  defaults to ``'unnamed'``;
+  A human-readable name for this collection. This should be short, so don't just use the resource title
+Parameter *obs_creator_did*
+  defaults to ``NULL``;
+  Global identifier of the data set assigned by the creator. Leave NULL unless the creator actually assigned an IVO id themselves.
+Parameter *obs_id*
   defaults to ``accref``;
   Identifier of the data set. Only change this when you do not mix in products.
-Parameter *polStates*
+Parameter *obs_publisher_did*
+  defaults to ``__COMPUTE__``;
+  Global identifier of the data set. Leave __COMPUTE__ for tables mixing in products.
+Parameter *obs_title*
+  defaults to ``imageTitle``;
+  preset for SIAP
+Parameter *pol_states*
   defaults to ``NULL``;
   List of polarization states present in the data; if you give something, use the convention of choosing the appropriate from {I Q U V RR LL RL LR XX YY XY YX POLI POLA} and write them *in alphabetical order* with / separators, e.g. /I/Q/XX/.
-Parameter *polXel*
+Parameter *pol_xel*
   defaults to ``NULL``;
   Number of polarisation states in this product
 Parameter *preview*
   defaults to ``accref || '?preview=True'``;
   The preview URL will point to the products service; if you don't have any previews, you will have to set this to NULL manually.
-Parameter *productSubtype*
-  defaults to ``NULL``;
-  File subtype. Details pending
-Parameter *productType*
-  defaults to ``'image'``;
+Parameter *s_dec*
+  defaults to ``centerDelta``;
   preset for SIAP
-Parameter *ra*
+Parameter *s_fov*
+  defaults to ``pixelScale[1]*pixelSize[1]``;
+  preset for SIAP; we use the extent along the X axis as a very rough estimate for the size. If you can do better, by all means do.
+Parameter *s_pixel_scale*
+  defaults to ``pixelScale[1]/3600``;
+  preset for SIAP
+Parameter *s_ra*
   defaults to ``centerAlpha``;
   preset for SIAP
-Parameter *sPixelScale*
-  defaults to ``pixelScale[0]/3600``;
+Parameter *s_region*
+  defaults to ``coverage``;
   preset for SIAP
-Parameter *sResolution*
+Parameter *s_resolution*
   defaults to ``pixelScale[1]*3600``;
   preset for SIAP; this is just the pixel scale in one dimension. If that's seriously wrong or you have uncalibrated images in your collection, you may need to be more careful here.
-Parameter *sXel1*
+Parameter *s_xel1*
   defaults to ``pixelSize[1]``;
   preset for SIAP
-Parameter *sXel2*
+Parameter *s_xel2*
   defaults to ``pixelSize[2]``;
   preset for SIAP
-Parameter *size*
-  defaults to ``accsize/1024``;
-  The estimated size of the product in kilobytes. Only touch when you do not mix in products#table.
-Parameter *sourceTable*
+Parameter *source_table*
   defaults to ``'\qName'``;
   The table this is mixed into (you probably don't want to change this).
-Parameter *tMax*
+Parameter *t_exptime*
+  defaults to ``NULL``;
+  Total time of event counting. This simply is t_max-t_min for simple exposures.
+Parameter *t_max*
   defaults to ``dateObs``;
   preset for SIAP; if you want, change this to end of observation as available.
-Parameter *tMin*
+Parameter *t_min*
   defaults to ``dateObs``;
   preset for SIAP; if you want, change this to start of observation as available.
-Parameter *tResolution*
+Parameter *t_resolution*
   defaults to ``NULL``;
-  Temporal resolution
-Parameter *tXel*
+  Temporal resolution (in seconds)
+Parameter *t_xel*
   defaults to ``NULL``;
   Number of samples along the time axis
-Parameter *targetClass*
+Parameter *target_class*
   defaults to ``NULL``;
   Class of target object(s). You should take whatever you put here from http://simbad.u-strasbg.fr/guide/chF.htx
-Parameter *targetName*
+Parameter *target_name*
   defaults to ``NULL``;
   Name of the target object.
-Parameter *title*
-  defaults to ``imageTitle``;
-  preset for SIAP
 
 The //obscore#publishSSAPMIXC Mixin
 '''''''''''''''''''''''''''''''''''
 
 
-Publish a table mixing in //ssap#mixc to ObsTAP.
+Publish a table mixing in //ssap#view (or the deprecated //ssap#mixc) 
+to ObsTAP.
 
 This works like `the //obscore#publish mixin`_ except some defaults apply
 that copy fields that work analoguously in SSAP and in ObsTAP.
@@ -6826,129 +6832,129 @@ have s_region is to add (and index) a custom field; the
 Note: you must say ``dachs imp //obscore`` before anything 
 obscore-related will work.
 
-Sorry for the stupid idea to mogrify obscore names in the mixin
-parameters.
-
 
 This mixin has the following parameters:
 
 
-Parameter *accessURL*
+Parameter *access_estsize*
+  defaults to ``accsize/1024``;
+  The estimated size of the product in kilobytes. Only touch when you do not mix in products#table.
+Parameter *access_format*
+  defaults to ``mime``;
+  The MIME type of the product file. Only touch if you do not mix in products.
+Parameter *access_url*
   defaults to ``accref``;
   URL at which the product can be obtained. Leave as is for tables mixing in products.
-Parameter *calibLevel*
+Parameter *calib_level*
   defaults to ``0``;
   Calibration level of data, a number between 0 and 3; for details, see http://dc.g-vo.org/tableinfo/ivoa.obscore#note-calib
-Parameter *collectionName*
-  defaults to ``ssa_collection``;
-  Default should work for you
-Parameter *coverage*
-  defaults to ``NULL``;
-  Use ssa_region when the table also mixes in //ssap#simpleCoverage
 Parameter *createDIDIndex*
   defaults to ``False``;
   Index whatever expression you give for the dataset identifier? You probably want this on tables with more than a few hundred datasets unless the DID is in a column that you already index anyway.
-Parameter *creatorDID*
-  defaults to ``ssa_creatorDID``;
+Parameter *dataproduct_subtype*
+  defaults to ``NULL``;
+  File subtype. Details pending
+Parameter *dataproduct_type*
+  defaults to ``ssa_dstype``;
   Default should work for you
-Parameter *dec*
-  defaults to ``degrees(lat(ssa_location))``;
-  Default should work for you; for large data collections, consider having a separate Dec column with a q3c index.
-Parameter *did*
-  defaults to ``ssa_pubdid``;
-  Default should work for you.
-Parameter *emMax*
+Parameter *em_max*
   defaults to ``ssa_specend``;
   Default should work for you
-Parameter *emMin*
+Parameter *em_min*
   defaults to ``ssa_specstart``;
   Default should work for you
-Parameter *emResPower*
+Parameter *em_res_power*
   defaults to ``ssa_specstart/ssa_specres``;
   Default should work for you
-Parameter *emUCD*
+Parameter *em_ucd*
   defaults to ``\sqlquote{\getParam{ssa_spectralucd}}``;
   Default should work for you
-Parameter *emXel*
+Parameter *em_xel*
   defaults to ``ssa_length``;
   Default should work for you
-Parameter *expTime*
-  defaults to ``ssa_timeExt``;
-  Default should work for you
-Parameter *facilityName*
+Parameter *facility_name*
   defaults to ``\sqlquote{\metaSeq{facility}{NULL}}``;
   Default should work for you
-Parameter *fov*
-  defaults to ``ssa_aperture``;
-  Default should work for you
-Parameter *instrumentName*
+Parameter *instrument_name*
   defaults to ``ssa_instrument``;
   Default should work for you
-Parameter *mime*
-  defaults to ``mime``;
-  The MIME type of the product file. Only touch if you do not mix in products.
-Parameter *oUCD*
+Parameter *o_ucd*
   defaults to ``\sqlquote{\getParam{ssa_fluxucd}}``;
   Default should work for you
-Parameter *obsId*
+Parameter *obs_collection*
+  defaults to ``ssa_collection``;
+  Default should work for you
+Parameter *obs_creator_did*
+  defaults to ``ssa_creatorDID``;
+  Default should work for you
+Parameter *obs_id*
   defaults to ``accref``;
   Identifier of the data set. Only change this when you do not mix in products.
-Parameter *polStates*
+Parameter *obs_publisher_did*
+  defaults to ``ssa_pubdid``;
+  Default should work for you.
+Parameter *obs_title*
+  defaults to ``ssa_dstitle``;
+  Default should work for you
+Parameter *pol_states*
   defaults to ``NULL``;
   List of polarization states present in the data; if you give something, use the convention of choosing the appropriate from {I Q U V RR LL RL LR XX YY XY YX POLI POLA} and write them *in alphabetical order* with / separators, e.g. /I/Q/XX/.
-Parameter *polXel*
+Parameter *pol_xel*
   defaults to ``NULL``;
   Number of polarisation states in this product
 Parameter *preview*
   defaults to ``accref || '?preview=True'``;
   The preview URL will point to the products service; if you don't have any previews, you will have to set this to NULL manually.
-Parameter *productSubtype*
-  defaults to ``NULL``;
-  File subtype. Details pending
-Parameter *productType*
-  defaults to ``ssa_dstype``;
+Parameter *s_dec*
+  defaults to ``degrees(lat(ssa_location))``;
+  Default should work for you; for large data collections, consider having a separate Dec column with a q3c index.
+Parameter *s_fov*
+  defaults to ``ssa_aperture``;
   Default should work for you
-Parameter *ra*
-  defaults to ``degrees(long(ssa_location))``;
-  Default should work for you; for large data collections, consider having a separate RA column with a q3c index.
-Parameter *sPixelScale*
+Parameter *s_pixel_scale*
   defaults to ``NULL``;
   Size of a spatial pixel (in arcsec)
-Parameter *sResolution*
+Parameter *s_ra*
+  defaults to ``degrees(long(ssa_location))``;
+  Default should work for you; for large data collections, consider having a separate RA column with a q3c index.
+Parameter *s_region*
+  defaults to ``NULL``;
+  Use ssa_region when the table also mixes in //ssap#simpleCoverage
+Parameter *s_resolution*
   defaults to ``\getParam{ssa_spaceRes}{NULL}/3600.``;
   Default should work for you
-Parameter *sXel1*
-  defaults to ``NULL``;
-  Number of pixels along the first spatial axis
-Parameter *sXel2*
-  defaults to ``NULL``;
-  Number of pixels along the second spatial axis
-Parameter *size*
-  defaults to ``accsize/1024``;
-  The estimated size of the product in kilobytes. Only touch when you do not mix in products#table.
-Parameter *sourceTable*
+Parameter *s_xel1*
+  defaults to ``1``;
+  You shouldn't use SSA for cubes.
+Parameter *s_xel2*
+  defaults to ``1``;
+  You shouldn't use SSA for cubes.
+Parameter *source_table*
   defaults to ``'\qName'``;
   The table this is mixed into (you probably don't want to change this).
-Parameter *tMax*
+Parameter *t_exp_time*
+  defaults to ``ssa_timeExt``;
+  Default should work for you
+Parameter *t_exptime*
+  defaults to ``NULL``;
+  Total time of event counting. This simply is t_max-t_min for simple exposures.
+Parameter *t_max*
   defaults to ``ssa_dateObs+ssa_timeExt/43200.``;
   Default should work for you
-Parameter *tMin*
+Parameter *t_min*
   defaults to ``ssa_dateObs-ssa_timeExt/43200.``;
   Default should work for you
-Parameter *tResolution*
+Parameter *t_resolution*
   defaults to ``NULL``;
-  Temporal resolution
-Parameter *tXel*
+  Temporal resolution (in seconds)
+Parameter *t_xel*
   defaults to ``NULL``;
   Number of samples along the time axis
-Parameter *targetClass*
+Parameter *target_class*
   defaults to ``ssa_targclass``;
   Default should work for you
-Parameter *targetName*
+Parameter *target_name*
   defaults to ``ssa_targname``;
-  Default should work for you
-Parameter *title*
-  defaults to ``ssa_dstitle``;
   Default should work for you
 
 The //products#table Mixin
@@ -9681,7 +9687,7 @@ Paths and other general settings.
 * logDir: path relative to rootDir; 
   defaults to 'logs' --
   Path to the DC's logs (should be local)
-* logLevel: value from the list info, debug, error, warning; 
+* logLevel: value from the list info, debug, warning, error; 
   defaults to 'info' --
   How much should be logged?
 * maintainerAddress: string; 
@@ -9837,7 +9843,7 @@ The interface to the Greater VO.
   Give access URLs for the alternative protocol (https when serverURL is
   http and vice versa) as a mirrorURL?  If you're listening to HTTPS,
   this is probably a good idea.
-* sdmVersion: value from the list 2, 1; 
+* sdmVersion: value from the list 1, 2; 
   defaults to '1' --
   Obsolete (SDM version 2 is shelved).  Don't use.
 * validOAISets: list of strings; 
@@ -9845,7 +9851,7 @@ The interface to the Greater VO.
   Comma-separated list of OAI sets DaCHS should accept for publication.
   This must always include ivo_managed and vosi, and you will want local
   if you run a web interface.
-* VOSITableDetail: value from the list min, max; 
+* VOSITableDetail: value from the list max, min; 
   defaults to 'max' --
   Default level of detail to return on the VOSI endpoint (change to min
   when you have more than 100 or tables).
@@ -9899,12 +9905,12 @@ Settings related to serving content to the web.
   scaled version of the logo.
 * graphicMimes: list of strings; 
   defaults to 'image/fits,image/jpeg,application/x-votable+xml;content=datalink' --
-  MIME types considered as graphics (for SIAP, mostly)
+  Media types considered as graphics (for SIAP, mostly)
 * jsSource: boolean; 
   defaults to 'False' --
   If True, Javascript will not be minified on delivery (this is for
   debugging)
-* logFormat: value from the list default, combined; 
+* logFormat: value from the list combined, default; 
   defaults to 'default' --
   Log format to use.  Default doesn't log IPs, user agents, or referrers
   and thus should be ok in terms of not processing personal data, which
@@ -9948,6 +9954,12 @@ Settings related to serving content to the web.
   defaults to 'X-Unconfigured' --
   Authentication realm to be used (currently, only one, server-wide, is
   supported)
+* root: string; 
+  defaults to '__system__/services/root/fixed' --
+  The path of the the root page of the data center.  The default renders
+  the root.html template.  On single-service installations, you could
+  direct this to that single service, or you could use the ADQL query
+  form.
 * serverFDLimit: integer; 
   defaults to '4000' --
   A hard limit of the number of file handles DaCHS should try to set.
@@ -11487,6 +11499,33 @@ The elements of SIL are:
         {attr1: a}  /* all of these are now treated as testdm:otherclass */
         {attr1: b}
         {attr1: c}]}
+
+
+Photometry annotation
+'''''''''''''''''''''
+
+To produce photcal groups as per the `2020 Timeseries Note`_ and perhaps
+later specs, use an annotation like this::
+
+  <dm>
+    (phot:PhotCal) {
+      filterIdentifier: "Gaia/G"
+      zeroPointFlux: \zeroPointFlux
+      magnitudeSystem: Vega
+      effectiveWavelength: \effectiveWavelength
+      value: @phot
+    }
+  </dm>
+
+– where ``phot`` would be the column containing the photometry.
+
+When – as is most likely when you want to have the – you are using
+:dachsref:`the //timeseries#phot-0 mixin`, you would only give such a
+group when you have multiple photometry systems in one light curve
+(which you should avoid).  For the first photometry column, this
+declaration is done by the mixin.
+
+.. _2020 Timeseries Note: http://ivoa.net/documents/Notes/LightCurveTimeSeries/
 
 GeoJSON annotation
 ''''''''''''''''''
@@ -13126,7 +13165,6 @@ Here is an example, adapted from :samplerd:`boydende/q.rd`::
       <descriptorGenerator procDef="//soda#fits_genDesc"/>
       <metaMaker semantics="#isMetadataFor">
         <code>
-          svc = rd.getById("dl")
           basename = descriptor.accref.split("/")[-1].split(".")[0]
           envPath = "data/static/envelopes/{0}.jpg".format(basename)
 
@@ -13193,10 +13231,12 @@ this::
     <datalinkCore .../>
   </service>
 
-Note that, of course, exposing  directory via the static renderer like
+Note that, of course, exposing a directory via the static renderer like
 this bypasses any access restrictions (e.g., embargos) on the respective
-data.  So, do not expose you primary data in this way if you want to
-enforce access control.
+data.  So, do not do with with your primary data if you want to
+enforce access control.  Also, there currently is no way to control the
+media types returned in this way except by editing the system mime.types
+information.  Let us know if that is a problem for you.
 
 A ``LinkDef`` for the product itself (semantics ``#this``) and, if
 defined in the product table, a preview (semantics ``#preview``) is
@@ -15669,6 +15709,11 @@ You can pass an exclusive boolean kw argument; if you do, the
 ``iterQuery`` (and possibly similar methods in the future) method
 will block concurrent writes to the selected rows ("FOR UPDATE")
 as long as the transaction is active.
+
+DbTables will run preCreation, preIndex, postCreation, and beforeDrop
+scripts, both from the table definition and the make they are being
+created from.  No scripts except beforeDrop are run when an existing table is
+operated on from an updating dd.
 
 The main attributes (with API guarantees) include:
 
