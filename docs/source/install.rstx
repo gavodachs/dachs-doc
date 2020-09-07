@@ -50,6 +50,12 @@ The following instructions were mainly written by Chris Piker (U Iowa)
 – thanks! – and reflect the state on CentOS 7.  The systemd parts are
 probably applicable beyond the RPM universe.
 
+**Note**: Large parts of this apply to DaCHS1 (based on python 2).  Don't
+literally do this any more; rather use the python 3-based DaCHS2.  You
+are very welcome to contact us in that case, and we will help you update
+this material.
+
+
 
 Setup PostgreSQL with an alternate database cluster using the C locale
 ----------------------------------------------------------------------
@@ -153,16 +159,13 @@ Install distribution supplied dependenency packages
 
 This is realatively straighforward::
 
-  $ sudo yum install SOAPpy
-  $ sudo yum install python-twisted #has lots of dependencies, yum get's them
+  $ sudo yum install python-twisted #has lots of dependencies, yum gets them
   $ sudo yum install pyparsing
   $ sudo yum install python-astropy astropy-tools
   $ sudo yum install python-matplotlib
   $ sudo yum install python-setuptools
   $ sudo yum install python-docutils
-  $ sudo yum install python-mistune #needed by nevow
   $ sudo yum install python-pillow  #New name for Python Image Manipulation Lib
-  
 
 Make/install extra packages 
 ---------------------------
@@ -207,17 +210,6 @@ QC3
   $ sudo make install
 
   
-m2r 
-'''
-
-Markdown text on reStructuredText converter, needed by nevow::
-
-  $ git clone https://github.com/miyakogi/m2r.git
-  $ cd m2r
-  $ $EDITOR setup.py #(look for potential issues)
-  $ sudo python setup.py install --dry-run #(look for potential issues)
-  $ sudo python setup.py install
-  
   
 Automat
 '''''''
@@ -229,19 +221,6 @@ There are finite-state machines for python, need by twisted. Version
   $ wget https://github.com/glyph/automat/archive/v0.3.0.tar.gz
   $ tar -xvzf v0.3.0.tar.gz
   $ $EDITOR setup.py         # (look for potential issues)
-  $ sudo python setup.py install --dry-run #(look for potential issues)
-  $ sudo python setup.py install
-
-
-nevow
-'''''
-
-Download the version 0.13.0 release source code from
-https://github.com/twisted/nevow/releases::
-  
-  $ wget https://github.com/twisted/nevow/archive/nevow-0.13.0.tar.gz
-  $ tar -xvzf nevow-0.13.0.tar.gz
-  $ $EDITOR setup.py   #(look for potential issues)
   $ sudo python setup.py install --dry-run #(look for potential issues)
   $ sudo python setup.py install
 
@@ -316,14 +295,21 @@ Dependencies
 
 Unfortunately, DaCHS has quite a few dependencies;
 here's the list of dependencies of our Debian package as of version
-1.1. This should give you some clue as to what might be necessary on
+2.1. This should give you some clue as to what might be necessary on
 other systems::
 
-  python-astropy python-pil python-numpy python-pkg-resources
-  python-psycopg2 python-pymoc python-testresources python-lxml
-  python-nevow python-pkg-resources python-soappy python-twisted
-  python-zsi python-matplotlib postgresql-9.6-pgsphere
-  postgresql-9.6-q3c
+  python3-astropy, python3-docutils, python3-numpy, python3-pil,
+  python3-pkg-resources, python3-psycopg2, python3-pyparsing,
+  python3-cryptography, python3-docutils, python3-lxml,
+  python3-matplotlib, python3-pkg-resources, python3-psycopg2,
+  python3-pymoc, python3-rjsmin, python3-testresources, python3-twisted,
+  postgresql-q3c, postgresql-pgsphere
+
+One thing you could also try is comment in the ``install_requires`` line
+in DaCHS' setup.py (see below) and try to pull in the dependencies via
+pip.  Excpect minor breakage in that case, though, as we don't do
+versioned dependencies there, and as libraries develop, their APIs do
+change.
 
 If you want to use boosters, you will additionally need::
 
@@ -335,7 +321,7 @@ need::
   subversion
 
 Of course, you'll need postgres itself on top of that.  We currently
-require postgres 9.0 or newer.  If you actually need support for older
+require postgres 9.6 or newer.  If you actually need support for older
 Postgres releases, let us know – it's not  hard to restore.
 
 
@@ -344,12 +330,10 @@ PgSphere
 
 PgSphere is a postgres extension for spherical geometry.  It is needed
 for support of the geometric types in DaCHS' ADQL implementation and in
-the preferred SIAP backend, so you should definitely install it.  Obtain
-the source as
-https://github.com/mnullmei/pgsphere/archive/fixes-1-1-1.tar.gz
-(for the time being), install the server development packages for postgres
-(such as postgresql-server-dev-9.x or postgresql-devel), and in the
-source directory run::
+the preferred SIAP backend, so you should definitely install it.
+So build it, install the server development packages for postgres (such
+as postgresql-server-dev-9.x or postgresql-devel), check out
+https://github.com/pgsphere/pgsphere, and in the source directory run::
 
   USE_PGXS=1 make
   sudo USE_PGXS=1 make install
@@ -538,7 +522,7 @@ postgres databases on that particular system):
     parallel.  It's probably a good idea to use the most recent one.
     Set your desired version for subsequent use::
 
-      export PGVERSION=9.4
+      export PGVERSION=11
 
 (#) Drop the Debian default cluster (this will delete everything in
     there -- for a fresh install, that doesn't matter, but don't do this
@@ -671,144 +655,19 @@ The init script
 ===============
 
 Though you can operate the server manually through ``dachs serve
-(start|stop|reload)``, you will probably want to install an init script
-to ``/etc/init.d`` (or your system's equivalent place).  More
-information on this is in `Starting and Stopping the Server in the
-operator's guide`_
-
-.. _Starting and Stopping the Server in the operator's guide: opguide.html#starting-and-stopping-the-server
-
-
-This concludes the installation instructions for the normal case.  Only
-read on if you're curious and/or courageous.
-
-
-Manual Database Preparation
-===========================
-
-Normally, the following steps are done by ``dachs init``.  So, on a
-normal install you can stop reading here.
-
-However, if you want to play tricks (e.g., remote database server), the
-following instructions should help.
-
-
-Creating database users
------------------------
-
-The data center software accesses the database in various functions.
-These are mapped to profiles which correspond to access information
-(basically, the DSN, user, and password).  There are three of them:
-
-* feed -- the "admin" profile, used for feeding tables into the normal
-  database, for user management, credentials checking and the like.
-* trustedquery -- this profile is used for queries generated  by the DC
-  software (though usually on behalf of a user).  The corresponding DB
-  role can access all "normal" tables, privilege management is supposed
-  to happen throught the web interface.
-* untrustedquery -- the profile used for user-contributed SQL.  Only
-  tables expressly opened up are accessible to it.
-
-You can adapt those names as necessary in the corresponding profiles.
-See the section on profiles in the `Operator's Guide <opguide.html>`_
-for details.
-
-The following procedure sets up users and databases as expected by the
-default profiles (if you made yourself a superuser account as described
-above you do not need the ``sudo -u postgres`` in these commands)::
-
-  # create the database that'll hold your data
-  sudo -u postgres createdb --encoding=UTF-8 gavo
-  # create the user that feeds the db...
-  sudo -u postgres createuser -P -ADsr gavoadmin
-  # and a user that usually has no write privileges
-  sudo -u postgres createuser -P -ADSR gavo
-  # and a user for ADQL queries (i.e., untrusted queries from the net)
-  sudo -u postgres createuser -P -ADSR untrusted
-
-Enter the passwords you assign here into the ``feed``, ``trustedquery``,
-and ``untrustedquery`` profiles, respectively.  These profiles are found
-in ``rootDir/etc``.
-
-Finally, you need to let the various roles you just created access the
-database; you do this using the command line interface to postgres::
-
-  sudo -u postgres psql gavo \
-    -c "GRANT ALL ON DATABASE gavo TO gavoadmin"
-
-For the individual tables, rights to gavo and untrusted are granted by
-``dachs imp``, so you do not need to specify any rights for them.
-
-
-Owner-only DB setup
--------------------
-
-There is some setup that the database owner or at least a superuser must
-do.  Right now, that is allowing stored procedures in Postgres' own
-procedural language::
-
-  psql gavo <<EOF
-  CREATE LANGUAGE plpgsql
-  EOF
-
-
-Reading the extensions' SQL files
----------------------------------
-
-Both pgsphere and q3c have files that define SQL functions and such.
-You'll have to manually read them into your new database.  You can find
-these SQL files in the source directories of the packages, or in your
-server's contrib directory.  On Debian systems, these contribution
-directories are in ``/usr/share/postgresql/<VERSION>/contrib``.
-
-So, on postgres 8.4 you could say::
-
-  SRCDIR=/usr/share/postgresql/8.4/contrib
-  psql gavo < $SRCDIR/q3c.sql
-  psql gavo < $SRCDIR/pg_sphere.sql
-
-
-Importing basic resources
--------------------------
-
-There are some built-in tables in DaCHS, related to metadata storage,
-certain protocols, and the like.  You must import them before the DC
-software can be used.  This also is a nice test that at least some
-things work.
-
-So, in this sequence, run::
-
-  dachs imp --system //dc_tables
-  dachs imp --system //services
-  dachs imp --system //users
-  dachs imp --system //products
-  dachs imp --system //adql
-  dachs imp --system //tap
-
-Output of the type ``Columns affected: 0`` is ok for these commands.
-
-The double slash in the identifiers above means "use system
-resources".  All these really refer to resource descriptors (RD) in the
-__system__ resource directory; at this point, they are the RDs shipped
-with DaCHS.
-
-If you get error messages, add a ``--hints`` after the gavo command,
-like this::
-
-  dachs --hints imp --system //dc_tables
-
-This will (for the ``dachs`` command in general) give additional error
-info where available.
-
-You should now be able to run the examples in the tutorial.
+(start|stop|reload)``, you will probably want to have your init system
+automatically start it.  See
+https://docs.g-vo.org/DaCHS/tutorial.html#starting-and-stopping-the-server
+for details on integrating DaCHS with either sysvinit or systemd.
 
 
 Docker
 ======
 
 **We do not really recommend using Docker containers on production
-machines.**  We do, however, use Docker in our internal QC to check
-installability and upgradeability [well, this may be a lie].
+machines.**  We do, however, use Docker in our internal QA to check
+installability and upgradeability; in case you are curious what we do,
+see http://svn.ari.uni-heidelberg.de/svn/integration/dockerbased .
 
 Still, if you want to build a Docker-able DaCHS take a look at the
 corresponding `Git <https://github.com/chbrandt/docker-dachs>`_
