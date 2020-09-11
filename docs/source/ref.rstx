@@ -14988,6 +14988,7 @@ The type of a script corresponds to the event triggering its execution.
 The following types are defined right now:
 
 * preImport -- before anything is written to the table
+* afterMeta -- ran whenever the table metadata is updated
 * preIndex -- before the indices on the table are built
 * preCreation -- immediately before the table DDL is executed
 * postCreation -- after the table (incl. indices) is finished
@@ -14998,7 +14999,8 @@ The following types are defined right now:
 Note that preImport, preIndex, and postCreation scripts are not executed
 when the make's table is being updated, in particular, in data items with
 ``updating="True"``.  The only way to run scripts in such circumstances
-is to use newSource and sourceDone scripts.
+is to use newSource and sourceDone scripts (and possibly afterMeta with
+``imp -m``).
 
 
 Examples
