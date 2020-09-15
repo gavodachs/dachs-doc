@@ -556,17 +556,14 @@ Arguments
 ---------
 
 rd                   
-      RD id(s) to publish. (This can also reference files,
-      and the extension .rd is automatically added)
+    RDs to publish; you can give ids or file paths. Use
+    the magic value ALL to check all published RDs,
+    ALL_RECURSE to look for RDs in the file system (check
+    twice for detritus before doing that later thing).
 
 
 Options
 -------
-
--a, --all
-      re-publish all RDs that have been published before
-      (this will cause a complete re-harvest of all your
-      resources).
 
 -m, --meta-too
       update DaCHS-internal meta information, too (prefer dachs imp -m
