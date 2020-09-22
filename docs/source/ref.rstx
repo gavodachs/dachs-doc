@@ -1514,7 +1514,7 @@ Atomic Children
   contributing to a published view.  Warning: adql=hidden is
   incompatible with setting readProfiles manually.
 * **allProfiles** (Comma separated list of profile names.; defaults to
-  'msdemlei, admin') -- A (comma separated) list of profile names
+  'admin, msdemlei') -- A (comma separated) list of profile names
   through which the object can be written or administred (oh, and the
   default is not admin, msdemlei but is the value of [db]maintainers)
 * **autoCols** (Comma-separated list of strings; defaults to '') --
@@ -2151,7 +2151,7 @@ Atomic Children
 ...............
 
 * **allProfiles** (Comma separated list of profile names.; defaults to
-  'msdemlei, admin') -- A (comma separated) list of profile names
+  'admin, msdemlei') -- A (comma separated) list of profile names
   through which the object can be written or administred (oh, and the
   default is not admin, msdemlei but is the value of [db]maintainers)
 * **readProfiles** (Comma separated list of profile names.; defaults
@@ -2353,10 +2353,10 @@ Atomic Children
 * **original** (id reference; defaults to None) -- An id of an element
   to base the current one on.  This provides a simple inheritance
   method.  The general rules for advanced referencing in RDs apply.
-* **type** (One of: beforeDrop, newSource, postCreation, preCreation,
-  preImport, preIndex, sourceDone; defaults to <Undefined>) -- Point
-  of time at which script is to run (not all script types are allowed
-  on all elements).
+* **type** (One of: afterMeta, beforeDrop, newSource, postCreation,
+  preCreation, preImport, preIndex, sourceDone; defaults to
+  <Undefined>) -- Point of time at which script is to run (not all
+  script types are allowed on all elements).
 
 Element service
 '''''''''''''''
@@ -2555,7 +2555,7 @@ Atomic Children
   contributing to a published view.  Warning: adql=hidden is
   incompatible with setting readProfiles manually.
 * **allProfiles** (Comma separated list of profile names.; defaults to
-  'msdemlei, admin') -- A (comma separated) list of profile names
+  'admin, msdemlei') -- A (comma separated) list of profile names
   through which the object can be written or administred (oh, and the
   default is not admin, msdemlei but is the value of [db]maintainers)
 * **dupePolicy** (One of: check, drop, dropOld, overwrite; defaults to
@@ -6765,7 +6765,7 @@ Parameter *s_fov*
   defaults to ``pixelScale[1]*pixelSize[1]``;
   preset for SIAP; we use the extent along the X axis as a very rough estimate for the size. If you can do better, by all means do.
 Parameter *s_pixel_scale*
-  defaults to ``pixelScale[1]/3600``;
+  defaults to ``pixelScale[1]*3600``;
   preset for SIAP
 Parameter *s_ra*
   defaults to ``centerAlpha``;
@@ -7811,8 +7811,8 @@ A renderer defined in a python module.
 To define a custom renderer write a python module and define a
 class MainPage inheriting from gavo.web.ServiceBasedPage.
 
-This class basically is a nevowc TemplatedPage, i.e., you can define
-loader, getChild, render, and so on.
+This class basically is a gavo.formal.nevowc TemplatedPage, i.e., you 
+can define loader, getChild, render, and so on.
 
 To use it, you have to define a service with the resdir-relative path
 to the module in the customPage attribute and probably a nullCore.  You
@@ -7824,7 +7824,7 @@ class method isBrowseable(cls, service) returning true.  This is
 for the generation of links like "use this service from your browser"
 only; it does not change the service's behaviour with your renderer.
 
-In general, avoid custom renderers.  If you can't see the upstream
+In general, avoid custom renderers.  If you can't, see the upstream
 twisted documentation on twisted.web.resource for how to write them.
 
 
@@ -9687,7 +9687,7 @@ Paths and other general settings.
 * logDir: path relative to rootDir; 
   defaults to 'logs' --
   Path to the DC's logs (should be local)
-* logLevel: value from the list info, debug, warning, error; 
+* logLevel: value from the list info, debug, error, warning; 
   defaults to 'info' --
   How much should be logged?
 * maintainerAddress: string; 
@@ -9851,7 +9851,7 @@ The interface to the Greater VO.
   Comma-separated list of OAI sets DaCHS should accept for publication.
   This must always include ivo_managed and vosi, and you will want local
   if you run a web interface.
-* VOSITableDetail: value from the list max, min; 
+* VOSITableDetail: value from the list min, max; 
   defaults to 'max' --
   Default level of detail to return on the VOSI endpoint (change to min
   when you have more than 100 or tables).
@@ -9910,7 +9910,7 @@ Settings related to serving content to the web.
   defaults to 'False' --
   If True, Javascript will not be minified on delivery (this is for
   debugging)
-* logFormat: value from the list combined, default; 
+* logFormat: value from the list default, combined; 
   defaults to 'default' --
   Log format to use.  Default doesn't log IPs, user agents, or referrers
   and thus should be ok in terms of not processing personal data, which
@@ -14988,7 +14988,6 @@ The type of a script corresponds to the event triggering its execution.
 The following types are defined right now:
 
 * preImport -- before anything is written to the table
-* afterMeta -- ran whenever the table metadata is updated
 * preIndex -- before the indices on the table are built
 * preCreation -- immediately before the table DDL is executed
 * postCreation -- after the table (incl. indices) is finished
@@ -14999,8 +14998,7 @@ The following types are defined right now:
 Note that preImport, preIndex, and postCreation scripts are not executed
 when the make's table is being updated, in particular, in data items with
 ``updating="True"``.  The only way to run scripts in such circumstances
-is to use newSource and sourceDone scripts (and possibly afterMeta with
-``imp -m``).
+is to use newSource and sourceDone scripts.
 
 
 Examples

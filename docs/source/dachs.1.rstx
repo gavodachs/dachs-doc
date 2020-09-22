@@ -792,7 +792,7 @@ Synopsis::
   dachs upgrade
 
 Each DaCHS version has an associated database schema version, encoding
-the structure of DaCHS' (and the impemented protocol versions') ideas of
+the structure of DaCHS' (and the implemented protocol versions') ideas of
 how system and user tables should look like.  ``dachs upgrade`` attempts
 to work out how to change the database to match the expectations of the
 current version and executes the respective code.  It will not touch
