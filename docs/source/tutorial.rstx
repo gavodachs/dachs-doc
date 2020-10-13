@@ -2733,25 +2733,25 @@ To get around this, look at the technique shown in :samplerd:`bgds/l`.
 This first defines a STREAM ``time-series-template`` with a macros where
 the items very between bands::
 
-	<STREAM id="time-series-template">
-		<table id="instance-\band_short">
-			<mixin	
-				effectiveWavelength="\effective_wavelength"
-				filterIdentifier="\band_human"
-				longitude="@ra"
-				latitude="@dec"
+  <STREAM id="time-series-template">
+    <table id="instance-\band_short">
+      <mixin  
+        effectiveWavelength="\effective_wavelength"
+        filterIdentifier="\band_human"
+        longitude="@ra"
+        latitude="@dec"
 
 It then uses a LOOP to fill these slots and create one table definition
 per band::
 
- 	<LOOP>
-		<csvItems>
-			band_short, band_human, band_ucd, effective_wavelength
-			i,          SDSS/i,     em.opt.I, 7.44e-7
-			r,          SDSS/r,     em.opt.R, 6.12e-7
-		</csvItems>
-		<events source="time-series-template"/>
-	</LOOP>
+   <LOOP>
+    <csvItems>
+      band_short, band_human, band_ucd, effective_wavelength
+      i,          SDSS/i,     em.opt.I, 7.44e-7
+      r,          SDSS/r,     em.opt.R, 6.12e-7
+    </csvItems>
+    <events source="time-series-template"/>
+  </LOOP>
 
 The dispatch between the different table templates then happens in the
 data function of the tsdl service, using a somewhat obscure feature of
@@ -2759,8 +2759,29 @@ data function of the tsdl service, using a somewhat obscure feature of
 pass in the table that the data item should make.  This obviously only
 works in specialised circumstances like the one here, but then it's
 really convenient.  So, while the make in ``make_instance`` claim to
-build ``instance-i``, this is really overridden in the data function to
-select the actual table definition::
+build ``instance-i``, this is really overridden in the datalink
+service's data function to select the actual table definition::
+  
+  <dataFunction>
+    <setup>
+      <code>
+        from gavo import rsc
+      </code>
+    </setup>
+    <code>
+      dd = rd.getById("make_instance")
+      descriptor.data = rsc.Data.createWithTable(dd,
+        rd.getById("instance_"+descriptor.band))
+      descriptor.data = rsc.makeData(
+        dd,
+        data=descriptor.data,
+        forceSource=descriptor)
+    </code>
+  </dataFunction>
+
+(where ``descriptor.band`` has been pulled from the dataset identifier
+in the custom descriptor generator of that datalink service; that
+pattern is probably a good idea when you are in a similar situation).
 
 This will not scale well to many dozens of bands – if you have that,
 you probably want somewhat more hardcore means –, but for the usual
