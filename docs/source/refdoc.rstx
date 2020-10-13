@@ -4699,6 +4699,8 @@ The following types are defined right now:
 * preIndex -- before the indices on the table are built
 * preCreation -- immediately before the table DDL is executed
 * postCreation -- after the table (incl. indices) is finished
+* afterMeta -- after metadata has been written or updated (these are
+  executed by ``gavo imp -m``, too)
 * beforeDrop -- when the table is about to be dropped
 * newSource -- every time a new source is started
 * sourceDone -- every time a source has been processed

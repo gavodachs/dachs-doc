@@ -1514,7 +1514,7 @@ Atomic Children
   contributing to a published view.  Warning: adql=hidden is
   incompatible with setting readProfiles manually.
 * **allProfiles** (Comma separated list of profile names.; defaults to
-  'admin, msdemlei') -- A (comma separated) list of profile names
+  'msdemlei, admin') -- A (comma separated) list of profile names
   through which the object can be written or administred (oh, and the
   default is not admin, msdemlei but is the value of [db]maintainers)
 * **autoCols** (Comma-separated list of strings; defaults to '') --
@@ -2151,7 +2151,7 @@ Atomic Children
 ...............
 
 * **allProfiles** (Comma separated list of profile names.; defaults to
-  'admin, msdemlei') -- A (comma separated) list of profile names
+  'msdemlei, admin') -- A (comma separated) list of profile names
   through which the object can be written or administred (oh, and the
   default is not admin, msdemlei but is the value of [db]maintainers)
 * **readProfiles** (Comma separated list of profile names.; defaults
@@ -2555,7 +2555,7 @@ Atomic Children
   contributing to a published view.  Warning: adql=hidden is
   incompatible with setting readProfiles manually.
 * **allProfiles** (Comma separated list of profile names.; defaults to
-  'admin, msdemlei') -- A (comma separated) list of profile names
+  'msdemlei, admin') -- A (comma separated) list of profile names
   through which the object can be written or administred (oh, and the
   default is not admin, msdemlei but is the value of [db]maintainers)
 * **dupePolicy** (One of: check, drop, dropOld, overwrite; defaults to
@@ -9687,7 +9687,7 @@ Paths and other general settings.
 * logDir: path relative to rootDir; 
   defaults to 'logs' --
   Path to the DC's logs (should be local)
-* logLevel: value from the list info, debug, error, warning; 
+* logLevel: value from the list info, error, debug, warning; 
   defaults to 'info' --
   How much should be logged?
 * maintainerAddress: string; 
@@ -9843,7 +9843,7 @@ The interface to the Greater VO.
   Give access URLs for the alternative protocol (https when serverURL is
   http and vice versa) as a mirrorURL?  If you're listening to HTTPS,
   this is probably a good idea.
-* sdmVersion: value from the list 1, 2; 
+* sdmVersion: value from the list 2, 1; 
   defaults to '1' --
   Obsolete (SDM version 2 is shelved).  Don't use.
 * validOAISets: list of strings; 
@@ -9851,7 +9851,7 @@ The interface to the Greater VO.
   Comma-separated list of OAI sets DaCHS should accept for publication.
   This must always include ivo_managed and vosi, and you will want local
   if you run a web interface.
-* VOSITableDetail: value from the list min, max; 
+* VOSITableDetail: value from the list max, min; 
   defaults to 'max' --
   Default level of detail to return on the VOSI endpoint (change to min
   when you have more than 100 or tables).
@@ -15966,6 +15966,32 @@ A file processor for generating previews.
 
 For these, define a method getPreviewData(accref) -> string returning
 the raw preview data.
+
+
+Class QueryMeta
+...............
+
+A class keeping information on the query environment.
+
+It is constructed with a plain dictionary (there are alternative
+constructors for t.w requests are below) mapping 
+certain keys (you'll currently have to figure out which from the 
+source) to values, mostly strings, except for the keys listed in 
+listKeys, which should be sequences of strings.
+
+If you pass an empty dict, some sane defaults will be used.  You
+can get that "empty" query meta as common.emptyQueryMeta, but make
+sure you don't mutate it.
+
+QueryMetas constructed from request will have the user and password
+items filled out.
+
+If you're using formal, you should set the formal_data item
+to the dictionary created by formal.  This will let people use
+the parsed parameters in templates.
+
+Note: You cannot trust qm["user"] -- it is not validated against
+any credentials.
 
 
 RD
