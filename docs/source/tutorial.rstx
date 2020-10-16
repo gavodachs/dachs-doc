@@ -1350,6 +1350,16 @@ F8 to go to the next thing to fill in, and F9 to replace the template
 text (that usually gives you a hint on what to put there – but also read
 the comments).
 
+Another hint on working with the templates: Since the patterns are not
+valid values for what they stand in for in some cases, you may want to
+comment out what you haven't yet filled out (e.g., while doing a test
+import).  Since there are comments in the material, that's not
+straightforward, but you can fairly simply comment a large part of RD by
+inserting ``<macDef name="todo"><![CDATA[`` at the start of the ignored
+area and ``]]></macDef>`` at its end.  Of course, this needs to respect
+XML and RD rules, so the resulting ``macDef`` element must be a direct child
+of ``resource`` (which mostly is natural).
+
 If you have skimmed the `DaCHS Basics`_
 above, not much of what you'll be seeing should surprise you.  If you're
 wondering about a particular thing, you can always refer to the
@@ -3812,7 +3822,8 @@ what DaCHS gives you after installation include:
   Example: ``The GAVO data center provides VO publication services to
   all interested parties on behalf of the German Astrophysical Virtual
   Observatory.`` Use backslashes an the end of the lines to break long
-  lines.  This is used when registering your publishing registry.
+  lines.  This is used when registering your publishing registry, and
+  it is the introductory paragraph on the default root page.
 * ``_noresultwarning`` – You can probably leave it like it is; this is a
   text that is displayed on empty results on forms; since individual
   services may want to override it, it is configured through the
@@ -5068,9 +5079,11 @@ Upgrading Installations from Debian Packages
 (1) Make sure you have enabled the intended distribution (*release* or
     *beta*) in your ``/etc/apt.sources`` (or equivalent)
 
-(2) Make sure all RDs DaCHS sees are in order:
+(2) Make sure all RDs DaCHS sees are in order::
 
       dachs val -vc ALL_RECURSE
+
+    (make that ``ALL`` before DaCHS 2.2).
 
     Warnings you can usually ignore, but try to the understand messages you
     get.  You can hide known-broken RDs from DaCHS by dropping a file
