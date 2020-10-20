@@ -1309,6 +1309,10 @@ version default (assuming the namespace stays constant, as it should).
   versions).
 * Then run tests; a few actually test for the the VOTable version spit
   out; fix these.  All others shouldn't be affected.
+* You may also want to change the declarations of the FORMAT parameters
+  in //pql and //soda, and the corresponding key in GETDATA_FORMATS
+  in sdm.py; but that should only be necessary if there's experimental
+  formats around.
 
 
 Licensing

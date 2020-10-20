@@ -720,5 +720,20 @@ buster.
 To fix this, either don't use smocs – or install the
 postgresql-11-pgsphere package coming from GAVO's repository).
 
+
+'dict' object does not support indexing
+=======================================
+
+You will usually see that when executing some SQL, for instance in
+combination with ``Execution of python script createObscoreView failed``
+or so.  In that situation this simply means that there is a stray
+percent sign somewhere in the query string; psygopg2, our database
+library, interprets that as a metacharacter and tries to pull fillers
+from whatever you passed as arguments.  Since DaCHS will pass a
+dictionary for you, this will break (and it would break anyway).
+
+So – find the percent and remove it (or double it if you really want it
+in).
+
 .. |date| date::
 .. _CC-0: http://creativecommons.org/publicdomain/zero/1.0

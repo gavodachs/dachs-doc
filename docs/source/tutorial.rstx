@@ -2618,12 +2618,7 @@ gives a few hints on how that might work.  As a working example,
   <data id="build_sdm_data" auto="False">
     <embeddedGrammar>
       <iterator>
-        <setup>
-          <code>
-            from gavo.protocols import products
-            from gavo.utils import pyfits
-          </code>
-        </setup>
+        <setup imports="gavo.protocols.products, gavo.utils.pyfits"/>
         <code>
 
         fitsPath = products.RAccref.fromString(
@@ -2773,11 +2768,7 @@ build ``instance-i``, this is really overridden in the datalink
 service's data function to select the actual table definition::
   
   <dataFunction>
-    <setup>
-      <code>
-        from gavo import rsc
-      </code>
-    </setup>
+    <setup imports="gavo.rsc"/>
     <code>
       dd = rd.getById("make_instance")
       descriptor.data = rsc.Data.createWithTable(dd,
@@ -4515,14 +4506,6 @@ to ``$stateDir/systemtables.dump``.  You can restore this file using
 ``dachs dump load`` in case of a disaster (in particular if you back it
 up off-site once more; backing up files is a lot simpler than backing up
 database tables).
-
-Note that this will currently contain cleartext passwords of your site's
-users (the stuff you added through ``dachs adm adduser``).  This doesn't
-hurt much over what's the case anyway, as the passwords are unencrypted
-in the database.  But it would still be bad if anyone used valuable
-passwords with DaCHS.  If you forsee that, implement password hashing
-and salting for DaCHS' user table or find someone to do that before
-going ahead.
 
 
 Registering DaCHS-external Services
@@ -7242,12 +7225,12 @@ authorisation.
 Right now, this is
 rather basic and only provides what is known as “mild security”, since it
 is based on HTTP basic authentication, which, unless you run HTTPS only,
-means that eavesdroppers can trivially find out passwords.  Also, the
-passwords are stored in the database in clear text.
+means that eavesdroppers can trivially find out passwords.
+
 Given that we are not dealing with sensitive information and snooping
 attacks on our connections don't sound likely, we consider that
 marginally ok.  Still, admonish your users to not use valuable passwords
-in DaCHS.
+in DaCHS.  Or restrict your site to HTTPS access.
 
 Given enough client support, however, we will certainly add support for
 fancier authentication schemes (OAuth2?); the authorisation mechanisms
@@ -7272,9 +7255,7 @@ this::
 
 This command adds the user kroisos with the password notsecret and an
 optional comment reminding future operators what to do with the
-identity.  Note again that the password is stored in clear text in the
-database – which at least allows you to handle “I forgot my password” requests
-gracefully.
+identity.  
 
 To add existing users to groups, use ``dachs admin addtogroup``, like
 this::

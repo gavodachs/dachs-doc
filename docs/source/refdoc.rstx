@@ -2225,11 +2225,7 @@ in the procApp's namespace::
     </outputTable>
 
     <coreProc>
-      <setup>
-        <code>
-          import cmath
-        </code>
-      </setup>
+      <setup imports="cmath"/>
       <code>
         powers = inputTable.args["powers"]
         if not powers:
@@ -3253,7 +3249,8 @@ where cutouts and similar is generated from spectra.  The actual
 definition is in ``//soda#sdm_genDesc``, but the gist of it is::
 
   <procDef type="descriptorGenerator" id="sdm_genDesc">
-    <setup>
+    <setup imports="gavo.rscdef, gavo.rsc, gavo.svcs,
+       gavo.protocols.ssap">
       <par key="ssaTD" description="Full reference (like path/rdname#id)
         to the SSA table the spectrum's PubDID can be found in."/>
       <par key="descriptorClass" description="The SSA descriptor
@@ -3262,10 +3259,6 @@ definition is in ``//soda#sdm_genDesc``, but the gist of it is::
         `custom generators &lt;#custom-product-descriptor-generators&gt;`_)."
         late="True">ssap.SSADescriptor</par>
       <code>
-        from gavo import rscdef
-        from gavo import rsc
-        from gavo import svcs
-        from gavo.protocols import ssap
         ssaTD = base.resolveCrossId(ssaTD, rscdef.TableDef)
       </code>
     </setup>
@@ -3410,11 +3403,7 @@ should be done on the client side) could be::
 
 
   <metaMaker>
-    <setup>
-      <code>
-        from gavo.utils import unitconv
-      </code>
-    </setup>
+    <setup imports="gavo.utils.unitconv"/>
     <code>
       yield MS(InputKey, name="FREQ", unit="MHz", ucd="em.freq", 
         description="Spectral cutout interval",
@@ -3527,11 +3516,7 @@ You could do whatever you want, however.  The following would work
 perfectly if you make your data functions handle lists of dicts::
 
   <dataFunction>
-    <setup>
-      <code>
-        import random
-      </code>
-    </setup>
+    <setup imports="random"/>
     <code>
       descriptor.data = [{"pix": i, "val": random.random()}
         for i in range(20000)]
@@ -3575,11 +3560,7 @@ Here's an example for ``DeliverNow``; a similar thing is contained in the
 STREAM ``//soda#fits_genKindPar``::
 
   <dataFunction>
-    <setup>
-      <code>
-        from gavo.utils import fitstools
-      </code>
-    </setup>
+    <setup imports="gavo.utils.fitstools"/>
     <code>
       if args["KIND"]=="HEADER":
         descriptor.data = ("application/fits-header", 
@@ -3959,12 +3940,8 @@ flux points from the database::
           description="ID of the spectrum to produce a preview for"/>
       </inputTable>
       <coreProc>
-        <setup>
-          <code>
-            from gavo.helpers.processing import SpectralPreviewMaker
-            from gavo import svcs
-          </code>
-        </setup>
+        <setup imports="gavo.helpers.processing.SpectralPreviewMaker,
+          gavo.svcs"/>
         <code>
           with base.getTableConn() as conn:
             res = list(conn.query("SELECT spectral, flux"
