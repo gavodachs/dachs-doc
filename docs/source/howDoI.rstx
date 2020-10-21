@@ -577,6 +577,94 @@ redirect to the process that actually serves the data::
 Form-based interfaces
 =====================
 
+...add a field with the distance from the search center in a image service?
+---------------------------------------------------------------------------
+
+Sometimes researchers want a column with the distance from the search
+center in image services (very typically through a form service).  In
+contrast to SCS, where we artificially add such a column, DaCHS doesn't
+add such a column by default, mainly because we're unconvinced that that
+is a good idea.
+
+But you can retrofit such a column.  The main challenge is that
+the search area can be specified in varied ways (or not at all, in
+particular when going through a web interface), and so you need a bit of
+logic (in the SIAP case) or perhaps even a lot of it.
+
+You could use a custom core for that, but it turns out there is a less
+intrusive way to do it: Stuff the logic you need to pull parameters out
+of the user input into values accessible to database queries into a
+silent ``condDesc``, and then add your distance column to the *core*'s
+output table (rather than the service's, which you can still vary).
+Using the core has the advantage that people can then sort by ``_r``.
+
+A live example for the technique is in :samplerd:`kapteyn/q`.
+Specifically, have a look at the ``web`` service's dbCore.  There, we
+override the outputTable with to include all of the queried table (which
+is what dbCore normally produces), plus our ``_r`` column::
+
+  <outputTable original="plates">
+    <outputField name="_r"
+      unit="deg" ucd="pos.distance"
+      tablehead="Dist."
+      description="Distance to the search center"
+      select="degrees(spoint(radians(centerAlpha), radians(centerDelta)) 
+        &lt;-> %(X_search_center)s)"
+      displayHint="displayUnit=arcmin,sf=0"/>
+  </outputTable>
+
+The ``select`` term for the ``_r`` field refers to a key
+``X_search_center``; this then needs to reflect the remote input and
+hence has to get into the ``outPars`` dictionary somehow (cf.
+:dachsref:`Element phraseMaker` to learn about these dicts) somehow.
+Filling ``outPars`` is the job of ``condDesc``-s – even though in this
+case we do not want to produce any constraints.
+
+In this particular case the additional trouble is that parsing the
+``hPOS`` parameter is non-trivial, and so we'd like to piggyback on
+what's already parsed by ``//siap#humanInput``.  Here's a secret: that
+``condDesc`` leave keys ``_ra`` and ``_dec`` in ``outPars`` (and that
+won't change because it's used in the cutout core) if there's a
+positional constraint in the request.
+
+Hence, you can have the following ``condDesc`` *after* the
+``//siap#humanInput`` one::
+
+  <condDesc combining="True">
+    <phraseMaker>
+      <code>
+        if "_ra" in outPars:
+          outPars["X_search_center"] = pgsphere.SPoint.fromDegrees(
+            outPars["_ra"], outPars["_dec"])
+        else:
+          outPars["X_search_center"] = None
+        if False:
+          yield
+      </code>
+    </phraseMaker>
+  </condDesc>
+
+Things you might wonder about: The ``combining="True"`` simply makes
+sure the ``condDesc`` will be considered even if no input key for it is
+given (you could give it the hPOS input key and perhaps save an ``if``,
+but it's more robust this way).
+
+The ``if "_ra" in outPars`` wards against missing positional
+constraints; without an input position, the best we can do is have NULLs
+in ``_r``, which is what the select expression above will do when one
+argument is NULL.
+
+Finally, the odd ``if False: yield`` is to tell Python that this is a
+generator, although it doesn't generate anything (usually,
+``phraseMakers`` will yield query fragments, which we don't do here).
+
+Finally, in :samplerd:`kapteyn/q`, we have an output table in the
+service, so our new column coming from the core would be filtered out by
+the service.  To have it in the final output table, in this case we've
+added an ``<outputField original="_r"/>`` (but that, of course, can be
+quite different for your case).
+
+
 ...get a multi-line text input for an input key?
 ------------------------------------------------
 
