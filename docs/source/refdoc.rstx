@@ -4348,7 +4348,7 @@ your metadata table, use the ssacols stream, for example like this::
       spectralResolution="2.5e-11"
     >//ssap#hcd</mixin>
     <mixin
-      calibLevel="1">//obscore#publishSSAPHCD</mixin>
+      calibLevel="1">//obscore#publishSSAPMIXC</mixin>
     <column name="localKey" type="text"
       ucd="meta.id"
       tablehead="Key"

@@ -1514,7 +1514,7 @@ Atomic Children
   contributing to a published view.  Warning: adql=hidden is
   incompatible with setting readProfiles manually.
 * **allProfiles** (Comma separated list of profile names.; defaults to
-  'msdemlei, admin') -- A (comma separated) list of profile names
+  'admin, msdemlei') -- A (comma separated) list of profile names
   through which the object can be written or administred (oh, and the
   default is not admin, msdemlei but is the value of [db]maintainers)
 * **autoCols** (Comma-separated list of strings; defaults to '') --
@@ -2151,7 +2151,7 @@ Atomic Children
 ...............
 
 * **allProfiles** (Comma separated list of profile names.; defaults to
-  'msdemlei, admin') -- A (comma separated) list of profile names
+  'admin, msdemlei') -- A (comma separated) list of profile names
   through which the object can be written or administred (oh, and the
   default is not admin, msdemlei but is the value of [db]maintainers)
 * **readProfiles** (Comma separated list of profile names.; defaults
@@ -2463,6 +2463,9 @@ Atomic Children
   defaults to '[]') -- Python function bodies setting globals for the
   function application.  Macros are expanded in the context of the
   procedure's parent.
+* **imports** (unicode string; defaults to <Not given/empty>) -- A
+  list of comma-separated imports to put into the code's namespace.
+  Dottesd specs like a.b.c are converted to ``from a.b import c``
 * **original** (id reference; defaults to None) -- An id of an element
   to base the current one on.  This provides a simple inheritance
   method.  The general rules for advanced referencing in RDs apply.
@@ -2555,7 +2558,7 @@ Atomic Children
   contributing to a published view.  Warning: adql=hidden is
   incompatible with setting readProfiles manually.
 * **allProfiles** (Comma separated list of profile names.; defaults to
-  'msdemlei, admin') -- A (comma separated) list of profile names
+  'admin, msdemlei') -- A (comma separated) list of profile names
   through which the object can be written or administred (oh, and the
   default is not admin, msdemlei but is the value of [db]maintainers)
 * **dupePolicy** (One of: check, drop, dropOld, overwrite; defaults to
@@ -7400,7 +7403,7 @@ Parameter *ssa_fluxunit*
   defaults to ``NULL``;
   Unit of the flux column in the dataset. This is also the unit for the ssa_flux*Error columns (and thus better had not change between rows).
 Parameter *ssa_instrument*
-  defaults to ``NULL``;
+  defaults to ``\sqlquote{\metaString{instrument}{unknown}}``;
   Instrument or code used to produce these datasets
 Parameter *ssa_length*
   defaults to ``NULL``;
@@ -9687,7 +9690,7 @@ Paths and other general settings.
 * logDir: path relative to rootDir; 
   defaults to 'logs' --
   Path to the DC's logs (should be local)
-* logLevel: value from the list info, error, debug, warning; 
+* logLevel: value from the list warning, error, debug, info; 
   defaults to 'info' --
   How much should be logged?
 * maintainerAddress: string; 
@@ -9843,7 +9846,7 @@ The interface to the Greater VO.
   Give access URLs for the alternative protocol (https when serverURL is
   http and vice versa) as a mirrorURL?  If you're listening to HTTPS,
   this is probably a good idea.
-* sdmVersion: value from the list 2, 1; 
+* sdmVersion: value from the list 1, 2; 
   defaults to '1' --
   Obsolete (SDM version 2 is shelved).  Don't use.
 * validOAISets: list of strings; 
@@ -9910,7 +9913,7 @@ Settings related to serving content to the web.
   defaults to 'False' --
   If True, Javascript will not be minified on delivery (this is for
   debugging)
-* logFormat: value from the list default, combined; 
+* logFormat: value from the list combined, default; 
   defaults to 'default' --
   Log format to use.  Default doesn't log IPs, user agents, or referrers
   and thus should be ok in terms of not processing personal data, which
@@ -12440,11 +12443,7 @@ in the procApp's namespace::
     </outputTable>
 
     <coreProc>
-      <setup>
-        <code>
-          import cmath
-        </code>
-      </setup>
+      <setup imports="cmath"/>
       <code>
         powers = inputTable.args["powers"]
         if not powers:
@@ -13551,7 +13550,8 @@ where cutouts and similar is generated from spectra.  The actual
 definition is in ``//soda#sdm_genDesc``, but the gist of it is::
 
   <procDef type="descriptorGenerator" id="sdm_genDesc">
-    <setup>
+    <setup imports="gavo.rscdef, gavo.rsc, gavo.svcs,
+       gavo.protocols.ssap">
       <par key="ssaTD" description="Full reference (like path/rdname#id)
         to the SSA table the spectrum's PubDID can be found in."/>
       <par key="descriptorClass" description="The SSA descriptor
@@ -13560,10 +13560,6 @@ definition is in ``//soda#sdm_genDesc``, but the gist of it is::
         `custom generators &lt;#custom-product-descriptor-generators&gt;`_)."
         late="True">ssap.SSADescriptor</par>
       <code>
-        from gavo import rscdef
-        from gavo import rsc
-        from gavo import svcs
-        from gavo.protocols import ssap
         ssaTD = base.resolveCrossId(ssaTD, rscdef.TableDef)
       </code>
     </setup>
@@ -13708,11 +13704,7 @@ should be done on the client side) could be::
 
 
   <metaMaker>
-    <setup>
-      <code>
-        from gavo.utils import unitconv
-      </code>
-    </setup>
+    <setup imports="gavo.utils.unitconv"/>
     <code>
       yield MS(InputKey, name="FREQ", unit="MHz", ucd="em.freq", 
         description="Spectral cutout interval",
@@ -13825,11 +13817,7 @@ You could do whatever you want, however.  The following would work
 perfectly if you make your data functions handle lists of dicts::
 
   <dataFunction>
-    <setup>
-      <code>
-        import random
-      </code>
-    </setup>
+    <setup imports="random"/>
     <code>
       descriptor.data = [{"pix": i, "val": random.random()}
         for i in range(20000)]
@@ -13873,11 +13861,7 @@ Here's an example for ``DeliverNow``; a similar thing is contained in the
 STREAM ``//soda#fits_genKindPar``::
 
   <dataFunction>
-    <setup>
-      <code>
-        from gavo.utils import fitstools
-      </code>
-    </setup>
+    <setup imports="gavo.utils.fitstools"/>
     <code>
       if args["KIND"]=="HEADER":
         descriptor.data = ("application/fits-header", 
@@ -14257,12 +14241,8 @@ flux points from the database::
           description="ID of the spectrum to produce a preview for"/>
       </inputTable>
       <coreProc>
-        <setup>
-          <code>
-            from gavo.helpers.processing import SpectralPreviewMaker
-            from gavo import svcs
-          </code>
-        </setup>
+        <setup imports="gavo.helpers.processing.SpectralPreviewMaker,
+          gavo.svcs"/>
         <code>
           with base.getTableConn() as conn:
             res = list(conn.query("SELECT spectral, flux"
@@ -17975,10 +17955,9 @@ Defined in //users
 
 Users known to the data center, together with their credentials.
 
-Right now, DaCHS only supports user/password. Note that passwords are
-currently stored in cleartext, so do discourage your users from using
-valuable passwords here (whether you explain to them that DaCHS so far
-only provides "mild security" is up to you).
+Right now, DaCHS only supports user/password credentials. Passwords
+are stored as scrypt hashes in a custom format combining the id
+scrypt:, 16 bytes of salt, and finally the hash.
 
 Manipulate this table through gavo admin adduser, gavo admin deluser,
 and gavo admin listusers.

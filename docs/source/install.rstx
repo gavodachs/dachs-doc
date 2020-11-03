@@ -307,7 +307,7 @@ other systems::
 
 One thing you could also try is comment in the ``install_requires`` line
 in DaCHS' setup.py (see below) and try to pull in the dependencies via
-pip.  Excpect minor breakage in that case, though, as we don't do
+pip.  Expect minor breakage in that case, though, as we don't do
 versioned dependencies there, and as libraries develop, their APIs do
 change.
 
@@ -671,7 +671,7 @@ see http://svn.ari.uni-heidelberg.de/svn/integration/dockerbased .
 
 Still, if you want to build a Docker-able DaCHS take a look at the
 corresponding `Git <https://github.com/chbrandt/docker-dachs>`_
-or, analogously, `Docker <https://hub.docker.com/r/chbrandt/dachs/>`
+or, analogously, `Docker <https://hub.docker.com/r/chbrandt/dachs/>`_
 repositories.
 
 .. |date| date::

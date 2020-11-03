@@ -423,6 +423,9 @@ Options
   The price is that users will see empty tables during
   the import.
 
+--hide-adql           
+  Interpret adql=True on tables as adql=hidden (this is for fallback mirrors)
+
 
 THE info SUBCOMMAND
 ===================
