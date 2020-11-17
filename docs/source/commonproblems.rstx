@@ -735,5 +735,17 @@ dictionary for you, this will break (and it would break anyway).
 So – find the percent and remove it (or double it if you really want it
 in).
 
+
+Invalid script type preIndex for resource elements
+==================================================
+
+This, most likely, is because you have upgraded from DaCHS 1 to DaCHS 2,
+had dumped the userconfig in version 1 and forgot to read the upgrading
+hints :dachsdoc:`howDoI.html#updates-to-rds-and-similar`.
+
+Quick and correct fix:  Just remove the script element in your
+/var/gavo/etc/userconfig.rd.
+
+
 .. |date| date::
 .. _CC-0: http://creativecommons.org/publicdomain/zero/1.0

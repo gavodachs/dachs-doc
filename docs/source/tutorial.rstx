@@ -3679,10 +3679,15 @@ does not talk with the net itself, you need to use the server name of
 the virtual host of that reverse proxy in serverURL, perhaps like::
 
   [web]
-  serverURL: http://the.proxy.url
+  serverURL: https://the.proxy.url
+  adaptProtocol: False
 
 If the reverse proxy runs on a different machine, you will additionally
-need an empty ``bindAddress`` as above.
+need an empty ``bindAddress`` as above.  The ``adaptProtocol`` in there
+means that DaCHS will not try to change http vs. https in links towards
+itself depending on whether you speak with in encrypted; you'll almost
+always want this in proxy operation, in particular if your proxy is of
+the ugly one that indisciminately “upgrades” to https.
 
 If the reverse proxy runs on the same machine, it may proxy other
 servers as well, and then it is likely that something else is already
@@ -3692,6 +3697,7 @@ changing the serverURL, like this::
   [web]
   serverURL: http://the.proxy.url
   serverPort: 8081
+  adaptProtocol: False
 
 – where serverPort obviously needs to be adapted in the proxy
 configuration, too.

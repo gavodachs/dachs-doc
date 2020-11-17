@@ -1376,7 +1376,7 @@ beta repository`_ and then running::
 The two packages conflict, and thus this will remove the old dachs
 package(s).
 
-If you use some other means to install DaCHS, please not the the
+If you use some other means to install DaCHS, please note the the
 dependencies have changed; in Debian terms, we're now requiring
 python3-astropy, python3-setuptools, python3-all, python3-docutils,
 python3-twisted, python3-psycopg2,
@@ -1401,9 +1401,21 @@ and perhaps see if ``dachs val`` points you to problems.
 Updates to RDs and Similar
 ''''''''''''''''''''''''''
 
-Most code within RDs should be ok.  However, of course, you'll have to
-port that to Python 3.  The following points turned up while porting
-GAVO DC RDs:
+Most code within RDs should be ok.  An important exception may be your
+userconfig RD (cf. :dachsdoc:`tutorial.html#the-userconfig-rd`).  In
+DaCHS 1, the template for a while had::
+
+  <script id="_test-script" lang="python" name="test instrumentation"
+          type="preIndex">
+          # (this space left blank intentionally)
+  </script>
+
+which is no longer allowed in DaCHS 2.2.  This will, on every operation,
+give you an error “Invalid script type preIndex for resource elements”.
+Just remove the element in /var/gavo/etc/userconfig.rd.
+
+Of course, you will have port any python code in the vicinity of the RDs
+to Python 3.  The following points turned up while porting GAVO DC RDs:
 
 * strings vs. bytes throughout – you can't sensibly compare them or mix
   them, and you can only write strings to encoding-aware files and bytes

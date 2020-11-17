@@ -3965,7 +3965,7 @@ An example for an ODBC connection string::
 
 See also http://www.connectionstrings.com/
 
-This will only work if pyodbc (debian: python-pyodbc) is installed.  
+This will only work if pyodbc (debian: python3-pyodbc) is installed.  
 Additionally, you will have to install the odbc driver corresponding
 to your source database (e.g., odbc-postgresql).
 
@@ -7291,7 +7291,8 @@ This is done by //ssap#fill-plainlocation (or, historically, by
 create an index for the ssa_region field.
 
 To make it visible in obscore, however, you must bind the
-``coverage`` mixin par of //obscore#publishSSAPHCD to ``ssa_region``.
+``coverage`` mixin par of `the //obscore#publishSSAPMIXIN 
+mixin`_ to ``ssa_region``.
 
 
 The //ssap#view Mixin
@@ -9690,7 +9691,7 @@ Paths and other general settings.
 * logDir: path relative to rootDir; 
   defaults to 'logs' --
   Path to the DC's logs (should be local)
-* logLevel: value from the list warning, error, debug, info; 
+* logLevel: value from the list warning, debug, info, error; 
   defaults to 'info' --
   How much should be logged?
 * maintainerAddress: string; 
@@ -9846,7 +9847,7 @@ The interface to the Greater VO.
   Give access URLs for the alternative protocol (https when serverURL is
   http and vice versa) as a mirrorURL?  If you're listening to HTTPS,
   this is probably a good idea.
-* sdmVersion: value from the list 1, 2; 
+* sdmVersion: value from the list 2, 1; 
   defaults to '1' --
   Obsolete (SDM version 2 is shelved).  Don't use.
 * validOAISets: list of strings; 
@@ -9858,7 +9859,7 @@ The interface to the Greater VO.
   defaults to 'max' --
   Default level of detail to return on the VOSI endpoint (change to min
   when you have more than 100 or tables).
-* votDefaultEncoding: value from the list binary, td; 
+* votDefaultEncoding: value from the list td, binary; 
   defaults to 'binary' --
   Default 'encoding' for VOTables in many places (like the DAL
   responses; this can be user-overridden using the _TDENC local HTTP
@@ -14649,7 +14650,7 @@ your metadata table, use the ssacols stream, for example like this::
       spectralResolution="2.5e-11"
     >//ssap#hcd</mixin>
     <mixin
-      calibLevel="1">//obscore#publishSSAPHCD</mixin>
+      calibLevel="1">//obscore#publishSSAPMIXC</mixin>
     <column name="localKey" type="text"
       ucd="meta.id"
       tablehead="Key"
