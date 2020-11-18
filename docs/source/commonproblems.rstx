@@ -635,6 +635,24 @@ essentially, someone will have to build a pgsphere package for your
 postgres version.
 
 
+'function "spoint_in" already exists with same argument types'
+==============================================================
+
+This would typically show in dachs init, and it is again an indication
+that the state of the pgsphere extension is bad.  The most likely reason
+is that postgres has not been acquainted with “new-style” extension
+metadata of pgsphere.  In that case, pg_sphere will be absent of the
+output of ``select * from pg_extension``.
+
+If that is true, running::
+
+  psql gavo -c "CREATE EXTENSION pg_sphere FROM UNPACKAGED"
+
+should fix the problem (followed by another ``dachs init``; if the
+failure happened during a DaCHS upgrade, run ``apt install -f``
+instead).
+
+
 relation "ivoa._obscoresources" does not exist
 ==============================================
 

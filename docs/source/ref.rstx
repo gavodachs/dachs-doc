@@ -7492,6 +7492,8 @@ Parameter *ssa_timeExt*
 Parameter *ssa_timeSI*
   defaults to ``NULL``;
   It's safe to ignore this.
+Parameter *whereclause*
+  A SQL fragment that fits after the source table (typically, a WHERE clause). Use this if you only want a subset of the original table to be visible through SSAP.
 
 The //timeseries#phot-0 Mixin
 '''''''''''''''''''''''''''''
@@ -9691,7 +9693,7 @@ Paths and other general settings.
 * logDir: path relative to rootDir; 
   defaults to 'logs' --
   Path to the DC's logs (should be local)
-* logLevel: value from the list warning, debug, info, error; 
+* logLevel: value from the list warning, error, info, debug; 
   defaults to 'info' --
   How much should be logged?
 * maintainerAddress: string; 
@@ -9847,7 +9849,7 @@ The interface to the Greater VO.
   Give access URLs for the alternative protocol (https when serverURL is
   http and vice versa) as a mirrorURL?  If you're listening to HTTPS,
   this is probably a good idea.
-* sdmVersion: value from the list 2, 1; 
+* sdmVersion: value from the list 1, 2; 
   defaults to '1' --
   Obsolete (SDM version 2 is shelved).  Don't use.
 * validOAISets: list of strings; 
@@ -9855,7 +9857,7 @@ The interface to the Greater VO.
   Comma-separated list of OAI sets DaCHS should accept for publication.
   This must always include ivo_managed and vosi, and you will want local
   if you run a web interface.
-* VOSITableDetail: value from the list min, max; 
+* VOSITableDetail: value from the list max, min; 
   defaults to 'max' --
   Default level of detail to return on the VOSI endpoint (change to min
   when you have more than 100 or tables).
@@ -9914,7 +9916,7 @@ Settings related to serving content to the web.
   defaults to 'False' --
   If True, Javascript will not be minified on delivery (this is for
   debugging)
-* logFormat: value from the list combined, default; 
+* logFormat: value from the list default, combined; 
   defaults to 'default' --
   Log format to use.  Default doesn't log IPs, user agents, or referrers
   and thus should be ok in terms of not processing personal data, which
