@@ -1122,28 +1122,23 @@ This is Mark Taylor's samp.js, checked out from
 https://github.com/astrojs/sampjs.git.
 
 
-jquery.flot.js
---------------
+jquery and flot
+---------------
 
-That's the plotting code.  We got it from http://www.flotcharts.org/
+We're distributing both jquery and flot in our tarballs because they're
+rather painful to fiddle together on non-Debian platforms.  However,
+the Debian package doesn't carry them because re-distributing packaged
+stuff is being frowned upon (and it stinks).
 
+To keep things in sync as good as we can, we need to update the built-in
+javascript files as we go to a new Debian.  To do that, go to
+gavo/resources/web/js in a checkout and run::
+  
+  sudo apt install libjs-jquery libjs-jquery-flot
+  python3 ../../../web/ifpages.py
 
-Building jquery-gavo.js
------------------------
-
-* Go to a temporary directory
-* Go to http://jqueryui.com/download and make yourself a jquery-ui
-  archive.  Currently, we want all the core, plus draggable and
-  resizable (plus probably Dialog, though that's not used yet).  Do 
-  not select any theme.
-* Unzip the file, go to the js subdirectory of the distribution
-* concatenate external/jquery/jquery.js and jquery-ui.js go
-  jquery-gavo.js
-* copy jquery-gavo.js to gavo/resources/web/js
-
-Whatever CSS is necessary for jquery should for now go into gavo_dc.css
-– I've simply been pasting in jquery-ui.css (no idea what "-structure"
-is).
+This will re-write the two files jquery-gavo.js and jquery.flot.js based
+on what Debian currently distributes.
 
 
 Stuff in gavo.imp

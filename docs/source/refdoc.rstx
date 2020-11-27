@@ -4843,7 +4843,8 @@ Functions Available for Row Makers
 In principle, you can use arbitrary python expressions in var, map and
 proc elements of row makers.  In particular, the namespace in which
 these expressions are executed contains math, os, re, time, and datetime
-modules as well as gavo.base, gavo.utils, and gavo.coords.
+modules as well as gavo.base, gavo.utils, and gavo.coords; in addition,
+there's NaN (which simply is to ``float('nan')``).
 
 However, much of the time you will get by using the following functions
 that are immediately accessible in the namespace:
