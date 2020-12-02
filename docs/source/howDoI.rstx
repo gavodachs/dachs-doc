@@ -1235,6 +1235,8 @@ starting shortly before the 1.0 release.
   deprecated, and they'll disappear because their semantics sucked.
   Use .query (for queries returning rows) or .execute (for everything
   else) on the connection attributes of table or querier instead.
+  Note that those won't expand macros; use table.expand(query) if you
+  need that.
 
 
 ...switch between SVN and packaged DaCHS?

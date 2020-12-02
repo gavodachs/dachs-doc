@@ -83,11 +83,27 @@ querying, ``getWritableAdminConn`` when writing) using a context manager::
         {'arg1': 23, 'pat': 'M32'}):
       ...
 
-In contrast to ``doSimpleQuery``, this will do case folding of the
+Besides ``queryToDicts``, there's also ``query``, which yields tuples.
+Both are iterators, which means that the queries contained *will not be
+executed* unless you fetch at least one row.
+
+Hence, for queries that don't return anything (DDL, inserts, etc), use
+``conn.execute``.
+
+In contrast to ``doSimpleQuery``, all these will do case folding of the
 select list items.
 
 In ”user” code, get these symbols from ``api`` instead of from
 ``base``.
+
+Another feature you might like to know about is the connections's
+``parameters`` context manager.  It takes postgres settings keys and
+values and will reset them at the end of the controlled block.  This is
+useful for things like timeouts and the like, e.g.,::
+
+  with conn.parameters([
+  		("statement_timeout", "%s ms"%int(timeout*1000))]):
+		whatever
 
 
 Error handling, logging
