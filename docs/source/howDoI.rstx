@@ -1221,6 +1221,20 @@ starting shortly before the 1.0 release.
   the same any more, so be sure to test things.
 * 2.0: This is a move to python3 and is a longer thing.  See how to
   `...go from DaCHS 1 to DaCHS 2?`_
+* 2.3: This updates jquery; if you've used a recent Debian package, you
+  already used that.  If you have javascript in any templates, that
+  may needs updates, among others:
+
+  * change ``.unload(`` to ``.on("unload",`` (this happens in some SAMP
+    code, for instance).
+  * element names are now returned in lower case, so add a toUpperCase
+    when you've compared them.
+  * in the SAMP code, change the icon URL to ``completeURL("/logo_tiny.png")``
+    (or whatever) to avoid trouble with https-only installations.
+* 2.3: the .query methods on table or querier objects are now strongly
+  deprecated, and they'll disappear because their semantics sucked.
+  Use .query (for queries returning rows) or .execute (for everything
+  else) on the connection attributes of table or querier instead.
 
 
 ...switch between SVN and packaged DaCHS?
