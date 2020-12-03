@@ -3687,7 +3687,7 @@ need an empty ``bindAddress`` as above.  The ``adaptProtocol`` in there
 means that DaCHS will not try to change http vs. https in links towards
 itself depending on whether you speak with in encrypted; you'll almost
 always want this in proxy operation, in particular if your proxy is of
-the ugly one that indisciminately “upgrades” to https.
+the ugly sort that indisciminately “upgrades” to https.
 
 If the reverse proxy runs on the same machine, it may proxy other
 servers as well, and then it is likely that something else is already
@@ -4919,18 +4919,33 @@ When, on the other hand, having DaCHS speak HTTPS natively,
 all you need to do is
 give it a secret key and a certificate (which really is a public key
 with a CA's signature); these need to come concatenated in PEM format in a
-file called ``$GAVO_DIR/hazmat/bundle.pem``.  Just so the whole crypto
+file called ``/var/gavo/hazmat/bundle.pem``.  Just so the whole crypto
 thing doesn't become a total carnival, you should have the hazmat
 directory owned by root and with permissions 700.  DaCHS will only read
 it when starting up using ``gavo serve`` and before dropping privileges.
 That way, if there's a minor security issue in DaCHS, you at least don't
 necessarily lose your private key.
 
-On the other hand, you need to become root to update the certificate in
-this setup, which probably again is a security hazard, in particular
-when it's automated.  If you want to do better, you probably can.
-Whatever you do, just make sure the operational DaCHS server (i.e., the
-gavo user) can't read the private key.
+Note that DaCHS only supports https on port 443 because that's all you
+are likely to get certificates for.  Exception: ``dachs serve debug``
+is intended to be run with user privileges and hence will listen to
+40433 if it can read bundle.pem (which it shouldn't) – of course, you
+will get certificate errors when accessing that.  But that's for
+debugging only anyway.
+
+If you really don't want to use letsencrypt (see the next section) and
+get your own key-certificate pairs, here's what will likely work::
+
+    (become root)
+  mv my-key.key my-key.crt /var/gavo/hazmat
+    (that's a move because you don't want secret keys linger around
+    all over the place)
+  cd /var/gavo/hazmat
+  cat my-key.key my-key.crt > bundle.pem
+    (exit root shell, restart DaCHS)
+
+In case you got a bundle of intermediate certificates on top, just
+append that to your /var/gavo/hazmat/bundle.pem.
 
 
 Letsencrypt
@@ -5004,10 +5019,22 @@ HTTP preferred
 ''''''''''''''
 
 We strongly recommend to have an unencrypted HTTP endpoint, and 
-have that as the primary interface even when you support HTTPS in all
-but very rare cases.
+have that as the primary interface even when you support HTTPS *unless*
+you actually have authenticated services.
 
-Here's the reasoning: HTTPS is largely ineffective against most privacy
+In particular, please to not forcibly redirect to HTTPS versions of
+pages; it breaks POST requests (which are quite common in the VO) and
+quite a few other things, too.
+
+DaCHS will give you the same effect in a sane way because (since version
+2.2.3) it honours the upgrade-insecure-requests header.  That way,
+clients that are confident they can deal with HTTPS can inform the
+server, and if the server thinks it's safe to upgrade, it can redirect
+them.  Anything not prepared to deal with or interested in HTTPS will be
+unconcerned, and everything is under user control, as it should be.
+
+Here's the reasoning for preferring HTTP in the VO: 
+HTTPS is largely ineffective against most privacy
 breaches: Almost all nation-states can issue certificates that almost
 all user systems will accept; companies or institutions wanting to
 eavesdrop on their employees can force http proxies and install their
@@ -5030,16 +5057,14 @@ coming with the Java VM, which often is not as well maintained.  And
 once people start using curl or pyVO, the operating system's CA bundle
 is used, which on many systems is a mess.  The net effect is that a
 given service may appear to work in the browser and in a script, but not
-from TOPCAT.  Oh my.  I mention in passing that WebSAMP on https pages
-may very well be impossible, and it certainly doesn't work now (which is
-why DaCHS swallows the SAMP button when it knows it's delivering via
-HTTPS).
+from TOPCAT.  Oh my.
 
 Given the miniscule benefits and the serious operational implications,
 you should provide HTTP endpoints and register your those.  If HTTPS is
 available, DaCHS will tell clients via the Registry's mirrorURL feature.
 If clients think HTTPS is worth it, they in this way can learn about
-support for it and use that as they see fit.
+support for it and use that as they see fit; and for browsers, see above
+on upgrade-insecure-requests.
 
 
 Upgrading
