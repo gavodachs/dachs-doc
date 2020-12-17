@@ -1015,6 +1015,47 @@ use the back button and switch the output format on the orginal form or
 repeat the upload file selection on the form at the foot of the result
 table.
 
+...get back the mouseover previews we had in DaCHS 1?
+-----------------------------------------------------
+
+In DaCHS 1, when you had a product URI, the machinery would pull the
+previews only when the user moused over the link.  We changed this in
+DaCHS 2 to pulling the preview automatically when a row becomes visible,
+because many operators had asked for that.
+
+If you would like to have the previous behaviour back, you have to
+override the formatter of the field containing the product URL, which in
+most cases is accref.  As usual, you override a column by overwriting
+it, in this case in the service's output table (if it doesn't have one
+yet, use ``<outputTable autoCols="*"/>`` as a start).
+
+The actual formatter needs a bit of care, as you will be returning HTML,
+and that obviously must not bleed into, say, VOTable or CSV outputs.
+Hence, you need a format switch.
+
+Also, the accrefs DaCHS stores internally are keys into the product
+table.  To obtain a URL from that, you have to go through
+``<serverurl>/getproduct/<productkey>``.
+
+That's almost all you need to know to write a formatter in which you can
+attach essentially arbitrary javascript (you could define extra
+functions in a custom template).  To get back DaCHS 1 behaviour, the
+following should do::
+
+  <column original="accref">
+    <formatter>
+      fullURL = base.makeAbsoluteURL("/getproduct/"+data)
+      if queryMeta["format"]=="HTML":
+        return T.a(href=fullURL, onmouseover="insertPreview(this)")[
+          fullURL.split("/")[-1]]
+      else:
+        return fullURL
+    </formatter>
+  </column>
+
+You can observe this in its natural habitat in :samplerd:`apo/res/apo`.
+
+
 VO Protocols
 ============
 
