@@ -478,7 +478,11 @@ sits) and, if necessary ctx.request (the t.w request object).
 
 Also, the active renderer is visible as self; the one thing you
 might want to see from there is self.queryMeta, which contains,
-for instance, the input parameters.
+for instance, the input parameters (but be careful: the inputTable
+will be None when input errors are rendered, so better to code
+using it like this::
+
+  if self.queryMeta["inputTable"] and self.queryMeta["inputTable"]...:
 
 You can return anything that can be in a stan DOM.  Usually, this will be
 a string.  To return HTML, use the stan DOM available under the T namespace.
@@ -1514,7 +1518,7 @@ Atomic Children
   contributing to a published view.  Warning: adql=hidden is
   incompatible with setting readProfiles manually.
 * **allProfiles** (Comma separated list of profile names.; defaults to
-  'admin, msdemlei') -- A (comma separated) list of profile names
+  'msdemlei, admin') -- A (comma separated) list of profile names
   through which the object can be written or administred (oh, and the
   default is not admin, msdemlei but is the value of [db]maintainers)
 * **autoCols** (Comma-separated list of strings; defaults to '') --
@@ -2151,7 +2155,7 @@ Atomic Children
 ...............
 
 * **allProfiles** (Comma separated list of profile names.; defaults to
-  'admin, msdemlei') -- A (comma separated) list of profile names
+  'msdemlei, admin') -- A (comma separated) list of profile names
   through which the object can be written or administred (oh, and the
   default is not admin, msdemlei but is the value of [db]maintainers)
 * **readProfiles** (Comma separated list of profile names.; defaults
@@ -2558,7 +2562,7 @@ Atomic Children
   contributing to a published view.  Warning: adql=hidden is
   incompatible with setting readProfiles manually.
 * **allProfiles** (Comma separated list of profile names.; defaults to
-  'admin, msdemlei') -- A (comma separated) list of profile names
+  'msdemlei, admin') -- A (comma separated) list of profile names
   through which the object can be written or administred (oh, and the
   default is not admin, msdemlei but is the value of [db]maintainers)
 * **dupePolicy** (One of: check, drop, dropOld, overwrite; defaults to
@@ -7291,7 +7295,7 @@ This is done by //ssap#fill-plainlocation (or, historically, by
 create an index for the ssa_region field.
 
 To make it visible in obscore, however, you must bind the
-``coverage`` mixin par of `the //obscore#publishSSAPMIXIN 
+``coverage`` mixin par of `the //obscore#publishSSAPMIXC
 mixin`_ to ``ssa_region``.
 
 
@@ -7318,6 +7322,9 @@ postgres doesn't support indices on views.  If you can't use the
 plainlocation mixin, please not that the the SSA engine expects
 spoints as the location (and these would be indexed like
 <index columns="loc_col" method="GIST"/>).
+
+The mixin will automatically create an index over whatever you
+give for ssa_pubDID (if you give something).
 
 
 This mixin has the following parameters:
@@ -9693,7 +9700,7 @@ Paths and other general settings.
 * logDir: path relative to rootDir; 
   defaults to 'logs' --
   Path to the DC's logs (should be local)
-* logLevel: value from the list warning, error, info, debug; 
+* logLevel: value from the list info, warning, debug, error; 
   defaults to 'info' --
   How much should be logged?
 * maintainerAddress: string; 
@@ -9857,7 +9864,7 @@ The interface to the Greater VO.
   Comma-separated list of OAI sets DaCHS should accept for publication.
   This must always include ivo_managed and vosi, and you will want local
   if you run a web interface.
-* VOSITableDetail: value from the list max, min; 
+* VOSITableDetail: value from the list min, max; 
   defaults to 'max' --
   Default level of detail to return on the VOSI endpoint (change to min
   when you have more than 100 or tables).
@@ -15147,7 +15154,8 @@ Functions Available for Row Makers
 In principle, you can use arbitrary python expressions in var, map and
 proc elements of row makers.  In particular, the namespace in which
 these expressions are executed contains math, os, re, time, and datetime
-modules as well as gavo.base, gavo.utils, and gavo.coords.
+modules as well as gavo.base, gavo.utils, and gavo.coords; in addition,
+there's NaN (which simply is to ``float('nan')``).
 
 However, much of the time you will get by using the following functions
 that are immediately accessible in the namespace:
@@ -15404,7 +15412,14 @@ that are immediately accessible in the namespace:
 *makeProductLink(key, withHost=True, useHost=None)*
   returns the URL at which a product can be retrieved.
   
-  key can be an accref string or an RAccref
+  key can be an accref string or an RAccref.
+  
+  Note that this is using the preferred host as the basic URL.  If
+  you are running dual-protocol http/https and you ingest results
+  of this function into the database, it is advisable to cut off
+  the scheme part of the URI (e.g., ``split(":", 1)[-1]``).  In
+  data products served, DaCHS will then put in the scheme used
+  for the query.
   
 
 *makeSitePath(path)*
@@ -15906,6 +15921,11 @@ this::
 
   MS(rscdef.Column, name="ra", type="double precision)
 
+
+Constant NaN
+............
+
+A constant, valued nan
 
 Class NoMetaKey
 ...............
@@ -16993,7 +17013,14 @@ Signature: ``makeProductLink(key, withHost=True, useHost=None)``
 
 returns the URL at which a product can be retrieved.
 
-key can be an accref string or an RAccref
+key can be an accref string or an RAccref.
+
+Note that this is using the preferred host as the basic URL.  If
+you are running dual-protocol http/https and you ingest results
+of this function into the database, it is advisable to cut off
+the scheme part of the URI (e.g., ``split(":", 1)[-1]``).  In
+data products served, DaCHS will then put in the scheme used
+for the query.
 
 
 Function makeSitePath

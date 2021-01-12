@@ -422,6 +422,11 @@ in the select clause not sporting an AS).  In case you need mixed-case
 keys (we recommend you avoid that), you can pass in a ``caseFixer``
 dictionary that maps the lowercased names to their mixed-case versions.
 
+Note that the queries passed will not be executed unless you start
+consuming the iterator returned.  This means that you can only use them
+when you actually get back a result.  Instead of the query methods, use
+``execute`` for statements that do not return anything.
+
 In sum, the typical database query in the vicinity of DaCHS would look
 like this::
 
@@ -430,6 +435,11 @@ like this::
     for row in conn.queryToDicts("SELECT * FROM sch.my_table"):
        count_sum += row["count"]
        print(row)
+
+or, for queries not returning anything::
+
+  with base.getWritableAdminConn() as conn:
+    conn.execute("DROP TABLE obsolete_table")
 
 In case you wondered: Yes, in the past we have experimented with
 abstracting away the SQL.  And we found it doesn't make the code any
