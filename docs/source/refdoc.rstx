@@ -4642,13 +4642,18 @@ SQL scripts
 
 In SQL scripts, you separate statements with semicolons.  Note that no
 statements in an SQL script may fail since that will invalidate the
-transaction.  This is a serious limitation since you must not commit or
-begin transactions in SQL scripts as long as Postgres  does not support
-nested transactions.
+transaction.  Use the AC_SQL language to simply ignore failures.
 
 You can use table macros in the SQL scripts to parametrize them; the
 most useful among those probably is ``\qName`` containing the fully
 qualified name of the table being processed.
+
+You cannot easily produce output from SQL scripts.  If you want to give
+user feedback in long-running scripts, use ``RAISE NOTICE`` in
+procedures or, outside of procedures::
+
+  do $$BEGIN raise notice 'My message'; END$$;
+
 
 Python scripts
 ''''''''''''''
