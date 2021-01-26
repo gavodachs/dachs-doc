@@ -969,26 +969,19 @@ out.  There's also ``_updateTAP_SCHEMA(connection)``, which you should
 use on anything influencing TAP_SCHEMA (which might include, say,
 changes in column serialisation).
 
-At Heidelberg, once an upgrade is defined, the upgrader using::
+At Heidelberg, once an upgrade is defined, test the upgrader using::
 
   testgavo upgrade
 
-The effects should be visible in the ``dachstest`` database.
+The effects should be visible in the ``dachstest`` database.  To be able
+to roll back changes effected by the upgrade, you may want to backup the
+cluster first.  Markus has a script ``backup_postgres`` for that.
 
 If you follow the rules, upgrade should be atomic, i.e., either the
 upgrade succeeds or the database is untouched, letting operators
-downgrade and continue operations until a problem is figured out.
-
-If, on development, you notice your instructions have not had the
-desired effect, things are more difficult.  You can, in principle,
-re-run the entire procedure by executing something like::
-
-  update dc.metastore set value=5 where key='schemaversion';
-
-to re-set the schema version to the initial value, but that doesn't
-really help when changes are already in the database.  During
-development, it pays to keep a quick backup of current database files so
-it's easy to entirely roll back if the upgrade hasn't quite worked.
+downgrade and continue operations until a problem is figured out.  To
+selectively re-run upgraders (and they should be idempotent), use dachs
+upgrade's ``--force-dbversion`` option.
 
 
 XML Schema updates
