@@ -284,7 +284,8 @@ Other Streams
 '''''''''''''
 
 .. replaceWithResult getStreamsDoc(
-    ["//procs#license-cc0", "//procs#license-cc-by", 
+    ["//procs#declare-indexes-from"]
+    +["//procs#license-cc0", "//procs#license-cc-by", 
      "//procs#license-cc-by-sa"]
     +["//pql#"+id for id in ["DALIPars", "DALIUpload"]]
     +['//obscore#obscore-columns']

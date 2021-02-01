@@ -5723,10 +5723,14 @@ First, you will obviously define the tables involved, for instance::
     <column name="masterNo" type="integer" required="True"
       ...
 
-Note, in particular, that postgres does not let you define indices over
+Note, in particular, that postgres does not let you define indexes over
 views.  This means that anything you want to index must be indexed on
 the table level (hence the ``//scs#q3cindex`` mixin on the ``master``
-table).
+table).  You still should *declare* the underlying indexes; you could
+write index statements as usual (add ``metaOnly="True"``), but it is
+generally faster and safer to use
+:dachsref:`//procs#declare-indexes-from`.  Insert it right above your
+viewDefinition.
 
 A good approach is to keep the columns that will later show up in
 the view into a STREAM and then replay that stream in both the table
@@ -5780,7 +5784,10 @@ sure you actually want to follow changes in source table structure in
 the view.
 
 After declaring the columns, what is left is actually defining the
-view::
+view (see above for the FEED)::
+
+    <FEED source="//procs#declare-indexes-for"
+      sourceTables="master gfh"/>
 
     <viewStatement>
       CREATE VIEW \curtable AS (
@@ -5839,32 +5846,6 @@ for one source table when the other doesn't exist and will not be made
 in the same import will lead to an error in the view creation.  This is
 harmless for the import of the table you imported, as ``data`` creation
 on ``recreateAfter`` happens in a separate transaction.
-
-One additional trap with views is that DaCHS cannot propagate the
-information on what columns have indices in the source table(s)
-reliably.  In many applications, that does not matter, but when it does,
-you will need to declare the indices using :dachsref:`Element index`
-with metaOnly set to true::
-
-  <index columns="ra,dec" metaOnly="True"/>
-
-In particular if a view just decorates a single table, you can lessen
-the burden of maintaining that using a bit of active tag trickery.
-Essentially, in a LOOP's code items, you obtain the original table,
-inspect its indexes and transplant them into the new table.  In the
-ideal case where you just literally copy in all columns from a table
-called ``original_table``, the following snippet would do the trick when
-put into the table element of the view::
-
-  <LOOP>
-    <codeItems>
-      for ind in context.getById("original_table").indices:
-        yield {"cols": ",".join(ind.columns)}
-    </codeItems>
-    <events>
-      <index columns="\cols" metaOnly="True"/>
-    </events>
-  </LOOP>
 
 
 More on Importing Recipes
