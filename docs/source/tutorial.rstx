@@ -1393,6 +1393,18 @@ with the DaCHS identifier of the freshly imported table, e.g.,::
 If this command's argument looks confusing to you, please review
 `Referencing in DaCHS`_.
 
+Once everything looks right, tell DaCHS to inspect your table and
+collect column statistics, space-time coverage, and similar metadata on
+it::
+
+  dachs limits q
+
+For large tables, this can run for a long time; Gigarow-sized tables
+might take days.  For resources of that size, you will probably get
+reasonable estimates by just looking at a subset of the data, so for
+both ``limits`` and ``info``, you can add a ``--sample-percent`` option.
+
+
 This will output several properties (right now, minimum, maximum, 
 average) of numeric columns, which
 may help spot problems in the data or the row maker (or both).  
@@ -1503,15 +1515,27 @@ This will enter all the published services and tables in the RD q.rd
 into the table of published resources.  For ``local`` publications, this
 means they will appear on the default front page.  However, DaCHS caches
 the front page, and to see changes, you will have to invalidate the
-cache.  If you have set `The Admin Password`_, and it fits what the
+cache.  If you have set `the admin password`_, and it fits what the
 ``serverURL`` says, ``dachs pub`` will do that itself.  If in doubt,
 just restart the DaCHS server.
+
+Note again that before running dachs pub, it is a good idea to run
+``dachs limits q``, which will create (or update) all kinds of statistal
+estimates which are being communicated to the registry and are important
+for discovery (e.g., coverage and some statistical measures for the
+columns).  As of 2021, even some DaCHS-internal hacks working around
+deficiencies in the database server's query planner in connection with
+common spherical indexing schemes rely on these statistics.
 
 For ``ivo_published`` services, publication means that their metadata
 will be served whenever DaCHS is harvested by VO registries using a
 protocol called `OAI-PMH`_.  DaCHS' implemenation of that protocol is done
 such that XSLT-aware user agents (which, at least in 2020, still means:
 all major web browsers) can be used to (somewhat clumsily) operate it.
+
+Note that your publication will be more useful if you have endowed your
+resource with `STC coverage`_ and you have run ``dachs limits`` on the
+embedding RD.
 
 In practice, you can point your browser to the ``oai.xml`` child of your
 server root – by default http://localhost:8080/oai.xml –, and you will

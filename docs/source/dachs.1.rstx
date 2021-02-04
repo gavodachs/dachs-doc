@@ -7,8 +7,8 @@ data publishing infrastructure for the Virtual Observatory (VO)
 ---------------------------------------------------------------
 
 :Author: Markus Demleitner <gavo@ari.uni-heidelberg.de>
-:Version: 2.1
-:Date: 2020-06-17
+:Version: 2.3
+:Date: 2021-02-04
 :Manual section: 1
 
 SYNOPSIS
@@ -482,13 +482,16 @@ THE limits SUBCOMMAND
 
 Synopsis::
 
-  dachs limits [-h] item-id
+  dachs limits [-h] item-id {item-id}
 
-This subcommand updates existing values/min or values/max items in the
-referenced table or RD from a database query (thus it may run for quite
-a while on large tables).  Note that this will rewrite the RD containing
-the definitions (but it takes great care to preserve not only the
-remaining contents but also its formatting).
+This creates or updates DaCHS' estimates of various metadata of RDs
+or tables, in particular the STC coverage, the size of the tables and,
+unless ``-t`` is given, the column statistics.  This may take a long
+time for large tables, in which case you may use the
+``--sample-percent`` option, which makes DaCHS only look at a subset
+of the full data.
+
+You should in general run ``dachs limits`` before publishing a resource.
 
 
 Arguments
@@ -496,6 +499,15 @@ Arguments
 
 item-id
   either an RD id or a table reference in the from rd-id#table-id
+
+Options
+-------
+
+-t, --tables-only     
+    Only acquire table/resource-level metadata (rather than column
+    metadata, which usually takes a lot longer).
+-s P, --sample-percent P
+    Only look at P percent of the table to determine min/max/mean.
 
 
 THE mkboost SUBCOMMAND
