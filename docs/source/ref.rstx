@@ -1524,7 +1524,7 @@ Atomic Children
   contributing to a published view.  Warning: adql=hidden is
   incompatible with setting readProfiles manually.
 * **allProfiles** (Comma separated list of profile names.; defaults to
-  'msdemlei, admin') -- A (comma separated) list of profile names
+  'admin, msdemlei') -- A (comma separated) list of profile names
   through which the object can be written or administred (oh, and the
   default is not admin, msdemlei but is the value of [db]maintainers)
 * **autoCols** (Comma-separated list of strings; defaults to '') --
@@ -1549,8 +1549,8 @@ Atomic Children
   element tried to satisfy requests for names in id references of this
   element's children.
 * **nrows** (integer; defaults to None) -- Approximate number of rows
-  in this table (usually, you want to use dachs limits to fill this
-  out; write <nrows>0</nrows> to enable that).
+  in this table.  While you can hard-code this here, running dachs
+  limits will put an estimate into the database.
 * **onDisk** (boolean; defaults to 'False') -- Table in the database
   rather than in memory?
 * **original** (id reference; defaults to None) -- An id of an element
@@ -2161,7 +2161,7 @@ Atomic Children
 ...............
 
 * **allProfiles** (Comma separated list of profile names.; defaults to
-  'msdemlei, admin') -- A (comma separated) list of profile names
+  'admin, msdemlei') -- A (comma separated) list of profile names
   through which the object can be written or administred (oh, and the
   default is not admin, msdemlei but is the value of [db]maintainers)
 * **readProfiles** (Comma separated list of profile names.; defaults
@@ -2568,7 +2568,7 @@ Atomic Children
   contributing to a published view.  Warning: adql=hidden is
   incompatible with setting readProfiles manually.
 * **allProfiles** (Comma separated list of profile names.; defaults to
-  'msdemlei, admin') -- A (comma separated) list of profile names
+  'admin, msdemlei') -- A (comma separated) list of profile names
   through which the object can be written or administred (oh, and the
   default is not admin, msdemlei but is the value of [db]maintainers)
 * **dupePolicy** (One of: check, drop, dropOld, overwrite; defaults to
@@ -2589,8 +2589,8 @@ Atomic Children
   element tried to satisfy requests for names in id references of this
   element's children.
 * **nrows** (integer; defaults to None) -- Approximate number of rows
-  in this table (usually, you want to use dachs limits to fill this
-  out; write <nrows>0</nrows> to enable that).
+  in this table.  While you can hard-code this here, running dachs
+  limits will put an estimate into the database.
 * **onDisk** (boolean; defaults to 'False') -- Table in the database
   rather than in memory?
 * **original** (id reference; defaults to None) -- An id of an element
@@ -3416,6 +3416,10 @@ Atomic Children
   item of the list as parameters row and exit?
 * **enc** (unicode string; defaults to None) -- Encoding of strings
   coming in from source.
+* **notify** (boolean; defaults to 'False') -- Enable notification of
+  begin/end of processing (as for other grammars; dictlistGrammars are
+  usually internal, where notification is unwelcome).  Note that the
+  -M option of gavo imp will only work if you set it to true.
 * **original** (id reference; defaults to None) -- An id of an element
   to base the current one on.  This provides a simple inheritance
   method.  The general rules for advanced referencing in RDs apply.
@@ -9647,8 +9651,9 @@ to the index.  Then the rare cases when you don't want this,
 add a cluster="False" in the FEED.
 
 Since long and lat may be expressions, this will not automatically
-declare index/columns.  If you need to do that, pass an additional
-columns attribute.
+declare index/columns.  You should therefore pass in a 
+comma-separated list of column names in the columns attribute
+in order to inform clients of the index.
 
 Examples::
 
@@ -9656,7 +9661,8 @@ Examples::
     columns="ra,dec"/>
 
   <FEED source="//scs#splitPosIndex"
-    long="long(ssa_location)" lat="lat(ssa_location)"/>
+    long="long(ssa_location)" lat="lat(ssa_location)"
+    columns="ssa_location"/>
 
 
 *Defaults* for macros used in this stream:
@@ -9746,7 +9752,7 @@ Paths and other general settings.
 * logDir: path relative to rootDir; 
   defaults to 'logs' --
   Path to the DC's logs (should be local)
-* logLevel: value from the list error, info, warning, debug; 
+* logLevel: value from the list warning, error, info, debug; 
   defaults to 'info' --
   How much should be logged?
 * maintainerAddress: string; 
@@ -9910,7 +9916,7 @@ The interface to the Greater VO.
   Comma-separated list of OAI sets DaCHS should accept for publication.
   This must always include ivo_managed and vosi, and you will want local
   if you run a web interface.
-* VOSITableDetail: value from the list min, max; 
+* VOSITableDetail: value from the list max, min; 
   defaults to 'max' --
   Default level of detail to return on the VOSI endpoint (change to min
   when you have more than 100 or tables).
@@ -9969,7 +9975,7 @@ Settings related to serving content to the web.
   defaults to 'False' --
   If True, Javascript will not be minified on delivery (this is for
   debugging)
-* logFormat: value from the list default, combined; 
+* logFormat: value from the list combined, default; 
   defaults to 'default' --
   Log format to use.  Default doesn't log IPs, user agents, or referrers
   and thus should be ok in terms of not processing personal data, which
@@ -17814,6 +17820,15 @@ tables in the RD; this helps when several RDs share a single schema.
 **adql**
   (boolean) -- True if the RD had TAP-published tables when it was
   last touched.
+**spatial**
+  (text) -- A representation of this resource's coverage as a string
+  suitable for including into RDs (an ASCII MOC, likely)
+**temporal**
+  (double precision[]) -- A flattened-out array of pairs of
+  lower/upper pairs of MJD of temporal coverage (as in RDs)
+**spectral**
+  (double precision[]) -- A flattened-out array of pairs of
+  lower/upper pairs of Joules of spectral coverage (as in RDs)
 
 dc.res_dependencies
 '''''''''''''''''''

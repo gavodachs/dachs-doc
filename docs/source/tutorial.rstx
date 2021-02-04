@@ -6675,6 +6675,64 @@ write the equivalent vizier-like expressions)::
     </condDesc>
 
 
+STC coverage
+------------
+
+Most resources you will publish have a certain coverage in space, time
+and spectrum.  The Registry can represent this coverage, and this is
+obviously really helpful in many discovery operations.  So, if you can,
+declare your resources' coverages (or “footprints”).
+
+In DaCHS, you can do that manually using the children of
+:dachsref:`Element coverage`.  These are:
+
+* ``spatial``: This contains something called an ASCII
+  MOC, which is explained in the `MOC Recommendation`_ .  Coming up with
+  those essentially always requires some tooling, so unless you really
+  want to say “all sky” (which is ``0/0-11``) you should probably let
+  DaCHS work it out (see below).
+* ``temporal``: You can have multiple of those; each needs to be a
+  space-separated pair of either floats (interpreted as MJD) or
+  DALI-conforming ISO strings (YYYY-MM-DD).  For many tables, DaCHS can
+  automatically work this out, but it is not very diligent and will just
+  use the minimal and maximal time within the resource.  In particular
+  when you have resources with multiple observation runs, it is
+  preferable to manually enter them.
+* ``spectral``: Again, DaCHS lets you have multiple of those, and they
+  are pairs of floats giving spectral coordinates in Joule (in case you
+  are wondering: it's energy so it properly works for non-EM messengers
+  as well, and it's Joules because that sucks for everyone except
+  ultra-high-energy cosmic ray people who deserve a break because they
+  have so few messengers).  Giving these manually is a particularly good
+  idea if you have several narrow bands, because DaCHS will not notice
+  that when automatically determining the coverage.
+
+For many common table types (SSAP, Obscore, SIAP, SCS), DaCHS can
+automatically work out the coverages (with the caveats mentioned above).
+To make it do that, use :dachsref:`Element updater`, which lets you
+define the table DaCHS should derive the coverage from (or, for odd
+cases, several tables for the various axes).  The results of these
+coverage estimations are stored in the database table ``dc.rdmeta``.
+
+Note there can only be one coverage per RD.  This means that if to
+things have different coverage, they must be in two different RDs.
+
+You can mix and match manual and automatic coverages; DaCHS will not
+overwrite manually given coverage information.  Hence, if you say::
+
+  <coverage>
+    <updater sourceTable="main"/>
+    <spectral>3.02e-19 3.03e-19</spectral>
+    <spectral>1.63e-18 1.64e-18</spectral>
+  </coverage>
+
+you would let DaCHS try to determine the temporal and spatial coverage
+from the ``main`` table, but you would say that your spectral coverage
+is around Lyman α and Balmer α.
+
+.. _MOC Recommendation: http://ivoa.net/documents/MOC/
+
+
 Writing Examples
 ----------------
 
