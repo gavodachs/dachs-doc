@@ -1371,8 +1371,8 @@ way to make the material more helpful.
 .. _RD repository: http://svn.ari.uni-heidelberg.de/svn/gavo/hdinputs/
 
 
-Running the Ingestion
----------------------
+Running the Ingestion, Getting Stats
+------------------------------------
 
 Back with arihip, we're ready for ingestion, which is covered by the
 ``import`` subcommand (cf. `Invoking DaCHS`_).  So, return to the
@@ -1393,25 +1393,31 @@ with the DaCHS identifier of the freshly imported table, e.g.,::
 If this command's argument looks confusing to you, please review
 `Referencing in DaCHS`_.
 
+This will output several properties (right now, minimum, maximum,
+average) of numeric columns, which may help spot problems in the data or
+the row maker (or both).  Also note that for each column, the presence
+of NULLs is given.  When you import data, it is a good idea to check
+whether these correspond to your expectations, and to consider declaring
+columns as required when they do not indeed contain NULLs.
+
 Once everything looks right, tell DaCHS to inspect your table and
 collect column statistics, space-time coverage, and similar metadata on
 it::
 
   dachs limits q
 
-For large tables, this can run for a long time; Gigarow-sized tables
-might take days.  For resources of that size, you will probably get
-reasonable estimates by just looking at a subset of the data, so for
-both ``limits`` and ``info``, you can add a ``--sample-percent`` option.
+For large tables, this can run for a long time; to make good for it,
+DaCHS samples increasingly less of the tables as they get larger (which
+might still take hours).  To override DaCHS' wisdom here, both
+``limits`` and ``info`` take a ``--sample-percent`` option,
+a number between 0 and 100.
 
+DaCHS will only do statistics on views if you pass the table id to
+limits or give the view's descriptor a ``forceStats`` property.
 
-This will output several properties (right now, minimum, maximum, 
-average) of numeric columns, which
-may help spot problems in the data or the row maker (or both).  
-Also note that for each column, the
-presence of NULLs is given.  When you import data, it is a good idea to
-check whether these correspond to your expectations, and to consider
-declaring columns as required when they do not indeed contain NULLs.
+In some cases, you may want to skip statistics gathering on certain
+columns.  If so, you can set the relevant columns' ``statistics``
+property to ``no``.
 
 
 Trying the services
