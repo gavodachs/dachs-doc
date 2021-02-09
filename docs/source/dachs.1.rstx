@@ -491,6 +491,12 @@ time for large tables, in which case you may use the
 ``--sample-percent`` option, which makes DaCHS only look at a subset
 of the full data.
 
+When running ``dachs limits`` on an RD, it will skip views under the
+assumption that in the typical case, column metadata for the
+interesting columns will already have been obtained for the source
+tables.  For views for which this is assumption is wrong, set the
+forceStats property to True.
+
 You should in general run ``dachs limits`` before publishing a resource.
 
 
@@ -498,7 +504,9 @@ Arguments
 ---------
 
 item-id
-  either an RD id or a table reference in the from rd-id#table-id
+  either an RD id or a table reference in the from rd-id#table-id.
+  A single ALL will expand to all RDs that already have limits-obtained 
+  metadata.
 
 Options
 -------

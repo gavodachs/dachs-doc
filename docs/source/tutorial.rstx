@@ -5871,6 +5871,19 @@ in the same import will lead to an error in the view creation.  This is
 harmless for the import of the table you imported, as ``data`` creation
 on ``recreateAfter`` happens in a separate transaction.
 
+Also note that ``dachs limits``, when run on an RD, will ignore views,
+partly because their columns will typcially already have statistics in
+the originating tables, partly because Postgres cannot TABLESAMPLE
+views, which may make column statistics really expensive.  If your views
+contain, for instance, unions, that will yield table metadata that
+is seriously wrong.  While you can update the statistics by passing the
+identifier of the table descriptor into a dachs limits call, it is
+preferable to not this in the RD.  For that, add::
+
+  <property name="forceStats">True</property>
+
+to the table element describing the view.
+
 
 More on Importing Recipes
 -------------------------
