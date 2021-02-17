@@ -1524,7 +1524,7 @@ Atomic Children
   contributing to a published view.  Warning: adql=hidden is
   incompatible with setting readProfiles manually.
 * **allProfiles** (Comma separated list of profile names.; defaults to
-  'admin, msdemlei') -- A (comma separated) list of profile names
+  'msdemlei, admin') -- A (comma separated) list of profile names
   through which the object can be written or administred (oh, and the
   default is not admin, msdemlei but is the value of [db]maintainers)
 * **autoCols** (Comma-separated list of strings; defaults to '') --
@@ -2161,7 +2161,7 @@ Atomic Children
 ...............
 
 * **allProfiles** (Comma separated list of profile names.; defaults to
-  'admin, msdemlei') -- A (comma separated) list of profile names
+  'msdemlei, admin') -- A (comma separated) list of profile names
   through which the object can be written or administred (oh, and the
   default is not admin, msdemlei but is the value of [db]maintainers)
 * **readProfiles** (Comma separated list of profile names.; defaults
@@ -2552,6 +2552,8 @@ Properties for tables:
   by commas.
 * supportsModelURI -- a URI of a data model supported through this table.
   You can give multiple URIs separated by blanks.
+* forceStats -- if present (with any value), dachs limits on the 
+  embedding RD will obtain statistics of this even if it is a view.
 
 If you give multiple data model names or URIs, the sequences of names and 
 URIs must be identical (in particular, each name needs a URI).
@@ -2568,7 +2570,7 @@ Atomic Children
   contributing to a published view.  Warning: adql=hidden is
   incompatible with setting readProfiles manually.
 * **allProfiles** (Comma separated list of profile names.; defaults to
-  'admin, msdemlei') -- A (comma separated) list of profile names
+  'msdemlei, admin') -- A (comma separated) list of profile names
   through which the object can be written or administred (oh, and the
   default is not admin, msdemlei but is the value of [db]maintainers)
 * **dupePolicy** (One of: check, drop, dropOld, overwrite; defaults to
@@ -2744,7 +2746,7 @@ to accomodate VOTable usage, we require nullLiteral to be a valid literal
 for the parent's type.
 
 Note that DaCHS does not validate for contraints from values on
-table import.  This is mainly because before ``gavo values`` has run,
+table import.  This is mainly because before ``dachs limits`` has run,
 values may not represent the new dataset in semiautomatic values.
 
 With HTTP parameters, values validation does take place (but again,
@@ -9752,7 +9754,7 @@ Paths and other general settings.
 * logDir: path relative to rootDir; 
   defaults to 'logs' --
   Path to the DC's logs (should be local)
-* logLevel: value from the list error, debug, info, warning; 
+* logLevel: value from the list debug, warning, info, error; 
   defaults to 'info' --
   How much should be logged?
 * maintainerAddress: string; 
@@ -9908,7 +9910,7 @@ The interface to the Greater VO.
   Give access URLs for the alternative protocol (https when serverURL is
   http and vice versa) as a mirrorURL?  If you're listening to HTTPS,
   this is probably a good idea.
-* sdmVersion: value from the list 2, 1; 
+* sdmVersion: value from the list 1, 2; 
   defaults to '1' --
   Obsolete (SDM version 2 is shelved).  Don't use.
 * validOAISets: list of strings; 
@@ -9916,11 +9918,11 @@ The interface to the Greater VO.
   Comma-separated list of OAI sets DaCHS should accept for publication.
   This must always include ivo_managed and vosi, and you will want local
   if you run a web interface.
-* VOSITableDetail: value from the list min, max; 
+* VOSITableDetail: value from the list max, min; 
   defaults to 'max' --
   Default level of detail to return on the VOSI endpoint (change to min
   when you have more than 100 or tables).
-* votDefaultEncoding: value from the list td, binary; 
+* votDefaultEncoding: value from the list binary, td; 
   defaults to 'binary' --
   Default 'encoding' for VOTables in many places (like the DAL
   responses; this can be user-overridden using the _TDENC local HTTP
@@ -9975,7 +9977,7 @@ Settings related to serving content to the web.
   defaults to 'False' --
   If True, Javascript will not be minified on delivery (this is for
   debugging)
-* logFormat: value from the list combined, default; 
+* logFormat: value from the list default, combined; 
   defaults to 'default' --
   Log format to use.  Default doesn't log IPs, user agents, or referrers
   and thus should be ok in terms of not processing personal data, which
@@ -16242,6 +16244,8 @@ Properties for tables:
   by commas.
 * supportsModelURI -- a URI of a data model supported through this table.
   You can give multiple URIs separated by blanks.
+* forceStats -- if present (with any value), dachs limits on the 
+  embedding RD will obtain statistics of this even if it is a view.
 
 If you give multiple data model names or URIs, the sequences of names and 
 URIs must be identical (in particular, each name needs a URI).
