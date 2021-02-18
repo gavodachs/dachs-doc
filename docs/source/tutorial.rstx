@@ -1766,7 +1766,7 @@ something to import::
 
   cd data
   SRCURL=http://dc.g-vo.org/emi/q/s/siap.xml
-  curl -s $SRCURL"?POS=163.3,57.8&SIZE=20,20&MAXREC=5&weighting=uniform" \
+  curl -s $SRCURL"?POS=163.3,57.8&SIZE=20,20&MAXREC=5&weighting=uniform&RESPONSEFORMAT=votabletd" \
     | tr '<TD>' '\n' \
     | grep "^http://" \
     | sed -e 's/<[^>]*>//g' \
