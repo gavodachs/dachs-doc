@@ -2458,7 +2458,7 @@ Use the :dachsref:`element ssapCore` for SSAP services.  You must
 feed in the condition descriptors for the SSAP parameters you want to
 support (some are mandatory).  The
 simplest way to do that is to ``FEED`` the
-:dachsdoc:`//ssap#hcd_condDescs` stream.  It
+:dachsref:`//ssap#hcd_condDescs` stream.  It
 includes condition descriptors for all mandatory and optional parameters
 that we can remotely see in use.
 
@@ -2694,7 +2694,7 @@ the instance table and be done with it.  The predefined column names are
 the dictionaries you yield from your grammars.
 
 While there is no rowmaker, the ``make`` does have
-an :dachsdoc:`Element parmaker`; this is stereotypical,
+an :dachsref:`Element parmaker`; this is stereotypical,
 just always use the ``procDef`` as here.  It copies values from the SSA
 input row to the params in the instance table.
 
@@ -2702,7 +2702,7 @@ Finally, you would need to write the service.  For SSAP and SODA,
 what's in the template ought to just work.  Add :dachsref:`Element
 metaMaker`-s to provide links to, e.g., your raw input files if you want.
 In that case, please skim the endless
-chapter on :dachsdoc:`Datalink and SODA` in the reference documentation
+chapter on :dachsref:`Datalink and SODA` in the reference documentation
 to get an idea of how
 descriptor generators, data functions, and meta makers play together.
 
@@ -5900,7 +5900,7 @@ When running archives of ongoing projects, it is usually desirable to
 import often, but ignore items that are already in the database to make
 the imports quick and cheap.
 
-The key ingredient to accomplish that is the :dachsdoc:`Element
+The key ingredient to accomplish that is the :dachsref:`Element
 ignoreSources`, which lets you tell DaCHS which files of those it found
 in ``sources`` it should not ingest (again). What this deals with are
 paths relative to DaCHS' inputsDir.  Unless you did something special,
@@ -6078,7 +6078,7 @@ bad sources or rows.
 Skipping Sources
 ................
 
-You can skip known-bad sources by accref using :dachsdoc:`Element
+You can skip known-bad sources by accref using :dachsref:`Element
 ignoreSources`, using the ``fromfile`` attribute.
 
 More commonly, however, you can tell sources to skip by criteria like
