@@ -2167,19 +2167,18 @@ a SQL view.  This is also what the ``dachs start`` template does.
 Quick Sample SSAP Service
 '''''''''''''''''''''''''
 
-Check out the zcosmos resource directory into your inputs directory::
+Check out the feros resource directory into your inputs directory::
 
   cd `dachs config inputsDir`
-  svn co http://svn.ari.uni-heidelberg.de/svn/gavo/hdinputs/zcosmos
-  cd zcosmos
+  svn co http://svn.ari.uni-heidelberg.de/svn/gavo/hdinputs/feros
+  cd feros
   mkdir data
 
 As recommended, the checkout does not contain actual data, so let's
 fetch a file::
 
   cd data
-  curl -O \
-    http://dc.g-vo.org/getproduct/zcosmos/data/1D/zCOSMOS_BRIGHT_DR2_000826802_ZCMRa26_M1_Q4_13_1.fits
+  curl -O http://dc.g-vo.org/getproduct/feros/data/f04031.fits
   cd ..
 
 This RD also publishes to obscore, so make sure you have the obscore table::
@@ -2198,7 +2197,7 @@ Run the input and the regression tests::
 One regression test should fail since you've not yet pre-generated the
 previews (which are optional but recommended for your datasets, too)::
 
-  python bin/makepreviews.py
+  python3 bin/makepreviews.py
   dachs test q
 
 If the regressions tests don't pass now, please complain to the authors
@@ -2208,12 +2207,12 @@ From here on, you can point your favourite spectral client (fallback:
 TOPCAT's SSA client; note that TOPCAT itself cannot open this service's
 native format and you'll have to go through datalink, which TOPCAT knows
 how to do since about version 4.6) to
-http://localhost:8080/zcosmos/q/ssa/ssap.xml and do your queries (if you
+http://localhost:8080/feros/q/ssa/ssap.xml and do your queries (if you
 don't know anything else, do a positional query for 149.734, 2.28216).
 
 Please drop the dataset again when you're done playing with it::
 
-  dachs drop zcosmos/q
+  dachs drop feros/q
   
 Since the dataset is in the obscore table, it would otherwise be
 globally discoverable, and that'd be bad.
