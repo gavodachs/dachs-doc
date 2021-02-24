@@ -7,7 +7,7 @@ def setup(app):
         # this will turn into a link to a file in the GAVO svn
         # (usually for RDs)
         text = rstutils.unescape(text)
-        url = "http://svn.ari.uni-heidelberg.de/svn/gavo/hdinputs/"+text
+        url = "http://svn.ari.uni-heidelberg.de/svn/gavo/hdinputs/"+text+".rd"
         return [nodes.reference(text, text, internal=False, refuri=url)
                 ], []
 
