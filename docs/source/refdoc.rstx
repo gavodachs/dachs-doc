@@ -851,29 +851,43 @@ Certain meta keys have a data center-internal interpretation, used
 in renderers or writers of certain formats.  These keys should always
 start with an underscore.  Among those are:
 
-* _intro -- used by the standard HTML template for explanatory text
+:_intro:
+  used by the standard HTML template for explanatory text
   above the seach form.
-* _bottominfo -- used by the standard HTML template for explanatory text
+:_bottominfo:
+  used by the standard HTML template for explanatory text
   below the seach form.
-* _related -- used in the standard HTML template for links to related
+:_related:
+  used in the standard HTML template for links to related
   services.  As listed above, this is a link, i.e., you can give a
   title attribute.
-* _longdoc -- used by the service info renderer for an explanatory
+:_longdoc:
+  used by the service info renderer for an explanatory
   piece of text of arbitrary length.  This will usually be in
   ReStructuredText_, and we recommend having the whole meta body in a
   CDATA section.
-* _news -- news on the service.  See above at `Typed Meta Elements`_.
-* _warning -- used by both the VOTable and the HTML table renderer.
+:_news:
+  news on the service.  See above at `Typed Meta Elements`_.
+:_warning:
+  used by both the VOTable and the HTML table renderer.
   The content is rendered as some kind of warning.  Unfortunately,
   there is no standard how to do this in VOTables.  There is no
   telling if the info elements generated will show anywhere.
-* _noresultwarning -- displayed by the default response template instead
+:_noresultwarning:
+  displayed by the default response template instead
   of an empty table (use it for things like "No Foobar data for your
   query")
-* _type -- on Data instances, used by the VOTable writer to set the
+:_type:
+  on Data instances, used by the VOTable writer to set the
   ``type`` attribute on ``RESOURCE`` elements (to either "results"
   or "meta").  Probably only useful internally.
-* _plotOptions – typically set on services, this lets you configure
+:superseded:
+  in RDs or services, marks them as superseded, which
+  generally makes them inaccessible.  The body of this meta should
+  provide pointers to where the new version(s) of the resources
+  might be found (cf. :dachsdoc:`tutorial.html#deleting-resources`).
+:_plotOptions:
+  typically set on services, this lets you configure
   the initial appearance of the javascript-based quick plot.  The value
   must be a javascript dictionary literal (like ``{"xselIndex": 2}``)
   unless you're trying CSS deviltry (which you could, using this meta;
@@ -898,53 +912,71 @@ their keys from [RMI]_.  We provide a `explanatory leaflet
 used by the registry interface and in part by HTML and VOTable
 renderers -- include:
 
-* title -- this should in general be given seperately on the resource,
+:title:
+  this should in general be given seperately on the resource,
   each table, and each service.  In simple cases, though, you may get by
   by just having one global title on the resource and rely on metdata
   inheritance.
-* shortName -- a string that should indicate what the service is in 16
+:shortName:
+  a string that should indicate what the service is in 16
   characters or less.
-* creationDate -- Use ISO format with time, UTC only, like this: 
+:creationDate: 
+  Use ISO format with time, UTC only, like this: 
   2007-10-04T12:00:00Z
-* _dataUpdated -- The timestamp of the last successful ``dachs imp``,
+:_dataUpdated: 
+  The timestamp of the last successful ``dachs imp``,
   again in DALI/ISO format.
-* _metadataUpdated -- Timestamp when the metadata was last updated.  On
+:_metadataUpdated: 
+  Timestamp when the metadata was last updated.  On
   RDs, that's the timestamp of the RD source, on published things,
   it's the timestamp of the last ``dachs pub``.
-* subject -- as noted in the explanatory leaflet, these should be taken
+:subject: 
+  as noted in the explanatory leaflet, these should be taken
   from the `IVOA Vocabulary Explorer
   <http://explicator.dcs.gla.ac.uk/WebVocabularyExplorer/>`_.
-* rights -- freetext copyright notice.  See 
-  :dachsdoc:tutorial.html#Licensing for details.
-* rightsURI -- machine readable license URI.  There's no formal list of
+:rights: 
+  freetext copyright notice.  See 
+  :dachsdoc:`tutorial.html#Licensing` for details.
+:rightsURI: 
+  machine readable license URI.  There's no formal list of
   acknowledged URIs yet, but the common CC URIs are a good start.
-* source -- bibcodes will be expanded to ADS links here.
-* referenceURL -- again, a link, so you can give a title for
+:source: 
+  bibcodes will be expanded to ADS links here.
+:referenceURL: 
+  again, a link, so you can give a title for
   presentation purposes.  If you give no referenceURL, the service's
   info page will be used.
-* creator.name -- this should be the name of the "author" of the data
+:creator.name: 
+  this should be the name of the "author" of the data
   set.  If you set this, you may want to override creator.logo as well.
   For persons, always use the form “Last, F.I.“; this saves all
   components the unsolvable problem to tell first from last names, and
   sorting these strings will naturally yield the sequence people expect.
   Also, if you have multiple creators, better just set ``creator`` as
   discussed in `Typed Meta Elements`_.
-* type – one of Other, Archive, Bibliography, Catalog, 
+:type: 
+  one of Other, Archive, Bibliography, Catalog, 
   Journal, Library, Simulation, Survey, Transformation, Education, 
   Outreach, EPOResource, Animation, Artwork, Background, BasicData, 
   Historical, Photographic, Press, Organisation, Project, Registry –
   it's optional and we doubt its usefulness.  You may repeat the content
   type if you need to; see also [RMI]_, sect. 3.3.
-* contentLevel – addresse(s) of the data: Research, Amateur, General
-* facility – no IVOA ids are supported here yet, but probably this
+:contentLevel:
+  addresse(s) of the data: Research, Amateur, General
+:facility:
+  no IVOA ids are supported here yet, but probably this
   should change.
-* coverage – see the special section
-* service-specific metadata (for SIA, SCS, etc.) – see the
+:coverage:
+  see the special section
+:service-specific metadata (for SIA, SCS, etc.):
+  see the
   documentation of the respective cores.
-* utype – tables (and possibly other items) can have utypes to signify
+:utype:
+  tables (and possibly other items) can have utypes to signify
   their role in specific data models.  For tables, this utype gets
   exported to the tap_schema.
-* identifier – this is the IVOID of the resource, usually generated
+:identifier:
+  this is the IVOID of the resource, usually generated
   by DaCHS.  Do not override this unless you know what you are doing
   (which at least means you know how to make DaCHS declare an authority
   and claim it).  If you do override the identifier of a service that's
@@ -953,7 +985,8 @@ renderers -- include:
   after the ``dachs pub`` on the resource, or the registries will have
   two copies of your record, one of which will not be updated any more;
   and that would suck for Registry users.
-* mirrorURL – add these on publication to declare mirrors for a service.
+:mirrorURL:
+  add these on publication to declare mirrors for a service.
   Only do so if you actually manage the other service.  If you list
   the service's own accessURL here, it will be filtered from this
   registry record; this is so you can use the same RD on the primary

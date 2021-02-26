@@ -7350,6 +7350,103 @@ nicest way to debug stuff like this is to write::
 and then use the python debugger to figure things out.
 
 
+Deleting Resources
+------------------
+
+Sometimes data collections become outdated, typically because new data
+has come in and an improved reduction even of existing data is made
+available (a “data release”).  Our recommendation is to in most cases
+overwrite the previous data in order to avoid making people use
+known-bad data.
+
+Non infrequently, however, one wants to keep old data releases around,
+perhaps for easy comparisons, perhaps because software that is still
+in use uses the outdated resources.  As an aside, the commonly
+advocated reason for keeping outdated data around that some archived
+workflow still produce identical results is, I claim, a weak reason to
+keep around terabytes of data.
+
+Be that as it may, at some point you should make stale data less
+discoverable, and perhaps at some point drop it altogether.
+
+As a general policy, we recommend to take data from old data releases
+out of obscore and similar globally discoveable resources, with the
+argument that whoever whats old data at least should expliticly look for
+it.  Keeping SSAP or SIAP services one or two releases back published
+may be a nice service at this point, but an attractive alternative that
+puts outdated data out of casual users' view is to drop the old services
+and keep the data available through datalink on the successors.
+
+When dropping services and other published resources for one reason or
+other, you should give people a chance to find the updates.  
+
+From a registry point of view, this is not trivial, because deleted
+services (which may be kept in the registry forever) do not have
+metadata.  You can, however, stretch the rules a bit and give, in the
+updated service, a *Continues* relationship to the old ivoid.  
+
+To set this up, look for all ``publish`` elements in the old RD, and
+look for their counterparts in the new RD.  Then figure out the ivoids of
+the publihed resources in the old RD (the ``/browse`` trick introduced
+in `Trying the services`_ may help you do that), and in each counterpart
+add a *Continues* meta with the old ivoid in the ``ivoId`` attribute and
+the old title as a body, for instance::
+
+  <meta name="continues" ivoId="ivo://org.gavo.dc/gaia/q/dr1">
+    Gaia Data Release 1 (DR1) gaia_source</meta>
+
+Then delete all ``publish`` elements in the old resource and ``dachs
+pub`` both the old and the new RD.
+
+After that, you can ``dachs drop`` the old RD; note that this will only
+drop data items automatically made.  If you have DDs with
+``auto="False"`` that are building tables (cf. ``dachs show dds``), you
+will have to explicitly name them in the drop.  Do *not* ``dachs drop
+-f`` such RDs; that will remove the RD from DaCHS' memory and prevent
+the creation of deleted records, which in turn will lead to zombie
+services hanging around in the Registry.
+
+In case you're wondering why this is bending the rules: Well, you're not
+supposed to hand out ivoids of things that are not in the Registry, and
+the ivoid of the deleted service by definition isn't in the Registry any
+more.  We will have to think about it a bit more in the VO.
+
+Now that you've done the right thing I can tell you that regrettably,
+very few people will actually notice it, because few people look for
+ivoids in the Registry to figure out updates.  Instead, they'll just
+point their user agents at your old URIs, and after you've dropped the
+underlying database tables, they will simply 404 on your users without
+further comment.
+
+To fix this, give the old RD a ``superseded`` meta that ought to point
+to whereever the updated material is, for instance::
+
+   <meta name="superseded" format="rst">
+    We do not publish Gaia DR1 data here any more.  If you actually
+    need DR1 data, refer to the full Gaia mirrors, for instance 
+    `the one at ARI`_.  Otherwise, please use more recent data releases,
+    for instance `eDR3`_.
+
+    .. _the one at ARI: http://gaia.ari.uni-heidelberg.de
+    .. eDR3: /browse/gaia/q3
+  </meta>
+
+Whatever you write there will be shown alongside the 404s when people
+try to access the services, and it will be prominently shown in the
+resource info.
+
+Regrettably, the message will not be shown when people follow links to
+tableinfos – for a dropped table, DaCHS does not remember where it might
+once have been defined, and thus it will not see the RD and just return
+an unspecific 404.  Changing this would require quite a bit of
+bookkeeping which seems disproportionate for a relatively exotic case.
+
+If you just supersede a single service in a larger RD, you can also
+attach the ``superseded`` meta to a single service (which means you
+would keep its ``service`` element around, but you can give it a
+``nullCore``).
+
+
 Restricting Access
 ------------------
 
