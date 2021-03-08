@@ -393,6 +393,10 @@ to include that with the testing.  For RD-embedded code it might still
 work, but I won't tackle this any time soon (though, sure, there's
 probably a severe lack of testing for all the code in the system RDs).
 
+To exclude code from coverage computation, use::
+
+  # pragma: no cover
+
 
 Test Plan
 ---------

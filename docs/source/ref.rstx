@@ -1524,7 +1524,7 @@ Atomic Children
   contributing to a published view.  Warning: adql=hidden is
   incompatible with setting readProfiles manually.
 * **allProfiles** (Comma separated list of profile names.; defaults to
-  'admin, msdemlei') -- A (comma separated) list of profile names
+  'msdemlei, admin') -- A (comma separated) list of profile names
   through which the object can be written or administred (oh, and the
   default is not admin, msdemlei but is the value of [db]maintainers)
 * **autoCols** (Comma-separated list of strings; defaults to '') --
@@ -2161,7 +2161,7 @@ Atomic Children
 ...............
 
 * **allProfiles** (Comma separated list of profile names.; defaults to
-  'admin, msdemlei') -- A (comma separated) list of profile names
+  'msdemlei, admin') -- A (comma separated) list of profile names
   through which the object can be written or administred (oh, and the
   default is not admin, msdemlei but is the value of [db]maintainers)
 * **readProfiles** (Comma separated list of profile names.; defaults
@@ -2569,7 +2569,7 @@ Atomic Children
   contributing to a published view.  Warning: adql=hidden is
   incompatible with setting readProfiles manually.
 * **allProfiles** (Comma separated list of profile names.; defaults to
-  'admin, msdemlei') -- A (comma separated) list of profile names
+  'msdemlei, admin') -- A (comma separated) list of profile names
   through which the object can be written or administred (oh, and the
   default is not admin, msdemlei but is the value of [db]maintainers)
 * **dupePolicy** (One of: check, drop, dropOld, overwrite; defaults to
@@ -4730,6 +4730,7 @@ In addition to the usual names available to ProcApps, data functions have:
     unlinked after use
   - makeData -- the rsc.makeData function
   - soda -- the protocols.soda module
+  - RemoteProduct(url) -- 301-redirects to URL when rendered
 
 May occur in `Element datalinkCore`_.
 
@@ -9153,6 +9154,33 @@ Parameter *table*
 Procedures available for datalink cores
 '''''''''''''''''''''''''''''''''''''''
 
+//datalink#fromtable
+....................
+
+A descriptor generator simply pulling a row from a database
+table.  This row is made available as the ``.metadata`` attribute.
+You also must give a field that the generator will pull a URL
+from; the generator arranges things so that the default dlget will
+simply redirect there.
+
+Note that the #this and #preview links DaCHS normally makes
+for descriptors from products are not added automatically here.  Try
+to at least provide #this.
+
+See also `Non-Product descriptor Generators`_.
+
+
+Setup parameters for the procedure are:
+
+
+Late parameter *didPrefix*
+  defaults to ``base.NotGiven``;
+  A URI to complete an identifier with with if it looks like a non-URI. Leave empty to not do pubDID completion.
+Late parameter *idColumn*
+  The name of the table column to match the ID against (as a python value).
+Late parameter *tableName*
+  The name of the table to pull the metadata row from (as a python value).
+
 //soda#fits_doWCSCutout
 .......................
 
@@ -9753,7 +9781,7 @@ Paths and other general settings.
 * logDir: path relative to rootDir; 
   defaults to 'logs' --
   Path to the DC's logs (should be local)
-* logLevel: value from the list debug, error, info, warning; 
+* logLevel: value from the list info, warning, debug, error; 
   defaults to 'info' --
   How much should be logged?
 * maintainerAddress: string; 
@@ -9914,7 +9942,7 @@ The interface to the Greater VO.
   Comma-separated list of OAI sets DaCHS should accept for publication.
   This must always include ivo_managed and vosi, and you will want local
   if you run a web interface.
-* VOSITableDetail: value from the list min, max; 
+* VOSITableDetail: value from the list max, min; 
   defaults to 'max' --
   Default level of detail to return on the VOSI endpoint (change to min
   when you have more than 100 or tables).
@@ -9973,7 +10001,7 @@ Settings related to serving content to the web.
   defaults to 'False' --
   If True, Javascript will not be minified on delivery (this is for
   debugging)
-* logFormat: value from the list default, combined; 
+* logFormat: value from the list combined, default; 
   defaults to 'default' --
   Log format to use.  Default doesn't log IPs, user agents, or referrers
   and thus should be ok in terms of not processing personal data, which
@@ -11209,9 +11237,8 @@ renderers -- include:
   RDs, that's the timestamp of the RD source, on published things,
   it's the timestamp of the last ``dachs pub``.
 :subject: 
-  as noted in the explanatory leaflet, these should be taken
-  from the `IVOA Vocabulary Explorer
-  <http://explicator.dcs.gla.ac.uk/WebVocabularyExplorer/>`_.
+  A subject keyword.  By VOResource 1.1, these should be taken
+  from http://www/ivoa.net/rdf/uat
 :rights: 
   freetext copyright notice.  See 
   :dachsdoc:`tutorial.html#Licensing` for details.
@@ -13355,77 +13382,6 @@ descriptor generator).
 
 For more information on the elements used here, see below.
 
-Embedded Datalink Descriptors
-'''''''''''''''''''''''''''''
-
-For certain renderers (currently, only ssap.xml, but we might do it for
-SIAP, too), DaCHS will add a direct SODA block if there's an
-``_associatedDatalinkService`` meta on the table it serves from and that
-datalink service has a dlget capability.  Here's how the datalink
-declarations could look like in such a case::
-
-  <RESOURCE name="links" type="meta" utype="adhoc:service">
-    <DESCRIPTION>...</DESCRIPTION>
-    <GROUP name="inputParams">
-      <PARAM arraysize="*" datatype="char" name="ID" ref="ssa_pubDID" 
-        ucd="meta.id;meta.main" value=""/>
-    </GROUP>
-    <PARAM arraysize="*" datatype="char" name="standardID" 
-      value="ivo://ivoa.net/std/DataLink#links-1.0"/>
-    <PARAM arraysize="*" datatype="char" name="accessURL" 
-      value="http://localhost:8080/gaia/q2/tsdl/dlmeta"/>
-  </RESOURCE>
-
-  <RESOURCE ID="proc_svc" name="proc_svc" type="meta" utype="adhoc:service">
-    <DESCRIPTION>...</DESCRIPTION>
-    <GROUP name="inputParams">
-      <PARAM arraysize="*" datatype="char" name="ID" ref="ssa_pubDID" 
-        ucd="meta.id;meta.main" value="">
-        <DESCRIPTION>The pubisher DID of the dataset of interest</DESCRIPTION>
-      </PARAM>
-      <PARAM arraysize="*" datatype="char" name="BANDPASS" value="">
-        <DESCRIPTION>Gaia bandpass to generate the time series 
-          for.</DESCRIPTION>
-        <VALUES>
-          <OPTION name="G" value="G"/>
-          <OPTION name="BP" value="BP"/>
-          <OPTION name="RP" value="RP"/>
-        </VALUES>
-      </PARAM>
-    </GROUP>
-    <PARAM arraysize="*" datatype="char" name="accessURL" 
-      ucd="meta.ref.url" value="http://localhost:8080/gaia/q2/tsdl/dlget"/>
-    <PARAM arraysize="*" datatype="char" name="standardID" 
-      value="ivo://ivoa.net/std/SODA#sync-1.0"/>
-  </RESOURCE>
-
-– the first block declares where to obtain full datalink documents by
-publisher DID from.
-
-The second block lets clients take a shortcut and call a processing service
-directly, without first retrieving the datalink document; it is
-essentially an anonymised version of the processing declaration fromt the
-datalink block.
-
-To generate these, DaCHS also calls the dlmeta procs, but with pubDID
-set to None.  Whenever you need a concrete pubDID in a dlmeta proc used
-with SSA, you should therefore add something like::
-
-  if descriptor.pubDID is None:
-    return
-
-Also note that in these cases, a special descriptor type is being used
-rather than whatever you put into your descriptor generator, and hence
-you can't use any special attributes you defined there.  On the other
-hand, you'll have a ``limits`` attribute with a dictionary giving ranges
-of values within the concrete (SSA) result.  This should be used to
-build ``Values`` objects tailored to the specific result.
-
-All this is admittedly painful; the shortcut SODA blocks that cause all
-that pain can probably count as a classic case of premature
-optimisation.
-
-
 Defining Processing Services
 ''''''''''''''''''''''''''''
 
@@ -13713,6 +13669,90 @@ is a fairly compelling proposition, there is actually a predefined
 descriptor class to use with datalink access paths,
 `DLFITSProductDescriptor`; the ``dl`` service in :samplerd:`califa/q3`
 shows how to use it.
+
+
+Non-Product Descriptor Generators
+.................................
+
+Sometimes, you want to produce datalinks for tables that do not manage
+products – most likely because all you have is URLs, but possibly also
+because there simply are no products in the first place.  In that case,
+you probably want to use the the `//datalink#fromtable`_ product
+descriptor.
+
+To use this, you have to pass the name of the table with the items you
+want to link from (``tableName``) and the column to match the identifier
+against (``idColumn``).  The descriptor generator then does the database
+query, makes sure exactly one row matched and, if so, puts the result
+into the ``metadata`` attribute of the descriptor.
+
+A simple case is to associate some sort of preview with an EPN-TAP table
+row::
+
+  <service id="dl" allowed="dlmeta">
+    <meta name="title">SoHO EIT Synoptic maps datalink service</meta>
+    <datalinkCore>
+      <descriptorGenerator original="//datalink#fromtable">
+        <bind name="tableName">"\schema.epn_core"</bind>
+        <bind name="idColumn">"granule_uid"</bind>
+      </descriptorGenerator>
+      <metaMaker semantics="#preview">
+        <code>
+          yield descriptor.makeLink(
+            descriptor.metadata['thumbnail_url'],
+            description="Preview image",
+            contentType='image/jpeg')
+        </code>
+      </metaMaker>
+    </datalinkCore>
+  </service>
+
+This service will accept any value from the ``granule_uid`` column as
+ID.
+
+*If* the value in the ID column actually contains IVOA publisher DIDs,
+you may want to also accept “relative” identifiers, for instance, just
+``dataset_15`` instead of ``ivo://myauthority/~?/data/foo/dataset_15``.
+In that case, bind the prefix to the descriptor generator's
+``didPrefix`` parameter, like this::
+
+  <descriptorGenerator original="//datalink#fromtable">
+    <bind name="tableName">"\schema.myssa"</bind>
+    <bind name="idColumn">"ssa_pubDID"</bind>
+    <bind name="didPrefix">"ivo://myauthority/~?/data/foo/"</bind>
+  </descriptorGenerator>
+
+(but that's really only convenience).
+
+Since it cannot know about them, the ``fromtable`` descriptor does not
+automatically add the #this and #preview links (i.e., it sets
+``suppressAutoLinks``).  I personally consider datalink documents
+without #this as flakey, so if you can, add a #this link manually.  In
+the EPN-TAP case, an obvious choice would be::
+
+  <metaMaker semantics="#this">
+    <code>
+      yield descriptor.makeLink(
+        descriptor.metadata['access_url'],
+        description="The full dataset",
+        contentType="image/fits")
+     </code>
+  </metaMaker>
+
+As a last point regarding this non-local use case, if you want to enable
+the ``dlget`` renderer here, there is ``DataFromURL`` visible in
+``dataFunction``-s.  In the simplest case, you can write something like
+(continuing the EPN-TAP example)::
+
+  <dataFunction>
+    <code>
+      descriptor.data = DataFromURL(
+        descriptor.metadata["access_url"])
+    </code>
+  </dataFunction>
+
+When this gets rendered, the client will be redirected to whatever
+``access_url`` points to.
 
 
 Meta Makers
@@ -14037,6 +14077,77 @@ from the renderHTTP method, some twisted producer.  Non-Product nevow
 resources will also not work with asynchronous datalink at this point.
 
 
+Embedded Datalink Descriptors
+'''''''''''''''''''''''''''''
+
+For certain renderers (currently, only ssap.xml, but we might do it for
+SIAP, too), DaCHS will add a direct SODA block if there's an
+``_associatedDatalinkService`` meta on the table it serves from and that
+datalink service has a dlget capability.  Here's how the datalink
+declarations could look like in such a case::
+
+  <RESOURCE name="links" type="meta" utype="adhoc:service">
+    <DESCRIPTION>...</DESCRIPTION>
+    <GROUP name="inputParams">
+      <PARAM arraysize="*" datatype="char" name="ID" ref="ssa_pubDID" 
+        ucd="meta.id;meta.main" value=""/>
+    </GROUP>
+    <PARAM arraysize="*" datatype="char" name="standardID" 
+      value="ivo://ivoa.net/std/DataLink#links-1.0"/>
+    <PARAM arraysize="*" datatype="char" name="accessURL" 
+      value="http://localhost:8080/gaia/q2/tsdl/dlmeta"/>
+  </RESOURCE>
+
+  <RESOURCE ID="proc_svc" name="proc_svc" type="meta" utype="adhoc:service">
+    <DESCRIPTION>...</DESCRIPTION>
+    <GROUP name="inputParams">
+      <PARAM arraysize="*" datatype="char" name="ID" ref="ssa_pubDID" 
+        ucd="meta.id;meta.main" value="">
+        <DESCRIPTION>The pubisher DID of the dataset of interest</DESCRIPTION>
+      </PARAM>
+      <PARAM arraysize="*" datatype="char" name="BANDPASS" value="">
+        <DESCRIPTION>Gaia bandpass to generate the time series 
+          for.</DESCRIPTION>
+        <VALUES>
+          <OPTION name="G" value="G"/>
+          <OPTION name="BP" value="BP"/>
+          <OPTION name="RP" value="RP"/>
+        </VALUES>
+      </PARAM>
+    </GROUP>
+    <PARAM arraysize="*" datatype="char" name="accessURL" 
+      ucd="meta.ref.url" value="http://localhost:8080/gaia/q2/tsdl/dlget"/>
+    <PARAM arraysize="*" datatype="char" name="standardID" 
+      value="ivo://ivoa.net/std/SODA#sync-1.0"/>
+  </RESOURCE>
+
+– the first block declares where to obtain full datalink documents by
+publisher DID from.
+
+The second block lets clients take a shortcut and call a processing service
+directly, without first retrieving the datalink document; it is
+essentially an anonymised version of the processing declaration fromt the
+datalink block.
+
+To generate these, DaCHS also calls the dlmeta procs, but with pubDID
+set to None.  Whenever you need a concrete pubDID in a dlmeta proc used
+with SSA, you should therefore add something like::
+
+  if descriptor.pubDID is None:
+    return
+
+Also note that in these cases, a special descriptor type is being used
+rather than whatever you put into your descriptor generator, and hence
+you can't use any special attributes you defined there.  On the other
+hand, you'll have a ``limits`` attribute with a dictionary giving ranges
+of values within the concrete (SSA) result.  This should be used to
+build ``Values`` objects tailored to the specific result.
+
+All this is admittedly painful; the shortcut SODA blocks that cause all
+that pain can probably count as a classic case of premature
+optimisation.
+
+
 Registry Matters
 ''''''''''''''''
 
@@ -14064,6 +14175,7 @@ Essentially, an identifier to use is given as the ``dl-id`` interpreted
 text role, whereas processing parameters are given as DALI genparams.
 In DaCHS, they are written as the parameter name and its value in
 parentheses.
+
 
 Datalinks as Product URLs
 '''''''''''''''''''''''''

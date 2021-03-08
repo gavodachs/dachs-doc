@@ -1100,9 +1100,6 @@ parameters, so the total template for an overridden search condition
 looks like this::
 
   <scsCore queriedTable="data">
-    <condDesc silent="True">
-      <FEED source="//pql#DALIPars"/>
-    </condDesc>
     <condDesc original="//scs#humanInput">
       <phraseMaker original="//scs#humanSCSPhrase">
         <setup original="//scs#scsSetup" id="proxQuery">
