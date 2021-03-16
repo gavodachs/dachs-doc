@@ -427,6 +427,66 @@ recommended for everyone, though)
   the repo for the RDs is the same on development and production).
 
 
+Testing in Chroots
+------------------
+
+When we release to Debian, we release to unstable, and hence we need to
+test in a chroot.  Here's my current practice:
+
+(a) create a chroot environment; I've been using ``DIST=unstable
+    git-pbuilder create``
+
+(b) get yourself a shell in there and make sure the dependencies for our
+    unit tests are in (the path will probably be different for you)::
+
+      sudo chroot /home/pbuilder/unstable-i386/base.cow/ bash
+
+      apt install subversion vim
+      apt install libjs-jquery libjs-jquery-flot python3-cryptography python3-docutils  python3-lxml python3-matplotlib python3-pkg-resources python3-psycopg2 python3-pymoc python3-rjsmin python3-testresources python3-twisted python3-astropy python3-docutils python3-numpy python3-pil python3-pkg-resources python3-psycopg2 python3-pyparsing libcfitsio-dev python3-healpy 
+
+(c) Make a user to run the things, and make it identical to what you're
+    using to run the unit tests outside of the chroot::
+
+      adduser msdemlei (well, your user name)
+      set uid to 135 (well, whatever you have on the host)
+      addgroup gavo
+      adduser msdemlei gavo
+
+(d) Become the user and get create the environment to run the unit
+    tests::
+
+      su - msdemlei
+      mkdir -p gavo/logs
+      svn co https://svn.ari.uni-heidelberg.de/svn/gavo/python/trunk
+
+    As root in the container::
+      
+      python3 /home/msdemlei/trunk/setup.py develop
+
+    Back as msdemlei::
+
+      cd trunk/tests
+      python3 runAllTests.py 
+
+    This will fail because it won't find the database (or createdb).
+    Just copy the data from your external test harness, i.e., from the
+    host system::
+
+      	cd ~/_gavo_test/etc
+	      cp *  /home/pbuilder/unstable-i386/base.cow/home/msdemlei/_gavo_test/etc)
+
+	  Back in the chroot, this should now work::
+
+      python3 runAllTests.py
+	    
+    To run DaCHS interactively, an alias like the following comes handy::
+
+      alias testgavo='env GAVOSETTINGS=/home/msdemlei/trunk/tests/test_data/test-gavorc GAVOCUSTOM=/invalid gavo'
+
+    Due to the uid magic, you can edit the in-chroot files in the host
+    system; just go to the ``.../base.cow/home/msdemlei/trunk/...``.
+
+
 Configuration
 =============
 
