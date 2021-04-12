@@ -127,8 +127,8 @@ The ``root.html`` template is what is rendered when users request the
 root resource of your DaCHS installation, so it is a fairly good target
 for changing (and it's also fairly safe to override).  
 While you could put any well-formed XHTML there, we
-recommend you base your template on either the distributed ``root.html``
-template distribution, which mainly gives a list of all services
+recommend you base your template on either the distributed
+``root.html``, which mainly gives a list of all services
 available on the system, or ``root-tree.html``, which organizes services
 in trees and only downloads metadata as necessary (a simple
 non-javascript fallback is part of the distributed template, too).  The
@@ -136,25 +136,27 @@ latter is intended for use on sites that have more then a few tens of
 services, when the plain ``root.html`` would expand to several 100s of
 kilobytes.
 
+You would again do this by going to ``/var/gavo/web/templates`` and
+saying::
+
+  gavo admin dumpDF templates/root.html > root.html
+
+(change the first ``root.html`` to ``root-tree.html`` for the fancier
+root page).  Then edit root.html.
+
 Note that the root page (and a few more similarly static documents) are
 fairly aggressively cached by DaCHS.  This means that changes to the
 docment will not usually become immediately visible in your browser.
-However, documents are not cached when you are logged in.  To avoid
-excessive server restarts while editing the template, you should
-therefore create a user.
+To force DaCHS to reload fixed templates, add a ``nocache`` argument
+like this::
 
-The most straightforward way to do that is to create an administrator
-account; set the [web]adminpasswd config item in your /etc/gavo.rc.
-Then go to any page that as a sidebar
-(http://localhost:8080/__system__/services/overview/form should work
-fine, which is what's behind the little [s] at the bottom of the default
-template), click "log in" in the sidebar, and then use ``gavoadmin`` as
-user name and the password just set.
+  http://localhost:8080?nocache=True
 
 If you're happy with your design, run ``gavo serve expire //services``
 (the root page cache is controlled by the //services RD), and it will be
-shown to non-logged users, too (that also only works when you have set
-an adminpasswd).
+shown to non-logged users, too.  That will only work when you have set
+an adminpasswd (cf. :dachsdoc:`tutorial.html#the-admin-password`) –
+otherwise, just restart the server.
 
 
 The Templating Language
