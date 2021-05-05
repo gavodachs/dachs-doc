@@ -354,12 +354,63 @@ source
   
 
 
-The import SUBCOMMAND
+THE gencol SUBCOMMAND
 =====================
 
 Synopsis::
 
-       import [options] rd-name [data-id] 
+       dachs gencol [-h] [-f {fits,vot,viz}] FILE
+
+The gencol subcommand quickly generates a set of basic column elements
+for inclusion in RDs.  It is particularly convenient together with
+``dachs start``.
+
+This currently understands FITS binary tables, VOTables and Vizier-Style
+byte-by-byte descriptions (the latter somewhat haphazardly).  It assumes
+there is only one table in each file (and will ignore others in the FITS
+and VizieR case).
+
+It will extract what metadata there is and emit formatted RD XML to
+stdout; this should work just fine for cut-and-paste into <table>
+elements in RD.  Note that usually, important metadata will be missing
+(e.g., UCDs for FITS and VizieR), and usually data providers are not
+terribly careful when writing metadata.  Hence, you should definitely
+thoroughly review the elements created before using them in a public
+service.
+
+The programme tries to guess the applicable parser from a file name
+(e.g., README or anything ending in .txt will be treated as
+Vizier-like).  Where this fails, use the -f option.
+
+For Vizier-like descriptions, the programme also dumps ``colDefs``
+material for use in columnGrammar-s.
+
+
+Argument
+--------
+
+FILE                  
+  Source file to generate the columns from. This can be
+  a FITS, a VOTable, or Vizier Column-by-column
+  description, and DaCHS will guess based on the
+  extension. Use the format option if it guesses wrong.
+
+Options
+-------
+
+-h, --help            
+   show this help message and exit
+-f FMT, --format FMT
+   Format of the input table: FITS binary (``fits``), VOTable (``vot``), or
+   Vizier byte-by-byte (``viz``)
+
+
+THE import SUBCOMMAND
+=====================
+
+Synopsis::
+
+       dachs import [options] rd-name [data-id] 
 
 This subcommand is used to ingest data described by an RD.  For special
 applications, ingestion can be restricted to specific data items within

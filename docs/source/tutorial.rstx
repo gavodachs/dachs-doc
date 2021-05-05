@@ -5274,15 +5274,16 @@ somewhat like this::
 
 Then say::
 
-  pg_upgradecluster -k -m upgrade -v $NEWVER $OLDVER main /var/lib/postgresql/$NEWVER
+  pg_upgradecluster -k -m upgrade -v $NEWVER $OLDVER main
 
-You may need to change the last argument, depending on where your
-database files actually are.  You can figure out where the old ones were
-using::
+If you want to keep your database in a non-standard place, add another
+argument here (e.g., ``/big_partition/postgres/$NEWVER``).  If you
+forgot how you did it, you can find the old location using::
 
   grep data_directory /etc/postgresql/$OLDVER/main/postgresql.conf
 
-Do *not* use that old directory for the new cluster.
+Do *not* use that old directory for the new cluster, but do keep the
+postgres version in whatever path you use.
 
 Note the ``-k`` option to the above command: this makes pg_upgrade use
 hard links instead of copies.  This saves a lot of space and time.  The

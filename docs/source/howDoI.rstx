@@ -1275,6 +1275,8 @@ starting shortly before the 1.0 release.
   else) on the connection attributes of table or querier instead.
   Note that those won't expand macros; use table.expand(query) if you
   need that.
+* 2.4: In form handlers, you saw empty uploads as (None, None) so far;
+  they're simply None now.
 
 
 ...switch between SVN and packaged DaCHS?
