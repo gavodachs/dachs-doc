@@ -1367,6 +1367,14 @@ wondering about a particular thing, you can always refer to the
 the `reference documentation`_.  Also, please give us hints if you see a
 way to make the material more helpful.
 
+If your input data already comes with metadata (FITS binary table,
+VOTable, or perhaps you have a VizieR-style byte-by-byte description),
+you may want to look into using ``dachs gencol``; this emits column
+definitions that can be pasted into a table element (in the case of
+VizieR, also material for :dachsref:`Element columnGrammar`).  Don't be
+content with what the machine gives you: in all cases we have seen so
+far, the metadata extracted from data was sub-standard.
+
 .. _GAVO data center's service roster: http://dc.g-vo.org
 .. _RD repository: http://svn.ari.uni-heidelberg.de/svn/gavo/hdinputs/
 
