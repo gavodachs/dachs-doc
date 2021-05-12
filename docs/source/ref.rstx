@@ -1524,7 +1524,7 @@ Atomic Children
   contributing to a published view.  Warning: adql=hidden is
   incompatible with setting readProfiles manually.
 * **allProfiles** (Comma separated list of profile names.; defaults to
-  'admin, msdemlei') -- A (comma separated) list of profile names
+  'msdemlei, admin') -- A (comma separated) list of profile names
   through which the object can be written or administred (oh, and the
   default is not admin, msdemlei but is the value of [db]maintainers)
 * **autoCols** (Comma-separated list of strings; defaults to '') --
@@ -2161,7 +2161,7 @@ Atomic Children
 ...............
 
 * **allProfiles** (Comma separated list of profile names.; defaults to
-  'admin, msdemlei') -- A (comma separated) list of profile names
+  'msdemlei, admin') -- A (comma separated) list of profile names
   through which the object can be written or administred (oh, and the
   default is not admin, msdemlei but is the value of [db]maintainers)
 * **readProfiles** (Comma separated list of profile names.; defaults
@@ -2572,7 +2572,7 @@ Atomic Children
   contributing to a published view.  Warning: adql=hidden is
   incompatible with setting readProfiles manually.
 * **allProfiles** (Comma separated list of profile names.; defaults to
-  'admin, msdemlei') -- A (comma separated) list of profile names
+  'msdemlei, admin') -- A (comma separated) list of profile names
   through which the object can be written or administred (oh, and the
   default is not admin, msdemlei but is the value of [db]maintainers)
 * **dupePolicy** (One of: check, drop, dropOld, overwrite; defaults to
@@ -9944,7 +9944,7 @@ The interface to the Greater VO.
   Give access URLs for the alternative protocol (https when serverURL is
   http and vice versa) as a mirrorURL?  If you're listening to HTTPS,
   this is probably a good idea.
-* sdmVersion: value from the list 2, 1; 
+* sdmVersion: value from the list 1, 2; 
   defaults to '1' --
   Obsolete (SDM version 2 is shelved).  Don't use.
 * validOAISets: list of strings; 
@@ -9956,7 +9956,7 @@ The interface to the Greater VO.
   defaults to 'max' --
   Default level of detail to return on the VOSI endpoint (change to min
   when you have more than 100 or tables).
-* votDefaultEncoding: value from the list binary, td; 
+* votDefaultEncoding: value from the list td, binary; 
   defaults to 'binary' --
   Default 'encoding' for VOTables in many places (like the DAL
   responses; this can be user-overridden using the _TDENC local HTTP

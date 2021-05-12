@@ -1375,6 +1375,9 @@ VizieR, also material for :dachsref:`Element columnGrammar`).  Don't be
 content with what the machine gives you: in all cases we have seen so
 far, the metadata extracted from data was sub-standard.
 
+Also note that the the gencol output for FITS binary tables assumes you
+use fitsTableGrammar with ``lowerKeys="True"``.
+
 .. _GAVO data center's service roster: http://dc.g-vo.org
 .. _RD repository: http://svn.ari.uni-heidelberg.de/svn/gavo/hdinputs/
 
@@ -3892,8 +3895,9 @@ Creating a Userconfig RD
 
 DaCHS has a *builtin* RD ``//userconfig`` that is updated as you update
 DaCHS.  It always contains fallbacks for everything that can be in
-userconfig used by the core code.  If an item is searched in the
-Userconfig RD, it is first searched in your local copy (which resides in
+userconfig used by the core code.  When DaCHS attempts to resolve a
+reference into the Userconfig RD (i.e., looks for an element with a given
+id), it first looks it up in your local copy (which resides in
 ``/var/gavo/etc``) and then in the distributed userconfig.  That way,
 DaCHS can add new things in the userconfig without forcing you to merge
 on every update.
