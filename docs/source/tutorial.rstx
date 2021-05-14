@@ -4487,7 +4487,7 @@ the `Registry of Registries`_ or RofR.  So, this where you need to enter
 your site to become part of the VO.  The RofR only admits publishing
 registries with no technical defects, and hence to get in, you first
 have to go to
-http://rofr.ivoa.net/regvalidate/regvalidate.html and enter your
+http://rofr.ivoa.net/regvalidate/ and enter your
 registry endpoint (i.e., your installation's root URL with /oai.xml
 appended).
 
