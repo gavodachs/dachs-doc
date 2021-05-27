@@ -156,7 +156,7 @@ If you run a DaCHS server, please subscribe to the `DaCHS-users`_
 mailing list.  It is low volume (less than one mail a month), and you get
 to know when new releases come out.  We'd also appreciate being able to
 alert our users in case a security hole should be discovered in the
-software (which hasn't happened so far, FWIW).
+software (which has happened once in the past ten years).
 
 If you have questions regarding DaCHS, we'd appreciate if you subscribed
 and sent your question to the `DaCHS-support`_ list (if all support
@@ -165,6 +165,17 @@ day, but let's see). It has a public archive, and other users can profit
 from our (and your peers') answers, which is why we prefer the list to
 questions sent directly to gavo@ari.uni-heidelberg.de; these will of
 course still be answered.
+
+Material related to DaCHS and the VO in general is also published now
+and then on `GAVO's blog`_
+
+More interactive support may also be available via IRC, channel #gavo on
+`libera.chat`_.  You can also try mumble_ via `telco.g-vo.org`_.
+
+.. _libera.chat: https://www.libera.chat
+.. _mumble: https://www.mumble.info
+.. _telco.g-vo.org: https://telco.g-vo.org
+
 
 Citation
 ========
