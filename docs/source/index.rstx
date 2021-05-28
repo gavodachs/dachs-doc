@@ -52,6 +52,10 @@ Deployment Options
   * :download:`install.pdf <../pdf/install.pdf>`
   * :download:`install.rstx <./install.rstx>`
 
+* You can also run DaCHS (plus postgres) within Docker containers.
+  See https://github.com/gavodachs.
+
+
 For Data Center Operators
 -------------------------
 
