@@ -55,6 +55,9 @@ Deployment Options
 * You can also run DaCHS (plus postgres) within Docker containers.
   See https://github.com/gavodachs.
 
+* An automated installation via Ansible is avalible.
+  See: https://github.com/gavodachs/ansible-dachs
+
 
 For Data Center Operators
 -------------------------
