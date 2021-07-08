@@ -1061,10 +1061,14 @@ file from the IVOA doc repo); there should be some tag on the @version
 attribution on the schema's root element.  In that case, just overwrite
 the file in gavo/resources/schemata, commit and you're done.  It's still
 a good idea to validate a few instance documents to make sure the schema
-file itself is sane.
+file itself is sane.  
+
+Note: Let's take these version markers out of these file names as we go
+(i.e., as you update).
 
 (b) minor update: This is when the file name changes (as perhaps from
-SSA-v1.2.xsd to SSA-v1.3.xsd).  In this case:
+SSA-v1.2.xsd to SSA-v1.3.xsd).  Use to opportunity to move to
+unversioned name: call the new file just SSA.xsd.
 
 * install the new file in gavo/resources/schemata and ``svn add`` it
 * ``svn remove`` the old file

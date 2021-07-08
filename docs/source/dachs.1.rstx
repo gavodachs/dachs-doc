@@ -121,7 +121,7 @@ Subsubcommands
   indices on a table.  The tableRef has the format RD-id#table-id; it
   is *not* a database table reference.
 * ``dumpDF path`` -- Dumps the source of a file included with the DaCHS
-  distribution.  The argument is a package resource path.
+  distribution.  The argument is a package resource path
   (like /inputs/__system__/scs.rd); for system RDs, the special 
   //rd-id syntax is supported.
 * ``execute exec-id`` -- Execute the contents of an RD execute element. You
@@ -600,7 +600,7 @@ Synopsis::
        dachs mkrd [option] sample
 
 Rudimentary support for generating RDs from data.  This was probably
-a bad idea.  Rather use dachs limits to start and RD.
+a bad idea.  Better use dachs start.
 
 Options
 -------
@@ -900,6 +900,14 @@ Options
                         Dump a script to update DaCHS-managed extensions (will
                         print nothing if no extensions need updating). This
                         will return 0 if material was written, 1 otherwise.
+
+  -t, --update-tap-schema
+                        Update the TAP schema, i.e., re-read all the
+                        metadata from the TAP-published tables.  This
+                        isn't really related to upgrading, but it is
+                        generally a good idea to sync on-disk
+                        representations with what you may have edited in
+                        the RDs.
 
 THE adql SUBCOMMAND
 ===================

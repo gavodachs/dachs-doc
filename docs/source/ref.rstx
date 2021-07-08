@@ -1524,7 +1524,7 @@ Atomic Children
   contributing to a published view.  Warning: adql=hidden is
   incompatible with setting readProfiles manually.
 * **allProfiles** (Comma separated list of profile names.; defaults to
-  'admin, msdemlei') -- A (comma separated) list of profile names
+  'msdemlei, admin') -- A (comma separated) list of profile names
   through which the object can be written or administred (oh, and the
   default is not admin, msdemlei but is the value of [db]maintainers)
 * **autoCols** (Comma-separated list of strings; defaults to '') --
@@ -2161,7 +2161,7 @@ Atomic Children
 ...............
 
 * **allProfiles** (Comma separated list of profile names.; defaults to
-  'admin, msdemlei') -- A (comma separated) list of profile names
+  'msdemlei, admin') -- A (comma separated) list of profile names
   through which the object can be written or administred (oh, and the
   default is not admin, msdemlei but is the value of [db]maintainers)
 * **readProfiles** (Comma separated list of profile names.; defaults
@@ -2572,7 +2572,7 @@ Atomic Children
   contributing to a published view.  Warning: adql=hidden is
   incompatible with setting readProfiles manually.
 * **allProfiles** (Comma separated list of profile names.; defaults to
-  'admin, msdemlei') -- A (comma separated) list of profile names
+  'msdemlei, admin') -- A (comma separated) list of profile names
   through which the object can be written or administred (oh, and the
   default is not admin, msdemlei but is the value of [db]maintainers)
 * **dupePolicy** (One of: check, drop, dropOld, overwrite; defaults to
@@ -6418,7 +6418,7 @@ This mixin has the following parameters:
 
 
 Parameter *optional_columns*
-  Space-separated list of names of optional columns to include. Column names available include access_url access_format access_estsize access_md5 thumbnail_url file_name species filter alt_target_name target_region feature_name bib_reference publisher spatial_coordinate_description spatial_origin time_origin time_scale
+  Space-separated list of names of optional columns to include. Column names available include access_url access_format access_estsize access_md5 thumbnail_url file_name datalink_url species waveband alt_target_name target_region feature_name publisher bib_reference internal_reference external_link spatial_coordinate_description spatial_origin time_origin time_scale subsolar_longitude_min subsolar_longitude_max subsolar_latitude_min subsolar_latitude_max subobserver_longitude_min subobserver_longitude_max subobserver_latitude_min subobserver_latitude_max ra dec radial_distance_min radial_distance_max altitude_fromshape_min altitude_fromshape_max solar_longitude_min solar_longitude_max local_time_min local_time_max target_distance_min target_distance_max target_time_min target_time_max earth_distance_min earth_distance_max sun_distance_min sun_distance_max obs_mode detector_name opt_elem filter instrument_type acquisition_id proposal_id proposal_pi proposal_title campaign target_description proposal_target_name target_apparent_radius north_pole_position target_primary_hemisphere target_secondary_hemisphere platesc orientation observer_name observer_institute observer_id observer_code observer_country observer_lon observer_lat mass sideral_rotation_period mean_radius equatorial_radius polar_radius diameter semi_major_axis inclination eccentricity long_asc arg_perihel mean_anomaly dynamical_class dynamical_type taxonomy_code magnitude flux albedo map_projection map_height map_width map_scale pixelscale_min pixelscale_max particle_spectral_type particle_spectral_range_min particle_spectral_range_max particle_spectral_sampling_step_min particle_spectral_sampling_step_max particle_spectral_resolution_min particle_spectral_resolution_max original_publisher producer_name producer_institute sample_id sample_classification sample_desc data_calibration_desc setup_desc geometry_type spectrum_type grain_size_min grain_size_max azimuth_min azimuth_max pressure measurement_atmosphere temperature event_type event_status event_cite
 Parameter *spatial_frame_type*
   Flavour of the coordinate system. Since this determines the units of the coordinates columns, this must be set globally for the entire dataset. Values defined by EPN-TAP and understood by this mixin include celestial, body, cartesian, cylindrical, spherical, healpix.
 
@@ -8432,7 +8432,7 @@ Late parameter *creation_date*
   Date of first entry of this granule
 Late parameter *dataproduct_type*
   defaults to ``None``;
-  The high-level organization of the data product, from enumerated list (e.g., 'im' for image, sp for spectrum)
+  The high-level organization of the data product, from a controlled vocabulary (e.g., 'im' for image, sp for spectrum). Multiple terms may be used, separated by # characters.
 Late parameter *emergence_max*
   defaults to ``None``;
   Emergence angle during data acquisition, upper limit
@@ -8442,7 +8442,7 @@ Late parameter *emergence_min*
 Late parameter *granule_gid*
   Common to granules of same type (e.g. same map projection, or geometry data products). Can be alphanumeric.
 Late parameter *granule_uid*
-  Internal table row index Unique ID in data service, also in v2. Can be alphanumeric.
+  Internal table row index, which must be unique within the table. Can be alphanumeric.
 Late parameter *incidence_max*
   defaults to ``None``;
   Incidence angle (solar zenithal angle) during data acquisition, upper limit
@@ -8472,7 +8472,8 @@ Late parameter *phase_min*
   defaults to ``None``;
   Phase angle during data acquisition, lower limit.
 Late parameter *processing_level*
-  CODMAC calibration level; see the et_cal note http://dc.g-vo.org/tableinfo/titan.epn_core#note-et_cal for what values are defined here.
+  defaults to ``None``;
+  CODMAC calibration level; see the et_cal note http://dc.g-vo.org/tableinfo/titan.epn_core#note-et_cal for what values are defined here
 Late parameter *release_date*
   defaults to ``None``;
   Start of public access period
@@ -8490,16 +8491,16 @@ Late parameter *spectral_range_min*
   Spectral range (frequency), lower limit.
 Late parameter *spectral_resolution_max*
   defaults to ``None``;
-  Sectral resolution, upper limit
+  Spectral resolution, upper limit
 Late parameter *spectral_resolution_min*
   defaults to ``None``;
-  Sectral resolution, lower limit.
+  Spectral resolution, lower limit.
 Late parameter *spectral_sampling_step_max*
   defaults to ``None``;
-  spectral sampling step, upper limit
+  Spectral sampling step, upper limit
 Late parameter *spectral_sampling_step_min*
   defaults to ``None``;
-  spectral sampling step, lower limit.
+  Spectral sampling step, lower limit.
 Late parameter *target_class*
   defaults to ``"UNKNOWN"``;
   The type of the target; choose from asteroid, dwarf_planet, planet, satellite, comet, exoplanet, interplanetary_medium, ring, sample, sky, spacecraft, spacejunk, star
@@ -8516,10 +8517,10 @@ Late parameter *time_exp_min*
   Integration time of the measurement, lower limit.
 Late parameter *time_max*
   defaults to ``None``;
-  Acquisition stop time (in JD)
+  Acquisition stop time (in JD), as UTC at time_origin
 Late parameter *time_min*
   defaults to ``None``;
-  Acquisition start time (in JD)
+  Acquisition start time (in JD), as UTC at time_origin
 Late parameter *time_origin*
   defaults to ``"UNKNOWN"``;
   Reference position used for the various times. This is a string like TOPOCENTER, BARYCENTER, or HELIOCENTER, details are pending.
@@ -9791,7 +9792,7 @@ Paths and other general settings.
 * logDir: path relative to rootDir; 
   defaults to 'logs' --
   Path to the DC's logs (should be local)
-* logLevel: value from the list error, info, debug, warning; 
+* logLevel: value from the list error, debug, info, warning; 
   defaults to 'info' --
   How much should be logged?
 * maintainerAddress: string; 
@@ -9952,11 +9953,11 @@ The interface to the Greater VO.
   Comma-separated list of OAI sets DaCHS should accept for publication.
   This must always include ivo_managed and vosi, and you will want local
   if you run a web interface.
-* VOSITableDetail: value from the list max, min; 
+* VOSITableDetail: value from the list min, max; 
   defaults to 'max' --
   Default level of detail to return on the VOSI endpoint (change to min
   when you have more than 100 or tables).
-* votDefaultEncoding: value from the list td, binary; 
+* votDefaultEncoding: value from the list binary, td; 
   defaults to 'binary' --
   Default 'encoding' for VOTables in many places (like the DAL
   responses; this can be user-overridden using the _TDENC local HTTP
