@@ -10,11 +10,11 @@ GAVO DaCHS: DirectGrammars and Boosters
 The import architecture of DaCHS with grammars and rowmakers producing
 material suitable for SQL INSERT statements is designed to be flexible
 and as declarative as possible.  Its one big drawback is that once you
-have to ingest more than a couple of million rows (or less rows with
+have to ingest more than a couple of million rows (or fewer rows with
 hundreds of columns) it tends to become slow, leading to ingestion times
 in excess of hours or even days.
 
-To remedy this, DaCHS supports "boosters", programs that bypass both
+To remedy this, DaCHS supports "boosters", programmes that bypass both
 DaCHS' intenstines and SQL INSERT statements, both of which are
 responsible for quite some overhead.  Boosters, in constrast, use C code
 to fetch data and output binary COPY material to be dumped into the

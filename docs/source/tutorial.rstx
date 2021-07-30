@@ -4000,7 +4000,7 @@ convenient way to do that is through WIRR_. There, constrain
 IVOID to the authority you have chosen (`preconfigured WIRR query`_).
 
 .. _WIRR: https://dc.g-vo.org/WIRR
-.. _preconfigured WIRR query: http://dc.zah.uni-heidelberg.de/wirr/q/ui/fixed?field0=restype&operator0=%3D&operand0=vg%3Aauthority&field1=ivorn&operator1=%3D&operand1=gavo.dc&MAXREC=20&OFFSET=0
+.. _preconfigured WIRR query: http://dc.zah.uni-heidelberg.de/wirr/q/ui/fixed?field0=restype&operator0=%3D&operand0=vg%3Aauthority&field1=ivoid&operator1=%3D&operand1=gavo.dc&MAXREC=20&OFFSET=0
 
 If nothing comes back, the authority is still free and you can enter it
 in your gavo.rc in the ``[ivoa]authority`` item, like this::
