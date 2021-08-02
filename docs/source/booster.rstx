@@ -7,6 +7,11 @@ GAVO DaCHS: DirectGrammars and Boosters
 :Date: |date|
 :Copyright: Waived under `CC-0`_
 
+.. contents:: 
+  :depth: 2
+  :backlinks: entry
+  :class: toc
+
 Introduction
 ============
 
@@ -50,7 +55,7 @@ A quick start on using boosters:
 1) Replace your data element's grammar with the direct grammar spec,
    which would look somewhat like this::
 
-		<directGrammar id="fits" type="fits" cBooster="res/boosterfunc.c"/>
+    <directGrammar id="fits" type="fits" cBooster="res/boosterfunc.c"/>
    
 2) Generate the booster::
 
@@ -145,19 +150,19 @@ must therefore not be changed.
 ``Field`` is defined in ``boosterskel.h`` somewhat like this::
 
   typedef struct Field_s {
-	  valType type;
-	  int length; /* ignored for anything but VAL_TEXT and VAL_ARRAY */
-	  union {
-		  char *c_ptr;
-		  unsigned char *arr_ptr;
-		  double c_double;
-		  float c_float;
-		  int64_t c_int64;
-		  int32_t c_int32;
-		  int16_t c_int16;
-		  int8_t c_int8;
-		  time_t time;
-	  } val;
+    valType type;
+    int length; /* ignored for anything but VAL_TEXT and VAL_ARRAY */
+    union {
+      char *c_ptr;
+      unsigned char *arr_ptr;
+      double c_double;
+      float c_float;
+      int64_t c_int64;
+      int32_t c_int32;
+      int16_t c_int16;
+      int8_t c_int8;
+      time_t time;
+    } val;
   } Field;
 
 To see the definition your version of DaCHS has, run ``dachs adm dump
@@ -166,19 +171,19 @@ src/boosterskel.h``.
 The ``type`` in there is one of::
 
   typedef enum valType_e {
-	  VAL_NULL,
-	  VAL_BOOL,
-	  VAL_CHAR,
-	  VAL_SHORT,
-	  VAL_INT,
-	  VAL_BIGINT,
-	  VAL_FLOAT,
-	  VAL_DOUBLE,
-	  VAL_TEXT,
-	  VAL_JDATE,  /* a julian year ("J2000.0"); this is stored as a simple double */
-	  VAL_DATE,   /* date expressed as a time_t */
-	  VAL_DATETIME, /* date and time expressed as a time_t */
-	  VAL_ARRAY,  /* pre-serialised by pack*Array, length is # of *bytes* */
+    VAL_NULL,
+    VAL_BOOL,
+    VAL_CHAR,
+    VAL_SHORT,
+    VAL_INT,
+    VAL_BIGINT,
+    VAL_FLOAT,
+    VAL_DOUBLE,
+    VAL_TEXT,
+    VAL_JDATE,  /* a julian year ("J2000.0"); this is stored as a simple double */
+    VAL_DATE,   /* date expressed as a time_t */
+    VAL_DATETIME, /* date and time expressed as a time_t */
+    VAL_ARRAY,  /* pre-serialised by pack*Array, length is # of *bytes* */
   } valType;
 
 
@@ -306,7 +311,7 @@ datetimes.
 To parse ``VAL_DATE`` or ``VAL_DATETIME``, you will write something
 like::
 
-	fieldscanf(curCont, fi_date, VAL_DATE, "%Y-%m-%d");
+  fieldscanf(curCont, fi_date, VAL_DATE, "%Y-%m-%d");
 
 if parsing from date strings.  If your input is something weird, figure
 out a way to generate a ``struct tm`` as defined in ``time.h``.  Then
@@ -414,10 +419,10 @@ attribute to ``split`` in the ``directGrammar``.
 
 This then creates a source like::
 
- 	char *curCont = strtok(inputLine, "\t");
-	fieldscanf(curCont, fi_objid, VAL_INT_64);
-	curCont = strtok(NULL, "\t");
-	fieldscanf(curCont, fi_run, VAL_SHORT);
+   char *curCont = strtok(inputLine, "\t");
+  fieldscanf(curCont, fi_objid, VAL_INT_64);
+  curCont = strtok(NULL, "\t");
+  fieldscanf(curCont, fi_run, VAL_SHORT);
 
 etc.  Thus, the input line is parsed using strtok, and each value is
 parsed using the ``fieldscanf`` function.  This function takes the string
@@ -507,14 +512,45 @@ do manual type conversions like, for example, making a 64 bit integer
 from a string as follows::
 
   if (nulls[18][rowIndex]) {
-	  MAKE_NULL(fi_ppmxl);
-	} else {
-		 parseBigint(((char**)(data[18]))[rowIndex], F(fi_ppmxl), 0, 19);
-	}
-	return vals;
+    MAKE_NULL(fi_ppmxl);
+  } else {
+     parseBigint(((char**)(data[18]))[rowIndex], F(fi_ppmxl), 0, 19);
+  }
+  return vals;
 
 (we could admittedly warn you if this kind of thing becomes necessary,
 and we'll gratefully accept patches for that).
+
+
+HDF5 boosters
+-------------
+
+HDF5 is a fairly complex binary format that allows any number of
+different serialisations of tables.  The :dachsref:`Element hdf5Grammar`
+can parse some of these.
+
+For boosters, currently only the vaex dialect is available (ask for
+others).  To use it, select ``type="hdf5vaex"`` in the direct grammar.
+
+As with FITS, there is some basic metadata in HDF5 files that
+lets DaCHS infer mappings when HDF5 and column names match or when
+mapKeys provides some.  Hence, again, to generate the booster, you will
+have to have at least one data file so DaCHS can infer this mapping.
+
+The ``getTuple`` for hdf5vaex boosters has two arguments: ``rowIndex``
+(for informational purposes) and ``data``, which is of type ``InRec*``.
+This type is a record that DaCHS defines for you and that has the input
+file's columns as names.   Hence, in the ideal case, you can directly
+build the ``vals`` entries from ``data`` members, somewhat like this::
+
+  MAKE_BIGINT(fi_source_id, ((uint64_t)(data->source_id)));
+  MAKE_FLOAT(fi_a0_best, ((float)(data->A0_best)));
+
+– this is what DaCHS generates.
+
+Note that HDF5 does not define portable NULL representations (or if it
+does, then DaCHS knows nothing about them).  Hence, you will have to
+worry about NULLs yourself.
 
 
 Debugging
