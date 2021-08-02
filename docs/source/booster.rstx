@@ -235,6 +235,7 @@ situations:
   commonly, you'll be using a static buffer here.
 * ``MAKE_CHAR_NULL(fi, value, nullvalue)`` – makes fi a char with value
   unless value==nullvalue; in that case, fi becomes a NULL
+* ``MAKE_ARRAY(fi, bufptr, lenOfBuf)`` – see `Arrays`_.
 * ``double mjdToJYear(mjd)`` – returns a julian year for mjd
 * ``AS2DEG(field)`` – turns a field value in arcsecs to degrees
 * ``MAS2DEG(field)`` – turns a field value in milli-arcsecs to degrees
@@ -328,6 +329,49 @@ itself.
 
 MJDs are just so much easier to handle within ADQL queries.  Support for
 timestamps, on the other hand, is extremely lousy.
+
+
+Arrays
+------
+
+Boosters can produce arrays, but the booster skeleton only has
+rudimentary support for producing copy material filling array columns
+that will probably change in the future.  Hence, it is probably a good
+idea to contact the authors if you need to ingest arrays with boosters.
+
+Having said that, probably the most common case will be arrays of single
+precision floats, and for these , there is the
+
+  ``packFloatArray(unsigned char *buf, float *vals, int nVals) -> length``
+
+function, which writes a postgres binary array representation of
+``nVals`` 32 bit IEEE floats into ``buf`` and returns the number of
+bytes put in there.  The eventual API will probably look quite like
+that, only with the type of vals coming in as a parameter.  ``buf``
+needs to hold at least ``36+nVals*8`` bytes (yes, that's 8 rather than
+4 as you might expect).
+
+This goes together with the ``MAKE_ARRAY(fi, buf, nbytes)`` macro that
+tells postres that in referenced field info there's ``nbytes`` of
+serialised array material.  As with strings, you need to make ``buf``
+live beyond the execution time of ``getTuple``, and again we recommend
+doing that with static arrays.  Hence, to write a 4-array collected from
+four consecutive FITS fields starting at index 7 into a matarr database
+column, you could have in your getTuple::
+
+  #define ARRLEN 4
+  #define ARRBUFSZ (36+ARRLEN*8)
+  
+  static unsigned char matbuf[ARRBUFSZ];
+  float vals[ARRLEN];  /* does not need to be static */
+  size_t tmplen;
+  ...
+  for (i=0; i<4; i++) {
+    vals[i] = data[7+i][rowIndex];
+  }
+  tmplen = packFloatArray(matbuf, vals, 4);
+  MAKE_ARRAY(fi_matarr, matbuf, tmplen);
+
 
 Booster Types
 =============
