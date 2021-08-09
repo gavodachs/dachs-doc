@@ -6491,16 +6491,320 @@ or None) keys in what's coming from your grammar.
 Use the `//epntap2#populate-2_0`_ apply in rowmakers
 feeding tables mixing this in.
 
-.. _EPN-TAP protocol: https://voparis-confluence.obspm.fr/display/VES/EPN-TAP+v2+parameter+description
+.. _EPN-TAP protocol: https://ivoa.net/documents/EPNTAP/
+
+The mixin has a parameter ``optional_columns``, which accepts
+space-separated columns from the following extensions:
+
+The APIS extension
+..................
+:detector_name:
+  Detector name
+:north_pole_position:
+  North pole position angle with respect to celestial north pole
+:obs_mode:
+  Observing mode
+:opt_elem:
+  Optical element name
+:orientation:
+  Position angle of image y axis (on sky only)
+:platesc:
+  pixel angular size or platescale (on sky only)
+:target_primary_hemisphere:
+  Primary observed hemisphere
+:target_secondary_hemisphere:
+  Secondary observed hemisphere
+
+The common extension
+....................
+:access_estsize:
+  Estimated file size in kbyte.
+:access_format:
+  File format type (RFC 6838 Media Type a.k.a. MIME type)
+:access_md5:
+  MD5 Hash for the file
+:access_url:
+  URL of the data file, case sensitive. If present, then access_format
+  and access_estsize are mandatory.
+:acquisition_id:
+  ID of the data file/acquisition in the original archive
+:albedo:
+  Target albedo
+:alt_target_name:
+  Provides alternative target name if more common (e.g. comets);
+  multiple identifiers can be separated by hashes
+:altitude_fromshape_max:
+  Max altitude of observed area above shape model / DTM
+:altitude_fromshape_min:
+  Min altitude of observed area above shape model / DTM
+:bib_reference:
+  Bibcode or DOI preferred if available, or other bibliographic
+  identifier or URL
+:campaign:
+  Name of the observational campaign
+:datalink_url:
+  Link to a datalink document for this dataset
+:dec:
+  Declination
+:earth_distance_max:
+  Max Earth-target distance
+:earth_distance_min:
+  Min Earth-target distance
+:external_link:
+  Web page providing more details on this granule
+:feature_name:
+  Secondary name (can be standard name of region of interest)
+:file_name:
+  Name of the data file only, case sensitive
+:filter:
+  Identifies filter in use, typically for images
+:flux:
+  Target flux
+:instrument_type:
+  type of instrument
+:internal_reference:
+  Related granule_uid(s) in the current service; hash-separated
+:local_time_max:
+  Max local time at observed region
+:local_time_min:
+  Min local time at observed region
+:magnitude:
+  Absolute magnitude. For small bodies, from HG magnitude system
+:messenger:
+  Vector of measured signal, including electromagnetic band, from
+  http://www.ivoa.net/rdf/messenger
+:original_publisher:
+  Refers to the source of the data, e. g., in compilations of
+  experimental data
+:proposal_id:
+  Proposal identifier
+:proposal_pi:
+  Proposal principal investigator
+:proposal_target_name:
+  target name as in proposal title
+:proposal_title:
+  Proposal title
+:publisher:
+  A short string identifying the entity running the data service used
+:ra:
+  Right ascension
+:radial_distance_max:
+  Max distance from observed area to body center
+:radial_distance_min:
+  Min distance from observed area to body center
+:shape:
+  (ST)MOC footprint, valid for celestial, spherical, or body-fixed
+  frames + time coverage
+:solar_longitude_max:
+  Max Solar longitude Ls (location on orbit / season)
+:solar_longitude_min:
+  Min Solar longitude Ls (location on orbit / season)
+:spatial_coordinate_description:
+  ID of specific coordinate system and version or properties.
+:spatial_origin:
+  Defines the frame origin
+:species:
+  Identifies a chemical species, case sensitive
+:subobserver_latitude_max:
+  Maximum sub-observer point latitude (sub-Earth for ground based
+  observations)
+:subobserver_latitude_min:
+  Minimum sub-observer point latitude (sub-Earth for ground based
+  observations)
+:subobserver_longitude_max:
+  Maximum sub-observer point longitude (sub-Earth for ground based
+  observations)
+:subobserver_longitude_min:
+  Minimum sub-observer point longitude (sub-Earth for ground based
+  observations)
+:subsolar_latitude_max:
+  Maximum sub-solar point latitude
+:subsolar_latitude_min:
+  Minimum sub-solar point latitude
+:subsolar_longitude_max:
+  Maximum sub-solar point longitude
+:subsolar_longitude_min:
+  Minimum sub-solar point longitude
+:sun_distance_max:
+  Max Sun-target distance
+:sun_distance_min:
+  Min Sun-target distance
+:target_apparent_radius:
+  Apparent radius of the target
+:target_description:
+  Original target keywords
+:target_distance_max:
+  Max observer-target distance
+:target_distance_min:
+  Min observer-target distance
+:target_region:
+  Type of region or feature of interest
+:target_time_max:
+  Max observing time in target frame
+:target_time_min:
+  Min observing time in target frame
+:thumbnail_url:
+  URL of a thumbnail image with predefined size (png ~200 pix, for use
+  in a client only)
+:time_refposition:
+  Defines where the time is measured (e.g., ground vs. spacecraft).
+  Defaults to the observer's frame
+:time_scale:
+  Defaults to UTC in data services; takes values from
+  http://www.ivoa.net/rdf/time_scale otherwise
+
+The contributive works extension
+................................
+:observer_code:
+  Image observer's username in service
+:observer_country:
+  Image observer's country of residence
+:observer_id:
+  Image observer numeric identifier in service
+:observer_institute:
+  Observer institute
+:observer_lat:
+  Observer's approximate latitude
+:observer_lon:
+  Observer's approximate longitude
+:observer_name:
+  Observer name
+:producer_institute:
+  Data producer institute, e. g., in compilations of experimental data
+:producer_name:
+  Data producer name, especially in compilations of experimental data
+
+The events extension
+....................
+:event_cite:
+  Following VOEvent, this is one of followup, supersedes, retraction
+:event_status:
+  One of prediction, observation, or utility
+:event_type:
+  Type of event from a controlled vocabulary (meteor_shower, fireball,
+  lunar_flash, comet_tail_crossing...)
+
+The experimental spectroscopy extension
+.......................................
+:azimuth_max:
+  Max azimuth angle for illumination
+:azimuth_min:
+  Min azimuth angle for illumination
+:data_calibration_desc:
+  Provides information on post-processing. Can be a hash list
+:geometry_type:
+  Type of observation, from a controlled vocabulary (cf. EPN-TAP
+  specification). Can be a hash list
+:grain_size_max:
+  Max sample particle size
+:grain_size_min:
+  Min sample particle size
+:measurement_atmosphere:
+  Describes experimental conditions. ``vacuum`` for measurements under
+  vacuum
+:pressure:
+  Ambient pressure
+:sample_classification:
+  Information related to class, sub-class, species… as hash list
+:sample_desc:
+  Describes the sample, its origin, and possible preparation. Can be a
+  hash list
+:sample_id:
+  Additional ID of the sample, e.g., a specific fraction of a meteorite
+  (in addition to target_name). Intended to refer to a pre-existing
+  catalogue of a collection, will therefore contain a name/id mainly for
+  local use
+:sample_inchikey:
+  Machine-readable description of the species involved. Can be a hash
+  list
+:setup_desc:
+  Describes the experimental setup. Can be a hash list
+:spectrum_type:
+  Type of spectral observation, from a controlled vocabulary (under
+  construction). Can be a hash list
+:temperature:
+  Ambient temperature
+
+The maps extension
+..................
+:map_height:
+  Map size in px
+:map_projection:
+  The map projection, preferably as a FITS name or code, or parameters
+  as a free string
+:map_scale:
+  Format TBD
+:map_width:
+  Map size in px
+:pixelscale_max:
+  Max pixel size at a surface
+:pixelscale_min:
+  Min pixel size at a surface
+
+The orbital elements extension
+..............................
+:arg_perihel:
+  Argument of Perihelion, J2000.0
+:eccentricity:
+  Orbit eccentricity
+:inclination:
+  Orbit inclination
+:long_asc:
+  Longitude of ascending node, J2000.0
+:mean_anomaly:
+  Mean anomaly at the epoch
+:semi_major_axis:
+
+
+The particle spectroscopy extension
+...................................
+:particle_spectral_range_max:
+  Upper bound of the mass/energy of the particles
+:particle_spectral_range_min:
+  Lower bound of the mass/energy of the particles
+:particle_spectral_resolution_max:
+  Worst resolution of the spectral range
+:particle_spectral_resolution_min:
+  Best resolution of the spectral range
+:particle_spectral_sampling_step_max:
+  Maximal separation of different values in the spectral range
+:particle_spectral_sampling_step_min:
+  Minimal separation of different values in the spectral range
+:particle_spectral_type:
+  The type of axis in use; this is one of ``energy`` (which is then in
+  eV), ``mass`` (amu) or ``mass/charge`` (in amu/e). If you use any of
+  this, please contact the DaCHS authors; this needs more work
+
+The solar system objects extension
+..................................
+:diameter:
+  Target diameter, or equivalent diameter for binary objects
+:dynamical_class:
+  Class of small body, from a controlled vocabulary (see the EPN-TAP
+  specification)
+:dynamical_type:
+  Subdivision of the dynamical class, from a controlled vocabulary
+:equatorial_radius:
+  Equatorial radius of a solar system object.
+:mass:
+  Mass of object
+:mean_radius:
+  Mean radius of a solar system object.
+:polar_radius:
+  Polar radius of a solar system object.
+:sidereal_rotation_period:
+  Object rotation rate
+:taxonomy_code:
+  Code for target taxonomy
 
 
 This mixin has the following parameters:
 
 
 Parameter *optional_columns*
-  Space-separated list of names of optional columns to include. Column names available include access_url access_format access_estsize access_md5 thumbnail_url file_name datalink_url species messenger alt_target_name target_region feature_name publisher bib_reference internal_reference external_link spatial_coordinate_description spatial_origin time_refposition time_scale subsolar_longitude_min subsolar_longitude_max subsolar_latitude_min subsolar_latitude_max subobserver_longitude_min subobserver_longitude_max subobserver_latitude_min subobserver_latitude_max ra dec radial_distance_min radial_distance_max altitude_fromshape_min altitude_fromshape_max solar_longitude_min solar_longitude_max local_time_min local_time_max target_distance_min target_distance_max target_time_min target_time_max earth_distance_min earth_distance_max sun_distance_min sun_distance_max obs_mode detector_name opt_elem filter instrument_type acquisition_id proposal_id proposal_pi proposal_title campaign target_description proposal_target_name target_apparent_radius north_pole_position target_primary_hemisphere target_secondary_hemisphere platesc orientation observer_name observer_institute observer_id observer_code observer_country observer_lon observer_lat mass sidereal_rotation_period mean_radius equatorial_radius polar_radius diameter semi_major_axis inclination eccentricity long_asc arg_perihel mean_anomaly dynamical_class dynamical_type taxonomy_code magnitude flux albedo map_projection map_height map_width map_scale pixelscale_min pixelscale_max particle_spectral_type particle_spectral_range_min particle_spectral_range_max particle_spectral_sampling_step_min particle_spectral_sampling_step_max particle_spectral_resolution_min particle_spectral_resolution_max original_publisher producer_name producer_institute sample_id sample_classification sample_desc data_calibration_desc setup_desc geometry_type spectrum_type grain_size_min grain_size_max azimuth_min azimuth_max pressure measurement_atmosphere temperature event_type event_status event_cite
+  Space-separated list of names of optional columns to include. For the column names available include see sect. 3 of the EPN-TAP specification or the list of the various sections above.
 Parameter *spatial_frame_type*
-  Flavour of the coordinate system. Since this determines the units of the coordinates columns, this must be set globally for the entire dataset. Values defined by EPN-TAP and understood by this mixin include celestial, body, cartesian, cylindrical, spherical.
+  Flavour of the coordinate system. Since this determines the units of the coordinates columns, this must be set globally for the entire dataset. Values defined by EPN-TAP and understood by this mixin include celestial, body, cartesian, cylindrical, spherical, none.
 
 The //obscore#publish Mixin
 '''''''''''''''''''''''''''
@@ -9872,7 +10176,7 @@ Paths and other general settings.
 * logDir: path relative to rootDir; 
   defaults to 'logs' --
   Path to the DC's logs (should be local)
-* logLevel: value from the list info, debug, error, warning; 
+* logLevel: value from the list debug, error, info, warning; 
   defaults to 'info' --
   How much should be logged?
 * maintainerAddress: string; 
@@ -10037,7 +10341,7 @@ The interface to the Greater VO.
   defaults to 'max' --
   Default level of detail to return on the VOSI endpoint (change to min
   when you have more than 100 or tables).
-* votDefaultEncoding: value from the list td, binary; 
+* votDefaultEncoding: value from the list binary, td; 
   defaults to 'binary' --
   Default 'encoding' for VOTables in many places (like the DAL
   responses; this can be user-overridden using the _TDENC local HTTP
@@ -10097,7 +10401,7 @@ Settings related to serving content to the web.
   defaults to 'False' --
   If True, Javascript will not be minified on delivery (this is for
   debugging)
-* logFormat: value from the list default, combined; 
+* logFormat: value from the list combined, default; 
   defaults to 'default' --
   Log format to use.  Default doesn't log IPs, user agents, or referrers
   and thus should be ok in terms of not processing personal data, which

@@ -1,4 +1,3 @@
-HTMLTARGET=vo.ari.uni-heidelberg.de:/var/www/docs/DaCHS
 RST_SOURCES=data_checklist.rstx howDoI.rstx ref.rstx tutorial.rstx\
 	booster.rstx install.rstx stc.rstx processors.rstx adql.rstx\
 	votable.rstx commonproblems.rstx tapquery.rstx develNotes.rstx\
@@ -28,23 +27,6 @@ LATEXOPTS=--documentoptions=11pt,a4paper --stylesheet stylesheet.tex
 	rst2latex $(LATEXOPTS) $< > $@
 
 .PHONY: ref.rstx elemref.rstx apidoc-stamp
-ref.rstx:
-	gavo --debug --traceback gendoc > ref.rstx
-
-elemref.rstx:
-	python makeElementIndex.py > $@
-	
-# Since building apidoc takes forever, you need to manually trigger it
-# using make apidoc-stamp
-apidoc-stamp:
-	touch apidoc-stamp
-
-apidoc: gavo-epydoc.conf apidoc-stamp
-	rm -rf apidoc
-	epydoc -v --config gavo-epydoc.conf
-
-install: all
-	rsync -av *.css gavodoc.js $(HTML_FILES) $(ALL_PDF) $(RST_SOURCES) apidoc $(HTMLTARGET) 
 
 all: $(HTML_FILES) $(ALL_PDF)
 
