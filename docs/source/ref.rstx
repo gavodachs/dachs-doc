@@ -1523,10 +1523,9 @@ Atomic Children
   but not published in the metadata; this is useful for, e.g., tables
   contributing to a published view.  Warning: adql=hidden is
   incompatible with setting readProfiles manually.
-* **allProfiles** (Comma separated list of profile names.; defaults to
-  'admin, msdemlei') -- A (comma separated) list of profile names
-  through which the object can be written or administred (oh, and the
-  default is not admin, msdemlei but is the value of [db]maintainers)
+* **allProfiles** (Comma separated list of profile names, defaults to
+  [db]maintainers from gavorc) -- A (comma separated) list of profile
+  names through which the object can be written or administred.
 * **autoCols** (Comma-separated list of strings; defaults to '') --
   Column names obtained from fromTable; you can use shell patterns
   into the output table's parent table (in a table core, that's the
@@ -1558,9 +1557,9 @@ Atomic Children
   method.  The general rules for advanced referencing in RDs apply.
 * **primary** (Comma-separated list of strings; defaults to '') --
   Comma separated names of columns making up the primary key.
-* **readProfiles** (Comma separated list of profile names.; defaults
-  to 'trustedquery') -- A (comma separated) list of profile names
-  through which the object can be read.
+* **readProfiles** (Comma separated list of profile names, defaults to
+  [db]queryProfiles from gavorc) -- A (comma separated) list of
+  profile names through which the object can be read.
 * **system** (boolean; defaults to 'False') -- Is this a system table?
   If it is, it will not be dropped on normal imports, and accesses to
   it will not be logged.
@@ -2161,13 +2160,12 @@ In DaCHS' RD XML serialisation, they correspond to the root element.
 Atomic Children
 ...............
 
-* **allProfiles** (Comma separated list of profile names.; defaults to
-  'admin, msdemlei') -- A (comma separated) list of profile names
-  through which the object can be written or administred (oh, and the
-  default is not admin, msdemlei but is the value of [db]maintainers)
-* **readProfiles** (Comma separated list of profile names.; defaults
-  to 'trustedquery') -- A (comma separated) list of profile names
-  through which the object can be read.
+* **allProfiles** (Comma separated list of profile names, defaults to
+  [db]maintainers from gavorc) -- A (comma separated) list of profile
+  names through which the object can be written or administred.
+* **readProfiles** (Comma separated list of profile names, defaults to
+  [db]queryProfiles from gavorc) -- A (comma separated) list of
+  profile names through which the object can be read.
 * **require** (unicode string; defaults to None) -- Import the named
   gavo module (for when you need something registred)
 * **resdir** (unicode string; defaults to None) -- Base directory for
@@ -2572,10 +2570,9 @@ Atomic Children
   but not published in the metadata; this is useful for, e.g., tables
   contributing to a published view.  Warning: adql=hidden is
   incompatible with setting readProfiles manually.
-* **allProfiles** (Comma separated list of profile names.; defaults to
-  'admin, msdemlei') -- A (comma separated) list of profile names
-  through which the object can be written or administred (oh, and the
-  default is not admin, msdemlei but is the value of [db]maintainers)
+* **allProfiles** (Comma separated list of profile names, defaults to
+  [db]maintainers from gavorc) -- A (comma separated) list of profile
+  names through which the object can be written or administred.
 * **dupePolicy** (One of: check, drop, dropOld, overwrite; defaults to
   None) -- Handle duplicate rows with identical primary keys manually
   by raising an error if existing and new rows are not identical
@@ -2603,9 +2600,9 @@ Atomic Children
   method.  The general rules for advanced referencing in RDs apply.
 * **primary** (Comma-separated list of strings; defaults to '') --
   Comma separated names of columns making up the primary key.
-* **readProfiles** (Comma separated list of profile names.; defaults
-  to 'trustedquery') -- A (comma separated) list of profile names
-  through which the object can be read.
+* **readProfiles** (Comma separated list of profile names, defaults to
+  [db]queryProfiles from gavorc) -- A (comma separated) list of
+  profile names through which the object can be read.
 * **system** (boolean; defaults to 'False') -- Is this a system table?
   If it is, it will not be dropped on normal imports, and accesses to
   it will not be logged.

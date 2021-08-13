@@ -511,6 +511,34 @@ When using the elements, always use the canonical abbreviation for
 userconfig, ``%``, as in 
 ``<FEED source="%#registry-interfacerecords"/>``.
 
+Future
+------
+
+If you add features that will make DaCHS produce responses that may
+break legacy components (e.g., new Regitry features), make them
+conditional on future entries.  That's done by choosing a suitable
+string (e.g., ``dali-interface-in-tap-1``) and then protecting the
+generation of the new elements with something like::
+
+  if "dali-interface-in-tap-1" in base.getConfig("future"):
+    ...
+
+To try out the change, write::
+
+  future: dali-interface-in-tap-1, some-other-new-feature-if-necessary
+
+into your gavo.rc.
+
+Once the change is sufficiently widely accepted, remove the condition,
+and all DaCHSes will produce new-style responses.
+
+If a change is suitably safe so it can be enabled by default, invert the
+logic and use ``no-new-feature`` to let people turn things off if
+they're causing trouble.
+
+Don't forget to add the future keys in tests/test_data/test-gavorc for
+while you're testing the experimental features.
+
 
 Structures
 ==========
@@ -1294,15 +1322,6 @@ refactoring once you step on them):
 .. _foreign data wrappers: https://wiki.postgresql.org/wiki/Foreign_data_wrappers
 
 
-Implementing Protocols
-======================
-
-TBD
-
-You should add the protocol mixin(s) in user.docgen.PUBLIC_MIXINS so
-they get included in the documentation; likewise if you need apply
-and/or rowfilters, amend PUBLIC_APPLYS or PUBLIC_ROWFILTERS.
-
 
 Writing Documentation
 =====================
@@ -1311,7 +1330,7 @@ Documentation on DaCHS is maintained in ReStructuredText format with
 some minor extensions (see below).  While there's documentation in the
 tarball and the main SVN, in order to encourage external contributions
 (including, but not restricted to, typo fixes and the like) the main
-copy now is at https://github.com/chbrandt/dachs-doc.git.
+copy now is at https://github.com/gavodachs/dachs-doc.git.
 
 When authoring, you can use some extra RST features (the price: stock
 rst2pdf and friends don't work properly; use ``dachs gendoc latex`` or
@@ -1385,6 +1404,12 @@ version default (assuming the namespace stays constant, as it should).
   in //pql and //soda, and the corresponding key in GETDATA_FORMATS
   in sdm.py; but that should only be necessary if there's experimental
   formats around.
+
+
+Parsing Text Files
+------------------
+
+See utils.iterSimpleText.
 
 
 Licensing

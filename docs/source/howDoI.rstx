@@ -1403,6 +1403,19 @@ If you're using one of the browser-based publishing registries (at ESAC
 or STScI), you'll have to re-upload your registry records there.
 
 
+...do IPv6?
+-----------
+
+If all you want is to listen on your IPv6 interface, you can give is
+address literal (e.g., ``::1``) in [web]bindAddress.  Use ``::`` to listen
+on all configured addresses.  I've not dug into this any deeper, but it
+*seems* this will also cover IPv4 by some magic.
+
+Just using an empty ``bindAddress`` will not automatically listen on
+IPv6 interfaces in 2021 twisted and linux.
+
+
+
 ...go from DaCHS 1 to DaCHS 2?
 ------------------------------
 
