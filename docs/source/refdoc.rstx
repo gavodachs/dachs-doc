@@ -2907,7 +2907,7 @@ To produce datalinks, the datalink core must be furnished with
   default),
 * one or more meta makers, generating related links.
 
-Here is an example, adapted from :samplerd:`boydende/q.rd`::
+Here is an example, adapted from :samplerd:`boydende/q`::
 
     <datalinkCore>
       <descriptorGenerator procDef="//soda#fits_genDesc"/>
