@@ -25,14 +25,15 @@ Debian Systems
 ==============
 
 The preferred way to run DaCHS is on Debian stable or compatible
-systems.   To install, `add our APT repository`_ to your
-`/etc/apt/sources.list` and install the `gavodachs2-server` package, e.g. by
-running::
+systems.   Starting with Debian bullseye (11.0), DaCHS is part of
+Debian.  On a suitably recent system, just execute::
 
   sudo apt install gavodachs2-server
 
-With that, you're ready to proceed to the tutorial_ and the `Operator's
-Guide`_
+With that, you are ready to proceed to the tutorial_.
+
+On older systems, you need to `add our APT repository`_ to your
+`/etc/apt/sources.list` before running the ``apt install``.
 
 This is the recommended way to get up to speed with DaCHS regardless of
 whether you want to run the bleeding-edge version.  You can
