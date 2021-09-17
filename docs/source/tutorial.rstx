@@ -4751,6 +4751,81 @@ to use this to figure out misbehaviour.
 .. _systemd unit: https://salsa.debian.org/debian-astro-team/gavodachs/blob/gavo/debian/gavodachs2-server.dachs.service
 
 
+Access Logs
+-----------
+
+While I claim that access numbers are meaningless until you know enough
+of a domain that you don't need the access numbers any more to figure
+out whether or not something is a good idea, most data providers at some
+point find they need access logs.
+
+Hence, DaCHS does write logs, albeit without IP addresses by default.
+We are doing this to keep you quite certainly GDPR-clean unless you
+configure DaCHS otherwise.
+
+However, that is quite clearly not enough to compute the “number of
+distinct hosts“ statistic that is part of the industry standard of Bad
+Metrics.  To be able to compute something like that, you need to enable
+the logging of IPs and then install something that somehow evaluates the
+files in /var/gavo/logs.
+
+Doing the first simply means to add::
+
+  logFormat: combined
+
+to your ``/etc/gavo.rc``'s ``web`` section.  After that, you need to
+restart the server for the new setting to take effect.
+
+While you can probably use whatever log analysis programme you want for
+these files (I'd hope it's close enough to the apache combined log
+format), you can simply use DaCHS to do some basic accounting.  That
+way, you do not need extra tools.  You will also in all likelihood treat
+your users' data a bit more carefully.  
+
+For this, check out our accesslog resource::
+
+  cd `dachs config inputsDir`
+  svn checkout http://svn.ari.uni-heidelberg.de/svn/gavo/hdinputs/accesslogs
+
+(this needs the subversion package; your could also use ``wget -r``, but
+this way you can simply call ``svn update`` in accesslogs to pull
+upgrades).  
+
+The ``accesslogs/q`` RD contains everything that's necessary to
+regularly (daily at 2:30 UTC, right now) pull logs files into the
+database and then remove them.  It tries a few tricks to weed out robots
+(which of course has limits), and it will pseudonymise IP addresses so
+that they cannot be correlated across months.  
+
+When the first logs are ingested, go to
+http://localhost:8080/accesslogs/q/stats to look at your server's stats.
+To figure out access statistics for some specific service, constrain
+the URI using VizieR-like character patterns.  For instance, ``=
+/__system__/tap*`` will compute the statistics for TAP accesses (the
+``=`` requests case-sensitive pattern matches).  For certain protocols,
+constraining to POST requests lets you better guess what was going on,
+but the IVOA S-protocols treat GET and POST analogous.
+
+If you install the ``python3-geoip`` package, accesslogs/q will also
+fill the ``origin`` column with the ISO country code of what geoip
+thinks is the country of origin of the request.  Authorities misguided
+enough to want to see logs in the first place tend to be so throroughly
+misguided as to be interested in “data” of that kind, too.  Since origin
+is even more speculative than access counting, the current public
+interface does not show it in any way.  But if you need some figures for
+some tedious report, you could execute on your local postgres prompt
+something like::
+
+  select 
+    origin, 
+    count(*) as ct 
+  from accesslogs.accs 
+  where acc_year in (2020, 2021) 
+  group by origin
+
+and perhaps make a beancounter or two happy.
+
+
 Validating your Services
 ------------------------
 
