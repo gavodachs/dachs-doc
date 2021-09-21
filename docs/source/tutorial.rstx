@@ -5840,8 +5840,9 @@ First, you will obviously define the tables involved, for instance::
     <column name="masterNo" type="integer" required="True"
       ...
 
-Note, in particular, that postgres does not let you define indexes over
-views.  This means that anything you want to index must be indexed on
+Note, in particular, that postgres does not let you define indices over
+views (exception: `materialised views`_).  
+This means that anything you want to index must be indexed on
 the table level (hence the ``//scs#q3cindex`` mixin on the ``master``
 table).  You still should *declare* the underlying indexes; you could
 write index statements as usual (add ``metaOnly="True"``), but it is
@@ -5976,6 +5977,58 @@ preferable to not this in the RD.  For that, add::
   <property name="forceStats">True</property>
 
 to the table element describing the view.
+
+
+Materialised Views
+''''''''''''''''''
+
+Materialised views work like regular views, but instead of re-writing
+the query every time, an actual table is created.  This *sometimes* is
+faster, and you can create indices over the results.  The disadvantage
+is that as the underlying tables change, the materialised view will not
+change automatically.  And of course materialised views take up disk
+space, and there are quite a few situations in which they actually is
+slower, sometimes by large factors.
+
+There still are situations in which materialised view are useful.  To
+define materialised views in DaCHS you do as for `defining views`_,
+except that instead of ``CREATE VIEW`` you write ``CREATE MATERIALIZED
+VIEW`` in the view statement.  Of course, any indices you may have on
+the source tables will not help queries against the materialised view.
+Hence, you will have to add ``index`` elements (again) as necessary.
+
+``dachs limits`` will skip materialised views, too, by default.  For
+them, that has a lot less sense, so you will almost always want to add::
+
+	<property name="forceStats">1</property>
+  
+in materialised views.
+
+You can update materialised views from the postgresql command line,
+using something like::
+
+  REFRESH MATERIALIZED VIEW myschema.matview
+
+This will lock the relation to concurrent queries, which will wait until
+the view is updated.  There is a CONCURRENTLY version of this avoiding
+that lock-out, but it will need to be used with care.  See the postgres
+docs if you think that matters a lot for your.
+
+You could tell DaCHS to regularly update a materialised view if
+necessary, for instance with something like::
+
+  <execute at="2:45">
+    <job>
+      <code>
+        with base.getWritableAdminConn() as conn:
+          conn.execute("REFRESH MATERIALIZED VIEW \schema.matview")
+      </code>
+    </job>
+  </exceute>
+
+See :dachsref:`Element execute` for how to specify more complex
+cadences, and note that DaCHS lives on UTC if you want to keep such
+updates outside of your local rush hours.
 
 
 More on Importing Recipes

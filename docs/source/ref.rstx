@@ -10161,6 +10161,11 @@ Paths and other general settings.
 * defaultProfileName: string; 
   defaults to '' --
   Deprecated and ignored.
+* future: set of strings; 
+  defaults to '' --
+  A set of strings naming experimental features to enable in the server.
+  You only want to touch this if you are working on proving proposed
+  improvements.
 * gavoGroup: string; 
   defaults to 'gavo' --
   Name of the unix group that administers the DC
@@ -10185,6 +10190,13 @@ Paths and other general settings.
   defaults to '' --
   Platform string (can be empty if inputsDir is only accessed by
   identical machines)
+* rdblacklist: set of strings; 
+  defaults to '' --
+  File names of blacklisted RDs.  These are matched against the ends of
+  file names, so be careful you do not over-block; in general, you
+  should use something like '/resname/q.rd' or so.  You can also
+  blacklist RD ids (which are compared literally). Separate multiple
+  entries by commas.
 * rootDir: string; 
   defaults to '/var/gavo' --
   Path to the root of the DC file (all other paths may be relative to
@@ -10391,7 +10403,7 @@ Settings related to serving content to the web.
   Media types considered as graphics (for SIAP, mostly)
 * ignore-uir-header: boolean; 
   defaults to 'False' --
-  No not honor clients' upgrade-insecure-requests headers if https is
+  Do not honour clients' upgrade-insecure-requests headers if https is
   enabled.  Outside of development or testing environments, there is
   generally little reason to use this.
 * jsSource: boolean; 
@@ -13692,7 +13704,7 @@ To produce datalinks, the datalink core must be furnished with
   default),
 * one or more meta makers, generating related links.
 
-Here is an example, adapted from :samplerd:`boydende/q.rd`::
+Here is an example, adapted from :samplerd:`boydende/q`::
 
     <datalinkCore>
       <descriptorGenerator procDef="//soda#fits_genDesc"/>
@@ -19031,7 +19043,7 @@ Foreign key relationships between tables available for ADQL querying.
 **target_table**
   (text) -- Fully qualified table name
 **description**
-  (text) -- Description of this key
+  (unicode) -- Description of this key
 **utype**
   (text) -- Utype of this key
 **sourceRD**
@@ -19047,7 +19059,7 @@ Schemas containing tables available for ADQL querying.
 **schema_name**
   (text) -- Fully qualified schema name
 **description**
-  (text) -- Brief description of the schema
+  (unicode) -- Brief description of the schema
 **utype**
   (text) -- utype if schema corresponds to a data model
 **schema_index**
@@ -19086,7 +19098,7 @@ Tables available for ADQL querying.
 **table_type**
   (text) -- One of: table, view
 **description**
-  (text) -- Brief description of the table
+  (unicode) -- Brief description of the table
 **utype**
   (text) -- utype if the table corresponds to a data model
 **table_index**
