@@ -3637,6 +3637,14 @@ activate your registry interface.  To change this and make the site
 * Set the fallback metadata
 * Adapt a few things facing the web
 
+In particular if running a busier site, you should also look into
+configuring your Postgres.  There are many guides on this on the net;
+before delving into any of these, you may want to have a brief look at
+`this blog post`_ discussing relatively DaCHS-specific configuration
+issues.
+
+.. _this blog post: https://blog.g-vo.org/taming-the-postgres-jit/
+
 
 Basic Gavo.rc Settings
 ----------------------

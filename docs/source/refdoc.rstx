@@ -2026,7 +2026,7 @@ Embedding the definitions is done using the class attribute
 
 There is also ``outputTableXML``, which you should use if you were to
 compute stuff in some lines of Python, since then the fields are
-directly defined by the core core itself.
+directly defined by the core itself.
 
 However, the case of timescore is fairly typical: There is some,
 essentially external, resource that produces something that needs to be
@@ -2063,7 +2063,9 @@ by the ``build_result`` data item in ``times.rd``::
   </data>
 
 So, the core needs to say “my output table has the structure of
-#times”.  As usual with DaCHS structures, you should not override the
+#times”.  
+
+As usual with DaCHS structures, you should not override the
 constructor, as it is defined by a metaclass.  Instead, Cores call,
 immediately after the XML parse (technically, as the first thing of
 their ``completeElement`` method), a method called ``initialize``.  This

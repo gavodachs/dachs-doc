@@ -706,11 +706,12 @@ Subsubcommands
   [web]adminpasswd be set; the command uses [web]serverURL to figure
   out where to connect the running server.
 
-The ``start`` subcommand accepts a ``--foreground`` option.  If you pass
+The ``start`` subcommand accepts a ``--foreground/-f`` option.  If you pass
 it, the server will not double-detach and not redirect stderr to a log
-file and instead stay in the foreground.  In contrast to ``debug``, it 
-will change users, etc., and not put the DaCHS into debug mode.  Use
-this option together in systemd units.
+file and instead stay in the foreground; it will also not check for PID
+files or create them.  In contrast to ``debug``, it 
+will change users, etc., and not put the DaCHS into debug mode.  
+This option is primarily useful for systemd units.
 
 
 
