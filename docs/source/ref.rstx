@@ -1027,6 +1027,12 @@ Atomic Children
 * **original** (id reference; defaults to None) -- An id of an element
   to base the current one on.  This provides a simple inheritance
   method.  The general rules for advanced referencing in RDs apply.
+* **preparse** (unicode string; defaults to <Not given/empty>) --
+  Function body morphing the input string before the type parser sees
+  it.  This must return a string or raise an Exception (that will be
+  turned into a ValidationError).  The input string is available as
+  input.  Note that need to be able to handle incoming None-s
+  gracefully (e.g., ``input and input.lower()``).
 * **required** (boolean; defaults to 'False') -- Record becomes
   invalid when this column is NULL
 * **showItems** (integer; defaults to '3') -- Number of items to show
@@ -1996,6 +2002,11 @@ of the specified conditions.
 This only works if the items to be matched are true XML attributes
 (i.e., not written as children).
 
+For instance, the following will filter out all elements with a name
+of VERB from the stream::
+
+  <PRUNE name="VERB"/>
+
 May occur in `Element mixinDef`_, `Element FEED`_, `Element LFEED`_, `Element LOOP`_.
 
 Element publish (data)
@@ -2244,7 +2255,7 @@ You must further set the following meta items:
 
    - resType specifying the kind of resource record.  You should not
      use this element to build resource records for services or tables
-     (use the normal elements, even if the actual resrouces are external
+     (use the normal elements, even if the actual resouces are external
      to DaCHS).  resType can be registry, organization, authority, 
      deleted, or anything else for which registry.builders has a
      handling class.
@@ -5646,10 +5657,6 @@ Element tapCore
 
 A core for the TAP renderer.
 
-Right now, this is a no-op and not used by the renderer.
-
-This will change as we move to regularise the TAP system.
-
 
 Atomic Children
 ...............
@@ -8165,6 +8172,21 @@ including <FEED source="//pql#DALIPars"/> in your service.
 These will return basic serice metadata if passed MAXREC=0.
 
 
+The async Renderer
+''''''''''''''''''
+
+*This renderer's parameter style is "pql".*
+
+A renderer speaking UWS.
+
+This is for asynchronous exection of larger jobs.  This is what is executed
+by the async renderer.  It requests the worker system required from the
+service, which in turn obtains it from the core; these must hence
+cooperate with this to allow async operation.
+
+See `Custom UWSes`_ for how to use this with your own cores.
+
+
 The authcheck Renderer
 ''''''''''''''''''''''
 
@@ -8251,6 +8273,16 @@ only; it does not change the service's behaviour with your renderer.
 
 In general, avoid custom renderers.  If you can't, see the upstream
 twisted documentation on twisted.web.resource for how to write them.
+
+
+The dali Renderer
+'''''''''''''''''
+
+*This renderer's parameter style is "clear".*
+
+A meta-renderer for DALI-like multi-renderer services (sync, async, ...)
+
+This, for now, can only be used for creating registry records.
 
 
 The dlasync Renderer
@@ -8615,7 +8647,6 @@ for the ssap.xml renderer:
  - ssap.dataSource -- survey, pointed, custom, theory, artificial
  - ssap.testQuery -- a query string that returns some data; REQUEST=queryData
    is added automatically
- - productType -- the term(s) from http://www.ivoa.net/rdf/product-type
    that describe the type of data served through the service.  Will
    usually by ``spectrum``, but ``timeseries`` is a realistic option.
 
@@ -8661,6 +8692,20 @@ probably not terribly useful.  You are probably looking for the fixed
 renderer if you find yourself needing this.
 
 
+The sync Renderer
+'''''''''''''''''
+
+*This renderer's parameter style is "dali".*
+
+a DALI sync renderer.
+
+In principle, this is just a shallow parser of the input parameter
+and renders tables as VOTables.
+
+In practice, there are a few legacy hacks making this a bit more complicated 
+after all.
+
+
 The tableMetadata Renderer
 ''''''''''''''''''''''''''
 
@@ -8701,14 +8746,16 @@ any service.  However, you really should run it on __system__/dc_tables/show,
 and there's a built-in vanity name tablenote for this.
 
 
-The tap Renderer
-''''''''''''''''
+The tables Renderer
+'''''''''''''''''''
 
-*This renderer's parameter style is "clear".*
+*This renderer's parameter style is "clear".  This is an unchecked renderer.*
 
-A renderer speaking all of TAP (including sync, async, and VOSI).
+A renderer for a VOSI table metadata endpoint.
 
-Basically, this just dispatches to the sync and async resources.
+An endpoint with this renderer is automatically registered for
+every service.  The responses contain information on the tables
+exposed by a given service.
 
 
 The upload Renderer
@@ -8729,10 +8776,12 @@ The uws.xml Renderer
 
 A renderer speaking UWS.
 
-This is for asynchronous exection of larger jobs.  Operators will normally
-use this together with a custom core or a python core.
+This is for asynchronous exection of larger jobs.  This is what is executed
+by the async renderer.  It requests the worker system required from the
+service, which in turn obtains it from the core; these must hence
+cooperate with this to allow async operation.
 
-See `Custom UWSes`_ for details.
+See `Custom UWSes`_ for how to use this with your own cores.
 
 
 The volatile Renderer
@@ -12740,7 +12789,7 @@ Embedding the definitions is done using the class attribute
 
 There is also ``outputTableXML``, which you should use if you were to
 compute stuff in some lines of Python, since then the fields are
-directly defined by the core core itself.
+directly defined by the core itself.
 
 However, the case of timescore is fairly typical: There is some,
 essentially external, resource that produces something that needs to be
@@ -12777,7 +12826,9 @@ by the ``build_result`` data item in ``times.rd``::
   </data>
 
 So, the core needs to say “my output table has the structure of
-#times”.  As usual with DaCHS structures, you should not override the
+#times”.  
+
+As usual with DaCHS structures, you should not override the
 constructor, as it is defined by a metaclass.  Instead, Cores call,
 immediately after the XML parse (technically, as the first thing of
 their ``completeElement`` method), a method called ``initialize``.  This

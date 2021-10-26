@@ -515,7 +515,7 @@ Future
 ------
 
 If you add features that will make DaCHS produce responses that may
-break legacy components (e.g., new Regitry features), make them
+break legacy components (e.g., new Registry features), make them
 conditional on future entries.  That's done by choosing a suitable
 string (e.g., ``dali-interface-in-tap-1``) and then protecting the
 generation of the new elements with something like::
@@ -1081,34 +1081,49 @@ XML Schema updates
 
 According to the new schema versioning policy of the VO, for minor
 updates, the target namespace of XSD does not change any more.  Still,
-the file names are versioned, and so there are two cases:
+the file names are versioned upstream.
 
-(a) micro update: Someone changed the schema but didn't change the
-“canonical” file name (the name you're redirected to when pulling the
-file from the IVOA doc repo); there should be some tag on the @version
-attribution on the schema's root element.  In that case, just overwrite
-the file in gavo/resources/schemata, commit and you're done.  It's still
-a good idea to validate a few instance documents to make sure the schema
-file itself is sane.  
+DaCHS, in general, only knows one version of each schema.  Therefore, we
+remove the version names, and when there's a new schema, you just
+overwrite the corresponding schema.
 
-Note: Let's take these version markers out of these file names as we go
-(i.e., as you update).
+There are a few exceptions; in particular, because several minor
+versions of VOTable have been out there and in common use, we keep the
+schemas for VOTable 1.1 and 1.2 around with their own custom prefixes.
 
-(b) minor update: This is when the file name changes (as perhaps from
-SSA-v1.2.xsd to SSA-v1.3.xsd).  Use to opportunity to move to
-unversioned name: call the new file just SSA.xsd.
+In case you actually need a new schema file, this is what you need to
+do:
 
 * install the new file in gavo/resources/schemata and ``svn add`` it
-* ``svn remove`` the old file
-* in gavo/helpers/testtricks.py, locate the old file name in the list of
-  files combined for the common schema validator.  Change it to the new
+* in gavo/helpers/testtricks.py, locate VO_SCHEMATA and add your new
   file name.
-* locate the registerPrefix call for the schema (recursive grepping
-  for ``schemaURL(`` and the old name should work; for registry-related
-  stuff, these are all in gavo/registry/model.py).  Change the file
-  name (and nothing else) there.
-* run all tests and pray someone has actually written a unit test
-  exercising your schema...
+* add a registerPrefix call for your new schema, allocating a new
+  prefix for it while doing so.  See registry/model.py for a large
+  selection of such registerPrefix calls; but do the registration
+  whereever the schema actually belongs.
+* write a unit test exercising your schema.
+
+
+Schema Evolution
+----------------
+
+DaCHS sometimes prototypes new schema elements years before there's any
+chance to get them into official VO schemas.  Many validators ignore
+schemaLocation, and so it's quite likely that DaCHS services would count
+as invalid for years.
+
+Where schemas have built-in extensibility (e.g., Registry's
+capabilities), there's the DaCHS schema (mapped in registry.model.DaFut)
+where you can keep mirrors of types and elements.  The idea is that
+you manually copy your new XSD into resources/schemata/DaCHS.xsd and the
+correponding element declarations to the DaFut class.  Before the
+upstream schema is updated as part of PR, you take your elements from
+DaFut in your code, after that, from whatever namespace object the
+things end up in.
+
+I'd say things should disappear from DaCHS.xsd perhaps four years after
+they've gone official; people not updating their software for four years
+in a row deserve to have them go invalid.
 
 
 Javascript
