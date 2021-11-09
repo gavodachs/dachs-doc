@@ -765,5 +765,21 @@ Quick and correct fix:  Just remove the script element in your
 /var/gavo/etc/userconfig.rd.
 
 
+Unit <whatever> is not interoperable
+====================================
+
+This is a warning DaCHS spits out when you give a unit string that is
+syntactically correct but contains at least one atomic unit that is not
+defined by VOUnits_.  This means that code that tries to, for instance,
+convert values based on units will not be able to do so.  There is not
+much software that does this (DaCHS does, for instance, when using a
+displayUnit display hint), so this may be acceptable when you are using
+very discipline-specific units.  Usually, however, you should have a
+look at VOUnits to see if there is just a typo or perhaps you wrote,
+say, Msun instead of solMass.
+
+
+.. _VOUnits: https://ivoa.net/documents/VOUnits/
+
 .. |date| date::
 .. _CC-0: http://creativecommons.org/publicdomain/zero/1.0

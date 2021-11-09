@@ -103,23 +103,11 @@ Subsubcommands
   in clear text and also transmitted in clear text since DaCHS only
   supports HTTP basic authentication.  Do not use valuable passwords
   here
-* ``delfromgroup user group`` -- remove a user from a group
-* ``deluser user`` -- remove a DaCHS user from the user table.
-* ``listusers`` -- dump the user table
 * ``changeuser user password [remarks]`` -- change remarks and/or
   password for a DC user.  See adduser for details.
 * ``cleantap`` -- remove expired Universal Worker Service (UWS) jobs
-* ``tapabort jobId helpMsg`` -- manually abort a TAP job and return
-  helpMsg to the requesting user as error message.
-* ``updateTAPSchema`` -- Update the TAP_SCHEMA metadata for all RDs
-  mentioned in TAP_SCHEMA.
-* ``makedelrec ivoid`` -- create a registry record of ivoid saying
-  the resource is removed.  This is only necessary when recovering
-  from disasters that made you lose records from DaCHS' internal
-  tables.
-* ``indexStatements tableRef`` -- show the statements to create the 
-  indices on a table.  The tableRef has the format RD-id#table-id; it
-  is *not* a database table reference.
+* ``delfromgroup user group`` -- remove a user from a group
+* ``deluser user`` -- remove a DaCHS user from the user table.
 * ``dumpDF path`` -- Dumps the source of a file included with the DaCHS
   distribution.  The argument is a package resource path
   (like /inputs/__system__/scs.rd); for system RDs, the special 
@@ -127,11 +115,23 @@ Subsubcommands
 * ``execute exec-id`` -- Execute the contents of an RD execute element. You
   must give that element an explicit id in order to make this work; then
   exec-id is rd-id#exec-id
-* ``xsdValidate path`` -- Validate a file against built-in VO schemas
-  and with built-in schema validator.
+* ``indexStatements tableRef`` -- show the statements to create the 
+  indices on a table.  The tableRef has the format RD-id#table-id; it
+  is *not* a database table reference.
+* ``listusers`` -- dump the user table
+* ``makedelrec ivoid`` -- create a registry record of ivoid saying
+  the resource is removed.  This is only necessary when recovering
+  from disasters that made you lose records from DaCHS' internal
+  tables.
 * ``suggestucds tableId`` -- Make suggestions for UCDs of the columns 
   of the referenced table (rd-id#table-id format) not having one.
   This is based on their descriptions and uses a GAVO web service.
+* ``tapabort jobId helpMsg`` -- manually abort a TAP job and return
+  helpMsg to the requesting user as error message.
+* ``updateTAPSchema`` -- Update the TAP_SCHEMA metadata for all RDs
+  mentioned in TAP_SCHEMA.
+* ``xsdValidate path`` -- Validate a file against built-in VO schemas
+  and with built-in schema validator.
 
 
 THE config SUBCOMMAND
@@ -686,6 +686,10 @@ This exposes various functionality for managing DaCHS' server component.
 While these usually are being called through init scripts or systemd
 components, the ``debug`` subfunction is very convenient during service
 development off the production environment.
+
+``serve start``, ``stop``, and ``restart`` manage a PID file, which
+DaCHS does not do when running under systemd.  Hence, do *not* use these
+subcommands when systemd manages your DaCHS.  expireRD is fine, though.
 
 Subsubcommands
 ---------------
