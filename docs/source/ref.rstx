@@ -2029,7 +2029,8 @@ Atomic Children
 * **services** (list of id references (comma separated or in distinct
   elements); defaults to []) -- A DC-internal reference to a service
   that lets users query that within the data collection; tables with
-  adql=True are automatically declared to be servedBy the TAP service.
+  adql=True are automatically declared as isServiceFor the TAP
+  service.
 * **sets** (Comma-separated list of strings; defaults to
   'ivo_managed') -- A comma-separated list of sets this data will be
   published in.  To publish data to the VO registry, just say
@@ -11130,14 +11131,14 @@ cites
   http://www.g-vo.org/rdf/voresource/relationship_type (where there
   are minor lexical deviations from identifiers there to DaCHS' meta names).
   
-  All relationship metas should look like this (using servedBy as an 
+  All relationship metas should look like this (using isSupplementTo as an 
   example; while an ivoId is not mandatory, it rarely makes sense to declare
   a relationship without it)::
   
-    servedBy: GAVO TAP service
-    servedBy.ivoId: ivo://org.gavo.dc
+    isSupplementTo: GAVO TAP service
+    isSupplementTo.ivoId: ivo://org.gavo.dc
   
-  ``servedBy`` and ``serviceFor`` are somewhat special cases, as
+  ``isServedBy`` and ``isServiceFor`` are somewhat special cases, as
   the service attribute of data publications automatically takes care 
   of them; so, you shouldn't usually need to bother with these two manually.
   
@@ -11149,14 +11150,14 @@ continues
   http://www.g-vo.org/rdf/voresource/relationship_type (where there
   are minor lexical deviations from identifiers there to DaCHS' meta names).
   
-  All relationship metas should look like this (using servedBy as an 
+  All relationship metas should look like this (using isSupplementTo as an 
   example; while an ivoId is not mandatory, it rarely makes sense to declare
   a relationship without it)::
   
-    servedBy: GAVO TAP service
-    servedBy.ivoId: ivo://org.gavo.dc
+    isSupplementTo: GAVO TAP service
+    isSupplementTo.ivoId: ivo://org.gavo.dc
   
-  ``servedBy`` and ``serviceFor`` are somewhat special cases, as
+  ``isServedBy`` and ``isServiceFor`` are somewhat special cases, as
   the service attribute of data publications automatically takes care 
   of them; so, you shouldn't usually need to bother with these two manually.
   
@@ -11183,14 +11184,14 @@ derivedFrom
   http://www.g-vo.org/rdf/voresource/relationship_type (where there
   are minor lexical deviations from identifiers there to DaCHS' meta names).
   
-  All relationship metas should look like this (using servedBy as an 
+  All relationship metas should look like this (using isSupplementTo as an 
   example; while an ivoId is not mandatory, it rarely makes sense to declare
   a relationship without it)::
   
-    servedBy: GAVO TAP service
-    servedBy.ivoId: ivo://org.gavo.dc
+    isSupplementTo: GAVO TAP service
+    isSupplementTo.ivoId: ivo://org.gavo.dc
   
-  ``servedBy`` and ``serviceFor`` are somewhat special cases, as
+  ``isServedBy`` and ``isServiceFor`` are somewhat special cases, as
   the service attribute of data publications automatically takes care 
   of them; so, you shouldn't usually need to bother with these two manually.
   
@@ -11208,14 +11209,14 @@ hasPart
   http://www.g-vo.org/rdf/voresource/relationship_type (where there
   are minor lexical deviations from identifiers there to DaCHS' meta names).
   
-  All relationship metas should look like this (using servedBy as an 
+  All relationship metas should look like this (using isSupplementTo as an 
   example; while an ivoId is not mandatory, it rarely makes sense to declare
   a relationship without it)::
   
-    servedBy: GAVO TAP service
-    servedBy.ivoId: ivo://org.gavo.dc
+    isSupplementTo: GAVO TAP service
+    isSupplementTo.ivoId: ivo://org.gavo.dc
   
-  ``servedBy`` and ``serviceFor`` are somewhat special cases, as
+  ``isServedBy`` and ``isServiceFor`` are somewhat special cases, as
   the service attribute of data publications automatically takes care 
   of them; so, you shouldn't usually need to bother with these two manually.
   
@@ -11236,14 +11237,14 @@ isContinuedBy
   http://www.g-vo.org/rdf/voresource/relationship_type (where there
   are minor lexical deviations from identifiers there to DaCHS' meta names).
   
-  All relationship metas should look like this (using servedBy as an 
+  All relationship metas should look like this (using isSupplementTo as an 
   example; while an ivoId is not mandatory, it rarely makes sense to declare
   a relationship without it)::
   
-    servedBy: GAVO TAP service
-    servedBy.ivoId: ivo://org.gavo.dc
+    isSupplementTo: GAVO TAP service
+    isSupplementTo.ivoId: ivo://org.gavo.dc
   
-  ``servedBy`` and ``serviceFor`` are somewhat special cases, as
+  ``isServedBy`` and ``isServiceFor`` are somewhat special cases, as
   the service attribute of data publications automatically takes care 
   of them; so, you shouldn't usually need to bother with these two manually.
   
@@ -11255,14 +11256,14 @@ isDerivedFrom
   http://www.g-vo.org/rdf/voresource/relationship_type (where there
   are minor lexical deviations from identifiers there to DaCHS' meta names).
   
-  All relationship metas should look like this (using servedBy as an 
+  All relationship metas should look like this (using isSupplementTo as an 
   example; while an ivoId is not mandatory, it rarely makes sense to declare
   a relationship without it)::
   
-    servedBy: GAVO TAP service
-    servedBy.ivoId: ivo://org.gavo.dc
+    isSupplementTo: GAVO TAP service
+    isSupplementTo.ivoId: ivo://org.gavo.dc
   
-  ``servedBy`` and ``serviceFor`` are somewhat special cases, as
+  ``isServedBy`` and ``isServiceFor`` are somewhat special cases, as
   the service attribute of data publications automatically takes care 
   of them; so, you shouldn't usually need to bother with these two manually.
   
@@ -11274,14 +11275,14 @@ isIdenticalTo
   http://www.g-vo.org/rdf/voresource/relationship_type (where there
   are minor lexical deviations from identifiers there to DaCHS' meta names).
   
-  All relationship metas should look like this (using servedBy as an 
+  All relationship metas should look like this (using isSupplementTo as an 
   example; while an ivoId is not mandatory, it rarely makes sense to declare
   a relationship without it)::
   
-    servedBy: GAVO TAP service
-    servedBy.ivoId: ivo://org.gavo.dc
+    isSupplementTo: GAVO TAP service
+    isSupplementTo.ivoId: ivo://org.gavo.dc
   
-  ``servedBy`` and ``serviceFor`` are somewhat special cases, as
+  ``isServedBy`` and ``isServiceFor`` are somewhat special cases, as
   the service attribute of data publications automatically takes care 
   of them; so, you shouldn't usually need to bother with these two manually.
   
@@ -11293,14 +11294,14 @@ isNewVersionOf
   http://www.g-vo.org/rdf/voresource/relationship_type (where there
   are minor lexical deviations from identifiers there to DaCHS' meta names).
   
-  All relationship metas should look like this (using servedBy as an 
+  All relationship metas should look like this (using isSupplementTo as an 
   example; while an ivoId is not mandatory, it rarely makes sense to declare
   a relationship without it)::
   
-    servedBy: GAVO TAP service
-    servedBy.ivoId: ivo://org.gavo.dc
+    isSupplementTo: GAVO TAP service
+    isSupplementTo.ivoId: ivo://org.gavo.dc
   
-  ``servedBy`` and ``serviceFor`` are somewhat special cases, as
+  ``isServedBy`` and ``isServiceFor`` are somewhat special cases, as
   the service attribute of data publications automatically takes care 
   of them; so, you shouldn't usually need to bother with these two manually.
   
@@ -11312,14 +11313,14 @@ isPartOf
   http://www.g-vo.org/rdf/voresource/relationship_type (where there
   are minor lexical deviations from identifiers there to DaCHS' meta names).
   
-  All relationship metas should look like this (using servedBy as an 
+  All relationship metas should look like this (using isSupplementTo as an 
   example; while an ivoId is not mandatory, it rarely makes sense to declare
   a relationship without it)::
   
-    servedBy: GAVO TAP service
-    servedBy.ivoId: ivo://org.gavo.dc
+    isSupplementTo: GAVO TAP service
+    isSupplementTo.ivoId: ivo://org.gavo.dc
   
-  ``servedBy`` and ``serviceFor`` are somewhat special cases, as
+  ``isServedBy`` and ``isServiceFor`` are somewhat special cases, as
   the service attribute of data publications automatically takes care 
   of them; so, you shouldn't usually need to bother with these two manually.
   
@@ -11331,14 +11332,14 @@ isPreviousVersionOf
   http://www.g-vo.org/rdf/voresource/relationship_type (where there
   are minor lexical deviations from identifiers there to DaCHS' meta names).
   
-  All relationship metas should look like this (using servedBy as an 
+  All relationship metas should look like this (using isSupplementTo as an 
   example; while an ivoId is not mandatory, it rarely makes sense to declare
   a relationship without it)::
   
-    servedBy: GAVO TAP service
-    servedBy.ivoId: ivo://org.gavo.dc
+    isSupplementTo: GAVO TAP service
+    isSupplementTo.ivoId: ivo://org.gavo.dc
   
-  ``servedBy`` and ``serviceFor`` are somewhat special cases, as
+  ``isServedBy`` and ``isServiceFor`` are somewhat special cases, as
   the service attribute of data publications automatically takes care 
   of them; so, you shouldn't usually need to bother with these two manually.
   
@@ -11350,14 +11351,14 @@ isServedBy
   http://www.g-vo.org/rdf/voresource/relationship_type (where there
   are minor lexical deviations from identifiers there to DaCHS' meta names).
   
-  All relationship metas should look like this (using servedBy as an 
+  All relationship metas should look like this (using isSupplementTo as an 
   example; while an ivoId is not mandatory, it rarely makes sense to declare
   a relationship without it)::
   
-    servedBy: GAVO TAP service
-    servedBy.ivoId: ivo://org.gavo.dc
+    isSupplementTo: GAVO TAP service
+    isSupplementTo.ivoId: ivo://org.gavo.dc
   
-  ``servedBy`` and ``serviceFor`` are somewhat special cases, as
+  ``isServedBy`` and ``isServiceFor`` are somewhat special cases, as
   the service attribute of data publications automatically takes care 
   of them; so, you shouldn't usually need to bother with these two manually.
   
@@ -11369,14 +11370,14 @@ isServiceFor
   http://www.g-vo.org/rdf/voresource/relationship_type (where there
   are minor lexical deviations from identifiers there to DaCHS' meta names).
   
-  All relationship metas should look like this (using servedBy as an 
+  All relationship metas should look like this (using isSupplementTo as an 
   example; while an ivoId is not mandatory, it rarely makes sense to declare
   a relationship without it)::
   
-    servedBy: GAVO TAP service
-    servedBy.ivoId: ivo://org.gavo.dc
+    isSupplementTo: GAVO TAP service
+    isSupplementTo.ivoId: ivo://org.gavo.dc
   
-  ``servedBy`` and ``serviceFor`` are somewhat special cases, as
+  ``isServedBy`` and ``isServiceFor`` are somewhat special cases, as
   the service attribute of data publications automatically takes care 
   of them; so, you shouldn't usually need to bother with these two manually.
   
@@ -11388,14 +11389,14 @@ isSourceOf
   http://www.g-vo.org/rdf/voresource/relationship_type (where there
   are minor lexical deviations from identifiers there to DaCHS' meta names).
   
-  All relationship metas should look like this (using servedBy as an 
+  All relationship metas should look like this (using isSupplementTo as an 
   example; while an ivoId is not mandatory, it rarely makes sense to declare
   a relationship without it)::
   
-    servedBy: GAVO TAP service
-    servedBy.ivoId: ivo://org.gavo.dc
+    isSupplementTo: GAVO TAP service
+    isSupplementTo.ivoId: ivo://org.gavo.dc
   
-  ``servedBy`` and ``serviceFor`` are somewhat special cases, as
+  ``isServedBy`` and ``isServiceFor`` are somewhat special cases, as
   the service attribute of data publications automatically takes care 
   of them; so, you shouldn't usually need to bother with these two manually.
   
@@ -11407,14 +11408,14 @@ isSupplementTo
   http://www.g-vo.org/rdf/voresource/relationship_type (where there
   are minor lexical deviations from identifiers there to DaCHS' meta names).
   
-  All relationship metas should look like this (using servedBy as an 
+  All relationship metas should look like this (using isSupplementTo as an 
   example; while an ivoId is not mandatory, it rarely makes sense to declare
   a relationship without it)::
   
-    servedBy: GAVO TAP service
-    servedBy.ivoId: ivo://org.gavo.dc
+    isSupplementTo: GAVO TAP service
+    isSupplementTo.ivoId: ivo://org.gavo.dc
   
-  ``servedBy`` and ``serviceFor`` are somewhat special cases, as
+  ``isServedBy`` and ``isServiceFor`` are somewhat special cases, as
   the service attribute of data publications automatically takes care 
   of them; so, you shouldn't usually need to bother with these two manually.
   
@@ -11426,14 +11427,14 @@ isSupplementedBy
   http://www.g-vo.org/rdf/voresource/relationship_type (where there
   are minor lexical deviations from identifiers there to DaCHS' meta names).
   
-  All relationship metas should look like this (using servedBy as an 
+  All relationship metas should look like this (using isSupplementTo as an 
   example; while an ivoId is not mandatory, it rarely makes sense to declare
   a relationship without it)::
   
-    servedBy: GAVO TAP service
-    servedBy.ivoId: ivo://org.gavo.dc
+    isSupplementTo: GAVO TAP service
+    isSupplementTo.ivoId: ivo://org.gavo.dc
   
-  ``servedBy`` and ``serviceFor`` are somewhat special cases, as
+  ``isServedBy`` and ``isServiceFor`` are somewhat special cases, as
   the service attribute of data publications automatically takes care 
   of them; so, you shouldn't usually need to bother with these two manually.
   
@@ -11453,14 +11454,14 @@ mirrorOf
   http://www.g-vo.org/rdf/voresource/relationship_type (where there
   are minor lexical deviations from identifiers there to DaCHS' meta names).
   
-  All relationship metas should look like this (using servedBy as an 
+  All relationship metas should look like this (using isSupplementTo as an 
   example; while an ivoId is not mandatory, it rarely makes sense to declare
   a relationship without it)::
   
-    servedBy: GAVO TAP service
-    servedBy.ivoId: ivo://org.gavo.dc
+    isSupplementTo: GAVO TAP service
+    isSupplementTo.ivoId: ivo://org.gavo.dc
   
-  ``servedBy`` and ``serviceFor`` are somewhat special cases, as
+  ``isServedBy`` and ``isServiceFor`` are somewhat special cases, as
   the service attribute of data publications automatically takes care 
   of them; so, you shouldn't usually need to bother with these two manually.
   
@@ -11522,14 +11523,14 @@ relatedTo
   http://www.g-vo.org/rdf/voresource/relationship_type (where there
   are minor lexical deviations from identifiers there to DaCHS' meta names).
   
-  All relationship metas should look like this (using servedBy as an 
+  All relationship metas should look like this (using isSupplementTo as an 
   example; while an ivoId is not mandatory, it rarely makes sense to declare
   a relationship without it)::
   
-    servedBy: GAVO TAP service
-    servedBy.ivoId: ivo://org.gavo.dc
+    isSupplementTo: GAVO TAP service
+    isSupplementTo.ivoId: ivo://org.gavo.dc
   
-  ``servedBy`` and ``serviceFor`` are somewhat special cases, as
+  ``isServedBy`` and ``isServiceFor`` are somewhat special cases, as
   the service attribute of data publications automatically takes care 
   of them; so, you shouldn't usually need to bother with these two manually.
   
@@ -11541,14 +11542,14 @@ servedBy
   http://www.g-vo.org/rdf/voresource/relationship_type (where there
   are minor lexical deviations from identifiers there to DaCHS' meta names).
   
-  All relationship metas should look like this (using servedBy as an 
+  All relationship metas should look like this (using isSupplementTo as an 
   example; while an ivoId is not mandatory, it rarely makes sense to declare
   a relationship without it)::
   
-    servedBy: GAVO TAP service
-    servedBy.ivoId: ivo://org.gavo.dc
+    isSupplementTo: GAVO TAP service
+    isSupplementTo.ivoId: ivo://org.gavo.dc
   
-  ``servedBy`` and ``serviceFor`` are somewhat special cases, as
+  ``isServedBy`` and ``isServiceFor`` are somewhat special cases, as
   the service attribute of data publications automatically takes care 
   of them; so, you shouldn't usually need to bother with these two manually.
   
@@ -11560,14 +11561,14 @@ serviceFor
   http://www.g-vo.org/rdf/voresource/relationship_type (where there
   are minor lexical deviations from identifiers there to DaCHS' meta names).
   
-  All relationship metas should look like this (using servedBy as an 
+  All relationship metas should look like this (using isSupplementTo as an 
   example; while an ivoId is not mandatory, it rarely makes sense to declare
   a relationship without it)::
   
-    servedBy: GAVO TAP service
-    servedBy.ivoId: ivo://org.gavo.dc
+    isSupplementTo: GAVO TAP service
+    isSupplementTo.ivoId: ivo://org.gavo.dc
   
-  ``servedBy`` and ``serviceFor`` are somewhat special cases, as
+  ``isServedBy`` and ``isServiceFor`` are somewhat special cases, as
   the service attribute of data publications automatically takes care 
   of them; so, you shouldn't usually need to bother with these two manually.
   
@@ -11589,14 +11590,14 @@ uses
   http://www.g-vo.org/rdf/voresource/relationship_type (where there
   are minor lexical deviations from identifiers there to DaCHS' meta names).
   
-  All relationship metas should look like this (using servedBy as an 
+  All relationship metas should look like this (using isSupplementTo as an 
   example; while an ivoId is not mandatory, it rarely makes sense to declare
   a relationship without it)::
   
-    servedBy: GAVO TAP service
-    servedBy.ivoId: ivo://org.gavo.dc
+    isSupplementTo: GAVO TAP service
+    isSupplementTo.ivoId: ivo://org.gavo.dc
   
-  ``servedBy`` and ``serviceFor`` are somewhat special cases, as
+  ``isServedBy`` and ``isServiceFor`` are somewhat special cases, as
   the service attribute of data publications automatically takes care 
   of them; so, you shouldn't usually need to bother with these two manually.
   

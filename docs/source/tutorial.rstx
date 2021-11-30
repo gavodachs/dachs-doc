@@ -1256,9 +1256,11 @@ necessarily is followed by a lot of work on mapping the data) and just
 use an existing RD.
 
 You can run the following under any user id, as long as
-you wisely manage the permissions.  For testing, however, we recommend
+you wisely manage the permissions (short version: ``sudo adduser `id
+-nu` gavo`` to add you to the gavo group, then log out and in again to
+make it effective).  For testing, however, we recommend
 doing it as the data center administrative account (for the Debian
-package, that's gavoadmin, if you did the setup manually, it's whatever
+package, that's dachsroot, if you did the setup manually, it's whatever
 user did the ``dachs init``).
 
 To get a quick start, just pull in the RD in use by GAVO's data center::
@@ -2294,8 +2296,8 @@ To see what is available, refer to the reference documentation of the
 
 The template RD then mixes in ``//products#table`` (which you pretty
 certainly want; see `The Products Table`_ for an explanation), 
-``//ssap#plainlocation`` (which you want if
-you have positions on observational data) and ``//ssap#simpleCoverage``
+``//ssap#plainlocation`` (which at this point you must have to make
+a valid SSA service) and ``//ssap#simpleCoverage``
 (which you want if you want to publish your observational spectra
 through obscore).  The template then defines::
 
@@ -6020,7 +6022,7 @@ using something like::
 This will lock the relation to concurrent queries, which will wait until
 the view is updated.  There is a CONCURRENTLY version of this avoiding
 that lock-out, but it will need to be used with care.  See the postgres
-docs if you think that matters a lot for your.
+docs if you think that matters a lot for your use of materialised views.
 
 You could tell DaCHS to regularly update a materialised view if
 necessary, for instance with something like::
