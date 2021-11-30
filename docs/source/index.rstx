@@ -12,6 +12,10 @@ for the Virtual Observatory, including a flexible component for
 ingesting and mapping data, integrated metadata handling with a
 publishing registry, and support for many VO protocols and standards.
 
+This is a re-rendering of the `upstream DaCHS documentation`_.
+
+.. _upstream DaCHS documentation: http://docs.g-vo.org/DaCHS
+
 
 Documentation
 =============
@@ -47,10 +51,8 @@ them.
 Deployment Options
 ------------------
 
-* :doc:`Installation and configuration <install>`
-
-  * :download:`install.pdf <../pdf/install.pdf>`
-  * :download:`install.rstx <./install.rstx>`
+* :doc:`Installation and configuration <install>` 
+  (:download:`As PDF <http://docs.g-vo.org/DaCHS/install.pdf>`)
 
 * You can also run DaCHS (plus postgres) within Docker containers.
   See https://github.com/gavodachs.
@@ -60,91 +62,43 @@ For Data Center Operators
 -------------------------
 
 * :doc:`dachs command manpage <dachs.1>`
-
-  * :download:`dachs.1.rstx <./dachs.1.rstx>`
-
-* :doc:`Tutorial <tutorial>`
-
-  * :download:`tutorial.pdf <../pdf/tutorial.pdf>`
-  * :download:`tutorial.rstx <./tutorial.rstx>`
-
+* :doc:`Tutorial <tutorial>` 
+  (:download:`As PDF <http://docs.g-vo.org/DaCHS/tutorial.pdf>`)
 * :doc:`Reference <ref>`
-
-  * :download:`ref.rstx <./ref.rstx>`
-
+  (:download:`As PDF <http://docs.g-vo.org/DaCHS/ref.pdf>`)
 * :doc:`How do I? <howDoI>`
-
-  * :download:`howDoI.pdf <../pdf/howDoI.pdf>`
-  * :download:`howDoI.rstx <./howDoI.rstx>`
-
+  (:download:`As PDF <http://docs.g-vo.org/DaCHS/howDoI.pdf>`)
 * :doc:`Hints on common problems <commonproblems>`
-
-  * :download:`commonproblems.pdf <../pdf/commonproblems.pdf>`
-  * :download:`commonproblems.rstx <./commonproblems.rstx>`
-
+  (:download:`As PDF <http://docs.g-vo.org/DaCHS/commonproblems.pdf>`)
 * `Reference to elements and attributes in use in GAVO's data center <http://docs.g-vo.org/DaCHS/elemref.html>`_.
-
 * :doc:`Guide to writing HTML templates <templating>`
-
-  * :download:`templating.pdf <../pdf/templating.pdf>`
-  * :download:`templating.rstx <./templating.rstx>`
-
+  (:download:`As PDF <http://docs.g-vo.org/DaCHS/templating.pdf>`)
 * :doc:`Guide to write booster grammars <booster>`
-
-  * :download:`booster.pdf <../pdf/booster.pdf>`
-  * :download:`booster.rstx <./booster.rstx>`
-
+  (:download:`As PDF <http://docs.g-vo.org/DaCHS/booster.pdf>`)
 * :doc:`Guide to preprocessing input files <processors>`
-
-  * :download:`processors.pdf <../pdf/processors.pdf>`
-  * :download:`processors.rstx <./processors.rstx>`
+  (:download:`As PDF <http://docs.g-vo.org/DaCHS/processors.pdf>`)
 
 For VO Data Providers
 ---------------------
 
 * :doc:`Checklist for data providers data_checklist <data_checklist>`
-
-  * :download:`data_checklist.pdf <../pdf/data_checklist.pdf>`
-  * :download:`data_checklist.rstx <./data_checklist.rstx>`
+  (:download:`As PDF <http://docs.g-vo.org/DaCHS/data_checklist.pdf>`)
 
 Library Documentation
 ---------------------
 
 * :doc:`STC library documentation stc <stc>`
+  (:download:`As PDF <http://docs.g-vo.org/DaCHS/stc.pdf>`)
 
-  * :download:`stc.pdf <../pdf/stc.pdf>`
-  * :download:`stc.rstx <./stc.rstx>`
-
-* :doc:`ADQL library documentation adql <../pdf/adql>`
-
-  * :download:`adql.pdf <../pdf/adql.pdf>`
-  * :download:`adql.rstx <./adql.rstx>`
+* :doc:`ADQL library documentation adql <adql>`
+  (:download:`As PDF <http://docs.g-vo.org/DaCHS/adql.pdf>`)
 
 * :doc:`VOTable library documentation votable <votable>`
-
-  * :download:`votable.pdf <../pdf/votable.pdf>`
-  * :download:`votable.rstx <./votable.rstx>`
+  (:download:`As PDF <http://docs.g-vo.org/DaCHS/votable.pdf>`)
 
 * :doc:`VOTable library tapquery documentation <tapquery>`
+  (:download:`As PDF <http://docs.g-vo.org/DaCHS/tapquery.pdf>`)
 
-  * :download:`tapquery.pdf <../pdf/tapquery.pdf>`
-  * :download:`tapquery.rstx <./tapquery.rstx>`
-
-
-DaCHS developer Documentation
------------------------------
-
-* Epydoc-generated `API documentation <./apidoc>`_.  The main purpose of
-  this is to help understanding the code as it is.  We make some effort
-  to keep stable whatever is “exported” from each subpackage (i.e., what
-  you get when importing gavo.something).  However, we will only warn
-  about API changes for things in gavo.api (see
-  :dachsref:`The DaCHS API`).
-
-* :doc:`Development notes <develNotes>`
-
-  * :download:`develNotes.pdf <../pdf/develNotes.pdf>`
-  * :download:`develNotes.rstx <./develNotes.rstx>`
 
 Software
 ========
