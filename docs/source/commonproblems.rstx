@@ -781,5 +781,25 @@ say, Msun instead of solMass.
 
 .. _VOUnits: https://ivoa.net/documents/VOUnits/
 
+
+module 'gavo.utils' has no attribute 'pyparsingWhitechars'
+==========================================================
+
+You are probably running ``dachs limits`` on the DaCHS that comes with
+Debian bullseye (11).  Its ``dachs --version`` would give you something
+like ``Software (2.3) Schema (26/26)``.  
+
+If that is true: Well, don't run DaCHS limits on that version.  The
+functionality has received a fairly fundamental revamp in 2.4 and later
+(cf.
+https://blog.g-vo.org/dachs-2-4-is-out-blind-discovery-pretty-datalink-and-more.html).
+Dealing with the limits can wait until after you upgrade.
+
+If you *really* need ``dachs limits``, I'm afraid you will have to
+upgrade, preferably by pulling from `our APT repo`_.
+
+.. _our apt repo: http://soft.g-vo.org/repo
+
+
 .. |date| date::
 .. _CC-0: http://creativecommons.org/publicdomain/zero/1.0
