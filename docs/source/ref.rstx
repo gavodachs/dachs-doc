@@ -7776,7 +7776,7 @@ Parameter *ssa_aperture*
   Angular diameter of aperture
 Parameter *ssa_bandpass*
   defaults to ``NULL``;
-  Bandpass (i.e., rough spectral location) of this dataset; this should be the most appropriate term from the values of VODataService vs:Waveband.
+  Bandpass (i.e., rough spectral location) of this dataset; this should be the most appropriate term from the vocabulary http://www.ivoa.net/rdf/messenger.
 Parameter *ssa_binSize*
   defaults to ``NULL``;
   Size of the typical spectral bin in meters of wavelength.
@@ -7838,7 +7838,7 @@ Parameter *ssa_length*
   Number of points in the spectrum
 Parameter *ssa_location*
   defaults to ``NULL``;
-  You probably don't want to manually handle this. Use `the //ssap#plainlocation mixin`_ on your metadata table instead.
+  You probably don't want to manually handle this. Use `the //ssap#plainlocation mixin`_ on your metadata table instead and write ssa_location here.
 Parameter *ssa_model*
   defaults to ``'Spectrum-1.0'``;
   Data model name and version
@@ -10424,9 +10424,6 @@ Settings related to serving content to the web.
 * adminpasswd: string; 
   defaults to '' --
   Password for online administration, leave empty to disable
-* adsMirror: string; 
-  defaults to 'http://ads.g-vo.org' --
-  Root URL of ADS mirror to be used (without a trailing slash)
 * alternateHostnames: list of strings; 
   defaults to '' --
   A comma-separated list of hostnames this server is also known under.
@@ -15891,6 +15888,58 @@ that are immediately accessible in the namespace:
   returns a modified julian date for a datetime instance.
   
 
+*degToDms(deg, sepChar=' ', secondFracs=2, preserveLeading=False, truncate=False)*
+  converts a float angle in degrees to a sexagesimal string.
+  
+  This takes a lot of optional arguments:
+  
+  * sepChar is the char separating the components
+  * secondFracs is the number for fractional seconds to generate
+  * preserveLeading can be set to True if leading zeroes should be
+    preserved
+  * truncate can be set to True if fractional seconds should be truncated
+    rather then rounded (as necessary for building IAU identifiers)
+  
+  >>> degToDms(-3.24722, "", 0, True, True)
+  '-031449'
+  >>> degToDms(0)
+  '+0 00 00.00'
+  >>> degToDms(-0.25)
+  '-0 15 00.00'
+  >>> degToDms(-23.50, secondFracs=4)
+  '-23 30 00.0000'
+  >>> "%.4f"%dmsToDeg(degToDms(-25.6835, sepChar=":"), sepChar=":")
+  '-25.6835'
+  
+
+*degToHms(deg, sepChar=' ', secondFracs=3, truncate=False)*
+  converts a float angle in degrees to an time angle (hh:mm:ss.mmm).
+  
+  This takes a lot of optional arguments:
+  
+  * sepChar is the char separating the components
+  * secondFracs is the number for fractional seconds to generate
+  * truncate can be set to True if fractional seconds should be truncated
+    rather then rounded (as necessary for building IAU identifiers)
+  
+  >>> degToHms(0)
+  '00 00 00.000'
+  >>> degToHms(122.057, secondFracs=1)
+  '08 08 13.7'
+  >>> degToHms(122.057, secondFracs=1, truncate=True)
+  '08 08 13.6'
+  >>> degToHms(-0.055, secondFracs=0)
+  '-00 00 13'
+  >>> degToHms(-0.055, secondFracs=0, truncate=True)
+  '-00 00 13'
+  >>> degToHms(-1.056, secondFracs=0)
+  '-00 04 13'
+  >>> degToHms(359.2222, secondFracs=4, sepChar=":")
+  '23:56:53.3280'
+  >>> "%.4f"%hmsToDeg(degToHms(256.25, secondFracs=9))
+  '256.2500'
+  
+
 *dmsToDeg(dmsAngle, sepChar=None)*
   returns the degree minutes seconds-specified dmsAngle as a 
   float in degrees.
@@ -16099,6 +16148,17 @@ that are immediately accessible in the namespace:
   
   This will reflect the http/https access mode unless you pass
   canonical=True, in which case [web]serverURL will be used unconditionally.
+  
+
+*makeIAUId(prefix, long, lat, longSec=0, latSec=0)*
+  returns an (equatorial) IAU identifier for an object at long and lat.
+  
+  The rules are given on https://cds.unistra.fr/Dic/iau-spec.html
+  
+  The prefix, including the system identifier, you have to pass in.
+  You cannot build identifiers using only minutes precision.
+  If you want to include sub-arcsec precision, pass in longSec and/or
+  latSec (the number of factional seconds to preserve).
   
 
 *makeProductLink(key, withHost=True, useHost=None)*
@@ -17167,6 +17227,66 @@ Signature: ``dateTimeToMJD(dt)``
 returns a modified julian date for a datetime instance.
 
 
+Function degToDms
+.................
+
+Signature: ``degToDms(deg, sepChar=' ', secondFracs=2, preserveLeading=False, truncate=False)``
+
+converts a float angle in degrees to a sexagesimal string.
+
+This takes a lot of optional arguments:
+
+* sepChar is the char separating the components
+* secondFracs is the number for fractional seconds to generate
+* preserveLeading can be set to True if leading zeroes should be
+  preserved
+* truncate can be set to True if fractional seconds should be truncated
+  rather then rounded (as necessary for building IAU identifiers)
+
+>>> degToDms(-3.24722, "", 0, True, True)
+'-031449'
+>>> degToDms(0)
+'+0 00 00.00'
+>>> degToDms(-0.25)
+'-0 15 00.00'
+>>> degToDms(-23.50, secondFracs=4)
+'-23 30 00.0000'
+>>> "%.4f"%dmsToDeg(degToDms(-25.6835, sepChar=":"), sepChar=":")
+'-25.6835'
+
+
+Function degToHms
+.................
+
+Signature: ``degToHms(deg, sepChar=' ', secondFracs=3, truncate=False)``
+
+converts a float angle in degrees to an time angle (hh:mm:ss.mmm).
+
+This takes a lot of optional arguments:
+
+* sepChar is the char separating the components
+* secondFracs is the number for fractional seconds to generate
+* truncate can be set to True if fractional seconds should be truncated
+  rather then rounded (as necessary for building IAU identifiers)
+
+>>> degToHms(0)
+'00 00 00.000'
+>>> degToHms(122.057, secondFracs=1)
+'08 08 13.7'
+>>> degToHms(122.057, secondFracs=1, truncate=True)
+'08 08 13.6'
+>>> degToHms(-0.055, secondFracs=0)
+'-00 00 13'
+>>> degToHms(-0.055, secondFracs=0, truncate=True)
+'-00 00 13'
+>>> degToHms(-1.056, secondFracs=0)
+'-00 04 13'
+>>> degToHms(359.2222, secondFracs=4, sepChar=":")
+'23:56:53.3280'
+>>> "%.4f"%hmsToDeg(degToHms(256.25, secondFracs=9))
+'256.2500'
+
+
 Function dmsToDeg
 .................
 
@@ -17725,6 +17845,21 @@ apprear there.
 values for which no template item is given are added in random order
 after the template unless an originalHeader is passed.  In that case,
 they are assumed to originate there and are ignored.
+
+
+Function makeIAUId
+..................
+
+Signature: ``makeIAUId(prefix, long, lat, longSec=0, latSec=0)``
+
+returns an (equatorial) IAU identifier for an object at long and lat.
+
+The rules are given on https://cds.unistra.fr/Dic/iau-spec.html
+
+The prefix, including the system identifier, you have to pass in.
+You cannot build identifiers using only minutes precision.
+If you want to include sub-arcsec precision, pass in longSec and/or
+latSec (the number of factional seconds to preserve).
 
 
 Function makeProductLink
