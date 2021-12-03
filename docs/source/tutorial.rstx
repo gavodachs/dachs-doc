@@ -1415,7 +1415,7 @@ columns as required when they do not indeed contain NULLs.
 
 Once everything looks right, tell DaCHS to inspect your table and
 collect column statistics, space-time coverage, and similar metadata on
-it::
+it\ [#belim]_::
 
   dachs limits q
 
@@ -1538,7 +1538,7 @@ cache.  If you have set `the admin password`_, and it fits what the
 ``serverURL`` says, ``dachs pub`` will do that itself.  If in doubt,
 just restart the DaCHS server.
 
-Note again that before running dachs pub, it is a good idea to run
+Note again that before running dachs pub, it is a good idea\ [#belim]_ to run
 ``dachs limits q``, which will create (or update) all kinds of statistal
 estimates which are being communicated to the registry and are important
 for discovery (e.g., coverage and some statistical measures for the
@@ -1554,7 +1554,7 @@ all major web browsers) can be used to (somewhat clumsily) operate it.
 
 Note that your publication will be more useful if you have endowed your
 resource with `STC coverage`_ and you have run ``dachs limits`` on the
-embedding RD.
+embedding RD\ [#belim]_.
 
 In practice, you can point your browser to the ``oai.xml`` child of your
 server root – by default http://localhost:8080/oai.xml –, and you will
@@ -3617,6 +3617,227 @@ that into your RD.
 Note that DaCHS will not produce automatic previews in this
 situation.  Have a look at :dachsref:`Product Previews` for what to do
 instead.
+
+
+HTML form-based services
+------------------------
+
+In principle, you can often just add ``form`` to the list of allowed
+renderers in a service and have a service display an HTML form and
+return an HTML table.  
+
+However, such a service will typically not be very pretty or usable –
+DaCHS services are normally intended to be consumed by machines.  These
+do not care about a plethora of parameters they will never use, and they
+can easily fix the display of units or a large number of columns for
+their users.
+
+Web browsers and humans are not good at that, and so it often pays to
+build extra services next to typed services – or perhaps stand-alone,
+for instance on top of a TAP-published table.
+
+Soap box: don't waste time on form-based services when there are
+standard protocols to access the data – they're a pain to
+use, even if, and I admit that, most of your initial users may not have
+realised that.  Consider every minute spent on form service as a
+compromise with an imperfect world.  Of course, there are exceptions.
+Me, for instance, I kind of like our `sasmirala service`_, which doesn't
+work without a good dash of HTML.
+
+.. _sasmirala service: http://dc.g-vo.org/sasmirala/q/im/form
+
+
+Basics
+''''''
+
+The template for a Form-based service to a database table is::
+
+  <service id="web" allowed="form">
+    <meta name="shortName">____ web</meta>
+    <dbCore queriedTable="____"/>
+  </service>
+
+As usual, the short name must be shorter than 17 characters, and
+queriedTable contains the id of the table you want to query.  That's an
+XML id or a DaCHS cross-RD reference, *not* the name the table has in
+the database.  Of course, giving more of the usual service metadata
+usually is a good idea.
+
+
+Query Parameters
+''''''''''''''''
+
+The query parameters are generated from the condDescs of the dbCore; see
+`Service Definitions`_ for a bit more on them.  So, the classical
+pattern for adding such a parameter is::
+
+  <condDesc buildFrom="col_to_query"/>
+  
+This will enable all kinds of VizieR-like expressions on col_to_query,
+where the operators available depend on whether col_to_query is a
+string, a number, or a timestamp.  If you've run ``dachs limits``
+[#belim]_ on the RD, you will also get placeholders giving the ranges
+available for numeric columns.
+
+However, there are cases when you want to fight the horror vacui
+(sitting in front an empty form without an idea what to put where) more
+carefully, in particular with enumerated columns.  In that case, you can
+tell DaCHS to produce selection boxes.  This is based on building
+``condDescs`` from ``inputKeys`` with options::
+  
+  <condDesc>
+    <inputKey original="calib_level">
+      <values>
+        <option title="raw/custom">0</option>
+        <option title="raw/standard">1</option>
+        <option title="calibrated">2</option>
+        <option title="derived">3</option>
+      </values>
+    </inputKey>
+  </condDesc>
+
+where ``calib_level`` references a column that carries the remaining
+metadata.  When the column already carries such a ``values`` element,
+you can skip the values on the input key.  In that case, even a simple
+``buildFrom`` will produce a selection box.  Note, however, that giving
+the values on the column itself will reject values not mentioned when
+importing.
+
+Manually constructing the input key also lets you control how many items
+the browser will show in the selection box by giving a ``showItems``
+attribute to the input key (see below for an example).  Making
+``showItems`` -1 will use checkboxes (or radiobuttons) instead of a
+selection list.
+
+Explicitly enumerating the options in inconvenient when there is an
+open-ended list of terms, as for instance with object names,
+``obs_collection`` in obscore, or perhaps band or emulsion names.  For
+such cases, DaCHS lets you pick the values from the database itself
+using the values element's ``fromdb`` attribute.  This must be a SQL
+query fragment without the SELECT returning exactly one column.  For
+instance,
+
+::
+
+  <condDesc buildFrom="calib_level"/>
+   <condDesc>
+    <inputKey original="obs_collection" showItems="10">
+      <values fromdb="obs_collection from ivoa.obscore"/>
+    </inputKey>
+  </condDesc>
+
+
+Note, however, that DaCHS will execute this query when loading the RD.
+Hence, if this is a long-running query, the RD will take a long while to
+load, which usually is unwelcome.  Simply make sure that the query can
+use an index if your table has non-trivial size.
+
+DaCHS will also evaluate the ``multiplicity`` attribute of such input
+keys.  If it is ``multiple`` (which is the default in this situation),
+widgets are chosen that let users select multiple items; if it is
+``single``, it the widgets will only admit a single selected item.
+
+In all these cases, the input keys will generate constraints using
+DaCHS' default rules.  This includes the various input syntaxes like the
+VizieR expressions mentioned above; use ``vexpr-float``,
+``vexpr-string``, or ``vexpr-date`` as ``type`` when building explicit
+input keys rather than using ``buildFrom`` *and* you want these extra
+syntax things.  With explicit input keys, you could also tell DaCHS to
+understand PQL-like syntax (as in SSAP) with the types ``pql-int``,
+``pql-float``, ``pql-string``, and ``pql-date``, but, frankly, I don't
+think that's a good idea.
+
+When this is not enough and you need to generate custom query fragments,
+see `More on CondDescs`_.
+
+
+Output Table
+''''''''''''
+
+In browser-based services, you are directly talking to the user, and
+therefore you probably want to return not too many columns.  I can also
+confidently predict that even in the 2020ies you will still be asked for
+horrible sexagesimal coordinates and wavelengths in whatever twisted
+units your data providers prefer (though I have to say that moving away
+from the VO's preferred wavelengths *is* a good thing).
+
+For column selection, DaCHS by default picks the columns with a
+``verbLevel`` up to and including 20.  Columns excluded in this way can
+be added back using the “more output fields“ selector in the query form.
+However, in particular for services built on top of standard services,
+that selection that is often… improvable.
+
+In such cases, you can define an output table on the service.  The
+idiomatic way to do that is to copy over the columns you want to retain.
+The :dachsref:`element outputTable` has a legacy ``autoCols`` attribute for
+that, but now that DaCHS has LOOPs, my advice is to use the following
+pattern, because it makes it much easier to sprinkle in modified columns
+now and then::
+
+  <outputTable namePath="//obscore#ObsCore">
+    <LOOP listItems="obs_collection obs_title t_min t_max"><events>
+      <outputField original="\item"/>
+    </events></LOOP>
+
+    <outputField original="s_ra" displayHint="type=hms"/>
+    <outputField original="s_dec" displayHint="type=dms"/>
+    <outputField original="s_fov" displayHint="displayUnit=arcsec,sf=0"/>
+
+    <LOOP listItems="em_min em_max"><events>
+      <outputField original="\item" displayHint="displayUnit=Angstrom"/>
+    </events></LOOP>
+
+    <LOOP listItems="access_estsize access_url s_xel1 s_xel2">
+      <events><outputField original="\item"/></events>
+    </LOOP>
+  </outputTable>
+
+The first thing to note here is the ``namePath``, which tells DaCHS
+where to resolve the columns in by default (this will default to the
+table the core queries, so you can usually leave it out).
+
+Then, we use `Active Tags`_ to copy over columns we want to treat
+uniformly.  In this case, we first copy over a few columns literally,
+but then want to furnish other columns with :dachsref:`display hints`:
+here, we mogrify the positions to sexagesimal (definitely not
+recommended) and do some unit conversion and numeric formatting for the
+field of view.  Then we give both spectral coordinates in Angstrom (this
+assumes optical astronomers, obviously; a propos of which I should also
+call out the spectralUnit display hint DaCHS has since version 2.6).
+The element concludes with another loop copying literally.
+
+Note that you can usually give the display hints in the column
+definition; they will not hurt the protocol access; this would simplify
+the element above because you can then copy things without further
+modification.  An extra (questionable) benefit of giving the display
+hints in the column definitions in the table is that these will even be
+picked up when users to ADQL query through the web interface.
+
+In case DaCHS' built-in display hints are not enough, you can use the
+``select`` and ``formatter`` attributes discussed in the reference
+(:dachsref:`Element outputField`).  For instance::
+
+      <outputField name="dimensions"
+          tablehead="Dim"
+          description="Pixel Dimensions, space x space x time x spectrum x
+            polarization"
+          select="array[s_xel1, s_xel2, t_xel, em_xel, pol_xel]">
+        <formatter>
+          return "x".join(str(s) if s else "1" for s in data)
+        </formatter>
+      </outputField>
+
+which also shows how to select multiple values at a time.  
+
+You can also produce arbitrary HTML using stan syntax (cf.
+:dachsdoc:`templating.rstx`, the section on in-python stan)::
+
+  <outputField original="ivoid">
+    <formatter>
+      return T.a(href="/glots/q/showtables/qp/%s"%urllib.parse.quote(data))[
+        data[6:]]
+    </formatter>
+  </outputField>
 
 
 Configuring DaCHS
@@ -6010,7 +6231,7 @@ Hence, you will have to add ``index`` elements (again) as necessary.
 ``dachs limits`` will skip materialised views, too, by default.  For
 them, that has a lot less sense, so you will almost always want to add::
 
-	<property name="forceStats">1</property>
+  <property name="forceStats">1</property>
   
 in materialised views.
 
@@ -8232,6 +8453,12 @@ that's really not our fault.
    maintainers.  Incidentally, you can also run a mirror of the web
    interface to the registry then; you would just have to check out
    http://svn.ari.uni-heidelberg.de/svn/gavo/hdinputs/wirr/.
+
+.. [#belim] ``dachs limits`` on DaCHS 2.3 and earlier does something
+  somwhat different, and you should ignore everything we say here if
+  you're still on DaCHS 2.3.  Additionally in the DaCHS version that is
+  in Debian bullseye (which is also a 2.3) the limits subcommand is
+  broken.  Bottom line: If you want dachs limits, use 2.4 or newer.
 
 .. |date| date::
 .. _CC-0: http://creativecommons.org/publicdomain/zero/1.0

@@ -7763,6 +7763,9 @@ Parameter *customcode*
 Parameter *embargo*
   defaults to ``embargo``;
   Date the data will become/became public
+Parameter *materialize*
+  defaults to ``False``;
+  Set to True to make this a materialized view. For smallish tables, that is a reasonable thing to do that generally simplifies the handling a bit. On the other hand, the view will no longer follow the underlying tables.
 Parameter *mime*
   defaults to ``mime``;
   MIME type of the file served
@@ -13959,10 +13962,10 @@ sketch for these from the ``sdl`` service in :samplerd:`flashheros/q`::
 
   <datalinkCore>
     <descriptorGenerator procDef="//soda#sdm_genDesc">
-      <bind name="ssaTD">"\rdId#data"</bind>
+      <bind key="ssaTD">"\rdId#data"</bind>
     </descriptorGenerator>
     <dataFunction procDef="//soda#sdm_genData">
-      <bind name="builder">"\rdId#build_sdm_data"</bind>
+      <bind key="builder">"\rdId#build_sdm_data"</bind>
     </dataFunction>
     <FEED source="//soda#sdm_plainfluxcalib"/>
     <FEED source="//soda#sdm_cutout"/>
@@ -14171,8 +14174,8 @@ row::
     <meta name="title">SoHO EIT Synoptic maps datalink service</meta>
     <datalinkCore>
       <descriptorGenerator original="//datalink#fromtable">
-        <bind name="tableName">"\schema.epn_core"</bind>
-        <bind name="idColumn">"granule_uid"</bind>
+        <bind key="tableName">"\schema.epn_core"</bind>
+        <bind key="idColumn">"granule_uid"</bind>
       </descriptorGenerator>
       <metaMaker semantics="#preview">
         <code>
@@ -14195,9 +14198,9 @@ In that case, bind the prefix to the descriptor generator's
 ``didPrefix`` parameter, like this::
 
   <descriptorGenerator original="//datalink#fromtable">
-    <bind name="tableName">"\schema.myssa"</bind>
-    <bind name="idColumn">"ssa_pubDID"</bind>
-    <bind name="didPrefix">"ivo://myauthority/~?/data/foo/"</bind>
+    <bind key="tableName">"\schema.myssa"</bind>
+    <bind key="idColumn">"ssa_pubDID"</bind>
+    <bind key="didPrefix">"ivo://myauthority/~?/data/foo/"</bind>
   </descriptorGenerator>
 
 (but that's really only convenience).
@@ -14884,10 +14887,10 @@ b) say that the previews are standard DaCHS generated in the
    can really enter whatever paths are convenient for you here::
 
       <rowfilter procDef="//products#define">
-        <bind name="table">"\schema.data"</bind>
-        <bind name="mime">"image/fits"</bind>
-        <bind name="preview_mime">"image/jpeg"</bind>
-        <bind name="preview">\standardPreviewPath</bind>
+        <bind key="table">"\schema.data"</bind>
+        <bind key="mime">"image/fits"</bind>
+        <bind key="preview_mime">"image/jpeg"</bind>
+        <bind key="preview">\standardPreviewPath</bind>
       </rowfilter>
     
    
@@ -14981,11 +14984,11 @@ to repeat such expressions when declaring the URL at which the preview
 is found, perhaps like this::
 
   <rowfilter procDef="//products#define">
-     <bind name="table">"\schema.spectra"</bind>
+     <bind key="table">"\schema.spectra"</bind>
      <bind key="accref">"\rdId/%s-%s"%(@plate, @objectid[5:])</bind>
-     <bind name="path">[...]</bind>
-     <bind name="preview_mime">"image/png"</bind>
-     <bind name="preview">makeAbsoluteURL("\rdId/preview/qp/%s-%s"%(
+     <bind key="path">[...]</bind>
+     <bind key="preview_mime">"image/png"</bind>
+     <bind key="preview">makeAbsoluteURL("\rdId/preview/qp/%s-%s"%(
        @plate, @objectid[5:]))</bind>
   </rowfilter>
 
