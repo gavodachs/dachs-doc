@@ -1137,6 +1137,12 @@ built-in value formatters include:
 displayUnit
   use the value of this hint as the unit to display a value in.
 
+spectralUnit
+  as displayUnit, expect non-linear transformations between length,
+  frequency, and energy are also supported, assuming they refer to
+  electromagnitic radiation (otherwise it makes absolutely no sense to
+  convert Joule to meter, say).
+
 nopreview
   if this key is present with any value, no HTML code to generate
   previews when mousing over a link will be generated.
