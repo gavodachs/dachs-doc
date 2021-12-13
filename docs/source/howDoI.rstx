@@ -235,6 +235,27 @@ however::
   dachs imp //obscore
 
 
+...map NaNs to NULLs?
+---------------------
+
+(which is, by the way, something you should do in case your upstream
+gives you NaNs – databases to a lot more sensible things with NULLs than
+with NaNs in general).
+
+I've come to use a pattern like::
+
+	<LOOP listItems="mag_dered_u mag_dered_g mag_dered_r mag_dered_i
+			mag_dered_z zspec zphot odds_phot">
+		<events>
+			<map key="\item">None if math.isnan(@\item) else @\item</map>
+		</events>
+	</LOOP>
+
+in rowmakers for tables that have a few columns involving NaNs.  Bug me
+and I'll add some functionality to fitsTableGrammars (where this kind of
+thing is most common) that does this internally.
+
+
 Services in General
 ===================
 
