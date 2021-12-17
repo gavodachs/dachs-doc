@@ -577,6 +577,37 @@ Again, this can be combined with the other attributes of
 as if their modification dates were in the future.
 
 
+Harvesting from Remote Databases
+................................
+
+When using `Element odbcGrammar`_, identifying what is already ingested
+clearly cannot use ``sources``.  Instead, you will have to pick added or
+modified records in some other way.  Realistically, you should keep some
+monotonously increasing value on both sides.  Ideally, it would be a
+transaction id, because for these, it's clear whether or not something has
+actually been transferred.  In a pinch, a unix timestamp will do, too.
+
+Particular care should be taken when harvesting from databases to avoid
+duplicate rows when a re-harvest fetches the “same” record twice for
+whatever reason.  You should probably designate a primary key and
+specify a ``dupePolicy`` like this::
+
+  <table id="mirror" onDisk="True"
+    primary="obid"
+    dupePolicy="overwrite">
+
+In case some other table holds foreign keys into your table, it is
+wise to think hard whether the dupePolicy should really be ``dropOld``
+(cf. :dachsref:`Element table`).
+
+Your data element will use an odbc grammar with a computed query
+(available on DaCHS newer than 2.5).  The example in :dachsref:`Element
+makeyQuery` shows the basics.  The important part is to consider the
+case when the local table does not exist yet (as it will on the original
+import).  Dealing with this as shown in the example lets you use the
+same data element for imports and updates.
+
+
 Metadata
 ========
 
