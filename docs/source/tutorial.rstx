@@ -3633,13 +3633,14 @@ can easily fix the display of units or a large number of columns for
 their users.
 
 Web browsers and humans are not good at that, and so it often pays to
-build extra services next to typed services – or perhaps stand-alone,
-for instance on top of a TAP-published table.
+build extra services targeted at browser users next to typed services 
+– or perhaps have stand-alone forms, for instance on top of a
+TAP-published table.
 
-Soap box: don't waste time on form-based services when there are
+Soap box: don't waste too much time on form-based services when there are
 standard protocols to access the data – they're a pain to
 use, even if, and I admit that, most of your initial users may not have
-realised that.  Consider every minute spent on form service as a
+realised that yet.  Consider every minute spent on form service as a
 compromise with an imperfect world.  Of course, there are exceptions.
 Me, for instance, I kind of like our `sasmirala service`_, which doesn't
 work without a good dash of HTML.
@@ -3650,7 +3651,7 @@ work without a good dash of HTML.
 Basics
 ''''''
 
-The template for a Form-based service to a database table is::
+The template for a form-based service to a database table is::
 
   <service id="web" allowed="form">
     <meta name="shortName">____ web</meta>
@@ -3730,7 +3731,7 @@ instance,
 Note, however, that DaCHS will execute this query when loading the RD.
 Hence, if this is a long-running query, the RD will take a long while to
 load, which usually is unwelcome.  Simply make sure that the query can
-use an index if your table has non-trivial size.
+use an index if your table has a non-trivial size.
 
 DaCHS will also evaluate the ``multiplicity`` attribute of such input
 keys.  If it is ``multiple`` (which is the default in this situation),
@@ -3807,7 +3808,7 @@ call out the spectralUnit display hint DaCHS has since version 2.6).
 The element concludes with another loop copying literally.
 
 Note that you can usually give the display hints in the column
-definition; they will not hurt the protocol access; this would simplify
+definition, as they will not hurt the protocol access. This would simplify
 the element above because you can then copy things without further
 modification.  An extra (questionable) benefit of giving the display
 hints in the column definitions in the table is that these will even be
@@ -3838,6 +3839,144 @@ You can also produce arbitrary HTML using stan syntax (cf.
         data[6:]]
     </formatter>
   </outputField>
+
+
+Example: Form-based obscore
+'''''''''''''''''''''''''''
+
+Several of the examples above were from :samplerd:`obsform/q`, and RD
+that is `active in the GAVO data centre`_.  If you have an obscore
+service of your own, you can probably just pull the resdir into your
+inputs and have the contents of that accessible to browser users, too.
+
+.. _active in the GAVO data centre: http://dc.g-vo.org/obsform/q/web
+
+It showcases a few tricks that may come in handy in your own form
+creations.  First, there is a cone search condition choosing custom
+columns; this is necessary here because the obscore s_ra and s_dec
+columns do not have the UCDs expected by the SCS condDesc (requires
+DaCHS 2.6+)::
+
+  <condDesc original="//scs#humanInput">
+    <phraseMaker original="//scs#humanSCSPhrase">
+      <bind key="raColName">"s_ra"</bind>
+      <bind key="decColName">"s_dec"</bind>
+    </phraseMaker>
+  </condDesc>
+
+The next condition descriptor, ``<condDesc buildFrom="calib_level"/>``,
+showcases how DaCHS turns values metadata attached to the table column
+into a selection box.  To inspect the respective column definition, see
+the output of ``dachs adm dump //obscore``.
+
+Then there is a condition descriptor for the collection column::
+
+  <condDesc>
+    <inputKey original="obs_collection" 
+      tablehead="Collection" showItems="10">
+      <values fromdb="obs_collection from ivoa.obscore"/>
+    </inputKey>
+  </condDesc>
+
+This is a bit of a sore spot, as this will be slow at this point once
+your obscore table has grown to a certain size.  This is because of a
+nasty conspiracy between how you cannot have indexes on views and that
+postgres does not optimise for constants in DISTINCT queries.  We will
+think about this a bit more deeply if and when this becomes a problem
+for other deployers.
+
+The real exciting pars are the last next two conditions, those for
+spectrum and time.  These are tricky because they are effectively
+interval-valued in the database, with a minimum and maximum column each.
+We still want to let people enter our VizieR-like expressions, which
+means we have to do what DaCHS does behind the scenes form ``buildFrom``
+manually.
+
+This at the moment requires a certain about of manual code (that will
+also only work on DaCHS newer than 2.5). Here's the code for the
+spectral condition::
+
+  <condDesc>
+    <inputKey name="BAND" type="vexpr-float"
+      unit="Angstrom" ucd="em.wl"
+      tablehead="Wavelength"
+      description="Wavelength covered by the dataset"/>
+    <phraseMaker>
+      <setup imports="gavo.svcs.vizierexprs">
+        <code>
+          obscore = parent.parent.queriedTable
+          minCol = svcs.InputKey.fromColumn(
+            obscore.getColumnByName("em_min"),
+            inputUnit="Angstrom")
+          maxCol = svcs.InputKey.fromColumn(
+            obscore.getColumnByName("em_max"),
+            inputUnit="Angstrom")
+        </code>
+      </setup>
+      <code>
+        try:
+          tree = vizierexprs.parseNumericExpr(inPars[inputKeys[0].name])
+        except utils.ParseException as msg:
+          raise base.ValidationError(
+            f"Bad VizieR syntax: {msg}", "BAND")
+        res = vizierexprs.NumericIntervalFlattener(
+          ).getSQLFor(tree, (minCol, maxCol), outPars)
+        yield res
+      </code>
+    </phraseMaker>
+  </condDesc>
+
+So, we first define a fully synthetic input key – none of the metadata
+of ``em_min`` or ``em_max`` is terribly helpful here.
+
+Then we declare a phrase maker.  Once we have a good idea how to write
+this, we will probably give a procDef that hides quite a bit of this
+uglyness; then again, we as a community probably should just use more
+interval-typed columns.
+
+Phrase makers are ``procDef``-s as, say ``apply``, and hence they
+consist of a ``setup`` part executed when the RD is imported and a
+``code`` part executed once per (in this case) query.
+
+Here, we use the setup to find in the min and max columns.  We make
+input keys from them, as that is what the flattener we use later
+expects.  The ``fromColumn`` constructor also lets us smuggle in code
+for unit adaptation (the ``inputUnit`` attribute that is turned into a
+scaling factor by the input key machinery).
+
+Whatever is defined in a procedure definition's ``setup`` code is
+available in its ``code``; we will use ``minCol`` and ``maxCol`` in a
+moment.
+
+First, however, we have to deal with the VizieR-like expressions we are
+expecting.  To parse them, we are using ``parseNumericExpr`` from the
+``svcs.vizierexprs`` module.  This returns a parse tree that can, in
+turn, be translated into SQL.  Before we do that, we catch parse errors
+(which DaCHS would return as 500 internal server errors) and turn them
+into ``ValidationError``-s for the BAND parameter.  This lets DaCHS'
+form renderer mark up errors inline rather than just spit out some ugly
+error page.
+
+The actual SQL generation happens using a ``NumericIntervalFlattener``,
+which encapsulates how to translate the various VizieR constructs to
+SQL.  If you think they should be translated differently, you could
+derive your own flattener – see ``gavo.svcs.vizierexprs`` on how to do
+that.  Its ``getSQLFor`` method takes the parsed expression, the input
+columns, and the dictionary of SQL parameters that gets passed into
+``condDescs`` implicitly.  It is the use of two column objects rather
+than just one that makes these interval flatteners so special that you
+currently cannot currently get by without custom code.
+
+If you have understood this code, the condition descriptor for TIME
+will not be very surprising: You just use ``parseDateExprToMJD`` to get
+the parse tree (and would use ``parseDateExprToDateTime`` if you had 
+timestamp-valued columns in the database).  Once that's done, the
+remaining code is essentially the same, as date and numeric intervals
+are rather parallel in the VizieR grammar.  
+
+By the way, these two are obvious candidates for writing a common
+``procDef``.  Don't be too surprised if the actual SVN code already has
+that by the time you read this.
 
 
 Configuring DaCHS
