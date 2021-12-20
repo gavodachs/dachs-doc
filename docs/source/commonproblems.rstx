@@ -70,9 +70,9 @@ call psdb) will help you::
 
   #!/bin/sh
   psql gavo << EOF
-  select procpid, usename, current_query, date_trunc('seconds', query_start::time)
+  select pid, usename, state, query, date_trunc('seconds', query_start::time)
   from pg_stat_activity
-  order by procpid
+  order by pid
   EOF
 
 (this assumes your database is called gavo and you have sufficient

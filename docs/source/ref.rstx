@@ -10857,7 +10857,7 @@ as if their modification dates were in the future.
 
 
 Harvesting from Remote Databases
---------------------------------
+................................
 
 When using `Element odbcGrammar`_, identifying what is already ingested
 clearly cannot use ``sources``.  Instead, you will have to pick added or
@@ -10866,15 +10866,16 @@ monotonously increasing value on both sides.  Ideally, it would be a
 transaction id, because for these, it's clear whether or not something has
 actually been transferred.  In a pinch, a unix timestamp will do, too.
 
-Particular care should be taken here that re-harvests do not introduce
-duplicate rows in this case.  You should probably designate a primary
-key and specify a ``dupePolicy`` like this::
+Particular care should be taken when harvesting from databases to avoid
+duplicate rows when a re-harvest fetches the “same” record twice for
+whatever reason.  You should probably designate a primary key and
+specify a ``dupePolicy`` like this::
 
   <table id="mirror" onDisk="True"
     primary="obid"
     dupePolicy="overwrite">
 
-In case there something holds foreign keys into your table, it is
+In case some other table holds foreign keys into your table, it is
 wise to think hard whether the dupePolicy should really be ``dropOld``
 (cf. :dachsref:`Element table`).
 
