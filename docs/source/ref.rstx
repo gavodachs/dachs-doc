@@ -223,7 +223,8 @@ Properties evaluated:
   gavo imp -m will apply changes here; you'll manually have to run
   ``analyze <tablename>`` after that.
 - statistics -- set this to "no" to keep DaCHS from using this column
-  in dachs limits.
+  in dachs limits.  Set this to "enumerate" to make DaCHS collect
+  the discrete values allowed (currently only supported for strings).
 - targetType -- for a column containing a URL, the media type of the
   resource pointed at.  This is for producing extra annotation for
   Aladin and friends as per 
@@ -18584,6 +18585,26 @@ renderer)
 **pid**
   (integer) -- A unix pid to kill to make the job stop
 
+dc.discrete_string_values
+'''''''''''''''''''''''''
+
+Defined in //dc_tables
+
+Discrete values found in string-valued columns.
+
+This is usually filled by dachs limits. Only columns with a statistics
+property of "enumerate" are considered here. Values found here are
+
+**tableName**
+  (text) -- Fully qualified table name
+**column_name**
+  (text) -- Name of the column in question, DaCHS internal
+  representation.
+**vals**
+  (text[]) -- Values found in the column.
+**freqs**
+  (real[]) -- Relative frequencies of the strings given in values.
+
 dc.groups
 '''''''''
 
@@ -18905,7 +18926,7 @@ on the column definitions themselves override what may be given here.
   (text) -- Fully qualified table name
 **column_name**
   (text) -- Name of the column in question, DaCHS internal
-  representation
+  representation.
 **min_value**
   (text) -- Minimal value found in this column, tabledata
   representation.

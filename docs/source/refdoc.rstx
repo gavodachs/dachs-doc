@@ -4820,7 +4820,8 @@ Python scripts can be indented by a constant amount.
 
 The table object currently processed is accessible as table.  In
 particular, you can use this to issue queries using 
-``table.query(query, arguments)`` (parallel to dbapi.execute) and to
+``table.connection.execute(query, arguments)`` 
+(parallel to dbapi.execute) and to
 delete rows using ``table.deleteMatching(condition, pars)``.  The
 current RD is accessible as ``table.tableDef.rd``, so you can access items from
 the RD as ``table.tableDef.rd.getById("some_id")``, and the recommended way to
@@ -4868,7 +4869,7 @@ This snippet sets a flag when importing some source (in this case,
 that's an RD, so we can access sourceToken.sourceId::
 
       <script type="newSource" lang="python" id="markDeleted">
-        table.query("UPDATE %s SET deleted=True"
+        table.connection.execute("UPDATE %s SET deleted=True"
           " WHERE sourceRD=%%(sourceRD)s"%id, 
           {"sourceRD": sourceToken.sourceId})
       </script>

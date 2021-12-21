@@ -2573,6 +2573,20 @@ the ``raw_data`` table, probably like this::
   
   <index columns="ssa_targname"/>
 
+On DaCHS newer than 2.5.1, instead of ``fromDb``, it is usually better
+to say::
+  
+  <column original="ssa_targname">
+    <property key="statistics">enumerate</property>
+  </column>
+
+in the table element.  This will make ``dachs limits`` create the
+necessary metadata once and not on every RD reload.  Note that DaCHS
+will only create statistics for views if the ``forceStats`` property on
+the table definition is set.  However, if you create statistics on the
+metadata table, these will be inherited by columns copied over into the
+view, which means that you will in general not have to do this.
+
 In the output table, we only give a few of the many dozen SSAP output
 fields, and we change the units of the spectral limits to Angstroms,
 which will look nicer for optical spectra.  For
@@ -3732,6 +3746,11 @@ Note, however, that DaCHS will execute this query when loading the RD.
 Hence, if this is a long-running query, the RD will take a long while to
 load, which usually is unwelcome.  Simply make sure that the query can
 use an index if your table has a non-trivial size.
+
+On DaCHS newer than 2.5.1, instead of fromdb simply give the source
+column a ``statistics`` property ``enumerate``.  Then, ``dachs limits``
+will gather the necessary statistics itself (on the obscore, this is
+already done).
 
 DaCHS will also evaluate the ``multiplicity`` attribute of such input
 keys.  If it is ``multiple`` (which is the default in this situation),
