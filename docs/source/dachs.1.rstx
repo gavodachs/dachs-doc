@@ -437,8 +437,10 @@ Options
   when done
 
 -m, --meta-only       
-  just update table meta (privileges, column
-  descriptions,...).
+  just update table meta (privileges, column descriptions,...).  This
+  will also update the tables' obscore clauses, but you will have to
+  ``dachs imp //obscore`` to update the obscore view itself in this
+  case.
 
 -I, --meta-and-index  
   do not import, but update table meta (privileges,
