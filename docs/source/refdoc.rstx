@@ -290,7 +290,8 @@ Other Streams
      "//procs#license-cc-by-sa"]
     +["//pql#"+id for id in ["DALIPars", "DALIUpload"]]
     +['//obscore#obscore-columns']
-    +['//ssap#'+id for id in ["hcd_condDescs", "atomicCoords"]]
+    +['//ssap#'+id for id in ["hcd_condDescs", "atomicCoords",
+      "obscore-time-index"]]
     +['//echelle#'+id for id in ["ssacols"]]
     +['//scs#'+id for id in ["coreDescs", "splitPosIndex",
       "spoint-index-def"]])

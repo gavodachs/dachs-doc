@@ -2627,6 +2627,14 @@ obscore-published spectral table; only then will you get indexed queries
 when there are constraints on s_region, and having these non-indexed
 will lead to really slow obscore queries.
 
+Similarly, you should probably add::
+
+  <FEED source="//ssap#obscore-time-index"/>
+
+to large SSAP tables, which creates an index useful for obscore queries
+over ``t_min`` and ``t_max`` (cf.
+:dachsref:`//ssap#obscore-time-index`).
+
 
 SSAP and Datalink
 '''''''''''''''''

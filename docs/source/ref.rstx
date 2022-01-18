@@ -7966,7 +7966,7 @@ Parameter *ssa_specmid*
   Midpoint of region covered in this dataset
 Parameter *ssa_specres*
   defaults to ``NULL``;
-  Resolution on the spectral axis
+  Resolution (in meters of wavelength) on the spectral axis
 Parameter *ssa_specstart*
   defaults to ``NULL``;
   Lower value of spectral coordinate
@@ -14287,7 +14287,7 @@ row::
   <service id="dl" allowed="dlmeta">
     <meta name="title">SoHO EIT Synoptic maps datalink service</meta>
     <datalinkCore>
-      <descriptorGenerator original="//datalink#fromtable">
+      <descriptorGenerator procDef="//datalink#fromtable">
         <bind key="tableName">"\schema.epn_core"</bind>
         <bind key="idColumn">"granule_uid"</bind>
       </descriptorGenerator>
@@ -14311,7 +14311,7 @@ you may want to also accept “relative” identifiers, for instance, just
 In that case, bind the prefix to the descriptor generator's
 ``didPrefix`` parameter, like this::
 
-  <descriptorGenerator original="//datalink#fromtable">
+  <descriptorGenerator procDef="//datalink#fromtable">
     <bind key="tableName">"\schema.myssa"</bind>
     <bind key="idColumn">"ssa_pubDID"</bind>
     <bind key="didPrefix">"ivo://myauthority/~?/data/foo/"</bind>
@@ -15960,9 +15960,10 @@ Functions Available for Row Makers
 
 In principle, you can use arbitrary python expressions in var, map and
 proc elements of row makers.  In particular, the namespace in which
-these expressions are executed contains math, os, re, time, and datetime
+these expressions are executed contains math, os, re, time, datetime,
+and urllib.parse (for urllib.parse.quote, in particular)
 modules as well as gavo.base, gavo.utils, and gavo.coords; in addition,
-there's NaN (which simply is to ``float('nan')``).
+there's NaN (which simply is ``float('nan')``).
 
 However, much of the time you will get by using the following functions
 that are immediately accessible in the namespace:
