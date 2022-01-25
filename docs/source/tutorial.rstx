@@ -3053,7 +3053,7 @@ obscore mixin.  This will make your table invisible to but still
 readable by TAP.  This is desirable in such a situation because the
 entire information of the table would already be contained in the
 obscore table, and thus there is no real reason to query the extra table.  In
-the Califa example cited above, that is obviously not the case; there is
+the Califa example cited above, that is not the case; there is
 a wealth of additional columns in the custom, non-obscore table. 
 We believe this will be the rule rather than the exception.
 
@@ -3074,37 +3074,35 @@ protocol-specific mixins except it doesn't pre-set parameters based on
 what is already in protocol-specific tables::
 
   <mixin
-      accessURL="dlurl"
-      size="10"
-      mime="'application/x-votable+xml;content=datalink'"
-      calibLevel="3"
-      collectionName="'CALIFA'"
-      coverage="s_region"
-      dec="s_dec"
-      emMax="7e-7"
-      emMin="3.7e-7"
-      emResPower="4000/red_disp_mean"
-      expTime="t_exptime"
-      facilityName="'Calar Alto'"
-      fov="0.01"
-      instrumentName="'PMAS/PPAK at 3.5m Calar Alto'"
-      oUCD="'phot.flux;em.opt'"
-      productType="'cube'"
-      ra="s_ra"
-      sResolution="0.0002778"
-      title="obs_title"
-      tMax="t_min"
-      tMin="t_max"
-      targetClass="'Galaxy'"
-      targetName="target_name"
+      access_estsize="10"
+      access_format="'application/x-votable+xml;content=datalink'"
+      access_url="dlurl"
+      calib_level="3"
+      dataproduct_type="'cube'"
+      em_max="7e-7"
+      em_min="3.7e-7"
+      em_res_power="4000/red_disp_mean"
+      facility_name="'Calar Alto'"
+      instrument_name="'PMAS/PPAK at 3.5m Calar Alto'"
+      o_ucd="'phot.flux;em.opt'"
+      obs_collection="'CALIFA'"
+      obs_title="obs_title"
+      s_dec="s_dec"
+      s_fov="0.01"
+      s_ra="s_ra"
+      s_region="s_region"
+      s_resolution="0.0002778"
+      t_exptime="t_exptime"
+      t_max="t_max"
+      t_min="t_min"
+      target_class="'Galaxy'"
+      target_name="target_name"
     >//obscore#publish</mixin>
 
 Essentially, what is constant is given in literals, what is variable is
 given as a column reference.  It is a bit unfortunate that you have to
-enter quite a few identity mappings in here (and our foolish
-camel-case mogrification of the parameter names doesn't help).  Telling
-us you are annoyed with this will certainly speed up our efforts to fix
-things.
+enter quite a few identity mappings in here, but pre-setting them won't
+help in most cases.
 
 That's about it for defining the table.  To fill the table, just have a
 normal rowmaker; since the table contains products, don't forget the

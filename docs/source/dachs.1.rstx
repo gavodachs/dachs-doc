@@ -641,10 +641,6 @@ rd
 Options
 -------
 
--m, --meta-too
-      update DaCHS-internal meta information, too (prefer dachs imp -m
-      here; this may go away).
-
 -k, --keep-timestamps
       Preserve the time stamp of the last record modification. This may
       sometimes be desirable with minor updates to an RD that don't
