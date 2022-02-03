@@ -2057,6 +2057,22 @@ DaCHS' SIAP template gives the most important extra fields::
 You can delete any parameter you cannot fill or do not want to fill,
 though you really *should* put in a useful ``collectionName``.
 
+When you have non-constant spectral coverage on larger image tables, be
+sure to have::
+  
+	<index columns="bandpassHi"/>
+	<index columns="bandpassLo"/>
+
+in the definition of the SIAP table.
+
+Since time metadata in SIAP isn't great, by default it's enough to::
+
+  <index columns="dateObs"/>
+
+in the default configuration.  If you do better on t_min and t_max,
+index these expressions to ensure fast responses to obscore queries
+involving temporal constraints.
+
 
 SIAP and Datalink
 '''''''''''''''''
@@ -2634,6 +2650,12 @@ Similarly, you should probably add::
 to large SSAP tables, which creates an index useful for obscore queries
 over ``t_min`` and ``t_max`` (cf.
 :dachsref:`//ssap#obscore-time-index`).
+
+Whenever the spectral coverage is not constant on large-ish SSAP tables,
+you should also have::
+
+  <index columns="ssa_specstart"/>
+  <index columns="ssa_specen"/>
 
 
 SSAP and Datalink
@@ -4669,7 +4691,8 @@ Sidebar Items`_.
 Overridden System RDs
 '''''''''''''''''''''
 
-You can also dump system RDs into ``/var/gavo/inputs/__system__`` and
+You can also dump system RDs into ``/var/gavo/inputs/__system__``
+(**not** ``__system`` -- that's something else)
 edit them there; after a restart, DaCHS will use your copy then.  Doing
 this is even more of a liability for upgrades than overriding the CSS or
 the Javascript.  Only do that when debugging or to fix a transient bug

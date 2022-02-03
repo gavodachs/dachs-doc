@@ -8268,27 +8268,6 @@ cooperate with this to allow async operation.
 See `Custom UWSes`_ for how to use this with your own cores.
 
 
-The authcheck Renderer
-''''''''''''''''''''''
-
-*This renderer's parameter style is "clear".  This is an unchecked renderer.*
-
-A renderer that lets people can use to see if a username/password
-name is valid on this service (and if there's auth on at all).
-
-It returns text/plain, with 403 with a "NO" payload if the pair doesn't 
-work, and 200 with a "PROBABLY YES" payload if it does.
-
-On an unrestricted service, this check is if password matches username.
-That's mainly for services like our UWS that let people put in
-gratuitous auth.
-
-This is (at least for now) highly experimental and will presumably go away
-again.  If you find you need it, let the authors know.
-
-And if we keep it, we should probably add some sort of rate limiting to it.
-
-
 The availability Renderer
 '''''''''''''''''''''''''
 
@@ -8311,6 +8290,10 @@ A renderer for a VOSI capability endpoint.
 An endpoint with this renderer is automatically registered for
 every service.  The responses contain information on what renderers
 ("interfaces") are available for a service and what properties they have.
+
+This also doubles as a canary for authentication, which is why there
+are the somewhat complicated things in render; cf. 
+https://wiki.ivoa.net/twiki/bin/view/IVOA/SSO_next
 
 
 The coverage Renderer
@@ -10171,6 +10154,25 @@ RA and Dec rather than normal ssa_location.
 
 SSA services get that from the core and don't need this.
 
+
+//ssap#obscore-time-index
+.........................
+
+
+Include this stream in an ssa-like table feeding obscore.  It will
+add an index useful for querying against obscore t_min and t_max.
+
+This uses the dateObs and timeExt attributes which are
+preset for what the columns are called in SSA tables.  dateObs
+must be a column reference because we declare the index to be on
+it.  timeExt can be an expression, too, and no index will be declared
+on it.
+
+
+*Defaults* for macros used in this stream:
+
+* dateObs: 'ssa_dateObs'
+* timeExt: 'ssa_timeExt'
 
 //echelle#ssacols
 .................
@@ -17630,7 +17632,7 @@ argument.
 Function getParseOptions
 ........................
 
-Signature: ``getParseOptions(validateRows=True, doTableUpdates=False, batchSize=1024, maxRows=None, keepGoing=False, dropIndices=False, dumpRows=False, metaOnly=False, buildDependencies=True, systemImport=False, commitAfterMeta=False, dumpIngestees=False, suppressMeta=False)``
+Signature: ``getParseOptions(validateRows=True, doTableUpdates=False, batchSize=1024, maxRows=None, keepGoing=False, dropIndices=False, dumpRows=False, metaOnly=False, buildDependencies=True, systemImport=False, commitAfterMeta=False, dumpIngestees=False, suppressMeta=False, metaPlusIndex=False)``
 
 returns an object with some attributes set.
 

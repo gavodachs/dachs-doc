@@ -429,10 +429,10 @@ entire TAP service (with HTTP basic auth, so this isn't for the gold of
 Fort Knox unless you restrict connections to HTTPS and change to hashed
 passwords in dc.users).
 
-First, create a group of authorized users and add a user to it:
+First, create a group of authorized users and add a user to it::
 
   dachs admin adduser tapusers master_password
-  dachs admin adduser smart_pi his_password
+  dachs admin adduser smart_pi their_password
   dachs admin addtogroup smart_pi tapusers
 
 Then, limit access to the TAP service itself; as usual (see
@@ -451,9 +451,24 @@ after the ``<STREAM id="tapdescription">``.  To make DaCHS see the
 change, you need to restart the server or run ``dachs serve exp //tap``.
 
 That's not quite enough, though, because there is the public form-based
-ADQL service.  To shut this down, you need to override the adql.rd RD,
-probably with an empty file.  See
-:dachsdoc:`tutorial.html#overridden-system-rds` for how to do that.
+ADQL service.  For that, you can override the ``//adql`` built-in RD as
+per :dachsdoc:`tutorial.html#overridden-system-rds` – but as pointed out
+there, if you do that, you need to manually track changes we do to the
+ADQL RD, so if that's something you want to do permanently, shout and
+we'll think of something easier in maintenance.  Having said that, what
+you'd do is something like::
+
+  mkdir -p /var/gavo/inputs/__system__
+  cd /var/gavo/inputs/__system__
+  dachs adm dumpDF //adql > adql.rd
+
+and then change that new adql.rd file such that::
+
+        <service id="query" core="qcore">
+
+becomes, say::
+
+        <service id="query" core="qcore" limitTo="tapusers">
 
 This is not sufficient for top secret things -- people can still
 inspect your column metadata, descriptions and so on.  But they
