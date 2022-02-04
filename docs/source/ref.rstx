@@ -1400,7 +1400,7 @@ Here's an example for generating a link to another service using this
 facility::
 
   <outputField name="more" 
-      select="array[centerAlpha,centerDelta] as more" tablehead="More"
+      select="array[centerAlpha,centerDelta]" tablehead="More"
       description="More exposures near the center of this plate">
     <formatter><![CDATA[
       return T.a(href=base.makeSitePath("/lswscans/res/positions/q/form?"

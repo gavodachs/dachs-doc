@@ -2060,8 +2060,8 @@ though you really *should* put in a useful ``collectionName``.
 When you have non-constant spectral coverage on larger image tables, be
 sure to have::
   
-	<index columns="bandpassHi"/>
-	<index columns="bandpassLo"/>
+  <index columns="bandpassHi"/>
+  <index columns="bandpassLo"/>
 
 in the definition of the SIAP table.
 
@@ -4026,6 +4026,223 @@ By the way, these two are obvious candidates for writing a common
 that by the time you read this.
 
 
+Services for Editing the Database
+'''''''''''''''''''''''''''''''''
+
+Users can enter data into the database in many ways.  The most common
+would be through uploads, either directly into the database (as, e.g.,
+in :samplerd:`theossa/q`), by doing file uploads with then get
+periodically ingested (as, e.g., in :samplerd:`lightmeter/q`), or by
+being harvested (the classical example would be the relational registry,
+:samplerd:`rr/q`).
+
+Sometimes, however, it is convenient to let people interactively edit
+database content.  We don't have a service that does this in the GAVO
+data centre; there is a somewhat contrived example for that at
+http://docs.g-vo.org/editsample_q.rd; to play with it, put it into
+``/var/gavo/inputs/editsample/q.rd``.
+
+If you have a look at the RD's content, you will first see the
+definition of the table to be edited, ``objlist``, and a data item that
+fills it with more or less random data.  If you have never used an
+embedded grammar before, a brief glance at this might be inspiring.  To
+continue with the example, run ``dachs imp q``, as you will need the
+table to edit it.
+
+
+Linking to Edit Services
+........................
+
+The RD then has a ``view`` service, which lets you query the table using
+the object id.  In addition to normal DaCHS fare, it has this::
+
+  <outputTable original="objlist">
+    <outputField name="edit"
+        select="array[id, remarks]">
+      <formatter>
+        return T.a(class_="buttonlike", href="/\rdId/edit/form?"
+          +urllib.parse.urlencode({
+            "id": data[0], 
+            "remarks": data[1] or ""}))["Edit this"]
+      </formatter>
+    </outputField>
+  </outputTable>
+
+By saying ``original="objlist"``, you tell DaCHS to base the output
+table on the full table in the database (see also `Output Table`_ for
+alternative ways of getting output fields).  
+
+What's new is the ``edit`` output field; see
+http://localhost:8080/editsample/q/view and send off the empty form to
+see its effect.  It has a ``select`` attribute that directly gives
+material to put into the select clause.  We use an array because we want
+both the id (to know what we will be editing) and the remarks (in order
+to make it easy not to lose old remarks).  If you want to make more or
+all fields editable, it is probably preferable to use the ``wantsRow``
+attribute of :dachsref:`Element outputField`; in that case ``data``
+within formatter is the entire row as a dictionary.
+
+The formatter then produces stan, which is essentially HTML written in a
+slightly cooler way (see :dachsdoc:`templating.html#in-python-stan`).
+Here, I am setting a ``class`` attribute (the underscore is to dodge
+python's ``class`` keyword) so you could style the link with `Operator
+CSS`_, and I am computing the URL in a halfway convenient way: using the
+``\rdId`` macro makes this thing independent of what RD it lives in,
+and I am using ``urllib.parse.urlencode`` (which is part of the functions
+available in rowmakers, which you have in formatters, too) to robustly
+produce a query string.
+
+In this particular case, we only want to edit the ``remarks`` column.
+If you wanted to edit more columns, you would add the respective
+columns in a similar way.  Note, however, that urlencode will encode
+``None`` as literal ``"None"``, which is rarely what you want; if you
+may have null values, make sure you map them to empty strings manually.
+
+
+Writing an Edit Service
+.......................
+
+The actual edit service is protected to prevent accidental overwrites by
+rampaging robots::
+
+  <service id="edit" limitTo="ari">
+
+– see `Restricting Access`_ for how to manage users, groups, and
+credentials in DaCHS.
+
+I am also seting a link back to the view service::
+
+  <meta name="_related" title="Query Service"
+    >\internallink{\rdId/view}</meta>
+
+This helps people to quickly go from the edit service's sidebar back to
+where they can query the table (but see below for a plausible
+alternative).
+
+Since I cannot see major common use cases in this problem's vicinity,
+DaCHS has no built-in cores for editing things.  Instead, write a
+:dachsref:`Element pythonCore`.  This starts with declaring the input
+and output structure, where I am requiring both inputs, and I set a
+manual ``widgetFactory`` to give ``remarks`` a nice text input box::
+
+  <pythonCore>
+    <inputTable>
+      <inputKey original="objlist.id" required="True"/>
+      <inputKey original="objlist.remarks" required="True"
+        widgetFactory="widgetFactory(TextArea, rows=5, cols=40)"/>
+    </inputTable>
+    <outputTable original="objlist" primary=""/>
+
+Don't question too much what that ``widgetFactory`` thing is.  It is
+ancient and venerable, and has been in need of fixing for 15 years.
+Just take it as a scheme for producing text boxes rather than
+single-line input fields as it stands.  Ahem.
+
+You might consider giving the input key for the id a ``widgetFactory``
+of ``Hidden``; that would not produce a user-editable widget, which in
+this scenario *might* be preferable; but then I almost always prefer to
+assume I am dealing with sensible people, and for them, editing the id
+might one day be useful, and they would otherwise leave it alone.
+
+The output table as defined here is just the object list again; the plan
+here is to return the edited line.  Alternatives are discussed below.
+
+The action of python cores is defined in an :dachsref:`Element
+coreProc`, which is a regular procedure application (just as the
+:dachsref:`Element apply` you may know from rowmakers).  It could look
+like this::
+
+  <coreProc>
+    <code>
+      with base.getWritableAdminConn() as conn:
+        if 1!=conn.execute("UPDATE \schema.objlist"
+            " SET remarks=%(remarks)s"
+            " WHERE id=%(id)s", inputTable.args):
+          raise base.ValidationError("No row for id '{}'".format(
+            inputTable.args["id"]), colName="id")
+
+        return rsc.TableForDef(
+          self.outputTable,
+          rows=list(conn.queryToDicts("SELECT * FROM \schema.objlist"
+            " WHERE id=%(id)s", inputTable.args)))
+    </code>
+  </coreProc>
+
+
+So, we basically rely on DaCHS' built-in input validation and just turn
+the items from ``inputTable.args`` – which is sufficiently
+dictionary-like for our database interface – into an update query.  I am
+using a writeble admin connection here, as normal DaCHS tables (the ones
+originating from a plain ``dachs imp``) are non-writable by table
+connections, and the normal table connections cannot write at all (cf.
+:dachsref:`Database Queries`).  You *might* consider making such
+editable tables writable by the normal web user, too, but for now I have
+no plans to make admin connections somehow inaccessible to the web
+server any more, so that is probably not terribly useful.
+
+``conn.execute`` returns the number of rows that were touched by an
+operation. I am making sure that is one here, and if that is not the
+case, I am raising a ValidationError with ``colName="id"`` (there cannot
+be more than one row touched because id is a primary key).  Giving the
+``colName`` lets DaCHS mark the location of the problem in its browser
+interface – try it.
+
+If everything has gone well, I am building an output table out of the
+modified row.  This is what DaCHS displays in response of a successful
+request.
+
+While that behaviour makes sense – it lets people verify that their
+edits did what they expected they would –, it is unlikely that users
+will like it very much.  It is more likely that they would like to get
+back to the original table display.  To effect that, make DaCHS redirect
+there, perhaps with a restriction to the edited id::
+
+  raise svcs.Found("/\rdId/view?"+urllib.parse.urlencode({
+    "id": inputTable.args["id"],
+    "__nevow_form__": "genForm"}))
+
+To make this work, you have to acquiant your python core with the
+gavo.svcs module that defines the ``Found`` exception (this is just an
+API to produce a 302 Found HTTP status code); the most succinct way to
+do that is to add::
+
+  <setup imports="gavo.svcs"/>
+  
+to the coreProc's content.
+
+It somewhat cryptic ``"__nevow_form__": "genForm"`` is a weird
+implementation detail.  Without it, DaCHS will give the user a form
+filled out with the id.  With it, it will actually execute the query.
+
+
+Looking Further
+...............
+
+I give you the proposed interaction feels somewhat clunky in today's
+world of animated widgets, whether or not it makes a lot of sense.  I'd
+expect most scientists will put up with it eventually, though.
+
+But you *could* do in-place editing by inserting a solid helping of
+Javascript into a defaultresponse template (cf.
+:dachsdoc:`templating.html`).  This would have a text box open on some
+user interaction, and once things are typed in retrieve the URL of the
+service call we produce in the formatter using Javascript's ``fetch``.
+
+In such a scenario, it is certainly simpler if the service just returns,
+say, ``YES`` or ``NO`` depending on whether the update has succeeded.
+You would do that by returning a pair of media type and payload::
+
+  return "text/plain", "YES"
+
+If you made whole rows editable, your should probably return the entire
+row, too, presumably in JSON.  To do that, you could write something
+like::
+
+  return "application/json", json.dumps(
+    next(conn.queryToDicts("SELECT * FROM \schema.objlist"
+      " WHERE id=%(id)s", inputTable.args)))
+
+
 Configuring DaCHS
 =================
 
@@ -4036,7 +4253,7 @@ walkthrough though the various items you *must* configure in order to
 let your services work within the wider network and then covers a few
 more advanced topics.
 
-As delivered, the web interface of DaCHS will make it seem you're
+As delivered, the web interface of DaCHS will make it seem you are
 running a copy of the GAVO data center, with some metadata defused such
 that you are not actually disturbing our operation if you accidentally
 activate your registry interface.  To change this and make the site
