@@ -93,7 +93,7 @@ deal to us, we didn't do it.  Still, apologies for the confusion.
 
 In the following, we call people running DaCHS **operators** (so, if
 you're reading this, that's you), people consuming your services
-**users**, programmes communicating with your services **clients**.
+**users**, programs communicating with your services **clients**.
 
 Something like “:dachsref:`Element table`” is a link into the reference
 documentation, whereas “:dachsdoc:`install.html`” references other pieces
@@ -1952,7 +1952,7 @@ This does, step by step:
   :dachsref:`//procs#dictMap` applys let you do fixes with less code.
 * As is usual in DaCHS procdures, you can access the embedding RD as ``rd``.
   In our object name fixer, we use that to let DaCHS find the input 
-  file independently of where the programme was started.
+  file independently of where the program was started.
 
 Somewhat regrettably, //siap#setMeta cannot be used with ``idmaps="*"``;
 as settings from setMeta would be overwritten then.  This is because
@@ -4321,7 +4321,7 @@ to tell DaCHS what its machine is called from the outside.
 
 Also, by default DaCHS only listens on the loopback address, which in
 practice means you can only reach it from the host it runs on.  This is
-mainly a matter of precaution: We feel a programme should have informed
+mainly a matter of precaution: We feel a program should have informed
 consent before running a public service.  To make it listen on all
 addresses configured for your machine, set ``[web]bindAddress`` to the
 empty string (you could also use the public IP here, but then DaCHS
@@ -5411,7 +5411,7 @@ Doing the first simply means to add::
 to your ``/etc/gavo.rc``'s ``web`` section.  After that, you need to
 restart the server for the new setting to take effect.
 
-While you can probably use whatever log analysis programme you want for
+While you can probably use whatever log analysis program you want for
 these files (I'd hope it's close enough to the apache combined log
 format), you can simply use DaCHS to do some basic accounting.  That
 way, you do not need extra tools.  You will also in all likelihood treat

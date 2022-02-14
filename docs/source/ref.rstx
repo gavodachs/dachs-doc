@@ -3792,7 +3792,7 @@ the types they are supposed to have.  The keys in the rows are
 the column names as given in the HDF file.
 
 Regrettably, there are about as many conventions to serialise tables
-in HDF5 as there are programmes writing HDF5.  This grammar supports
+in HDF5 as there are programs writing HDF5.  This grammar supports
 a few styles; ask to have more included.
 
 Styles currently implemented:

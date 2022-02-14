@@ -378,11 +378,11 @@ terribly careful when writing metadata.  Hence, you should definitely
 thoroughly review the elements created before using them in a public
 service.
 
-The programme tries to guess the applicable parser from a file name
+The program tries to guess the applicable parser from a file name
 (e.g., README or anything ending in .txt will be treated as
 Vizier-like).  Where this fails, use the -f option.
 
-For Vizier-like descriptions, the programme also dumps ``colDefs``
+For Vizier-like descriptions, the program also dumps ``colDefs``
 material for use in columnGrammar-s.
 
 
