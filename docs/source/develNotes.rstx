@@ -740,6 +740,10 @@ the cached objects should be kept simple.
 
 No provision is made to prevent accidental overwriting of function names.
 
+And, of course, individual functions can do functools.lru_cache-ing to
+their heart's delight but should keep in mind that ``dachs serve
+reload`` will not clear this.
+
 
 Profiling
 =========

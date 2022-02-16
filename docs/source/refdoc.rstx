@@ -175,7 +175,8 @@ column ``flux``, and you need to change its unit, you would say::
   "//ssap#sdm-instance",
   "//obscore#publishSSAPMIXC", 
   "//epntap2#table-2_0",
-  "//epntap2#localfile-2_0"])
+  "//epntap2#localfile-2_0",
+  "//linetap#table-0"])
 
 
 Triggers
@@ -231,6 +232,7 @@ Procedures available for rowmaker/parmaker apply
     "//slap#fillBasic",
     "//epntap2#populate-2_0",
     "//epntap2#populate-localfile-2_0",
+    "//linetap#populate-1_0",
     ])(docStructure)
 
 

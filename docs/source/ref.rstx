@@ -3792,7 +3792,7 @@ the types they are supposed to have.  The keys in the rows are
 the column names as given in the HDF file.
 
 Regrettably, there are about as many conventions to serialise tables
-in HDF5 as there are programs writing HDF5.  This grammar supports
+in HDF5 as there are programmes writing HDF5.  This grammar supports
 a few styles; ask to have more included.
 
 Styles currently implemented:
@@ -16358,11 +16358,16 @@ that are immediately accessible in the namespace:
   ValueError: could not convert string to float: 'wobbadobba'
   
 
-*parseISODT(literal)*
+*parseISODT(literal, useTime=False)*
   returns a datetime object for a ISO time literal.
   
   There's no real timezone support yet, but we accept and ignore various
   ways of specifying UTC.
+  
+  By default, this uses plain python datetime because it usually covers a large
+  date range than the time module.  The downside is that it does not know about
+  leap seconds.  Pass useTime=True to go through time tuples, which know how to
+  deal with them (but may not deal with dates far in the past or future).
   
   >>> parseISODT("1998-12-14")
   datetime.datetime(1998, 12, 14, 0, 0)
@@ -16376,6 +16381,11 @@ that are immediately accessible in the namespace:
   datetime.datetime(1998, 12, 14, 13, 30, 12)
   >>> parseISODT("19981214T133012+00:00")
   datetime.datetime(1998, 12, 14, 13, 30, 12)
+  >>> parseISODT("2016-12-31T23:59:60")
+  Traceback (most recent call last):
+  ValueError: second must be in 0..59
+  >>> parseISODT("2016-12-31T23:59:60", useTime=True)
+  datetime.datetime(2017, 1, 1, 1, 0)
   >>> parseISODT("junk")
   Traceback (most recent call last):
   ValueError: Bad ISO datetime literal: junk (required format: yyyy-mm-ddThh:mm:ssZ)
@@ -18187,12 +18197,17 @@ this::
 Function parseISODT
 ...................
 
-Signature: ``parseISODT(literal)``
+Signature: ``parseISODT(literal, useTime=False)``
 
 returns a datetime object for a ISO time literal.
 
 There's no real timezone support yet, but we accept and ignore various
 ways of specifying UTC.
+
+By default, this uses plain python datetime because it usually covers a large
+date range than the time module.  The downside is that it does not know about
+leap seconds.  Pass useTime=True to go through time tuples, which know how to
+deal with them (but may not deal with dates far in the past or future).
 
 >>> parseISODT("1998-12-14")
 datetime.datetime(1998, 12, 14, 0, 0)
@@ -18206,6 +18221,11 @@ datetime.datetime(1998, 12, 14, 13, 30, 12, 224000)
 datetime.datetime(1998, 12, 14, 13, 30, 12)
 >>> parseISODT("19981214T133012+00:00")
 datetime.datetime(1998, 12, 14, 13, 30, 12)
+>>> parseISODT("2016-12-31T23:59:60")
+Traceback (most recent call last):
+ValueError: second must be in 0..59
+>>> parseISODT("2016-12-31T23:59:60", useTime=True)
+datetime.datetime(2017, 1, 1, 1, 0)
 >>> parseISODT("junk")
 Traceback (most recent call last):
 ValueError: Bad ISO datetime literal: junk (required format: yyyy-mm-ddThh:mm:ssZ)
