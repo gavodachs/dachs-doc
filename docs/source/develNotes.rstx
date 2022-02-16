@@ -106,9 +106,29 @@ useful for things like timeouts and the like, e.g.,::
 		whatever
 
 
+Versioning Issues
+=================
+
+DaCHS itself is versioned such that minor versions (e.g., 2.6) are
+releases, which technically means they get a bit more pre-release
+testing, and they get properly announced on dachs-users.  Micro versions
+on to of that are then beta releases including new features up to the
+next stable release.  Hence, 2.6.1 will in general be less stable than
+2.6.  Perhaps we should change this to something less flamboyant one of
+these days.
+
+When we support protocols, we treat major versions as separate
+standards, i.e., there are separate RDs for, say, siap and siap2.
+Within each such RD, mixins or other evolving material may be tagged
+with the minor version.  For instance a mixin ``table-0`` would
+correspond to version 1.0 (or 2.0) of a standard.  This hasn't been done
+consistently in DaCHS' past, so you'll see all kinds of other
+experiments.  But the minor-version tagging is what should happen with
+future developments.
+
+
 Error handling, logging
 =======================
-
 
 Exception classes
 -----------------
