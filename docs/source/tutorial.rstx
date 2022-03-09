@@ -1432,6 +1432,11 @@ In some cases, you may want to skip statistics gathering on certain
 columns.  If so, you can set the relevant columns' ``statistics``
 property to ``no``.
 
+Note: if installing from Debian 11 Bullseye, the current dachs version 
+is 2.3 and ``dachs limits q`` will not work. See the error 
+``module 'gavo.utils' has no attribute 'pyparsingWhitechars'`` here
+https://docs.g-vo.org/DaCHS/commonproblems.html for a solution.
+
 
 Trying the services
 -------------------
