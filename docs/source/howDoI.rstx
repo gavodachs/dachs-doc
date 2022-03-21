@@ -244,16 +244,67 @@ with NaNs in general).
 
 I've come to use a pattern like::
 
-	<LOOP listItems="mag_dered_u mag_dered_g mag_dered_r mag_dered_i
-			mag_dered_z zspec zphot odds_phot">
-		<events>
-			<map key="\item">None if math.isnan(@\item) else @\item</map>
-		</events>
-	</LOOP>
+  <LOOP listItems="mag_dered_u mag_dered_g mag_dered_r mag_dered_i
+      mag_dered_z zspec zphot odds_phot">
+    <events>
+      <map key="\item">None if math.isnan(@\item) else @\item</map>
+    </events>
+  </LOOP>
 
 in rowmakers for tables that have a few columns involving NaNs.  Bug me
 and I'll add some functionality to fitsTableGrammars (where this kind of
 thing is most common) that does this internally.
+
+
+...configure my Indexes?
+------------------------
+
+Suppose you want to have all (or the majority of) your indexes on a fast
+disk.  The way to do that is to create a Postgres tablespace as usual
+(DaCHS does not know about them) and then add::
+
+  <option>TABLESPACE fasttb</option>
+
+to the ``index`` elements in question (added in DaCHS 2.5.4).  However,
+when you do that declaration in many indexes, moving the tablespace will
+be very hard, as you would then have to edit many files.
+
+To make this somewhat more declarative, create a `userconfig RD`_ and in
+there – probably near the end –, add an element like::
+
+  <STREAM id="fastindex">
+    <option>TABLESPACE fasttb</option>
+  </STREAM>
+
+With this, an index on the fast disk would be declared by::
+
+  <index columns="gaia_id">
+    <FEED source="%#fastindex"/>
+  </index>
+
+In this way, operators could give some default index configurations.
+For instance, DaCHS tables often are static, i.e., populated once and
+then left alone.  In that case, you may save 10% storage without any
+ill effect if you declare the index's fill factor as 100.  You could
+create a second userconfig stream for that; it is probably more
+reasonable, though, to combine something like a sane site default into::
+
+  <STREAM id="fast-static-index">
+    <option>TABLESPACE fasttb</option>
+    <option>WITH (fillfactor=100)</option>
+  </STREAM>
+
+Note that this will *not* influence indexes made through mixins and
+perhaps STREAMs.  We believe that for most of them, that is reasonable,
+as they are typically created on rather modest tables.
+
+This is different for pgs-pos-index and q3cindex.  These can be
+challenging indexes, and if you would like to move and configure them,
+please contact us with your use case.  Meanwhile, you can of course
+simply look at the definitions (``dachs adm dumpDF //scs`` is your
+friend) and adapt them within your tables rather than use the mixin.
+
+.. _userconfig RD: http://docs.g-vo.org/DaCHS/tutorial.html#the-userconfig-rd
 
 
 Services in General

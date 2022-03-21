@@ -961,6 +961,11 @@ Atomic Children
   index.  Defaults to something computed from columns; the name of the
   parent table will be prepended in the DB.  The default will *not*
   work if you have multiple indices on one set of columns.
+* **options** (Zero or more unicode string-typed *option* elements;
+  defaults to '[]') -- Index modifiers.  For DaCHS, this is free text,
+  except that DaCHS will order INCLUDE, WITH, TABLESPACE, and WHERE
+  clauses it recognises to yield a syntactically correct postgres
+  statement.
 
 Element inputKey
 ''''''''''''''''
@@ -3068,8 +3073,7 @@ Structure Children
   record.
 * ignoreOn (contains `Element ignoreOn`_) -- Conditions for ignoring
   certain input records.  These triggers drop an input record
-  entirely.  If you feed multiple tables and just want to drop a row
-  from a specific table, you can use ignoreOn in a rowmaker.
+  entirely.  In modern RDs, prefer rowfilters raising SkipThis.
 * rowfilters (contains `Element rowfilter`_ and may be repeated zero
   or more times) -- Row filters for this grammar.
 * sourceFields (contains `Element sourceFields`_) -- Code returning a
@@ -3155,8 +3159,7 @@ Structure Children
 
 * ignoreOn (contains `Element ignoreOn`_) -- Conditions for ignoring
   certain input records.  These triggers drop an input record
-  entirely.  If you feed multiple tables and just want to drop a row
-  from a specific table, you can use ignoreOn in a rowmaker.
+  entirely.  In modern RDs, prefer rowfilters raising SkipThis.
 * mapKeys (contains `Element mapKeys`_) -- Prescription for how to map
   labels keys to grammar dictionary keys
 * rowfilters (contains `Element rowfilter`_ and may be repeated zero
@@ -3221,8 +3224,7 @@ Structure Children
 
 * ignoreOn (contains `Element ignoreOn`_) -- Conditions for ignoring
   certain input records.  These triggers drop an input record
-  entirely.  If you feed multiple tables and just want to drop a row
-  from a specific table, you can use ignoreOn in a rowmaker.
+  entirely.  In modern RDs, prefer rowfilters raising SkipThis.
 * rowfilters (contains `Element rowfilter`_ and may be repeated zero
   or more times) -- Row filters for this grammar.
 * sourceFields (contains `Element sourceFields`_) -- Code returning a
@@ -3286,8 +3288,7 @@ Structure Children
 
 * ignoreOn (contains `Element ignoreOn`_) -- Conditions for ignoring
   certain input records.  These triggers drop an input record
-  entirely.  If you feed multiple tables and just want to drop a row
-  from a specific table, you can use ignoreOn in a rowmaker.
+  entirely.  In modern RDs, prefer rowfilters raising SkipThis.
 * inputKeys (contains `Element inputKey`_ and may be repeated zero or
   more times) -- Extra input keys not defined in the inputTD.  This is
   used when services want extra input processed by them rather than
@@ -3354,8 +3355,7 @@ Structure Children
 
 * ignoreOn (contains `Element ignoreOn`_) -- Conditions for ignoring
   certain input records.  These triggers drop an input record
-  entirely.  If you feed multiple tables and just want to drop a row
-  from a specific table, you can use ignoreOn in a rowmaker.
+  entirely.  In modern RDs, prefer rowfilters raising SkipThis.
 * mapKeys (contains `Element mapKeys`_) -- Prescription for how to map
   header keys to grammar dictionary keys
 * rowfilters (contains `Element rowfilter`_ and may be repeated zero
@@ -3399,8 +3399,7 @@ Structure Children
 
 * ignoreOn (contains `Element ignoreOn`_) -- Conditions for ignoring
   certain input records.  These triggers drop an input record
-  entirely.  If you feed multiple tables and just want to drop a row
-  from a specific table, you can use ignoreOn in a rowmaker.
+  entirely.  In modern RDs, prefer rowfilters raising SkipThis.
 * rowfilters (contains `Element rowfilter`_ and may be repeated zero
   or more times) -- Row filters for this grammar.
 * sourceFields (contains `Element sourceFields`_) -- Code returning a
@@ -3444,8 +3443,7 @@ Structure Children
 
 * ignoreOn (contains `Element ignoreOn`_) -- Conditions for ignoring
   certain input records.  These triggers drop an input record
-  entirely.  If you feed multiple tables and just want to drop a row
-  from a specific table, you can use ignoreOn in a rowmaker.
+  entirely.  In modern RDs, prefer rowfilters raising SkipThis.
 * rowfilters (contains `Element rowfilter`_ and may be repeated zero
   or more times) -- Row filters for this grammar.
 * sourceFields (contains `Element sourceFields`_) -- Code returning a
@@ -3585,8 +3583,7 @@ Structure Children
 
 * ignoreOn (contains `Element ignoreOn`_) -- Conditions for ignoring
   certain input records.  These triggers drop an input record
-  entirely.  If you feed multiple tables and just want to drop a row
-  from a specific table, you can use ignoreOn in a rowmaker.
+  entirely.  In modern RDs, prefer rowfilters raising SkipThis.
 * iterator (contains `Element iterator`_) -- Code yielding row
   dictionaries
 * pargetter (contains `Element pargetter`_) -- Code returning a
@@ -3656,8 +3653,7 @@ Structure Children
 
 * ignoreOn (contains `Element ignoreOn`_) -- Conditions for ignoring
   certain input records.  These triggers drop an input record
-  entirely.  If you feed multiple tables and just want to drop a row
-  from a specific table, you can use ignoreOn in a rowmaker.
+  entirely.  In modern RDs, prefer rowfilters raising SkipThis.
 * mapKeys (contains `Element mapKeys`_) -- Prescription for how to map
   header keys to grammar dictionary keys
 * rowfilters (contains `Element rowfilter`_ and may be repeated zero
@@ -3708,8 +3704,7 @@ Structure Children
 
 * ignoreOn (contains `Element ignoreOn`_) -- Conditions for ignoring
   certain input records.  These triggers drop an input record
-  entirely.  If you feed multiple tables and just want to drop a row
-  from a specific table, you can use ignoreOn in a rowmaker.
+  entirely.  In modern RDs, prefer rowfilters raising SkipThis.
 * rowfilters (contains `Element rowfilter`_ and may be repeated zero
   or more times) -- Row filters for this grammar.
 * sourceFields (contains `Element sourceFields`_) -- Code returning a
@@ -3766,8 +3761,7 @@ Structure Children
 
 * ignoreOn (contains `Element ignoreOn`_) -- Conditions for ignoring
   certain input records.  These triggers drop an input record
-  entirely.  If you feed multiple tables and just want to drop a row
-  from a specific table, you can use ignoreOn in a rowmaker.
+  entirely.  In modern RDs, prefer rowfilters raising SkipThis.
 * rowfilters (contains `Element rowfilter`_ and may be repeated zero
   or more times) -- Row filters for this grammar.
 * sourceFields (contains `Element sourceFields`_) -- Code returning a
@@ -3830,8 +3824,7 @@ Structure Children
 
 * ignoreOn (contains `Element ignoreOn`_) -- Conditions for ignoring
   certain input records.  These triggers drop an input record
-  entirely.  If you feed multiple tables and just want to drop a row
-  from a specific table, you can use ignoreOn in a rowmaker.
+  entirely.  In modern RDs, prefer rowfilters raising SkipThis.
 * rowfilters (contains `Element rowfilter`_ and may be repeated zero
   or more times) -- Row filters for this grammar.
 * sourceFields (contains `Element sourceFields`_) -- Code returning a
@@ -3928,8 +3921,7 @@ Structure Children
 
 * ignoreOn (contains `Element ignoreOn`_) -- Conditions for ignoring
   certain input records.  These triggers drop an input record
-  entirely.  If you feed multiple tables and just want to drop a row
-  from a specific table, you can use ignoreOn in a rowmaker.
+  entirely.  In modern RDs, prefer rowfilters raising SkipThis.
 * mapKeys (contains `Element mapKeys`_) -- Mappings to rename the keys
   coming from the source files.  Use this, in particular, if the keys
   are not valid python identifiers.
@@ -4087,8 +4079,7 @@ Structure Children
 
 * ignoreOn (contains `Element ignoreOn`_) -- Conditions for ignoring
   certain input records.  These triggers drop an input record
-  entirely.  If you feed multiple tables and just want to drop a row
-  from a specific table, you can use ignoreOn in a rowmaker.
+  entirely.  In modern RDs, prefer rowfilters raising SkipThis.
 * rowfilters (contains `Element rowfilter`_ and may be repeated zero
   or more times) -- Row filters for this grammar.
 * sourceFields (contains `Element sourceFields`_) -- Code returning a
@@ -4123,8 +4114,7 @@ Structure Children
 
 * ignoreOn (contains `Element ignoreOn`_) -- Conditions for ignoring
   certain input records.  These triggers drop an input record
-  entirely.  If you feed multiple tables and just want to drop a row
-  from a specific table, you can use ignoreOn in a rowmaker.
+  entirely.  In modern RDs, prefer rowfilters raising SkipThis.
 * rowfilters (contains `Element rowfilter`_ and may be repeated zero
   or more times) -- Row filters for this grammar.
 * sourceFields (contains `Element sourceFields`_) -- Code returning a
@@ -4180,8 +4170,7 @@ Structure Children
 
 * ignoreOn (contains `Element ignoreOn`_) -- Conditions for ignoring
   certain input records.  These triggers drop an input record
-  entirely.  If you feed multiple tables and just want to drop a row
-  from a specific table, you can use ignoreOn in a rowmaker.
+  entirely.  In modern RDs, prefer rowfilters raising SkipThis.
 * makeQuery (contains `Element makeQuery`_) -- Code returning the
   query to execute on the remote system.
 * rowfilters (contains `Element rowfilter`_ and may be repeated zero
@@ -4287,8 +4276,7 @@ Structure Children
 
 * ignoreOn (contains `Element ignoreOn`_) -- Conditions for ignoring
   certain input records.  These triggers drop an input record
-  entirely.  If you feed multiple tables and just want to drop a row
-  from a specific table, you can use ignoreOn in a rowmaker.
+  entirely.  In modern RDs, prefer rowfilters raising SkipThis.
 * mapKeys (contains `Element mapKeys`_) -- Prescription for how to map
   labels keys to grammar dictionary keys
 * rowfilters (contains `Element rowfilter`_ and may be repeated zero
@@ -4358,8 +4346,7 @@ Structure Children
 
 * ignoreOn (contains `Element ignoreOn`_) -- Conditions for ignoring
   certain input records.  These triggers drop an input record
-  entirely.  If you feed multiple tables and just want to drop a row
-  from a specific table, you can use ignoreOn in a rowmaker.
+  entirely.  In modern RDs, prefer rowfilters raising SkipThis.
 * rowfilters (contains `Element rowfilter`_ and may be repeated zero
   or more times) -- Row filters for this grammar.
 * sourceFields (contains `Element sourceFields`_) -- Code returning a
@@ -4459,8 +4446,7 @@ Structure Children
 
 * ignoreOn (contains `Element ignoreOn`_) -- Conditions for ignoring
   certain input records.  These triggers drop an input record
-  entirely.  If you feed multiple tables and just want to drop a row
-  from a specific table, you can use ignoreOn in a rowmaker.
+  entirely.  In modern RDs, prefer rowfilters raising SkipThis.
 * rowfilters (contains `Element rowfilter`_ and may be repeated zero
   or more times) -- Row filters for this grammar.
 * sourceFields (contains `Element sourceFields`_) -- Code returning a
@@ -4550,8 +4536,7 @@ Structure Children
 
 * ignoreOn (contains `Element ignoreOn`_) -- Conditions for ignoring
   certain input records.  These triggers drop an input record
-  entirely.  If you feed multiple tables and just want to drop a row
-  from a specific table, you can use ignoreOn in a rowmaker.
+  entirely.  In modern RDs, prefer rowfilters raising SkipThis.
 * rowfilters (contains `Element rowfilter`_ and may be repeated zero
   or more times) -- Row filters for this grammar.
 * sourceFields (contains `Element sourceFields`_) -- Code returning a
@@ -4594,8 +4579,7 @@ Structure Children
 
 * ignoreOn (contains `Element ignoreOn`_) -- Conditions for ignoring
   certain input records.  These triggers drop an input record
-  entirely.  If you feed multiple tables and just want to drop a row
-  from a specific table, you can use ignoreOn in a rowmaker.
+  entirely.  In modern RDs, prefer rowfilters raising SkipThis.
 * rowfilters (contains `Element rowfilter`_ and may be repeated zero
   or more times) -- Row filters for this grammar.
 * sourceFields (contains `Element sourceFields`_) -- Code returning a
@@ -4652,8 +4636,7 @@ Structure Children
 
 * ignoreOn (contains `Element ignoreOn`_) -- Conditions for ignoring
   certain input records.  These triggers drop an input record
-  entirely.  If you feed multiple tables and just want to drop a row
-  from a specific table, you can use ignoreOn in a rowmaker.
+  entirely.  In modern RDs, prefer rowfilters raising SkipThis.
 * rowfilters (contains `Element rowfilter`_ and may be repeated zero
   or more times) -- Row filters for this grammar.
 * sourceFields (contains `Element sourceFields`_) -- Code returning a
@@ -6886,6 +6869,21 @@ Parameter *optional_columns*
 Parameter *spatial_frame_type*
   Flavour of the coordinate system. Since this determines the units of the coordinates columns, this must be set globally for the entire dataset. Values defined by EPN-TAP and understood by this mixin include celestial, body, cartesian, cylindrical, spherical, none.
 
+The //linetap#table-0 Mixin
+'''''''''''''''''''''''''''
+
+
+This mixin makes a table suitable for publication as a LineTAP
+table.
+
+It provides all standard columns, makes sure it is on disk and
+available through TAP, adds the most common indexes, and gives it the
+utype required by the standard.
+
+It is recommended to fill this table with a rowmaker using the
+`//linetap#populate-0`_ apply.
+
+
 The //obscore#publish Mixin
 '''''''''''''''''''''''''''
 
@@ -9044,6 +9042,66 @@ Setup parameters for the procedure are:
 Late parameter *creation_date*
   defaults to ``\sourceCDate``;
   A timestamp giving the dataset's creation time as a datetime object
+
+//linetap#populate-0
+....................
+
+
+Fills the columns of a LineTAP table, typically created using
+`the //linetap#table-0 mixin`_.  The values are left in
+vars, so you need to copy them into the finished record,
+probably through ``idmaps="*"``.
+
+
+Setup parameters for the procedure are:
+
+
+Late parameter *einstein_a*
+  defaults to ``None``;
+  Einstein A coefficient of the radiative transition.
+Late parameter *inchi*
+  International Chemical Identifier InChI. The main layer is mandatory, the charge, stereochemical, and isotopic layers are optional.
+Late parameter *inchikey*
+  The InChi key (hash) generated from inchi.
+Late parameter *ion_charge*
+  Total charge (ionisation level) of the emitting particle.
+Late parameter *line_reference*
+  defaults to ``None``;
+  Reference to the source of the line data; this could be a bibcode, a DOI, or a plain URI.
+Late parameter *line_strength*
+  defaults to ``None``;
+  Total absorption by a spectra line
+Late parameter *lower_energy*
+  defaults to ``None``;
+  Energy of the lower state (in J)
+Late parameter *lower_state_configuration*
+  defaults to ``None``;
+  Electronic configuration in the upper state
+Late parameter *mass_number*
+  defaults to ``None``;
+  Number of nucleons in the atom or molecule
+Late parameter *method*
+  defaults to ``None``;
+  Method the wavelength was obtained with (observed/theory/ritz)
+Late parameter *oscillator_strength*
+  defaults to ``None``;
+  Oscillator strength of the radiative transition.
+Late parameter *title*
+  Human-readable line designation.
+Late parameter *upper_energy*
+  defaults to ``None``;
+  Energy of the upper state (in J)
+Late parameter *upper_state_configuration*
+  defaults to ``None``;
+  Electronic configuration in the upper state
+Late parameter *vacuum_wavelength*
+  Vacuum wavelength of the transition (in Angstrom)
+Late parameter *vacuum_wavelength_error*
+  defaults to ``None``;
+  Total error in vacuum_wavelength; this should be something like the FWHM of a Gaussian fit to the true distribution. (in Angstrom)
+Late parameter *weighted_oscillator_strength*
+  defaults to ``None``;
+  Weighted oscillator strength of the radiative transition
 
 //procs#dictMap
 ...............
@@ -16532,6 +16590,11 @@ shall authenticate in.  If you leave the realm out, the DC-wide default
 will be used.
 
 
+Constant BOLTZMANN_K
+....................
+
+A constant, valued 1.380649e-23
+
 Class BadCode
 .............
 
@@ -16843,7 +16906,7 @@ votableRespectsOutputTable property to True.
 Constant PLANCK_H
 .................
 
-A constant, valued 6.62607004e-34
+A constant, valued 6.62607015e-34
 
 Class PlainUI
 .............
