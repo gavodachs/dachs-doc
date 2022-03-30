@@ -569,7 +569,9 @@ Options
     metadata, which usually takes a lot longer).
 -s P, --sample-percent P
     Only look at P percent of the table to determine min/max/mean.
-
+-d, --dump
+    Do not obtain statistics but rather dump the results of the 
+    last run
 
 THE mkboost SUBCOMMAND
 ======================
