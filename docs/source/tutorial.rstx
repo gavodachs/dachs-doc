@@ -234,12 +234,16 @@ RDs are normal XML files (meaning that you could, e.g., add an XML
 declaration if you want an encoding other than utf-8).
 
 DaCHS assumes the schema name to be identical to the **resource
-directory**, which again is a child of the inputs directory.  
+directory**, which again must be a child of the inputs directory.  
 If you have a strong reason to
 deviate from that convention, you must give 
 the subdirectory name in the resource element's ``resdir`` attribute –
 either way, this is then used to build absolute paths within the RD,
-e.g., for the sources element discussed below.
+e.g., for the sources element discussed below.  From DaCHS 2.6 on, it is
+recommended to always set ``resdir="."`` explicitly.  This way, assuming
+the RD is a direct child of the resdir (and you should always build your
+resources this way), the RDs will still work even if the directory is
+mored.  This is an advantage in the context of mirroring resources.
 
 In general, you should have exactly one RD per database
 schema.  This is not enforced, but sharing schema names between RDs will
