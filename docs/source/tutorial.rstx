@@ -230,6 +230,22 @@ in::
 
   <resource schema="arihip">
 
+.. sidebar:: Attributes and Elements in DaCHS
+
+  DaCHS almost never distinguishes between attributes and elements
+  with atomic content, which means that you could also have written the
+  opening tag of the root element as::
+
+    <resource>
+      <schema>arihip</schema>
+
+  This notational freedom sometimes allows clearer statements, and it helps
+  with defining `active tags`_.  Multiple specifications of the same
+  property make up multiple values where the property is sequence-like (in
+  the `reference documentation`_ this is indicated by phrases like “zero
+  or more“ or “list of“ in the description).  For atomic
+  properties, later specifications overwrite earlier ones.
+
 RDs are normal XML files (meaning that you could, e.g., add an XML
 declaration if you want an encoding other than utf-8).
 
@@ -253,23 +269,6 @@ one RD A defining an ADQL-queriable table in schema X and another RD B
 that has no ADQL-queriable table, importing A will make schema X
 readable to untrusted queries, whereas importing B will make it
 unreadable again; this would lead to query failures.
-
-.. sidebar:: Attributes and Elements in DaCHS
-
-  DaCHS almost never distinguishes between attributes and elements
-  with atomic content, which means that you could also have written the
-  opening tag of the root element as::
-
-    <resource>
-      <schema>arihip</schema>
-
-  This notational freedom sometimes allows clearer statements, and it helps
-  with defining `active tags`_.  Multiple specifications of the same
-  property make up multiple values where the property is sequence-like (in
-  the `reference documentation`_ this is indicated by phrases like “zero
-  or more“ or “list of“ in the description).  For atomic
-  properties, later specifications overwrite earlier ones.
-
 
 The RD goes on to give metadata applying to everything within the RD::
 
@@ -8631,6 +8630,137 @@ what you can see) and retrieving all
       <map dest="\item">parseWithNull(@\item, int, -1)</map>
     </events>
   </LOOP>
+
+
+Programmatically Filling RD Elements
+------------------------------------
+
+The LOOP_ active tag just introduced can be (ab-) used when you need to
+move around element content in ways not supported by DaCHS otherwise.
+The basic idea is to use ``codeItems`` to fetch information and hand it
+over through macros (which are defined by yielding dictionaries from the
+code items as details above).  This section collects a few examples of
+how this technique can be applied.
+
+
+Copying Coverage
+''''''''''''''''
+
+Say you have a resource A that really is just some sort of “value-added“
+service on top of another resource B.  It stands to reason that A should
+declare the same coverage as B.  If the coverage in B were given
+literal, you could say::
+
+  <coverage original="B#cov"/>
+
+in A if you had furnished B's coverage element with the id ``cov``.  But
+usually, the coverage will have an updater rather than actual, copyable
+elements.  The updater will not work in A, and even if it were,
+computing the coverage usually is expensive, and it's wise to avoid
+computing it twice.  Fortunately, using ``LOOP``, you can get B's
+computed coverage into A.
+
+The first thing you need to figure out is that the computed coverage is
+kept in the :dachsref:`dc.rdmeta` table (it's per-resource metadata,
+after all).  Inspecting this table, you see that spatial is just text (a
+MOC, ready for inclusion into an RD), whereas temporal and spectral are
+arrays of double, which you will have to serialise before putting them
+into the RD.
+
+In DaCHS' current implementation these are always 2-arrays, which makes
+this a good deal simpler.  This way, I only need to produce one
+``temporal`` and ``spectral`` child each in the :dachsref:`Element
+coverage`.  If there were multiple intervals, I would need separate loops
+for those (and that may happen in the future).  As long as that is not
+the case, you can re-use a coverage like this::
+
+    <LOOP>
+    <codeItems>
+      with base.getTableConn() as conn:
+        for row in conn.query("SELECT spatial, temporal, spectral"
+          " FROM dc.rdmeta"
+          " WHERE sourcerd='__system__/obscore'"):
+          yield {
+            "spatial": row[0],
+            "temporal": " ".join(str(v) for v in row[1]),
+            "spectral": " ".join(str(v) for v in row[2])}
+    </codeItems>
+    <events>
+      <coverage>
+        <spatial>\spatial</spatial>
+        <temporal>\temporal</temporal>
+        <spectral>\spectral</spectral>
+      </coverage>
+    </events>
+  </LOOP>
+
+Note how this naturally becomes a no-op if there is no obscore coverage:
+The code items will not yield anything then, and no coverage element
+will be produced in A.  In case there are multiple result rows – this is
+impossible in this case as sourcerd is a primary key on rdmeta –, the
+last row would win due to DaCHS' overwriting rules; this is about as
+good as any other choice (except *perhaps* raising an error).
+
+
+Creating Placeholders
+'''''''''''''''''''''
+
+When you build condDescs from multiple database columns as in `Example:
+Form-based obscore`_, DaCHS has no idea of the ranges on the resulting
+parameter(s).  It's still not nice to have no placeholders in Web forms
+(say).  You can, however, compute them based on the table statistics.
+DaCHS manages these in the system table :dachsref:`dc.simple_col_stats`.
+When building a parameter out of, say, ``t_min`` and ``t_max``, you
+could find the limits using a query like::
+
+  SELECT column_name, min_value, max_value
+  FROM dc.simple_col_stats
+  WHERE tablename='ivoa.ObsCore'
+    AND column_name in ('t_min', 't_max')
+
+However, making a useful placeholder takes some extra manipulation.
+If, as is likely in such a case, the input is through VizieR-like
+expressions, you would need to format the MJDs that we get here to ISO
+time stamps.  Also note that the values in simple_col_stats are not
+floats but VOTable literals in strings (this is so it can also
+represent, say, datetimes); you hence need to parse values you pull from
+that table.
+
+To set the actual placeholder, you use a property.  The total input key
+would then be::
+
+  <inputKey name="TIME" type="vexpr-date"
+    ucd="time.epoch"
+    tablehead="Obs. time"
+    description="Time covered by the observation.">
+    <LOOP>
+      <codeItems>
+        from gavo import base, stc
+        with base.getTableConn() as conn:
+          limits = dict((r[0], r[1:]) for r in
+            conn.query("SELECT column_name, min_value, max_value"
+              " FROM dc.simple_col_stats"
+              " WHERE tablename='ivoa.ObsCore'"
+              "   AND column_name in ('t_min', 't_max')"))
+
+          if "t_min" in limits:
+            yield {"obscore_tmin": 
+                stc.mjdToDateTime(float(limits["t_min"][0])
+                  ).date().isoformat(),
+              "obscore_tmax": 
+                stc.mjdToDateTime(float(limits["t_max"][1])
+                  ).date().isoformat()}
+      </codeItems>
+      <events>
+        <property name="placeholder"
+          >\obscore_tmin ..  \obscore_tmax</property>
+      </events>
+    </LOOP>
+  </inputKey>
+
+Contrary to our loop pattern in `Copying Coverage`_, here we need to
+explicitly handle the case of missing statistics.  This is why we are
+checking for the presence of ``t_min`` in the results from the database.
 
 
 Licensing

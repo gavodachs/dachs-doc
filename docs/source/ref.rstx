@@ -2187,7 +2187,9 @@ Atomic Children
 * **require** (unicode string; defaults to None) -- Import the named
   gavo module (for when you need something registred)
 * **resdir** (unicode string; defaults to None) -- Base directory for
-  source files and everything else belonging to the resource.
+  source files and everything else belonging to the resource.  Use a
+  single dot (.) to say 'the directory the RD resides in', which is
+  recommended in modern DaCHS.
 * **schema** (unicode string; defaults to <Undefined>) -- Database
   schema for tables defined here.  Follow the rule 'one schema, one
   RD' if at all possible.  If two RDs share the same schema, the must
