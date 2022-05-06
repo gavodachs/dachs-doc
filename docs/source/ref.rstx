@@ -14895,7 +14895,7 @@ what the `//products#define`_ rowfilter in your grammar is for::
       <rowfilter procDef="//products#define">
         <bind key="path">\dlMetaURI{dl}</bind>
         <bind key="mime">'application/x-votable+xml;content=datalink'</bind>
-        <bind key="fize">10000</bind>
+        <bind key="fsize">10000</bind>
         [...]
       </rowfilter>
       [...]
