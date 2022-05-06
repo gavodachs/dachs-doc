@@ -51,12 +51,6 @@ The following instructions were mainly written by Chris Piker (U Iowa)
 – thanks! – and reflect the state on CentOS 7.  The systemd parts are
 probably applicable beyond the RPM universe.
 
-**Note**: Large parts of this apply to DaCHS1 (based on python 2).  Don't
-literally do this any more; rather use the python 3-based DaCHS2.  You
-are very welcome to contact us in that case, and we will help you update
-this material.
-
-
 
 Setup PostgreSQL with an alternate database cluster using the C locale
 ----------------------------------------------------------------------
@@ -160,13 +154,13 @@ Install distribution supplied dependenency packages
 
 This is realatively straighforward::
 
-  $ sudo yum install python-twisted #has lots of dependencies, yum gets them
-  $ sudo yum install pyparsing
-  $ sudo yum install python-astropy astropy-tools
-  $ sudo yum install python-matplotlib
-  $ sudo yum install python-setuptools
-  $ sudo yum install python-docutils
-  $ sudo yum install python-pillow  #New name for Python Image Manipulation Lib
+  $ sudo yum install python3-twisted #has lots of dependencies, yum gets them
+  $ sudo yum install python3-pyparsing
+  $ sudo yum install python3-astropy
+  $ sudo yum install python3-matplotlib
+  $ sudo yum install python3-setuptools
+  $ sudo yum install python3-docutils
+  $ sudo yum install python3-pillow  #New name for Python Image Manipulation Lib
 
 Make/install extra packages 
 ---------------------------

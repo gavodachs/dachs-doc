@@ -8694,6 +8694,10 @@ the case, you can re-use a coverage like this::
     </events>
   </LOOP>
 
+This pattern assumes you are sure coverage information is available on
+all axes.  In case you want to be robust against NULLs, you could add
+clauses like ``"" if row[1] is None else`` or similar.
+
 Note how this naturally becomes a no-op if there is no obscore coverage:
 The code items will not yield anything then, and no coverage element
 will be produced in A.  In case there are multiple result rows – this is

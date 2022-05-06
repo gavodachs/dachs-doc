@@ -348,7 +348,7 @@ one-channel jpegs for some image format understood by PIL::
   import os
   from cStringIO import StringIO
   
-  import Image
+  from PIL import Image
 
   from gavo import api
 

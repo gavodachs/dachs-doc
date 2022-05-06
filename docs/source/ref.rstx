@@ -2946,7 +2946,9 @@ Atomic Children
   generator body that yields dictionaries that are then used as loop
   items.  You can access the parse context as the context variable in
   these code snippets.  context.replayTarget is the struct the loop is
-  feeding to.
+  feeding to.  You also get the utils and base namespaces, though
+  using them it *a bit* dangerous (we don't guarantee their
+  stability).
 * **csvItems** (unicode string; defaults to None) -- The items to loop
   over, in CSV-with-labels format.
 * **listItems** (unicode string; defaults to None) -- The items to
