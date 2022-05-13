@@ -584,15 +584,17 @@ the attribute value is different from its default.  They receive the new
 attribute value as the single argument.  Maybe this is bad design.
 
 This processing is done automatically when parsing elements from XML.
-When building elements manually, you should call the structure's
+When building elements manually, you must call the structure's
 finishElement method when done to arrange for these methods being
-called.
+called; to make sure this happens, you usually want to construct
+Structures using ``base.makeStruct``.
 
-If you override these methods, make sure you call the methods of the
-superclass.  Since we might, at some point, want mixins to be able
-to define validators etc, use super()-based superclass calling, through
-``_completeElementNext(cls, ctx)``, ``_validateNext(cls)``, and 
-``_onElementCompleteNext(cls)``.
+If you override these methods, you (almost) always want to call the
+corresponding superclasses' methods using ``super().methname([ctx])``.
+Structures in DaCHS sometimes use multiple inheritance, and hence
+there's really no alternative to using super here.  To make sure this
+works as expected, any (python) mixin for structures must inherit from
+``base.StructCallbacks``.
 
 The ``user.docgen`` module makes documentation out of these structures.
 There are several catches.  One of the more striking is that element
