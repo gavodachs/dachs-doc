@@ -4441,9 +4441,13 @@ cached RDs).
 
 Authenticated gavoadmin can also access all restricted resources.
 
-The password is stored in clear text in gavo.rc; doing some kind of
-encryption would only make sense if you were prepared to enter some kind
-of passphrase every time you start the server.  As in other places,
+The password is normally stored in clear text in gavo.rc.  This lets
+a running DaCHS job (e.g., dachs imp or dachs pub) use it to clear
+caches on a running server.  If you don't want or need that – you can
+always reload or restart manually –, you can store the admin password in
+hashed form.  Run ``dachs adm hashPassword`` to do that
+
+Otherwise, as in other places,
 DaCHS assumes the machine it runs on is trusted.  You can restrict
 gavo.rc access to the gavo group, but of course that only helps against
 people who do not need to run the ``dachs`` command (which needs access

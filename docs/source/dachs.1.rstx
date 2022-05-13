@@ -115,6 +115,9 @@ Subsubcommands
 * ``execute exec-id`` -- Execute the contents of an RD execute element. You
   must give that element an explicit id in order to make this work; then
   exec-id is rd-id#exec-id
+* ``hashPassword pw`` -- hash a password.  adduser and friends already
+  hash themselves, so this is likely only useful for the
+  [web]adminPasswd setting.
 * ``indexStatements tableRef`` -- show the statements to create the 
   indices on a table.  The tableRef has the format RD-id#table-id; it
   is *not* a database table reference.
