@@ -58,6 +58,16 @@ publishing situations.   We believe it is worth skimming through this
 part in order to have an idea what is there and return to it for closer
 study when necessary.
 
+All this assumes that you have a basic understanding of how to run a
+simple Debian server (or some other distribution, which then you should
+understand a bit better).  If this is your first server, you
+probably should skim (at least) sections 5 through 10 of the `Debian
+Administrator's Handbook`_.  It is not important that you understand and
+memorise everything that is written there, but you should get an idea of
+where to look up what and how, roughly, things fit together.
+
+.. _Debian Administrator's Handbook: https://www.debian.org/doc/manuals/debian-handbook/
+
 
 Installation
 ------------

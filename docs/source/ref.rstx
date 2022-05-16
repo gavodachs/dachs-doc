@@ -1290,8 +1290,8 @@ mixing in before anything else happens (much like original) and
 two procedure definitions, viz, processEarly and processLate.
 These can access the structure that has the mixin as substrate.
 
-processEarly is called as part of the substrate's completeElement
-method.  processLate is executed just before the parser exits.  This
+processEarly is called at the lexical location of the mixin.
+processLate is executed just before the parser exits.  This
 is the place to fix up anything that uses the table mixed in.  Note,
 however, that you should be as conservative as possible here -- you
 should think of DC structures as immutable as long as possible.
@@ -1336,7 +1336,7 @@ Structure Children
 * prunes (contains `Element PRUNE`_ and may be repeated zero or more
   times) -- Conditions for removing items from the playback stream.
 
-Macros predefined here: `Macro RSTservicelink`_, `Macro RSTtable`_, `Macro decapitalize`_, `Macro getConfig`_, `Macro internallink`_, `Macro lower`_, `Macro magicEmpty`_, `Macro metaSeq`_, `Macro metaString`_, `Macro quote`_, `Macro rdId`_, `Macro rdIdDotted`_, `Macro reSub`_, `Macro schema`_, `Macro sql_standardPubDID`_, `Macro sqlquote`_, `Macro test`_, `Macro today`_, `Macro upper`_, `Macro urlquote`_
+Macros predefined here: `Macro RSTservicelink`_, `Macro RSTtable`_, `Macro decapitalize`_, `Macro getConfig`_, `Macro internallink`_, `Macro lower`_, `Macro magicEmpty`_, `Macro metaSeq`_, `Macro metaString`_, `Macro quote`_, `Macro rdId`_, `Macro rdIdDotted`_, `Macro reSub`_, `Macro resdir`_, `Macro schema`_, `Macro sql_standardPubDID`_, `Macro sqlquote`_, `Macro test`_, `Macro today`_, `Macro upper`_, `Macro urlquote`_
 
 Element mixinPar
 ''''''''''''''''
@@ -1616,7 +1616,7 @@ Other Children
   to string values) -- Properties (i.e., user-defined key-value pairs)
   for the element.
 
-Macros predefined here: `Macro RSTservicelink`_, `Macro RSTtable`_, `Macro colNames`_, `Macro curtable`_, `Macro decapitalize`_, `Macro getConfig`_, `Macro getParam`_, `Macro internallink`_, `Macro lower`_, `Macro magicEmpty`_, `Macro metaSeq`_, `Macro metaString`_, `Macro nameForUCD`_, `Macro nameForUCDs`_, `Macro qName`_, `Macro quote`_, `Macro rdId`_, `Macro rdIdDotted`_, `Macro reSub`_, `Macro schema`_, `Macro sql_standardPubDID`_, `Macro sqlquote`_, `Macro tablename`_, `Macro test`_, `Macro today`_, `Macro upper`_, `Macro urlquote`_
+Macros predefined here: `Macro RSTservicelink`_, `Macro RSTtable`_, `Macro colNames`_, `Macro curtable`_, `Macro decapitalize`_, `Macro getConfig`_, `Macro getParam`_, `Macro internallink`_, `Macro lower`_, `Macro magicEmpty`_, `Macro metaSeq`_, `Macro metaString`_, `Macro nameForUCD`_, `Macro nameForUCDs`_, `Macro qName`_, `Macro quote`_, `Macro rdId`_, `Macro rdIdDotted`_, `Macro reSub`_, `Macro resdir`_, `Macro schema`_, `Macro sql_standardPubDID`_, `Macro sqlquote`_, `Macro tablename`_, `Macro test`_, `Macro today`_, `Macro upper`_, `Macro urlquote`_
 
 Element par
 '''''''''''
@@ -2247,7 +2247,7 @@ Other Children
   to string values) -- Properties (i.e., user-defined key-value pairs)
   for the element.
 
-Macros predefined here: `Macro RSTcc0`_, `Macro RSTccby`_, `Macro RSTccbysa`_, `Macro RSTservicelink`_, `Macro RSTtable`_, `Macro decapitalize`_, `Macro getConfig`_, `Macro internallink`_, `Macro lower`_, `Macro magicEmpty`_, `Macro metaSeq`_, `Macro metaString`_, `Macro quote`_, `Macro rdId`_, `Macro rdIdDotted`_, `Macro reSub`_, `Macro schema`_, `Macro sql_standardPubDID`_, `Macro sqlquote`_, `Macro test`_, `Macro today`_, `Macro upper`_, `Macro urlquote`_
+Macros predefined here: `Macro RSTcc0`_, `Macro RSTccby`_, `Macro RSTccbysa`_, `Macro RSTservicelink`_, `Macro RSTtable`_, `Macro decapitalize`_, `Macro getConfig`_, `Macro internallink`_, `Macro lower`_, `Macro magicEmpty`_, `Macro metaSeq`_, `Macro metaString`_, `Macro quote`_, `Macro rdId`_, `Macro rdIdDotted`_, `Macro reSub`_, `Macro resdir`_, `Macro schema`_, `Macro sql_standardPubDID`_, `Macro sqlquote`_, `Macro test`_, `Macro today`_, `Macro upper`_, `Macro urlquote`_
 
 Element resRec
 ''''''''''''''
@@ -2296,7 +2296,7 @@ Other Children
 * **meta** -- a piece of meta information, giving at least a name and
   some content.  See Metadata_ on what is permitted here.
 
-Macros predefined here: `Macro RSTservicelink`_, `Macro RSTtable`_, `Macro decapitalize`_, `Macro getConfig`_, `Macro internallink`_, `Macro lower`_, `Macro magicEmpty`_, `Macro metaSeq`_, `Macro metaString`_, `Macro quote`_, `Macro rdId`_, `Macro rdIdDotted`_, `Macro reSub`_, `Macro schema`_, `Macro sql_standardPubDID`_, `Macro sqlquote`_, `Macro test`_, `Macro today`_, `Macro upper`_, `Macro urlquote`_
+Macros predefined here: `Macro RSTservicelink`_, `Macro RSTtable`_, `Macro decapitalize`_, `Macro getConfig`_, `Macro internallink`_, `Macro lower`_, `Macro magicEmpty`_, `Macro metaSeq`_, `Macro metaString`_, `Macro quote`_, `Macro rdId`_, `Macro rdIdDotted`_, `Macro reSub`_, `Macro resdir`_, `Macro schema`_, `Macro sql_standardPubDID`_, `Macro sqlquote`_, `Macro test`_, `Macro today`_, `Macro upper`_, `Macro urlquote`_
 
 Element rowmaker
 ''''''''''''''''
@@ -2349,7 +2349,7 @@ Structure Children
 * vars (contains `Element var`_ and may be repeated zero or more
   times) -- Definitions of intermediate variables.
 
-Macros predefined here: `Macro RSTservicelink`_, `Macro RSTtable`_, `Macro decapitalize`_, `Macro dlMetaURI`_, `Macro docField`_, `Macro fullPath`_, `Macro getConfig`_, `Macro inputRelativePath`_, `Macro inputSize`_, `Macro internallink`_, `Macro lastSourceElements`_, `Macro lower`_, `Macro magicEmpty`_, `Macro metaSeq`_, `Macro metaString`_, `Macro property`_, `Macro qName`_, `Macro quote`_, `Macro rdId`_, `Macro rdIdDotted`_, `Macro reSub`_, `Macro rootlessPath`_, `Macro rowsMade`_, `Macro rowsProcessed`_, `Macro schema`_, `Macro sourceCDate`_, `Macro sourceDate`_, `Macro sql_standardPubDID`_, `Macro sqlquote`_, `Macro srcstem`_, `Macro standardPubDID`_, `Macro test`_, `Macro today`_, `Macro upper`_, `Macro urlquote`_
+Macros predefined here: `Macro RSTservicelink`_, `Macro RSTtable`_, `Macro decapitalize`_, `Macro dlMetaURI`_, `Macro docField`_, `Macro fullPath`_, `Macro getConfig`_, `Macro inputRelativePath`_, `Macro inputSize`_, `Macro internallink`_, `Macro lastSourceElements`_, `Macro lower`_, `Macro magicEmpty`_, `Macro metaSeq`_, `Macro metaString`_, `Macro property`_, `Macro qName`_, `Macro quote`_, `Macro rdId`_, `Macro rdIdDotted`_, `Macro reSub`_, `Macro resdir`_, `Macro rootlessPath`_, `Macro rowsMade`_, `Macro rowsProcessed`_, `Macro schema`_, `Macro sourceCDate`_, `Macro sourceDate`_, `Macro sql_standardPubDID`_, `Macro sqlquote`_, `Macro srcstem`_, `Macro standardPubDID`_, `Macro test`_, `Macro today`_, `Macro upper`_, `Macro urlquote`_
 
 Element script
 ''''''''''''''
@@ -2406,8 +2406,6 @@ Properties evaluated:
   all columns from the underlying database table with low enough
   verbLevel (essentially).  When this property is "True" (case-sensitive),
   that's not done and only the service's output table is evaluated.
-  set this property to the URL of its successor.  This will produce
-  a 404 page with a link to the new service.
 * fixedFormat -- if this is set to "True", the form renderer will
   not produce an output format selector (and we shouldn't produce
   DALI RESPONSEFORMAT metadata).
@@ -2464,7 +2462,7 @@ Other Children
   depending on whether there's many result lines or just one.  Start
   the path with two slashes to access system templates.
 
-Macros predefined here: `Macro RSTservicelink`_, `Macro RSTtable`_, `Macro decapitalize`_, `Macro getConfig`_, `Macro internallink`_, `Macro lower`_, `Macro magicEmpty`_, `Macro metaSeq`_, `Macro metaString`_, `Macro quote`_, `Macro rdId`_, `Macro rdIdDotted`_, `Macro reSub`_, `Macro schema`_, `Macro sql_standardPubDID`_, `Macro sqlquote`_, `Macro tablesForTAP`_, `Macro test`_, `Macro today`_, `Macro upper`_, `Macro urlquote`_
+Macros predefined here: `Macro RSTservicelink`_, `Macro RSTtable`_, `Macro decapitalize`_, `Macro getConfig`_, `Macro internallink`_, `Macro lower`_, `Macro magicEmpty`_, `Macro metaSeq`_, `Macro metaString`_, `Macro quote`_, `Macro rdId`_, `Macro rdIdDotted`_, `Macro reSub`_, `Macro resdir`_, `Macro schema`_, `Macro sql_standardPubDID`_, `Macro sqlquote`_, `Macro tablesForTAP`_, `Macro test`_, `Macro today`_, `Macro upper`_, `Macro urlquote`_
 
 Element setup
 '''''''''''''
@@ -2665,7 +2663,7 @@ Other Children
   to string values) -- Properties (i.e., user-defined key-value pairs)
   for the element.
 
-Macros predefined here: `Macro RSTservicelink`_, `Macro RSTtable`_, `Macro colNames`_, `Macro curtable`_, `Macro decapitalize`_, `Macro getConfig`_, `Macro getParam`_, `Macro internallink`_, `Macro lower`_, `Macro magicEmpty`_, `Macro metaSeq`_, `Macro metaString`_, `Macro nameForUCD`_, `Macro nameForUCDs`_, `Macro qName`_, `Macro quote`_, `Macro rdId`_, `Macro rdIdDotted`_, `Macro reSub`_, `Macro schema`_, `Macro sql_standardPubDID`_, `Macro sqlquote`_, `Macro tablename`_, `Macro test`_, `Macro today`_, `Macro upper`_, `Macro urlquote`_
+Macros predefined here: `Macro RSTservicelink`_, `Macro RSTtable`_, `Macro colNames`_, `Macro curtable`_, `Macro decapitalize`_, `Macro getConfig`_, `Macro getParam`_, `Macro internallink`_, `Macro lower`_, `Macro magicEmpty`_, `Macro metaSeq`_, `Macro metaString`_, `Macro nameForUCD`_, `Macro nameForUCDs`_, `Macro qName`_, `Macro quote`_, `Macro rdId`_, `Macro rdIdDotted`_, `Macro reSub`_, `Macro resdir`_, `Macro schema`_, `Macro sql_standardPubDID`_, `Macro sqlquote`_, `Macro tablename`_, `Macro test`_, `Macro today`_, `Macro upper`_, `Macro urlquote`_
 
 Element updater
 '''''''''''''''
@@ -2899,7 +2897,7 @@ Structure Children
 * prunes (contains `Element PRUNE`_ and may be repeated zero or more
   times) -- Conditions for removing items from the playback stream.
 
-Macros predefined here: `Macro RSTservicelink`_, `Macro RSTtable`_, `Macro decapitalize`_, `Macro getConfig`_, `Macro internallink`_, `Macro lower`_, `Macro magicEmpty`_, `Macro metaSeq`_, `Macro metaString`_, `Macro quote`_, `Macro rdId`_, `Macro rdIdDotted`_, `Macro reSub`_, `Macro schema`_, `Macro sql_standardPubDID`_, `Macro sqlquote`_, `Macro test`_, `Macro today`_, `Macro upper`_, `Macro urlquote`_
+Macros predefined here: `Macro RSTservicelink`_, `Macro RSTtable`_, `Macro decapitalize`_, `Macro getConfig`_, `Macro internallink`_, `Macro lower`_, `Macro magicEmpty`_, `Macro metaSeq`_, `Macro metaString`_, `Macro quote`_, `Macro rdId`_, `Macro rdIdDotted`_, `Macro reSub`_, `Macro resdir`_, `Macro schema`_, `Macro sql_standardPubDID`_, `Macro sqlquote`_, `Macro test`_, `Macro today`_, `Macro upper`_, `Macro urlquote`_
 
 Element LFEED
 '''''''''''''
@@ -2930,7 +2928,7 @@ Structure Children
 * prunes (contains `Element PRUNE`_ and may be repeated zero or more
   times) -- Conditions for removing items from the playback stream.
 
-Macros predefined here: `Macro RSTservicelink`_, `Macro RSTtable`_, `Macro decapitalize`_, `Macro getConfig`_, `Macro internallink`_, `Macro lower`_, `Macro magicEmpty`_, `Macro metaSeq`_, `Macro metaString`_, `Macro quote`_, `Macro rdId`_, `Macro rdIdDotted`_, `Macro reSub`_, `Macro schema`_, `Macro sql_standardPubDID`_, `Macro sqlquote`_, `Macro test`_, `Macro today`_, `Macro upper`_, `Macro urlquote`_
+Macros predefined here: `Macro RSTservicelink`_, `Macro RSTtable`_, `Macro decapitalize`_, `Macro getConfig`_, `Macro internallink`_, `Macro lower`_, `Macro magicEmpty`_, `Macro metaSeq`_, `Macro metaString`_, `Macro quote`_, `Macro rdId`_, `Macro rdIdDotted`_, `Macro reSub`_, `Macro resdir`_, `Macro schema`_, `Macro sql_standardPubDID`_, `Macro sqlquote`_, `Macro test`_, `Macro today`_, `Macro upper`_, `Macro urlquote`_
 
 Element LOOP
 ''''''''''''
@@ -2971,7 +2969,7 @@ Structure Children
 * prunes (contains `Element PRUNE`_ and may be repeated zero or more
   times) -- Conditions for removing items from the playback stream.
 
-Macros predefined here: `Macro RSTservicelink`_, `Macro RSTtable`_, `Macro decapitalize`_, `Macro getConfig`_, `Macro internallink`_, `Macro lower`_, `Macro magicEmpty`_, `Macro metaSeq`_, `Macro metaString`_, `Macro quote`_, `Macro rdId`_, `Macro rdIdDotted`_, `Macro reSub`_, `Macro schema`_, `Macro sql_standardPubDID`_, `Macro sqlquote`_, `Macro test`_, `Macro today`_, `Macro upper`_, `Macro urlquote`_
+Macros predefined here: `Macro RSTservicelink`_, `Macro RSTtable`_, `Macro decapitalize`_, `Macro getConfig`_, `Macro internallink`_, `Macro lower`_, `Macro magicEmpty`_, `Macro metaSeq`_, `Macro metaString`_, `Macro quote`_, `Macro rdId`_, `Macro rdIdDotted`_, `Macro reSub`_, `Macro resdir`_, `Macro schema`_, `Macro sql_standardPubDID`_, `Macro sqlquote`_, `Macro test`_, `Macro today`_, `Macro upper`_, `Macro urlquote`_
 
 Element NXSTREAM
 ''''''''''''''''
@@ -3090,7 +3088,7 @@ Other Children
   to string values) -- Properties (i.e., user-defined key-value pairs)
   for the element.
 
-Macros predefined here: `Macro RSTservicelink`_, `Macro RSTtable`_, `Macro colNames`_, `Macro decapitalize`_, `Macro dlMetaURI`_, `Macro fullDLURL`_, `Macro getConfig`_, `Macro inputRelativePath`_, `Macro inputSize`_, `Macro internallink`_, `Macro lower`_, `Macro magicEmpty`_, `Macro metaSeq`_, `Macro metaString`_, `Macro property`_, `Macro quote`_, `Macro rdId`_, `Macro rdIdDotted`_, `Macro reSub`_, `Macro rootlessPath`_, `Macro schema`_, `Macro sourceDate`_, `Macro splitPreviewPath`_, `Macro sql_standardPubDID`_, `Macro sqlquote`_, `Macro srcstem`_, `Macro standardPreviewPath`_, `Macro test`_, `Macro today`_, `Macro upper`_, `Macro urlquote`_
+Macros predefined here: `Macro RSTservicelink`_, `Macro RSTtable`_, `Macro colNames`_, `Macro decapitalize`_, `Macro dlMetaURI`_, `Macro fullDLURL`_, `Macro getConfig`_, `Macro inputRelativePath`_, `Macro inputSize`_, `Macro internallink`_, `Macro lower`_, `Macro magicEmpty`_, `Macro metaSeq`_, `Macro metaString`_, `Macro property`_, `Macro quote`_, `Macro rdId`_, `Macro rdIdDotted`_, `Macro reSub`_, `Macro resdir`_, `Macro rootlessPath`_, `Macro schema`_, `Macro sourceDate`_, `Macro splitPreviewPath`_, `Macro sql_standardPubDID`_, `Macro sqlquote`_, `Macro srcstem`_, `Macro standardPreviewPath`_, `Macro test`_, `Macro today`_, `Macro upper`_, `Macro urlquote`_
 
 Element binaryRecordDef
 '''''''''''''''''''''''
@@ -3178,7 +3176,7 @@ Other Children
   to string values) -- Properties (i.e., user-defined key-value pairs)
   for the element.
 
-Macros predefined here: `Macro RSTservicelink`_, `Macro RSTtable`_, `Macro colNames`_, `Macro decapitalize`_, `Macro dlMetaURI`_, `Macro fullDLURL`_, `Macro getConfig`_, `Macro inputRelativePath`_, `Macro inputSize`_, `Macro internallink`_, `Macro lower`_, `Macro magicEmpty`_, `Macro metaSeq`_, `Macro metaString`_, `Macro property`_, `Macro quote`_, `Macro rdId`_, `Macro rdIdDotted`_, `Macro reSub`_, `Macro rootlessPath`_, `Macro schema`_, `Macro sourceDate`_, `Macro splitPreviewPath`_, `Macro sql_standardPubDID`_, `Macro sqlquote`_, `Macro srcstem`_, `Macro standardPreviewPath`_, `Macro test`_, `Macro today`_, `Macro upper`_, `Macro urlquote`_
+Macros predefined here: `Macro RSTservicelink`_, `Macro RSTtable`_, `Macro colNames`_, `Macro decapitalize`_, `Macro dlMetaURI`_, `Macro fullDLURL`_, `Macro getConfig`_, `Macro inputRelativePath`_, `Macro inputSize`_, `Macro internallink`_, `Macro lower`_, `Macro magicEmpty`_, `Macro metaSeq`_, `Macro metaString`_, `Macro property`_, `Macro quote`_, `Macro rdId`_, `Macro rdIdDotted`_, `Macro reSub`_, `Macro resdir`_, `Macro rootlessPath`_, `Macro schema`_, `Macro sourceDate`_, `Macro splitPreviewPath`_, `Macro sql_standardPubDID`_, `Macro sqlquote`_, `Macro srcstem`_, `Macro standardPreviewPath`_, `Macro test`_, `Macro today`_, `Macro upper`_, `Macro urlquote`_
 
 Element columnGrammar
 '''''''''''''''''''''
@@ -3244,7 +3242,7 @@ Other Children
   to string values) -- Properties (i.e., user-defined key-value pairs)
   for the element.
 
-Macros predefined here: `Macro RSTservicelink`_, `Macro RSTtable`_, `Macro colNames`_, `Macro decapitalize`_, `Macro dlMetaURI`_, `Macro fullDLURL`_, `Macro getConfig`_, `Macro inputRelativePath`_, `Macro inputSize`_, `Macro internallink`_, `Macro lower`_, `Macro magicEmpty`_, `Macro metaSeq`_, `Macro metaString`_, `Macro property`_, `Macro quote`_, `Macro rdId`_, `Macro rdIdDotted`_, `Macro reSub`_, `Macro rootlessPath`_, `Macro schema`_, `Macro sourceDate`_, `Macro splitPreviewPath`_, `Macro sql_standardPubDID`_, `Macro sqlquote`_, `Macro srcstem`_, `Macro standardPreviewPath`_, `Macro test`_, `Macro today`_, `Macro upper`_, `Macro urlquote`_
+Macros predefined here: `Macro RSTservicelink`_, `Macro RSTtable`_, `Macro colNames`_, `Macro decapitalize`_, `Macro dlMetaURI`_, `Macro fullDLURL`_, `Macro getConfig`_, `Macro inputRelativePath`_, `Macro inputSize`_, `Macro internallink`_, `Macro lower`_, `Macro magicEmpty`_, `Macro metaSeq`_, `Macro metaString`_, `Macro property`_, `Macro quote`_, `Macro rdId`_, `Macro rdIdDotted`_, `Macro reSub`_, `Macro resdir`_, `Macro rootlessPath`_, `Macro schema`_, `Macro sourceDate`_, `Macro splitPreviewPath`_, `Macro sql_standardPubDID`_, `Macro sqlquote`_, `Macro srcstem`_, `Macro standardPreviewPath`_, `Macro test`_, `Macro today`_, `Macro upper`_, `Macro urlquote`_
 
 Element contextGrammar
 ''''''''''''''''''''''
@@ -3309,7 +3307,7 @@ Other Children
   to string values) -- Properties (i.e., user-defined key-value pairs)
   for the element.
 
-Macros predefined here: `Macro RSTservicelink`_, `Macro RSTtable`_, `Macro colNames`_, `Macro decapitalize`_, `Macro dlMetaURI`_, `Macro fullDLURL`_, `Macro getConfig`_, `Macro inputRelativePath`_, `Macro inputSize`_, `Macro internallink`_, `Macro lower`_, `Macro magicEmpty`_, `Macro metaSeq`_, `Macro metaString`_, `Macro property`_, `Macro quote`_, `Macro rdId`_, `Macro rdIdDotted`_, `Macro reSub`_, `Macro rootlessPath`_, `Macro schema`_, `Macro sourceDate`_, `Macro splitPreviewPath`_, `Macro sql_standardPubDID`_, `Macro sqlquote`_, `Macro srcstem`_, `Macro standardPreviewPath`_, `Macro test`_, `Macro today`_, `Macro upper`_, `Macro urlquote`_
+Macros predefined here: `Macro RSTservicelink`_, `Macro RSTtable`_, `Macro colNames`_, `Macro decapitalize`_, `Macro dlMetaURI`_, `Macro fullDLURL`_, `Macro getConfig`_, `Macro inputRelativePath`_, `Macro inputSize`_, `Macro internallink`_, `Macro lower`_, `Macro magicEmpty`_, `Macro metaSeq`_, `Macro metaString`_, `Macro property`_, `Macro quote`_, `Macro rdId`_, `Macro rdIdDotted`_, `Macro reSub`_, `Macro resdir`_, `Macro rootlessPath`_, `Macro schema`_, `Macro sourceDate`_, `Macro splitPreviewPath`_, `Macro sql_standardPubDID`_, `Macro sqlquote`_, `Macro srcstem`_, `Macro standardPreviewPath`_, `Macro test`_, `Macro today`_, `Macro upper`_, `Macro urlquote`_
 
 Element csvGrammar
 ''''''''''''''''''
@@ -3374,7 +3372,7 @@ Other Children
   to string values) -- Properties (i.e., user-defined key-value pairs)
   for the element.
 
-Macros predefined here: `Macro RSTservicelink`_, `Macro RSTtable`_, `Macro colNames`_, `Macro decapitalize`_, `Macro dlMetaURI`_, `Macro fullDLURL`_, `Macro getConfig`_, `Macro inputRelativePath`_, `Macro inputSize`_, `Macro internallink`_, `Macro lower`_, `Macro magicEmpty`_, `Macro metaSeq`_, `Macro metaString`_, `Macro property`_, `Macro quote`_, `Macro rdId`_, `Macro rdIdDotted`_, `Macro reSub`_, `Macro rootlessPath`_, `Macro schema`_, `Macro sourceDate`_, `Macro splitPreviewPath`_, `Macro sql_standardPubDID`_, `Macro sqlquote`_, `Macro srcstem`_, `Macro standardPreviewPath`_, `Macro test`_, `Macro today`_, `Macro upper`_, `Macro urlquote`_
+Macros predefined here: `Macro RSTservicelink`_, `Macro RSTtable`_, `Macro colNames`_, `Macro decapitalize`_, `Macro dlMetaURI`_, `Macro fullDLURL`_, `Macro getConfig`_, `Macro inputRelativePath`_, `Macro inputSize`_, `Macro internallink`_, `Macro lower`_, `Macro magicEmpty`_, `Macro metaSeq`_, `Macro metaString`_, `Macro property`_, `Macro quote`_, `Macro rdId`_, `Macro rdIdDotted`_, `Macro reSub`_, `Macro resdir`_, `Macro rootlessPath`_, `Macro schema`_, `Macro sourceDate`_, `Macro splitPreviewPath`_, `Macro sql_standardPubDID`_, `Macro sqlquote`_, `Macro srcstem`_, `Macro standardPreviewPath`_, `Macro test`_, `Macro today`_, `Macro upper`_, `Macro urlquote`_
 
 Element customGrammar
 '''''''''''''''''''''
@@ -3416,7 +3414,7 @@ Other Children
   to string values) -- Properties (i.e., user-defined key-value pairs)
   for the element.
 
-Macros predefined here: `Macro RSTservicelink`_, `Macro RSTtable`_, `Macro colNames`_, `Macro decapitalize`_, `Macro dlMetaURI`_, `Macro fullDLURL`_, `Macro getConfig`_, `Macro inputRelativePath`_, `Macro inputSize`_, `Macro internallink`_, `Macro lower`_, `Macro magicEmpty`_, `Macro metaSeq`_, `Macro metaString`_, `Macro property`_, `Macro quote`_, `Macro rdId`_, `Macro rdIdDotted`_, `Macro reSub`_, `Macro rootlessPath`_, `Macro schema`_, `Macro sourceDate`_, `Macro splitPreviewPath`_, `Macro sql_standardPubDID`_, `Macro sqlquote`_, `Macro srcstem`_, `Macro standardPreviewPath`_, `Macro test`_, `Macro today`_, `Macro upper`_, `Macro urlquote`_
+Macros predefined here: `Macro RSTservicelink`_, `Macro RSTtable`_, `Macro colNames`_, `Macro decapitalize`_, `Macro dlMetaURI`_, `Macro fullDLURL`_, `Macro getConfig`_, `Macro inputRelativePath`_, `Macro inputSize`_, `Macro internallink`_, `Macro lower`_, `Macro magicEmpty`_, `Macro metaSeq`_, `Macro metaString`_, `Macro property`_, `Macro quote`_, `Macro rdId`_, `Macro rdIdDotted`_, `Macro reSub`_, `Macro resdir`_, `Macro rootlessPath`_, `Macro schema`_, `Macro sourceDate`_, `Macro splitPreviewPath`_, `Macro sql_standardPubDID`_, `Macro sqlquote`_, `Macro srcstem`_, `Macro standardPreviewPath`_, `Macro test`_, `Macro today`_, `Macro upper`_, `Macro urlquote`_
 
 Element dictlistGrammar
 '''''''''''''''''''''''
@@ -3460,7 +3458,7 @@ Other Children
   to string values) -- Properties (i.e., user-defined key-value pairs)
   for the element.
 
-Macros predefined here: `Macro RSTservicelink`_, `Macro RSTtable`_, `Macro colNames`_, `Macro decapitalize`_, `Macro dlMetaURI`_, `Macro fullDLURL`_, `Macro getConfig`_, `Macro inputRelativePath`_, `Macro inputSize`_, `Macro internallink`_, `Macro lower`_, `Macro magicEmpty`_, `Macro metaSeq`_, `Macro metaString`_, `Macro property`_, `Macro quote`_, `Macro rdId`_, `Macro rdIdDotted`_, `Macro reSub`_, `Macro rootlessPath`_, `Macro schema`_, `Macro sourceDate`_, `Macro splitPreviewPath`_, `Macro sql_standardPubDID`_, `Macro sqlquote`_, `Macro srcstem`_, `Macro standardPreviewPath`_, `Macro test`_, `Macro today`_, `Macro upper`_, `Macro urlquote`_
+Macros predefined here: `Macro RSTservicelink`_, `Macro RSTtable`_, `Macro colNames`_, `Macro decapitalize`_, `Macro dlMetaURI`_, `Macro fullDLURL`_, `Macro getConfig`_, `Macro inputRelativePath`_, `Macro inputSize`_, `Macro internallink`_, `Macro lower`_, `Macro magicEmpty`_, `Macro metaSeq`_, `Macro metaString`_, `Macro property`_, `Macro quote`_, `Macro rdId`_, `Macro rdIdDotted`_, `Macro reSub`_, `Macro resdir`_, `Macro rootlessPath`_, `Macro schema`_, `Macro sourceDate`_, `Macro splitPreviewPath`_, `Macro sql_standardPubDID`_, `Macro sqlquote`_, `Macro srcstem`_, `Macro standardPreviewPath`_, `Macro test`_, `Macro today`_, `Macro upper`_, `Macro urlquote`_
 
 Element directGrammar
 '''''''''''''''''''''
@@ -3604,7 +3602,7 @@ Other Children
   to string values) -- Properties (i.e., user-defined key-value pairs)
   for the element.
 
-Macros predefined here: `Macro RSTservicelink`_, `Macro RSTtable`_, `Macro colNames`_, `Macro decapitalize`_, `Macro dlMetaURI`_, `Macro fullDLURL`_, `Macro getConfig`_, `Macro inputRelativePath`_, `Macro inputSize`_, `Macro internallink`_, `Macro lower`_, `Macro magicEmpty`_, `Macro metaSeq`_, `Macro metaString`_, `Macro property`_, `Macro quote`_, `Macro rdId`_, `Macro rdIdDotted`_, `Macro reSub`_, `Macro rootlessPath`_, `Macro schema`_, `Macro sourceDate`_, `Macro splitPreviewPath`_, `Macro sql_standardPubDID`_, `Macro sqlquote`_, `Macro srcstem`_, `Macro standardPreviewPath`_, `Macro test`_, `Macro today`_, `Macro upper`_, `Macro urlquote`_
+Macros predefined here: `Macro RSTservicelink`_, `Macro RSTtable`_, `Macro colNames`_, `Macro decapitalize`_, `Macro dlMetaURI`_, `Macro fullDLURL`_, `Macro getConfig`_, `Macro inputRelativePath`_, `Macro inputSize`_, `Macro internallink`_, `Macro lower`_, `Macro magicEmpty`_, `Macro metaSeq`_, `Macro metaString`_, `Macro property`_, `Macro quote`_, `Macro rdId`_, `Macro rdIdDotted`_, `Macro reSub`_, `Macro resdir`_, `Macro rootlessPath`_, `Macro schema`_, `Macro sourceDate`_, `Macro splitPreviewPath`_, `Macro sql_standardPubDID`_, `Macro sqlquote`_, `Macro srcstem`_, `Macro standardPreviewPath`_, `Macro test`_, `Macro today`_, `Macro upper`_, `Macro urlquote`_
 
 Element fitsProdGrammar
 '''''''''''''''''''''''
@@ -3672,7 +3670,7 @@ Other Children
   to string values) -- Properties (i.e., user-defined key-value pairs)
   for the element.
 
-Macros predefined here: `Macro RSTservicelink`_, `Macro RSTtable`_, `Macro colNames`_, `Macro decapitalize`_, `Macro dlMetaURI`_, `Macro fullDLURL`_, `Macro getConfig`_, `Macro inputRelativePath`_, `Macro inputSize`_, `Macro internallink`_, `Macro lower`_, `Macro magicEmpty`_, `Macro metaSeq`_, `Macro metaString`_, `Macro property`_, `Macro quote`_, `Macro rdId`_, `Macro rdIdDotted`_, `Macro reSub`_, `Macro rootlessPath`_, `Macro schema`_, `Macro sourceDate`_, `Macro splitPreviewPath`_, `Macro sql_standardPubDID`_, `Macro sqlquote`_, `Macro srcstem`_, `Macro standardPreviewPath`_, `Macro test`_, `Macro today`_, `Macro upper`_, `Macro urlquote`_
+Macros predefined here: `Macro RSTservicelink`_, `Macro RSTtable`_, `Macro colNames`_, `Macro decapitalize`_, `Macro dlMetaURI`_, `Macro fullDLURL`_, `Macro getConfig`_, `Macro inputRelativePath`_, `Macro inputSize`_, `Macro internallink`_, `Macro lower`_, `Macro magicEmpty`_, `Macro metaSeq`_, `Macro metaString`_, `Macro property`_, `Macro quote`_, `Macro rdId`_, `Macro rdIdDotted`_, `Macro reSub`_, `Macro resdir`_, `Macro rootlessPath`_, `Macro schema`_, `Macro sourceDate`_, `Macro splitPreviewPath`_, `Macro sql_standardPubDID`_, `Macro sqlquote`_, `Macro srcstem`_, `Macro standardPreviewPath`_, `Macro test`_, `Macro today`_, `Macro upper`_, `Macro urlquote`_
 
 Element fitsTableGrammar
 ''''''''''''''''''''''''
@@ -3721,7 +3719,7 @@ Other Children
   to string values) -- Properties (i.e., user-defined key-value pairs)
   for the element.
 
-Macros predefined here: `Macro RSTservicelink`_, `Macro RSTtable`_, `Macro colNames`_, `Macro decapitalize`_, `Macro dlMetaURI`_, `Macro fullDLURL`_, `Macro getConfig`_, `Macro inputRelativePath`_, `Macro inputSize`_, `Macro internallink`_, `Macro lower`_, `Macro magicEmpty`_, `Macro metaSeq`_, `Macro metaString`_, `Macro property`_, `Macro quote`_, `Macro rdId`_, `Macro rdIdDotted`_, `Macro reSub`_, `Macro rootlessPath`_, `Macro schema`_, `Macro sourceDate`_, `Macro splitPreviewPath`_, `Macro sql_standardPubDID`_, `Macro sqlquote`_, `Macro srcstem`_, `Macro standardPreviewPath`_, `Macro test`_, `Macro today`_, `Macro upper`_, `Macro urlquote`_
+Macros predefined here: `Macro RSTservicelink`_, `Macro RSTtable`_, `Macro colNames`_, `Macro decapitalize`_, `Macro dlMetaURI`_, `Macro fullDLURL`_, `Macro getConfig`_, `Macro inputRelativePath`_, `Macro inputSize`_, `Macro internallink`_, `Macro lower`_, `Macro magicEmpty`_, `Macro metaSeq`_, `Macro metaString`_, `Macro property`_, `Macro quote`_, `Macro rdId`_, `Macro rdIdDotted`_, `Macro reSub`_, `Macro resdir`_, `Macro rootlessPath`_, `Macro schema`_, `Macro sourceDate`_, `Macro splitPreviewPath`_, `Macro sql_standardPubDID`_, `Macro sqlquote`_, `Macro srcstem`_, `Macro standardPreviewPath`_, `Macro test`_, `Macro today`_, `Macro upper`_, `Macro urlquote`_
 
 Element freeREGrammar
 '''''''''''''''''''''
@@ -3778,7 +3776,7 @@ Other Children
   to string values) -- Properties (i.e., user-defined key-value pairs)
   for the element.
 
-Macros predefined here: `Macro RSTservicelink`_, `Macro RSTtable`_, `Macro colNames`_, `Macro decapitalize`_, `Macro dlMetaURI`_, `Macro fullDLURL`_, `Macro getConfig`_, `Macro inputRelativePath`_, `Macro inputSize`_, `Macro internallink`_, `Macro lower`_, `Macro magicEmpty`_, `Macro metaSeq`_, `Macro metaString`_, `Macro property`_, `Macro quote`_, `Macro rdId`_, `Macro rdIdDotted`_, `Macro reSub`_, `Macro rootlessPath`_, `Macro schema`_, `Macro sourceDate`_, `Macro splitPreviewPath`_, `Macro sql_standardPubDID`_, `Macro sqlquote`_, `Macro srcstem`_, `Macro standardPreviewPath`_, `Macro test`_, `Macro today`_, `Macro upper`_, `Macro urlquote`_
+Macros predefined here: `Macro RSTservicelink`_, `Macro RSTtable`_, `Macro colNames`_, `Macro decapitalize`_, `Macro dlMetaURI`_, `Macro fullDLURL`_, `Macro getConfig`_, `Macro inputRelativePath`_, `Macro inputSize`_, `Macro internallink`_, `Macro lower`_, `Macro magicEmpty`_, `Macro metaSeq`_, `Macro metaString`_, `Macro property`_, `Macro quote`_, `Macro rdId`_, `Macro rdIdDotted`_, `Macro reSub`_, `Macro resdir`_, `Macro rootlessPath`_, `Macro schema`_, `Macro sourceDate`_, `Macro splitPreviewPath`_, `Macro sql_standardPubDID`_, `Macro sqlquote`_, `Macro srcstem`_, `Macro standardPreviewPath`_, `Macro test`_, `Macro today`_, `Macro upper`_, `Macro urlquote`_
 
 Element hdf5Grammar
 '''''''''''''''''''
@@ -3841,7 +3839,7 @@ Other Children
   to string values) -- Properties (i.e., user-defined key-value pairs)
   for the element.
 
-Macros predefined here: `Macro RSTservicelink`_, `Macro RSTtable`_, `Macro colNames`_, `Macro decapitalize`_, `Macro dlMetaURI`_, `Macro fullDLURL`_, `Macro getConfig`_, `Macro inputRelativePath`_, `Macro inputSize`_, `Macro internallink`_, `Macro lower`_, `Macro magicEmpty`_, `Macro metaSeq`_, `Macro metaString`_, `Macro property`_, `Macro quote`_, `Macro rdId`_, `Macro rdIdDotted`_, `Macro reSub`_, `Macro rootlessPath`_, `Macro schema`_, `Macro sourceDate`_, `Macro splitPreviewPath`_, `Macro sql_standardPubDID`_, `Macro sqlquote`_, `Macro srcstem`_, `Macro standardPreviewPath`_, `Macro test`_, `Macro today`_, `Macro upper`_, `Macro urlquote`_
+Macros predefined here: `Macro RSTservicelink`_, `Macro RSTtable`_, `Macro colNames`_, `Macro decapitalize`_, `Macro dlMetaURI`_, `Macro fullDLURL`_, `Macro getConfig`_, `Macro inputRelativePath`_, `Macro inputSize`_, `Macro internallink`_, `Macro lower`_, `Macro magicEmpty`_, `Macro metaSeq`_, `Macro metaString`_, `Macro property`_, `Macro quote`_, `Macro rdId`_, `Macro rdIdDotted`_, `Macro reSub`_, `Macro resdir`_, `Macro rootlessPath`_, `Macro schema`_, `Macro sourceDate`_, `Macro splitPreviewPath`_, `Macro sql_standardPubDID`_, `Macro sqlquote`_, `Macro srcstem`_, `Macro standardPreviewPath`_, `Macro test`_, `Macro today`_, `Macro upper`_, `Macro urlquote`_
 
 Element iterator
 ''''''''''''''''
@@ -3941,7 +3939,7 @@ Other Children
   to string values) -- Properties (i.e., user-defined key-value pairs)
   for the element.
 
-Macros predefined here: `Macro RSTservicelink`_, `Macro RSTtable`_, `Macro colNames`_, `Macro decapitalize`_, `Macro dlMetaURI`_, `Macro fullDLURL`_, `Macro getConfig`_, `Macro inputRelativePath`_, `Macro inputSize`_, `Macro internallink`_, `Macro lower`_, `Macro magicEmpty`_, `Macro metaSeq`_, `Macro metaString`_, `Macro property`_, `Macro quote`_, `Macro rdId`_, `Macro rdIdDotted`_, `Macro reSub`_, `Macro rootlessPath`_, `Macro schema`_, `Macro sourceDate`_, `Macro splitPreviewPath`_, `Macro sql_standardPubDID`_, `Macro sqlquote`_, `Macro srcstem`_, `Macro standardPreviewPath`_, `Macro test`_, `Macro today`_, `Macro upper`_, `Macro urlquote`_
+Macros predefined here: `Macro RSTservicelink`_, `Macro RSTtable`_, `Macro colNames`_, `Macro decapitalize`_, `Macro dlMetaURI`_, `Macro fullDLURL`_, `Macro getConfig`_, `Macro inputRelativePath`_, `Macro inputSize`_, `Macro internallink`_, `Macro lower`_, `Macro magicEmpty`_, `Macro metaSeq`_, `Macro metaString`_, `Macro property`_, `Macro quote`_, `Macro rdId`_, `Macro rdIdDotted`_, `Macro reSub`_, `Macro resdir`_, `Macro rootlessPath`_, `Macro schema`_, `Macro sourceDate`_, `Macro splitPreviewPath`_, `Macro sql_standardPubDID`_, `Macro sqlquote`_, `Macro srcstem`_, `Macro standardPreviewPath`_, `Macro test`_, `Macro today`_, `Macro upper`_, `Macro urlquote`_
 
 Element makeQuery
 '''''''''''''''''
@@ -4096,7 +4094,7 @@ Other Children
   to string values) -- Properties (i.e., user-defined key-value pairs)
   for the element.
 
-Macros predefined here: `Macro RSTservicelink`_, `Macro RSTtable`_, `Macro colNames`_, `Macro decapitalize`_, `Macro dlMetaURI`_, `Macro fullDLURL`_, `Macro getConfig`_, `Macro inputRelativePath`_, `Macro inputSize`_, `Macro internallink`_, `Macro lower`_, `Macro magicEmpty`_, `Macro metaSeq`_, `Macro metaString`_, `Macro property`_, `Macro quote`_, `Macro rdId`_, `Macro rdIdDotted`_, `Macro reSub`_, `Macro rootlessPath`_, `Macro schema`_, `Macro sourceDate`_, `Macro splitPreviewPath`_, `Macro sql_standardPubDID`_, `Macro sqlquote`_, `Macro srcstem`_, `Macro standardPreviewPath`_, `Macro test`_, `Macro today`_, `Macro upper`_, `Macro urlquote`_
+Macros predefined here: `Macro RSTservicelink`_, `Macro RSTtable`_, `Macro colNames`_, `Macro decapitalize`_, `Macro dlMetaURI`_, `Macro fullDLURL`_, `Macro getConfig`_, `Macro inputRelativePath`_, `Macro inputSize`_, `Macro internallink`_, `Macro lower`_, `Macro magicEmpty`_, `Macro metaSeq`_, `Macro metaString`_, `Macro property`_, `Macro quote`_, `Macro rdId`_, `Macro rdIdDotted`_, `Macro reSub`_, `Macro resdir`_, `Macro rootlessPath`_, `Macro schema`_, `Macro sourceDate`_, `Macro splitPreviewPath`_, `Macro sql_standardPubDID`_, `Macro sqlquote`_, `Macro srcstem`_, `Macro standardPreviewPath`_, `Macro test`_, `Macro today`_, `Macro upper`_, `Macro urlquote`_
 
 Element nullGrammar
 '''''''''''''''''''
@@ -4131,7 +4129,7 @@ Other Children
   to string values) -- Properties (i.e., user-defined key-value pairs)
   for the element.
 
-Macros predefined here: `Macro RSTservicelink`_, `Macro RSTtable`_, `Macro colNames`_, `Macro decapitalize`_, `Macro dlMetaURI`_, `Macro fullDLURL`_, `Macro getConfig`_, `Macro inputRelativePath`_, `Macro inputSize`_, `Macro internallink`_, `Macro lower`_, `Macro magicEmpty`_, `Macro metaSeq`_, `Macro metaString`_, `Macro property`_, `Macro quote`_, `Macro rdId`_, `Macro rdIdDotted`_, `Macro reSub`_, `Macro rootlessPath`_, `Macro schema`_, `Macro sourceDate`_, `Macro splitPreviewPath`_, `Macro sql_standardPubDID`_, `Macro sqlquote`_, `Macro srcstem`_, `Macro standardPreviewPath`_, `Macro test`_, `Macro today`_, `Macro upper`_, `Macro urlquote`_
+Macros predefined here: `Macro RSTservicelink`_, `Macro RSTtable`_, `Macro colNames`_, `Macro decapitalize`_, `Macro dlMetaURI`_, `Macro fullDLURL`_, `Macro getConfig`_, `Macro inputRelativePath`_, `Macro inputSize`_, `Macro internallink`_, `Macro lower`_, `Macro magicEmpty`_, `Macro metaSeq`_, `Macro metaString`_, `Macro property`_, `Macro quote`_, `Macro rdId`_, `Macro rdIdDotted`_, `Macro reSub`_, `Macro resdir`_, `Macro rootlessPath`_, `Macro schema`_, `Macro sourceDate`_, `Macro splitPreviewPath`_, `Macro sql_standardPubDID`_, `Macro sqlquote`_, `Macro srcstem`_, `Macro standardPreviewPath`_, `Macro test`_, `Macro today`_, `Macro upper`_, `Macro urlquote`_
 
 Element odbcGrammar
 '''''''''''''''''''
@@ -4189,7 +4187,7 @@ Other Children
   to string values) -- Properties (i.e., user-defined key-value pairs)
   for the element.
 
-Macros predefined here: `Macro RSTservicelink`_, `Macro RSTtable`_, `Macro colNames`_, `Macro decapitalize`_, `Macro dlMetaURI`_, `Macro fullDLURL`_, `Macro getConfig`_, `Macro inputRelativePath`_, `Macro inputSize`_, `Macro internallink`_, `Macro lower`_, `Macro magicEmpty`_, `Macro metaSeq`_, `Macro metaString`_, `Macro property`_, `Macro quote`_, `Macro rdId`_, `Macro rdIdDotted`_, `Macro reSub`_, `Macro rootlessPath`_, `Macro schema`_, `Macro sourceDate`_, `Macro splitPreviewPath`_, `Macro sql_standardPubDID`_, `Macro sqlquote`_, `Macro srcstem`_, `Macro standardPreviewPath`_, `Macro test`_, `Macro today`_, `Macro upper`_, `Macro urlquote`_
+Macros predefined here: `Macro RSTservicelink`_, `Macro RSTtable`_, `Macro colNames`_, `Macro decapitalize`_, `Macro dlMetaURI`_, `Macro fullDLURL`_, `Macro getConfig`_, `Macro inputRelativePath`_, `Macro inputSize`_, `Macro internallink`_, `Macro lower`_, `Macro magicEmpty`_, `Macro metaSeq`_, `Macro metaString`_, `Macro property`_, `Macro quote`_, `Macro rdId`_, `Macro rdIdDotted`_, `Macro reSub`_, `Macro resdir`_, `Macro rootlessPath`_, `Macro schema`_, `Macro sourceDate`_, `Macro splitPreviewPath`_, `Macro sql_standardPubDID`_, `Macro sqlquote`_, `Macro srcstem`_, `Macro standardPreviewPath`_, `Macro test`_, `Macro today`_, `Macro upper`_, `Macro urlquote`_
 
 Element pargetter
 '''''''''''''''''
@@ -4295,7 +4293,7 @@ Other Children
   to string values) -- Properties (i.e., user-defined key-value pairs)
   for the element.
 
-Macros predefined here: `Macro RSTservicelink`_, `Macro RSTtable`_, `Macro colNames`_, `Macro decapitalize`_, `Macro dlMetaURI`_, `Macro fullDLURL`_, `Macro getConfig`_, `Macro inputRelativePath`_, `Macro inputSize`_, `Macro internallink`_, `Macro lower`_, `Macro magicEmpty`_, `Macro metaSeq`_, `Macro metaString`_, `Macro property`_, `Macro quote`_, `Macro rdId`_, `Macro rdIdDotted`_, `Macro reSub`_, `Macro rootlessPath`_, `Macro schema`_, `Macro sourceDate`_, `Macro splitPreviewPath`_, `Macro sql_standardPubDID`_, `Macro sqlquote`_, `Macro srcstem`_, `Macro standardPreviewPath`_, `Macro test`_, `Macro today`_, `Macro upper`_, `Macro urlquote`_
+Macros predefined here: `Macro RSTservicelink`_, `Macro RSTtable`_, `Macro colNames`_, `Macro decapitalize`_, `Macro dlMetaURI`_, `Macro fullDLURL`_, `Macro getConfig`_, `Macro inputRelativePath`_, `Macro inputSize`_, `Macro internallink`_, `Macro lower`_, `Macro magicEmpty`_, `Macro metaSeq`_, `Macro metaString`_, `Macro property`_, `Macro quote`_, `Macro rdId`_, `Macro rdIdDotted`_, `Macro reSub`_, `Macro resdir`_, `Macro rootlessPath`_, `Macro schema`_, `Macro sourceDate`_, `Macro splitPreviewPath`_, `Macro sql_standardPubDID`_, `Macro sqlquote`_, `Macro srcstem`_, `Macro standardPreviewPath`_, `Macro test`_, `Macro today`_, `Macro upper`_, `Macro urlquote`_
 
 Element reGrammar
 '''''''''''''''''
@@ -4363,7 +4361,7 @@ Other Children
   to string values) -- Properties (i.e., user-defined key-value pairs)
   for the element.
 
-Macros predefined here: `Macro RSTservicelink`_, `Macro RSTtable`_, `Macro colNames`_, `Macro decapitalize`_, `Macro dlMetaURI`_, `Macro fullDLURL`_, `Macro getConfig`_, `Macro inputRelativePath`_, `Macro inputSize`_, `Macro internallink`_, `Macro lower`_, `Macro magicEmpty`_, `Macro metaSeq`_, `Macro metaString`_, `Macro property`_, `Macro quote`_, `Macro rdId`_, `Macro rdIdDotted`_, `Macro reSub`_, `Macro rootlessPath`_, `Macro schema`_, `Macro sourceDate`_, `Macro splitPreviewPath`_, `Macro sql_standardPubDID`_, `Macro sqlquote`_, `Macro srcstem`_, `Macro standardPreviewPath`_, `Macro test`_, `Macro today`_, `Macro upper`_, `Macro urlquote`_
+Macros predefined here: `Macro RSTservicelink`_, `Macro RSTtable`_, `Macro colNames`_, `Macro decapitalize`_, `Macro dlMetaURI`_, `Macro fullDLURL`_, `Macro getConfig`_, `Macro inputRelativePath`_, `Macro inputSize`_, `Macro internallink`_, `Macro lower`_, `Macro magicEmpty`_, `Macro metaSeq`_, `Macro metaString`_, `Macro property`_, `Macro quote`_, `Macro rdId`_, `Macro rdIdDotted`_, `Macro reSub`_, `Macro resdir`_, `Macro rootlessPath`_, `Macro schema`_, `Macro sourceDate`_, `Macro splitPreviewPath`_, `Macro sql_standardPubDID`_, `Macro sqlquote`_, `Macro srcstem`_, `Macro standardPreviewPath`_, `Macro test`_, `Macro today`_, `Macro upper`_, `Macro urlquote`_
 
 Element rowfilter
 '''''''''''''''''
@@ -4463,7 +4461,7 @@ Other Children
   to string values) -- Properties (i.e., user-defined key-value pairs)
   for the element.
 
-Macros predefined here: `Macro RSTservicelink`_, `Macro RSTtable`_, `Macro colNames`_, `Macro decapitalize`_, `Macro dlMetaURI`_, `Macro fullDLURL`_, `Macro getConfig`_, `Macro inputRelativePath`_, `Macro inputSize`_, `Macro internallink`_, `Macro lower`_, `Macro magicEmpty`_, `Macro metaSeq`_, `Macro metaString`_, `Macro property`_, `Macro quote`_, `Macro rdId`_, `Macro rdIdDotted`_, `Macro reSub`_, `Macro rootlessPath`_, `Macro schema`_, `Macro sourceDate`_, `Macro splitPreviewPath`_, `Macro sql_standardPubDID`_, `Macro sqlquote`_, `Macro srcstem`_, `Macro standardPreviewPath`_, `Macro test`_, `Macro today`_, `Macro upper`_, `Macro urlquote`_
+Macros predefined here: `Macro RSTservicelink`_, `Macro RSTtable`_, `Macro colNames`_, `Macro decapitalize`_, `Macro dlMetaURI`_, `Macro fullDLURL`_, `Macro getConfig`_, `Macro inputRelativePath`_, `Macro inputSize`_, `Macro internallink`_, `Macro lower`_, `Macro magicEmpty`_, `Macro metaSeq`_, `Macro metaString`_, `Macro property`_, `Macro quote`_, `Macro rdId`_, `Macro rdIdDotted`_, `Macro reSub`_, `Macro resdir`_, `Macro rootlessPath`_, `Macro schema`_, `Macro sourceDate`_, `Macro splitPreviewPath`_, `Macro sql_standardPubDID`_, `Macro sqlquote`_, `Macro srcstem`_, `Macro standardPreviewPath`_, `Macro test`_, `Macro today`_, `Macro upper`_, `Macro urlquote`_
 
 Element sourceFields
 ''''''''''''''''''''
@@ -4553,7 +4551,7 @@ Other Children
   to string values) -- Properties (i.e., user-defined key-value pairs)
   for the element.
 
-Macros predefined here: `Macro RSTservicelink`_, `Macro RSTtable`_, `Macro colNames`_, `Macro decapitalize`_, `Macro dlMetaURI`_, `Macro fullDLURL`_, `Macro getConfig`_, `Macro inputRelativePath`_, `Macro inputSize`_, `Macro internallink`_, `Macro lower`_, `Macro magicEmpty`_, `Macro metaSeq`_, `Macro metaString`_, `Macro property`_, `Macro quote`_, `Macro rdId`_, `Macro rdIdDotted`_, `Macro reSub`_, `Macro rootlessPath`_, `Macro schema`_, `Macro sourceDate`_, `Macro splitPreviewPath`_, `Macro sql_standardPubDID`_, `Macro sqlquote`_, `Macro srcstem`_, `Macro standardPreviewPath`_, `Macro test`_, `Macro today`_, `Macro upper`_, `Macro urlquote`_
+Macros predefined here: `Macro RSTservicelink`_, `Macro RSTtable`_, `Macro colNames`_, `Macro decapitalize`_, `Macro dlMetaURI`_, `Macro fullDLURL`_, `Macro getConfig`_, `Macro inputRelativePath`_, `Macro inputSize`_, `Macro internallink`_, `Macro lower`_, `Macro magicEmpty`_, `Macro metaSeq`_, `Macro metaString`_, `Macro property`_, `Macro quote`_, `Macro rdId`_, `Macro rdIdDotted`_, `Macro reSub`_, `Macro resdir`_, `Macro rootlessPath`_, `Macro schema`_, `Macro sourceDate`_, `Macro splitPreviewPath`_, `Macro sql_standardPubDID`_, `Macro sqlquote`_, `Macro srcstem`_, `Macro standardPreviewPath`_, `Macro test`_, `Macro today`_, `Macro upper`_, `Macro urlquote`_
 
 Element voTableGrammar
 ''''''''''''''''''''''
@@ -4596,7 +4594,7 @@ Other Children
   to string values) -- Properties (i.e., user-defined key-value pairs)
   for the element.
 
-Macros predefined here: `Macro RSTservicelink`_, `Macro RSTtable`_, `Macro colNames`_, `Macro decapitalize`_, `Macro dlMetaURI`_, `Macro fullDLURL`_, `Macro getConfig`_, `Macro inputRelativePath`_, `Macro inputSize`_, `Macro internallink`_, `Macro lower`_, `Macro magicEmpty`_, `Macro metaSeq`_, `Macro metaString`_, `Macro property`_, `Macro quote`_, `Macro rdId`_, `Macro rdIdDotted`_, `Macro reSub`_, `Macro rootlessPath`_, `Macro schema`_, `Macro sourceDate`_, `Macro splitPreviewPath`_, `Macro sql_standardPubDID`_, `Macro sqlquote`_, `Macro srcstem`_, `Macro standardPreviewPath`_, `Macro test`_, `Macro today`_, `Macro upper`_, `Macro urlquote`_
+Macros predefined here: `Macro RSTservicelink`_, `Macro RSTtable`_, `Macro colNames`_, `Macro decapitalize`_, `Macro dlMetaURI`_, `Macro fullDLURL`_, `Macro getConfig`_, `Macro inputRelativePath`_, `Macro inputSize`_, `Macro internallink`_, `Macro lower`_, `Macro magicEmpty`_, `Macro metaSeq`_, `Macro metaString`_, `Macro property`_, `Macro quote`_, `Macro rdId`_, `Macro rdIdDotted`_, `Macro reSub`_, `Macro resdir`_, `Macro rootlessPath`_, `Macro schema`_, `Macro sourceDate`_, `Macro splitPreviewPath`_, `Macro sql_standardPubDID`_, `Macro sqlquote`_, `Macro srcstem`_, `Macro standardPreviewPath`_, `Macro test`_, `Macro today`_, `Macro upper`_, `Macro urlquote`_
 
 Element xmlGrammar
 ''''''''''''''''''
@@ -4653,7 +4651,7 @@ Other Children
   to string values) -- Properties (i.e., user-defined key-value pairs)
   for the element.
 
-Macros predefined here: `Macro RSTservicelink`_, `Macro RSTtable`_, `Macro colNames`_, `Macro decapitalize`_, `Macro dlMetaURI`_, `Macro fullDLURL`_, `Macro getConfig`_, `Macro inputRelativePath`_, `Macro inputSize`_, `Macro internallink`_, `Macro lower`_, `Macro magicEmpty`_, `Macro metaSeq`_, `Macro metaString`_, `Macro property`_, `Macro quote`_, `Macro rdId`_, `Macro rdIdDotted`_, `Macro reSub`_, `Macro rootlessPath`_, `Macro schema`_, `Macro sourceDate`_, `Macro splitPreviewPath`_, `Macro sql_standardPubDID`_, `Macro sqlquote`_, `Macro srcstem`_, `Macro standardPreviewPath`_, `Macro test`_, `Macro today`_, `Macro upper`_, `Macro urlquote`_
+Macros predefined here: `Macro RSTservicelink`_, `Macro RSTtable`_, `Macro colNames`_, `Macro decapitalize`_, `Macro dlMetaURI`_, `Macro fullDLURL`_, `Macro getConfig`_, `Macro inputRelativePath`_, `Macro inputSize`_, `Macro internallink`_, `Macro lower`_, `Macro magicEmpty`_, `Macro metaSeq`_, `Macro metaString`_, `Macro property`_, `Macro quote`_, `Macro rdId`_, `Macro rdIdDotted`_, `Macro reSub`_, `Macro resdir`_, `Macro rootlessPath`_, `Macro schema`_, `Macro sourceDate`_, `Macro splitPreviewPath`_, `Macro sql_standardPubDID`_, `Macro sqlquote`_, `Macro srcstem`_, `Macro standardPreviewPath`_, `Macro test`_, `Macro today`_, `Macro upper`_, `Macro urlquote`_
 
 
 Cores Available
@@ -5263,7 +5261,7 @@ Structure Children
 * inputKeys (contains `Element inputKey`_ and may be repeated zero or
   more times) -- Input parameters for this table.
 
-Macros predefined here: `Macro RSTservicelink`_, `Macro RSTtable`_, `Macro decapitalize`_, `Macro getConfig`_, `Macro internallink`_, `Macro lower`_, `Macro magicEmpty`_, `Macro metaSeq`_, `Macro metaString`_, `Macro quote`_, `Macro rdId`_, `Macro rdIdDotted`_, `Macro reSub`_, `Macro schema`_, `Macro sql_standardPubDID`_, `Macro sqlquote`_, `Macro test`_, `Macro today`_, `Macro upper`_, `Macro urlquote`_
+Macros predefined here: `Macro RSTservicelink`_, `Macro RSTtable`_, `Macro decapitalize`_, `Macro getConfig`_, `Macro internallink`_, `Macro lower`_, `Macro magicEmpty`_, `Macro metaSeq`_, `Macro metaString`_, `Macro quote`_, `Macro rdId`_, `Macro rdIdDotted`_, `Macro reSub`_, `Macro resdir`_, `Macro schema`_, `Macro sql_standardPubDID`_, `Macro sqlquote`_, `Macro test`_, `Macro today`_, `Macro upper`_, `Macro urlquote`_
 
 Element metaMaker
 '''''''''''''''''
@@ -6241,6 +6239,20 @@ backslash-escaping them.
 
 Available in `Element FEED`_, `Element LFEED`_, `Element LOOP`_, `Element binaryGrammar`_, `Element cdfHeaderGrammar`_, `Element columnGrammar`_, `Element contextGrammar`_, `Element csvGrammar`_, `Element customGrammar`_, `Element dictlistGrammar`_, `Element embeddedGrammar`_, `Element fitsProdGrammar`_, `Element fitsTableGrammar`_, `Element freeREGrammar`_, `Element hdf5Grammar`_, `Element inputTable`_, `Element keyValueGrammar`_, `Element mixinDef`_, `Element mySQLDumpGrammar`_, `Element nullGrammar`_, `Element odbcGrammar`_, `Element outputTable`_, `Element pdsGrammar`_, `Element reGrammar`_, `Element resRec`_, `Element resource`_, `Element rowmaker`_, `Element rowsetGrammar`_, `Element service`_, `Element table`_, `Element transparentGrammar`_, `Element voTableGrammar`_, `Element xmlGrammar`_
 
+Macro resdir
+''''''''''''
+
+::
+
+  \resdir
+
+the input-relative resource directory of the current resource 
+descriptor.
+
+This never has a trailing slash.
+
+Available in `Element FEED`_, `Element LFEED`_, `Element LOOP`_, `Element binaryGrammar`_, `Element cdfHeaderGrammar`_, `Element columnGrammar`_, `Element contextGrammar`_, `Element csvGrammar`_, `Element customGrammar`_, `Element dictlistGrammar`_, `Element embeddedGrammar`_, `Element fitsProdGrammar`_, `Element fitsTableGrammar`_, `Element freeREGrammar`_, `Element hdf5Grammar`_, `Element inputTable`_, `Element keyValueGrammar`_, `Element mixinDef`_, `Element mySQLDumpGrammar`_, `Element nullGrammar`_, `Element odbcGrammar`_, `Element outputTable`_, `Element pdsGrammar`_, `Element reGrammar`_, `Element resRec`_, `Element resource`_, `Element rowmaker`_, `Element rowsetGrammar`_, `Element service`_, `Element table`_, `Element transparentGrammar`_, `Element voTableGrammar`_, `Element xmlGrammar`_
+
 Macro rootlessPath
 ''''''''''''''''''
 
@@ -6574,7 +6586,7 @@ The APIS extension
 :opt_elem:
   Optical element name
 :orientation:
-  Position angle of image y axis (on sky only)
+  Position angle of an image y-axis, in direct sense from north
 :platesc:
   pixel angular size or platescale (on sky only)
 :target_primary_hemisphere:
@@ -6640,9 +6652,8 @@ The common extension
 :messenger:
   Vector of measured signal, including electromagnetic band, from
   http://www.ivoa.net/rdf/messenger
-:original_publisher:
-  Refers to the source of the data, e. g., in compilations of
-  experimental data
+:processing_level_desc:
+  Describes specificities of the processing level
 :proposal_id:
   Proposal identifier
 :proposal_pi:
@@ -6732,10 +6743,16 @@ The contributive works extension
   Observer institute
 :observer_lat:
   Observer's approximate latitude
+:observer_location:
+  Broad, free-text location and geographic position of the observer or
+  telescope. Can be used when the exact location cannot be released
 :observer_lon:
   Observer's approximate longitude
 :observer_name:
   Observer name
+:original_publisher:
+  Refers to the source of the data, e. g., in compilations of
+  experimental data
 :producer_institute:
   Data producer institute, e. g., in compilations of experimental data
 :producer_name:
@@ -6767,7 +6784,7 @@ The experimental spectroscopy extension
 :grain_size_min:
   Min sample particle size
 :measurement_atmosphere:
-  Describes experimental conditions. ``vacuum`` for measurements under
+  Describes experimental conditions. ``vacuum'' for measurements under
   vacuum
 :pressure:
   Ambient pressure
@@ -6781,7 +6798,7 @@ The experimental spectroscopy extension
   (in addition to target_name). Intended to refer to a pre-existing
   catalogue of a collection, will therefore contain a name/id mainly for
   local use
-:sample_inchikey:
+:species_inchikey:
   Machine-readable description of the species involved. Can be a hash
   list
 :setup_desc:
@@ -6814,6 +6831,8 @@ The orbital elements extension
   Argument of Perihelion, J2000.0
 :eccentricity:
   Orbit eccentricity
+:epoch:
+  Epoch of interest
 :inclination:
   Orbit inclination
 :long_asc:
@@ -9064,7 +9083,7 @@ Late parameter *einstein_a*
   defaults to ``None``;
   Einstein A coefficient of the radiative transition.
 Late parameter *inchi*
-  International Chemical Identifier InChI. The main layer is mandatory, the charge, stereochemical, and isotopic layers are optional.
+  International Chemical Identifier InChI.
 Late parameter *inchikey*
   The InChi key (hash) generated from inchi.
 Late parameter *ion_charge*
@@ -9072,40 +9091,28 @@ Late parameter *ion_charge*
 Late parameter *line_reference*
   defaults to ``None``;
   Reference to the source of the line data; this could be a bibcode, a DOI, or a plain URI.
-Late parameter *line_strength*
-  defaults to ``None``;
-  Total absorption by a spectra line
 Late parameter *lower_energy*
   defaults to ``None``;
   Energy of the lower state (in J)
-Late parameter *lower_state_configuration*
-  defaults to ``None``;
-  Electronic configuration in the upper state
 Late parameter *mass_number*
   defaults to ``None``;
   Number of nucleons in the atom or molecule
 Late parameter *method*
   defaults to ``None``;
   Method the wavelength was obtained with (observed/theory/ritz)
-Late parameter *oscillator_strength*
-  defaults to ``None``;
-  Oscillator strength of the radiative transition.
 Late parameter *title*
   Human-readable line designation.
 Late parameter *upper_energy*
   defaults to ``None``;
   Energy of the upper state (in J)
-Late parameter *upper_state_configuration*
-  defaults to ``None``;
-  Electronic configuration in the upper state
 Late parameter *vacuum_wavelength*
   Vacuum wavelength of the transition (in Angstrom)
 Late parameter *vacuum_wavelength_error*
   defaults to ``None``;
-  Total error in vacuum_wavelength; this should be something like the FWHM of a Gaussian fit to the true distribution. (in Angstrom)
-Late parameter *weighted_oscillator_strength*
+  Total error in vacuum_wavelength (in Angstrom)
+Late parameter *xsams_uri*
   defaults to ``None``;
-  Weighted oscillator strength of the radiative transition
+  A URI for a full XSAMS description of this line.
 
 //procs#dictMap
 ...............
@@ -14895,7 +14902,7 @@ what the `//products#define`_ rowfilter in your grammar is for::
       <rowfilter procDef="//products#define">
         <bind key="path">\dlMetaURI{dl}</bind>
         <bind key="mime">'application/x-votable+xml;content=datalink'</bind>
-        <bind key="fsize">10000</bind>
+        <bind key="fize">10000</bind>
         [...]
       </rowfilter>
       [...]
@@ -16980,6 +16987,8 @@ to lower case, we do so here, too.
 "foo" "foo""l"
 >>> "Foo"<n1, n1>"bar"
 (False, True)
+>>> QuotedName('7oh-no"+rob').makeIdentifier()
+'id7oh2dno222brob'
 
 
 RD
