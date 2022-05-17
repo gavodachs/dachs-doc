@@ -4285,8 +4285,10 @@ In particular if running a busier site, you should also look into
 configuring your Postgres.  There are many guides on this on the net;
 before delving into any of these, you may want to have a brief look at
 `this blog post`_ discussing relatively DaCHS-specific configuration
-issues.
+issues.  When you have larger tables, you should also have a look at a
+`post on parallel queries`_.
 
+.. _post on parallel queries: https://blog.g-vo.org/parallel-queries.html
 .. _this blog post: https://blog.g-vo.org/taming-the-postgres-jit/
 
 
