@@ -6784,7 +6784,7 @@ The experimental spectroscopy extension
 :grain_size_min:
   Min sample particle size
 :measurement_atmosphere:
-  Describes experimental conditions. ``vacuum'' for measurements under
+  Describes experimental conditions. “vacuum“ for measurements under
   vacuum
 :pressure:
   Ambient pressure
@@ -10101,6 +10101,93 @@ Otherwise, no cutout will be performed.
 * wavelengthOverride: 'None'
 
 
+
+Streams for building conditions on dbCores
+''''''''''''''''''''''''''''''''''''''''''
+
+//procs#rangeCond
+.................
+
+
+A condDesc that expresses a range and has an InputKey each for min
+and max.
+
+Specify the following macros when replaying:
+
+* name -- the column name in the core's queried table
+* groupdesc -- a terse phrase describing the range.  This will be
+  used in the description of both the input keys and the group
+* grouplabel -- a label (include the unit, it is not taken from InputKey)
+  written in front of the form group
+
+groupdesc has to work after "Range of", "Lower bound of", and
+"Upper bound of".  Do not include a concluding period.
+
+
+//procs#negatableBoolean
+........................
+
+
+A condDesc over a boolean column.
+
+By default, DaCHS does not distinguish between False and NULL when
+auto-generating input keys from boolean columns.  That is, you can 
+check a checkbox and will get everything where the column is
+true.  If you do not check it, however, you will get everything, i.e.,
+rows in which the column is any of NULL, True, or False.  That's pretty
+much the semantics of HTML checkboxes.
+
+However, when you want people to be able to explicitly say “this should
+be off“, you need to be a bit more cunning.  That is what this
+stream does; when you have a boolean column ``my_bool``, you can
+have::
+
+  <FEED source="//procs#negatableBoolean" column="my_bool"/>
+
+next to your other condDescs in the dbCore.  This will then
+produce a three-way selection between Yes, No, and ANY.
+
+
+//ssap#hcd_condDescs
+....................
+
+
+This stream defines the condDescs for an SSA service based on
+one of the mixins defined here.
+
+
+//scs#coreDescs
+...............
+
+
+This stream inserts three condDescs for SCS services on tables with
+pos.eq.(ra|dec).main columns; one producing the standard SCS RA, 
+DEC, and SR parameters, another creating input fields for human
+consumption, and finally MAXREC.
+
+
+//pql#DALIPars
+..............
+
+
+This stream includes the standard DALI service parameters
+(RESPONSEFORMAT, MAXREC, VERB).  For services available through
+IVOA-standard protocols (renderers scs.xml, siap.xml, ssap.xml,
+and also api), this is included automatically, so you will
+not usually have to manually FEED this.
+
+
+//pql#DALIUpload
+................
+
+
+This stream includes a DALI UPLOAD parameter.  This is purely
+declarative for now, as the interpretation is done anyway
+for VO renderers and not at all otherwise.
+
+
+
+
 Other Streams
 '''''''''''''
 
@@ -10175,26 +10262,6 @@ Example::
   <FEED source="//procs#license-cc-by-sa" what="the HSOY catalogue"/>
 
 
-//pql#DALIPars
-..............
-
-
-This stream includes the standard DALI service parameters
-(RESPONSEFORMAT, MAXREC, VERB).  For services available through
-IVOA-standard protocols (renderers scs.xml, siap.xml, ssap.xml,
-and also api), this is included automatically, so you will
-not usually have to manually FEED this.
-
-
-//pql#DALIUpload
-................
-
-
-This stream includes a DALI UPLOAD parameter.  This is purely
-declarative for now, as the interpretation is done anyway
-for VO renderers and not at all otherwise.
-
-
 //obscore#obscore-columns
 .........................
 
@@ -10204,14 +10271,6 @@ to define a "native" obscore table (as opposed to the more usual
 mixins below that expose standard products via obscore.
 
 Even if you are sure you want to do this, better ask again...
-
-
-//ssap#hcd_condDescs
-....................
-
-
-This stream defines the condDescs for an SSA service based on
-one of the mixins defined here.
 
 
 //ssap#atomicCoords
@@ -10249,16 +10308,6 @@ on it.
 
 Additional columns for SSA metadata tables describing Echelle
 spectra.
-
-
-//scs#coreDescs
-...............
-
-
-This stream inserts three condDescs for SCS services on tables with
-pos.eq.(ra|dec).main columns; one producing the standard SCS RA, 
-DEC, and SR parameters, another creating input fields for human
-consumption, and finally MAXREC.
 
 
 //scs#splitPosIndex
@@ -17872,6 +17921,7 @@ object also has the following methods:
 * getById(id), returning the unique element with id and raising an 
   assertion error if that doesn't exist.
 * getByID(id), as getById, by for VOTable-style ID.
+* asString(), returning a string representation of the tree
 
 
 Function hmsToDeg

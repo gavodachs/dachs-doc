@@ -283,19 +283,31 @@ Datalink-related Streams
       "sdm_format", "fits_genKindPar", "fits_genPixelPar",
       "fits_standardDLFuncs", "fits_standardBANDCutout"]])
 
+
+Streams for building conditions on dbCores
+''''''''''''''''''''''''''''''''''''''''''
+
+.. replaceWithResult getStreamsDoc([
+      "//procs#rangeCond", "//procs#negatableBoolean",
+      "//ssap#hcd_condDescs",
+      "//scs#coreDescs"]
+    +["//pql#"+id for id in ["DALIPars", "DALIUpload"]]
+    )
+
+
 Other Streams
 '''''''''''''
 
-.. replaceWithResult getStreamsDoc(
-    ["//procs#declare-indexes-from"]
-    +["//procs#license-cc0", "//procs#license-cc-by", 
-     "//procs#license-cc-by-sa"]
-    +["//pql#"+id for id in ["DALIPars", "DALIUpload"]]
+.. replaceWithResult getStreamsDoc([
+      "//procs#declare-indexes-from",
+      "//procs#license-cc0", 
+      "//procs#license-cc-by", 
+      "//procs#license-cc-by-sa"]
     +['//obscore#obscore-columns']
-    +['//ssap#'+id for id in ["hcd_condDescs", "atomicCoords",
+    +['//ssap#'+id for id in ["atomicCoords",
       "obscore-time-index"]]
-    +['//echelle#'+id for id in ["ssacols"]]
-    +['//scs#'+id for id in ["coreDescs", "splitPosIndex",
+    +["//echelle#ssacols"]
+    +['//scs#'+id for id in ["splitPosIndex",
       "spoint-index-def"]])
 
 
