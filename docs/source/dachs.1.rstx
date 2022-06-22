@@ -538,7 +538,7 @@ THE limits SUBCOMMAND
 
 Synopsis::
 
-  dachs limits [-h] item-id {item-id}
+  dachs limits [-h] [-t] [-s P] [-d] itemId [itemId ...]
 
 This creates or updates DaCHS' estimates of various metadata of RDs
 or tables, in particular the STC coverage, the size of the tables and,
@@ -559,7 +559,7 @@ You should in general run ``dachs limits`` before publishing a resource.
 Arguments
 ---------
 
-item-id
+itemId
   either an RD id or a table reference in the from rd-id#table-id.
   A single ALL will expand to all RDs that already have limits-obtained 
   metadata.

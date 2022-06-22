@@ -1504,7 +1504,7 @@ speaking SCS
 is TOPCAT_; to try it out, in TOPCAT select VO/Cone Search and fill
 out the Cone URL field in the lower part of the window to be
 ``http://localhost:8080/arihip/q/cone/scs.xml``.  Enter some object name
-and a sufficiently large search radius (e.g., Aldebaran and 0.5
+and a sufficiently large search radius (e.g., Aldebaran and 2
 degrees), and you'll see the results coming in.
 
 In case you're missing the mv parameter you had in the form interface: 

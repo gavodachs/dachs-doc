@@ -140,7 +140,7 @@ Atomic Children
 * **doc** (unicode string; defaults to '') -- Human-readable docs for
   this proc (may be interpreted as restructured text).
 * **name** (unicode string; defaults to <Not given/empty>) -- A name
-  of the proc.  ProcApps compute their (python) names to be somwhat
+  of the proc.  ProcApps compute their (python) names to be somewhat
   random strings.  Set a name manually to receive more easily
   decipherable error messages.  If you do that, you have to care about
   name clashes yourself, though.
@@ -301,7 +301,7 @@ Other Children
 ..............
 
 * **dmRoles** (read-only list of roles played by this column in DMs;
-  defaults to []) -- Roles played by this column; cannot be asigned
+  defaults to []) -- Roles played by this column; cannot be assigned
   to.
 * **meta** -- a piece of meta information, giving at least a name and
   some content.  See Metadata_ on what is permitted here.
@@ -447,7 +447,7 @@ can deal with.  You could, e.g., write::
 You can use the request to fetch request parameters.  Within DaCHS,
 in addition to the clumsy request.args (mapping bytes to bytes), there
 is also request.strargs (mapping strings to strings).  So, access a 
-query paramter ``order`` like this::
+query parameter ``order`` like this::
 
   sortOrder = ctx.request.strargs.get("order", ["authors"])
 
@@ -688,7 +688,7 @@ Atomic Children
   given/empty>) -- One or more hour:minute pairs at which to run the
   code each day.  This conflicts with every.  Optionally, you can
   prefix each time by one of m<dom> or w<dow> for jobs only to be
-  exectued at some day of the month or week, both counted from 1.  So,
+  executed at some day of the month or week, both counted from 1.  So,
   'm22 7:30, w3 15:02' would execute on the 22nd of each month at 7:30
   UTC and on every wednesday at 15:02.
 * **debug** (boolean; defaults to 'False') -- If true, on execution of
@@ -927,7 +927,7 @@ in the metadata; writing::
 
   <index columns="col1, col2, col3"/>
 
-is sufficent for that.
+is sufficient for that.
 
 May occur in `Element table`_, `Element outputTable`_.
 
@@ -946,7 +946,7 @@ Atomic Children
   you usually want).
 * **kind** (unicode string; defaults to 'straight') -- A tag on the
   index; this is used by the ADQL translation engine in some
-  situations.  Consider it a DaCHS implemenation detail and ignore it
+  situations.  Consider it a DaCHS implementation detail and ignore it
   for now.
 * **metaOnly** (unicode string; defaults to False) -- Do not tell the
   database to actually create the index, just declare it in the
@@ -1078,7 +1078,7 @@ Other Children
 ..............
 
 * **dmRoles** (read-only list of roles played by this column in DMs;
-  defaults to []) -- Roles played by this column; cannot be asigned
+  defaults to []) -- Roles played by this column; cannot be assigned
   to.
 * **meta** -- a piece of meta information, giving at least a name and
   some content.  See Metadata_ on what is permitted here.
@@ -1129,7 +1129,7 @@ Atomic Children
 * **doc** (unicode string; defaults to '') -- Human-readable docs for
   this proc (may be interpreted as restructured text).
 * **name** (unicode string; defaults to <Not given/empty>) -- A name
-  of the proc.  ProcApps compute their (python) names to be somwhat
+  of the proc.  ProcApps compute their (python) names to be somewhat
   random strings.  Set a name manually to receive more easily
   decipherable error messages.  If you do that, you have to care about
   name clashes yourself, though.
@@ -1299,7 +1299,7 @@ should think of DC structures as immutable as long as possible.
 Programmatically, you can check if a certain table mixes in 
 something by calling its mixesIn method.
 
-Recursive application of mixins, even to seperate objects, will deadlock.
+Recursive application of mixins, even to separate objects, will deadlock.
 
 May occur in `Element resource`_.
 
@@ -1355,7 +1355,7 @@ Atomic Children
 * Character content of the element (defaulting to <Not given/empty>)
   -- The default for the parameter. A __NULL__ here does not directly
   mean None/NULL, but since the content will frequently end up in
-  attributes, it will ususally work as presetting None. An empty
+  attributes, it will usually work as presetting None. An empty
   content means a non-preset parameter, which must be filled in
   applications.  The magic value __EMPTY__ allows presetting an empty
   string.
@@ -1481,7 +1481,7 @@ Atomic Children
 * **verbLevel** (integer; defaults to '20') -- Minimal verbosity level
   at which to include this column
 * **wantsRow** (boolean; defaults to None) -- Does formatter expect
-  the entire row rather than the colum value only?
+  the entire row rather than the column value only?
 * **xtype** (unicode string; defaults to None) -- VOTable xtype giving
   the serialization form; you usually do *not* want to set this, as
   the xtypes actually used are computed from database type. DaCHS
@@ -1496,7 +1496,7 @@ Other Children
 ..............
 
 * **dmRoles** (read-only list of roles played by this column in DMs;
-  defaults to []) -- Roles played by this column; cannot be asigned
+  defaults to []) -- Roles played by this column; cannot be assigned
   to.
 * **meta** -- a piece of meta information, giving at least a name and
   some content.  See Metadata_ on what is permitted here.
@@ -1745,7 +1745,7 @@ Other Children
 ..............
 
 * **dmRoles** (read-only list of roles played by this column in DMs;
-  defaults to []) -- Roles played by this column; cannot be asigned
+  defaults to []) -- Roles played by this column; cannot be assigned
   to.
 * **meta** -- a piece of meta information, giving at least a name and
   some content.  See Metadata_ on what is permitted here.
@@ -1828,7 +1828,7 @@ Atomic Children
 * **doc** (unicode string; defaults to '') -- Human-readable docs for
   this proc (may be interpreted as restructured text).
 * **name** (unicode string; defaults to <Not given/empty>) -- A name
-  of the proc.  ProcApps compute their (python) names to be somwhat
+  of the proc.  ProcApps compute their (python) names to be somewhat
   random strings.  Set a name manually to receive more easily
   decipherable error messages.  If you do that, you have to care about
   name clashes yourself, though.
@@ -1858,7 +1858,7 @@ An embedded procedure.
 
 Embedded procedures are python code fragments with some interface defined
 by their type.  They can occur at various places (which is called procedure
-application generically), e.g., as row generators in grammars, as applys in
+application generically), e.g., as row generators in grammars, as apply-s in
 rowmakers, or as SQL phrase makers in condDescs.
 
 They consist of the actual actual code and, optionally, definitions like
@@ -1922,7 +1922,7 @@ Atomic Children
 * **doc** (unicode string; defaults to '') -- Human-readable docs for
   this proc (may be interpreted as restructured text).
 * **name** (unicode string; defaults to <Not given/empty>) -- A name
-  of the proc.  ProcApps compute their (python) names to be somwhat
+  of the proc.  ProcApps compute their (python) names to be somewhat
   random strings.  Set a name manually to receive more easily
   decipherable error messages.  If you do that, you have to care about
   name clashes yourself, though.
@@ -1970,7 +1970,7 @@ Atomic Children
 * **doc** (unicode string; defaults to '') -- Human-readable docs for
   this proc (may be interpreted as restructured text).
 * **name** (unicode string; defaults to <Not given/empty>) -- A name
-  of the proc.  ProcApps compute their (python) names to be somwhat
+  of the proc.  ProcApps compute their (python) names to be somewhat
   random strings.  Set a name manually to receive more easily
   decipherable error messages.  If you do that, you have to care about
   name clashes yourself, though.
@@ -2130,7 +2130,7 @@ Atomic Children
 * **doc** (unicode string; defaults to '') -- Human-readable docs for
   this proc (may be interpreted as restructured text).
 * **name** (unicode string; defaults to <Not given/empty>) -- A name
-  of the proc.  ProcApps compute their (python) names to be somwhat
+  of the proc.  ProcApps compute their (python) names to be somewhat
   random strings.  Set a name manually to receive more easily
   decipherable error messages.  If you do that, you have to care about
   name clashes yourself, though.
@@ -2185,7 +2185,7 @@ Atomic Children
   [db]queryProfiles from gavorc) -- A (comma separated) list of
   profile names through which the object can be read.
 * **require** (unicode string; defaults to None) -- Import the named
-  gavo module (for when you need something registred)
+  gavo module (for when you need something registered)
 * **resdir** (unicode string; defaults to None) -- Base directory for
   source files and everything else belonging to the resource.  Use a
   single dot (.) to say 'the directory the RD resides in', which is
@@ -2221,7 +2221,7 @@ Structure Children
 * outputTables (contains `Element outputTable`_ and may be repeated
   zero or more times) -- Canned output tables for later reference.
 * procDefs (contains `Element procDef`_ and may be repeated zero or
-  more times) -- Procedure definintions (rowgens, rowmaker applys)
+  more times) -- Procedure definintions (rowgens, rowmaker apply-s)
 * resRecs (contains `Element resRec`_ and may be repeated zero or more
   times) -- Non-service resources for the IVOA registry.  They will be
   published when gavo publish is run on the RD.
@@ -2264,7 +2264,7 @@ You must further set the following meta items:
 
    - resType specifying the kind of resource record.  You should not
      use this element to build resource records for services or tables
-     (use the normal elements, even if the actual resouces are external
+     (use the normal elements, even if the actual resources are external
      to DaCHS).  resType can be registry, organization, authority, 
      deleted, or anything else for which registry.builders has a
      handling class.
@@ -2306,7 +2306,7 @@ ready for shipout.
 
 Rowmakers consist of variables, procedures and mappings.  They
 result in a python callable doing the mapping.  In python code
-withing rowmaker elements, you can use a large number of functions.
+within rowmaker elements, you can use a large number of functions.
 See `Functions available for row makers`_ in the reference documentation.
 
 RowmakerDefs double as macro packages for the expansion of various
@@ -2326,11 +2326,12 @@ Atomic Children
 
 * **idmaps** (Comma-separated list of strings; defaults to '') -- List
   of column names that are just "mapped through" (like map with key
-  only); you can use shell patterns to select multiple colums at once.
+  only); you can use shell patterns to select multiple columns at
+  once.
 * **original** (id reference; defaults to None) -- An id of an element
   to base the current one on.  This provides a simple inheritance
   method.  The general rules for advanced referencing in RDs apply.
-* **simplemaps** (Comma-separated list of <identifer>:<identifier>
+* **simplemaps** (Comma-separated list of <identifier>:<identifier>
   pairs; defaults to None) -- Abbreviated notation for <map source>;
   each pair is destination:source
 
@@ -2416,11 +2417,11 @@ Atomic Children
 ...............
 
 * **allowed** (Comma-separated list of strings; defaults to '') --
-  Names of renderers allowed on this service; leave emtpy to allow the
+  Names of renderers allowed on this service; leave empty to allow the
   form renderer only.
 * **core** (id reference; defaults to <Undefined>) -- The core that
   does the computations for this service.  Instead of a reference, you
-  can use an immediate element of some registred core.
+  can use an immediate element of some registered core.
 * **customPage** (unicode string; defaults to None) -- resdir-relative
   path to custom page code.  It is used by the 'custom' renderer
 * **defaultRenderer** (unicode string; defaults to None) -- A name of
@@ -2720,7 +2721,7 @@ Atomic Children
 
 * Character content of the element (defaulting to '') -- Base for URL
   generation; embedded whitespace will be removed, so you're free to
-  break those whereever you like.
+  break those wherever you like.
 * **httpAuthKey** (unicode string; defaults to <Not given/empty>) -- A
   key into ~/.gavo/test.creds to find a user/password pair for this
   request.
@@ -2760,10 +2761,10 @@ Element values
 Information on a column's values, in particular its domain.
 
 This is quite like the values element in a VOTable.  In particular,
-to accomodate VOTable usage, we require nullLiteral to be a valid literal
+to accommodate VOTable usage, we require nullLiteral to be a valid literal
 for the parent's type.
 
-Note that DaCHS does not validate for contraints from values on
+Note that DaCHS does not validate for constraints from values on
 table import.  This is mainly because before ``dachs limits`` has run,
 values may not represent the new dataset in semiautomatic values.
 
@@ -3255,7 +3256,7 @@ usually are atomic, or, preferably, the dictionaries of lists
 from request.strargs.
 
 ContextGrammars never yield rows, so they're probably fairly useless
-in normal cirumstances.
+in normal circumstances.
 
 In normal usage, they just yield a single parameter row,
 corresponding to the source dictionary possibly completed with
@@ -3323,7 +3324,7 @@ column names.
 CSVGrammars currently do not support non-ASCII inputs.
 Contact the authors if you need that.
 
-If data is left after filling the defind keys, it is available under
+If data is left after filling the defined keys, it is available under
 the NOTASSIGNED key.
 
 
@@ -3864,7 +3865,7 @@ Atomic Children
 * **doc** (unicode string; defaults to '') -- Human-readable docs for
   this proc (may be interpreted as restructured text).
 * **name** (unicode string; defaults to <Not given/empty>) -- A name
-  of the proc.  ProcApps compute their (python) names to be somwhat
+  of the proc.  ProcApps compute their (python) names to be somewhat
   random strings.  Set a name manually to receive more easily
   decipherable error messages.  If you do that, you have to care about
   name clashes yourself, though.
@@ -3987,7 +3988,7 @@ Atomic Children
 * **doc** (unicode string; defaults to '') -- Human-readable docs for
   this proc (may be interpreted as restructured text).
 * **name** (unicode string; defaults to <Not given/empty>) -- A name
-  of the proc.  ProcApps compute their (python) names to be somwhat
+  of the proc.  ProcApps compute their (python) names to be somewhat
   random strings.  Set a name manually to receive more easily
   decipherable error messages.  If you do that, you have to care about
   name clashes yourself, though.
@@ -4205,7 +4206,7 @@ self.sourceToken, and the grammar as self.grammar.
 
 It is guaranteed that the pargetter is called exactly once before
 the iterator runs.  Hence, if you have expensive initialisation
-to do, do it in the pargetter and pass the result to the interator,
+to do, do it in the pargetter and pass the result to the iterator,
 typically somehow in the sourceToken.
 
 May occur in `Element embeddedGrammar`_.
@@ -4220,7 +4221,7 @@ Atomic Children
 * **doc** (unicode string; defaults to '') -- Human-readable docs for
   this proc (may be interpreted as restructured text).
 * **name** (unicode string; defaults to <Not given/empty>) -- A name
-  of the proc.  ProcApps compute their (python) names to be somwhat
+  of the proc.  ProcApps compute their (python) names to be somewhat
   random strings.  Set a name manually to receive more easily
   decipherable error messages.  If you do that, you have to care about
   name clashes yourself, though.
@@ -4397,7 +4398,7 @@ Atomic Children
 * **doc** (unicode string; defaults to '') -- Human-readable docs for
   this proc (may be interpreted as restructured text).
 * **name** (unicode string; defaults to <Not given/empty>) -- A name
-  of the proc.  ProcApps compute their (python) names to be somwhat
+  of the proc.  ProcApps compute their (python) names to be somewhat
   random strings.  Set a name manually to receive more easily
   decipherable error messages.  If you do that, you have to care about
   name clashes yourself, though.
@@ -4491,7 +4492,7 @@ Atomic Children
 * **doc** (unicode string; defaults to '') -- Human-readable docs for
   this proc (may be interpreted as restructured text).
 * **name** (unicode string; defaults to <Not given/empty>) -- A name
-  of the proc.  ProcApps compute their (python) names to be somwhat
+  of the proc.  ProcApps compute their (python) names to be somewhat
   random strings.  Set a name manually to receive more easily
   decipherable error messages.  If you do that, you have to care about
   name clashes yourself, though.
@@ -4719,7 +4720,7 @@ Atomic Children
 * **doc** (unicode string; defaults to '') -- Human-readable docs for
   this proc (may be interpreted as restructured text).
 * **name** (unicode string; defaults to <Not given/empty>) -- A name
-  of the proc.  ProcApps compute their (python) names to be somwhat
+  of the proc.  ProcApps compute their (python) names to be somewhat
   random strings.  Set a name manually to receive more easily
   decipherable error messages.  If you do that, you have to care about
   name clashes yourself, though.
@@ -4750,7 +4751,7 @@ A wrapper around a core defined in a module.
 This core lets you write your own cores in modules.
 
 The module must define a class Core.  When the custom core is
-encountered, this class will be instanciated and will be used
+encountered, this class will be instantiated and will be used
 instead of the CustomCore, so your code should probably inherit 
 core.Core.
 
@@ -4786,7 +4787,7 @@ Element dataFormatter
 
 A procedure application that renders data in a processed service.
 
-These play the role of the renderer, which for datalink is ususally
+These play the role of the renderer, which for datalink is usually
 trivial.  They are supposed to take descriptor.data and return
 a pair of (mime-type, bytes), which is understood by most renderers.
 
@@ -4822,7 +4823,7 @@ Atomic Children
 * **doc** (unicode string; defaults to '') -- Human-readable docs for
   this proc (may be interpreted as restructured text).
 * **name** (unicode string; defaults to <Not given/empty>) -- A name
-  of the proc.  ProcApps compute their (python) names to be somwhat
+  of the proc.  ProcApps compute their (python) names to be somewhat
   random strings.  Set a name manually to receive more easily
   decipherable error messages.  If you do that, you have to care about
   name clashes yourself, though.
@@ -4897,7 +4898,7 @@ Atomic Children
 * **doc** (unicode string; defaults to '') -- Human-readable docs for
   this proc (may be interpreted as restructured text).
 * **name** (unicode string; defaults to <Not given/empty>) -- A name
-  of the proc.  ProcApps compute their (python) names to be somwhat
+  of the proc.  ProcApps compute their (python) names to be somewhat
   random strings.  Set a name manually to receive more easily
   decipherable error messages.  If you do that, you have to care about
   name clashes yourself, though.
@@ -4963,8 +4964,8 @@ Structure Children
   more times) -- A parameter to one of the proc apps (data functions,
   formatters) active in this datalink core; no specific relation
   between input keys and procApps is supposed; all procApps are passed
-  all argments. Conventionally, you will write the input keys in front
-  of the proc apps that interpret them.
+  all arguments. Conventionally, you will write the input keys in
+  front of the proc apps that interpret them.
 * inputTable (contains `Element inputTable`_) -- Description of the
   input data
 * metaMakers (contains `Element metaMaker`_ and may be repeated zero
@@ -5080,7 +5081,7 @@ The following names are available to the code:
 
   - pubDID -- the pubDID to be resolved
   - args -- all the arguments that came in from the web
-    (these should not ususally be necessary for making the descriptor
+    (these should not usually be necessary for making the descriptor
     and are completely unparsed at this point)
   - FITSProductDescriptor -- the base class of FITS product descriptors
   - DLFITSProductDescriptor -- the same, just for when the product table
@@ -5113,7 +5114,7 @@ Atomic Children
 * **doc** (unicode string; defaults to '') -- Human-readable docs for
   this proc (may be interpreted as restructured text).
 * **name** (unicode string; defaults to <Not given/empty>) -- A name
-  of the proc.  ProcApps compute their (python) names to be somwhat
+  of the proc.  ProcApps compute their (python) names to be somewhat
   random strings.  Set a name manually to receive more easily
   decipherable error messages.  If you do that, you have to care about
   name clashes yourself, though.
@@ -5344,7 +5345,7 @@ Atomic Children
 * **doc** (unicode string; defaults to '') -- Human-readable docs for
   this proc (may be interpreted as restructured text).
 * **name** (unicode string; defaults to <Not given/empty>) -- A name
-  of the proc.  ProcApps compute their (python) names to be somwhat
+  of the proc.  ProcApps compute their (python) names to be somewhat
   random strings.  Set a name manually to receive more easily
   decipherable error messages.  If you do that, you have to care about
   name clashes yourself, though.
@@ -5380,7 +5381,7 @@ A core always returning None.
 
 This core will not work with the common renderers.  It is really
 intended to go with coreless services (i.e. those in which the
-renderer computes everthing itself and never calls service.runX).
+renderer computes everything itself and never calls service.runX).
 As an example, the external renderer could go with this.
 
 
@@ -5414,7 +5415,7 @@ A core retrieving paths and/or data from the product table.
 You will not usually mention this core in your RDs.  It is mainly
 used internally to serve /getproduct queries.
 
-It is instanciated from within //products.rd and relies on
+It is instantiated from within //products.rd and relies on
 tables within that RD.
 
 The input data consists of accref; you can use the string form
@@ -5429,7 +5430,7 @@ instance in //products for each case.
 The core returns a list of instances of a subclass of ProductBase above.
 
 This core and its supporting machinery handles all the fancy product
-functionality (user autorisation, cutouts, ...).
+functionality (user authorization, cutouts, ...).
 
 
 Atomic Children
@@ -5920,7 +5921,7 @@ Macro dlMetaURI
 
 returns a link to the datalink document for the current product.
 
-This assumes you're assinging standard pubDIDs (see also standardPubDID,
+This assumes you're assigning standard pubDIDs (see also standardPubDID,
 which is used by this).
 
 dlId is the XML id of the datalink service, which is supposed to
@@ -6427,7 +6428,7 @@ returns the "standard publisher DID" for the current product.
 
 The publisher dataset identifier (PubDID) is important in protocols like
 SSAP and obscore.  If you use this macro, the PubDID will be your
-authority, the path compontent ~, and the current value of @prodtblAccref.
+authority, the path component ~, and the current value of @prodtblAccref.
 It thus will only work where products#define (or a replacement) is in
 action.  If it isn't, a normal function call
 getStandardPubDID(\\\\inputRelativePath) would be an obvious alternative.
@@ -6562,7 +6563,7 @@ This means that grammars feeding such tables need a
     <bind name="table">"\schema.epn_core"</bind>
   </rowfilter>
 
-If you absolutely cannot use //products#define, you will hve 
+If you absolutely cannot use //products#define, you will have 
 to manually provide the prodtblFsize (file size in *bytes*),
 prodtblAccref (product URL), and prodtblPreview (thumbnail image
 or None) keys in what's coming from your grammar.
@@ -7198,7 +7199,7 @@ The //obscore#publishSIAP Mixin
 Publish a PGS SIAP table to ObsTAP.
 
 This works like //obscore#publish except some defaults apply
-that copy fields that work analoguously in SIAP and in ObsTAP.
+that copy fields that work analogously in SIAP and in ObsTAP.
 
 For special situations, you can, of course, override any
 of the parameters, but most of them should already be all right.
@@ -7338,7 +7339,7 @@ Publish a table mixing in //ssap#view (or the deprecated //ssap#mixc)
 to ObsTAP.
 
 This works like `the //obscore#publish mixin`_ except some defaults apply
-that copy fields that work analoguously in SSAP and in ObsTAP.
+that copy fields that work analogously in SSAP and in ObsTAP.
 
 The columns already set in SSAP are marked as UNDOCUMENTED in the
 parameter list below.  For special situations, you can, of course,
@@ -7832,7 +7833,7 @@ exception here).  Save typing by having the final column names
 in the source table and using the ``copiedcolumns`` mixin par.
 
 If you have positions for your spectra, you probably want to also mix in
-`the //ssap#plainlocation mixin`_ in the origial table in order to have
+`the //ssap#plainlocation mixin`_ in the original table in order to have
 indexed positions in a way suitable for SSA queries.
 
 In general, you will have to generate indices on the source table; 
@@ -8271,7 +8272,7 @@ and the errors come in VOSI VOTables.  The renderer does, however,
 evaluate basic DALI parameters.  You can declare that by
 including <FEED source="//pql#DALIPars"/> in your service.
 
-These will return basic serice metadata if passed MAXREC=0.
+These will return basic service metadata if passed MAXREC=0.
 
 
 The async Renderer
@@ -8281,7 +8282,7 @@ The async Renderer
 
 A renderer speaking UWS.
 
-This is for asynchronous exection of larger jobs.  This is what is executed
+This is for asynchronous execution of larger jobs.  This is what is executed
 by the async renderer.  It requests the worker system required from the
 service, which in turn obtains it from the core; these must hence
 cooperate with this to allow async operation.
@@ -8456,7 +8457,7 @@ Here's the custom interpreted text roles:
   to the table description.
 * *genparam*: A "generic parameter" as defined by DALI.  The values
   of these have the form param(value), e.g., :genparam:\`POS(32,4)\`.
-  Right now, not parantheses are allowed in the value.  Complain
+  Right now, not parentheses are allowed in the value.  Complain
   if this bites you.
 
 These are the custom directives:
@@ -8502,7 +8503,7 @@ service using customRF and customDF.
 This is, in particular, used for the data center's root page.
 
 The fixed renderer is intended for non- or slowly changing content.
-It is annotated as cachable, which means that DaCHS will in general
+It is annotated as cacheable, which means that DaCHS will in general
 only render it once and then cache it.  If the render functions
 change independently of the RD, use the volatile renderer.
 
@@ -8861,7 +8862,7 @@ The uws.xml Renderer
 
 A renderer speaking UWS.
 
-This is for asynchronous exection of larger jobs.  This is what is executed
+This is for asynchronous execution of larger jobs.  This is what is executed
 by the async renderer.  It requests the worker system required from the
 service, which in turn obtains it from the core; these must hence
 cooperate with this to allow async operation.
@@ -9422,7 +9423,7 @@ Late parameter *wavelength*
 
 feedSSAToSDM takes the current rowIterator's sourceToken and
 feeds it to the params of the current target.  sourceTokens must
-be an SSA rowdict (as provided by the sdmCore).  Futher, it takes
+be an SSA rowdict (as provided by the sdmCore).  Further, it takes
 the params from the sourceTable argument and feeds them to the
 params, too.
 
@@ -9512,10 +9513,10 @@ Late parameter *specend*
   upper bound of wavelength interval (in meters); ssa:Char.SpectralAxis.Coverage.Bounds.Stop
 Late parameter *specext*
   defaults to ``None``;
-  (ignored; only present for compatiblity, computed from specstart and specend)
+  (ignored; only present for compatibility, computed from specstart and specend)
 Late parameter *specmid*
   defaults to ``None``;
-  (ignored; only present for compatiblity, computed from specstart and specend)
+  (ignored; only present for compatibility, computed from specstart and specend)
 Late parameter *specstart*
   defaults to ``None``;
   lower bound of wavelength interval (in meters); ssa:Char.SpectralAxis.Coverage.Bounds.Start
@@ -9604,7 +9605,7 @@ Procedures available for grammar rowfilters
 ...................
 
 
-A row generator that reads comma seperated values from a
+A row generator that reads comma separated values from a
 field and returns one row with a new field for each of them.
 
 
@@ -9695,7 +9696,7 @@ Setup parameters for the procedure are:
 
 Late parameter *accref*
   defaults to ``\inputRelativePath{False}``;
-  an access reference (this ususally is the input-relative path; only file names well-behaved in URLs are accepted here by default for easier operation with ObsTAP)
+  an access reference (this usually is the input-relative path; only file names well-behaved in URLs are accepted here by default for easier operation with ObsTAP)
 Late parameter *datalink*
   defaults to ``None``;
   Legacy. Do not use.
@@ -10385,7 +10386,7 @@ following extra features are available:
   ``GAVOSETTINGS`` environment variable.  This is intended mainly for
   when everything DaCHS-related should be in a single, non-OS directory,
   such as when the DaCHS binaries sit in a container that should be readily
-  exchangable.  Another usage is when, on a development system, you want
+  exchangeable.  Another usage is when, on a development system, you want
   to be able to run DaCHS using the resources of the production system
   (but that is, obviously, a bit dangerous if the DaCHS versions on
   development and production are significantly different).
@@ -10665,7 +10666,7 @@ Settings related to serving content to the web.
   jurisdictions.
 * maxPreviewWidth: integer; 
   defaults to '300' --
-  Ignored, only present for backward compatiblity
+  Ignored, only present for backward compatibility
 * maxSyncUploadSize: integer; 
   defaults to '500000' --
   Maximal size of file uploads for synchronous TAP in bytes.
@@ -10863,10 +10864,10 @@ Updating Data Descriptors
 
 By default, ``dachs imp`` will try to drop all tables made by the data
 descriptors selected.  For “growing” data, that is suboptimal,
-since typicaly just a few new datasets need to be added to the table,
+since typically just a few new datasets need to be added to the table,
 and re-ingesting everything else is just a waste of time and CPU.
 
-To accomodate such situations, DaCHS allows to add an
+To accommodate such situations, DaCHS allows to add an
 ``updating="True"`` attribute to a ``data`` element; updating DDs will
 create tables that do not exist but will not drop existing ones.
 
@@ -10886,7 +10887,7 @@ sources to ignore.
 
 Hence, unless you are playing games with the accrefs (in which case you
 are probably smart enough to figure out how to adapt the pattern), the
-following speficiation will exactly import all FITS files within the
+following specification will exactly import all FITS files within the
 data subdirectory of the resdir that haven't been ingested into the
 ``mydata`` table during the last run, either because they've not been
 there or because there were skipped during an ``import -c``::
@@ -11831,7 +11832,7 @@ uses
   
 votlink
   A MetaValue serialized into VOTable links (or, ideally,
-  analoguous constructs).
+  analogous constructs).
   
   This exposes the various attributes of VOTable LINKs as href
   linkname, contentType, and role.  You cannot set ID here; if this ever
@@ -11866,10 +11867,10 @@ start with an underscore.  Among those are:
 
 :_intro:
   used by the standard HTML template for explanatory text
-  above the seach form.
+  above the search form.
 :_bottominfo:
   used by the standard HTML template for explanatory text
-  below the seach form.
+  below the search form.
 :_related:
   used in the standard HTML template for links to related
   services.  As listed above, this is a link, i.e., you can give a
@@ -11918,7 +11919,7 @@ start with an underscore.  Among those are:
 RMI-Style Metadata
 ''''''''''''''''''
 
-For services (and other things) that are registred in the Registry, you
+For services (and other things) that are registered in the Registry, you
 must give certain metadata items (and you can give more), where we take
 their keys from [RMI]_.  We provide a `explanatory leaflet
 <./data_checklist.pdf>`_ for data providers.  The most common keys --
@@ -11926,9 +11927,9 @@ used by the registry interface and in part by HTML and VOTable
 renderers -- include:
 
 :title:
-  this should in general be given seperately on the resource,
+  this should in general be given separately on the resource,
   each table, and each service.  In simple cases, though, you may get by
-  by just having one global title on the resource and rely on metdata
+  by just having one global title on the resource and rely on metadata
   inheritance.
 :shortName:
   a string that should indicate what the service is in 16
@@ -12164,7 +12165,7 @@ sepChar
 
 sf
   "Significant figures" -- length of the mantissa for this column.
-  Will probably be replaced by a column attribute analoguous to what
+  Will probably be replaced by a column attribute analogous to what
   VOTable does.
 
 type
@@ -12236,7 +12237,7 @@ Data Model Annotation
 =====================
 
 In the VO, data models are used when simple, more or less linear
-annotation methods like UCDs do not provide sufficent expressive power.
+annotation methods like UCDs do not provide sufficient expressive power.
 Or well, they should be used.  As of early 2017, things are, admittedly,
 still a mess.
 
@@ -12308,7 +12309,7 @@ The elements of SIL are:
   even allowed).
 
 * Sequences. This is like a list.  Members can be atomic or objects,
-  but they have to be homogenous (SIL doesn't enforce this by
+  but they have to be homogeneous (SIL doesn't enforce this by
   grammatical means, though.  Here is an object with two sequences::
 
     { seq1: [3 4 5 "You thought these were numbers? They're strings!"]
@@ -12887,7 +12888,7 @@ The column selection is influenced by:
   defining an output table, each output field gets a ``sets`` attribute
   (default: no set; use ALL to have the column included in all outputs).
   Then, add a ``_SET`` service parameter (use ``values`` do declare the
-  avaiable sets).  Note that the ``_SET`` parameter changes VOTable
+  available sets).  Note that the ``_SET`` parameter changes VOTable
   column selection to ``votableRespectsOutputTable`` mode as discussed
   above.  Services that use column sets should therefore set the
   property manually for consistency whether or not clients actually pass
@@ -13108,8 +13109,8 @@ which has to have the following signature::
 
   run(service, inputTable, queryMeta) -> stuff
 
-The stuff returned will ususally be a Table or Data instance (that need
-not match the outputTable definition -- the latter is targetted at the
+The stuff returned will usually be a Table or Data instance (that need
+not match the outputTable definition -- the latter is targeted at the
 registry and possibly applications like output field selection).  The
 standard renderers also accept a pair of mime type and a string
 containing some data and will deliver this as-is.  With custom
@@ -13118,7 +13119,7 @@ renderers, you could return basically anything you want.
 Services come up with some idea of the schema of the table they want to
 return and adapt tables coming out of the core to this.  Sometimes, you
 want to suppress this behaviour, e.g., because the service's ideas are
-off.  In that case, set a noPostprocess atttribute on the table to any
+off.  In that case, set a noPostprocess attribute on the table to any
 value (the TAP core does this, for instance).
 
 In ``service`` you get the service using the core; this may make a
@@ -13460,7 +13461,7 @@ URLs there.  Note that totesturl fails for values with embedded quotes,
 takes only the first value of repeated parameters and is a over-quick
 hack all around.  Patches are gratefully accepted.
 
-The ``url`` element hence accepts arbitary attributes, which can be a
+The ``url`` element hence accepts arbitrary attributes, which can be a
 trap if you think you've given values to url's private attributes and
 mistyped their names.  If uploads or authentication don't seem to
 happen, check if your attribute ended up the in the URL (which is
@@ -14061,7 +14062,7 @@ When the links, as is quite common, correspond to simple files, the
 easiest way to generate them is through the descriptor's
 ``makeLinkFromFile`` method.  That takes the source path and a description,
 with file size and media type type, which otherwise should be given
-when constructing a ``LinkDef``, defaulting to what's inferrable from
+when constructing a ``LinkDef``, defaulting to what's inferable from
 the file (name).
 
 ``makeLinkFromFile`` will create ``NotFoundFault`` error links if the
@@ -14083,7 +14084,7 @@ this::
   </service>
 
 Note that, of course, exposing a directory via the static renderer like
-this bypasses any access restrictions (e.g., embargos) on the respective
+this bypasses any access restrictions (e.g., embargoes) on the respective
 data.  So, do not do with with your primary data if you want to
 enforce access control.  Also, there currently is no way to control the
 media types returned in this way except by editing the system mime.types
@@ -14275,7 +14276,7 @@ Finally, the data enters the formatter, which actually generates the
 output, usually returning a pair of mime type and string to be
 delivered.
 
-It is a design descision of the service creator
+It is a design decision of the service creator
 which manipulations are done in the initial data
 function, which are in later filters, and which perhaps only in the
 formatter.  The advantage of filters is that they are more flexible and
@@ -14508,7 +14509,7 @@ contentLength
 
 ``makeLinkFromFile`` additionally allows an argument service (see below).
 
-With the exception of semantics, all auxillary data defaults to None if
+With the exception of semantics, all auxiliary data defaults to None if
 not given, and it's legal to leave it at that.
 
 You can inspect the definition of the datalinks table active in your
@@ -14818,7 +14819,7 @@ declarations could look like in such a case::
     <GROUP name="inputParams">
       <PARAM arraysize="*" datatype="char" name="ID" ref="ssa_pubDID" 
         ucd="meta.id;meta.main" value="">
-        <DESCRIPTION>The pubisher DID of the dataset of interest</DESCRIPTION>
+        <DESCRIPTION>The publisher DID of the dataset of interest</DESCRIPTION>
       </PARAM>
       <PARAM arraysize="*" datatype="char" name="BANDPASS" value="">
         <DESCRIPTION>Gaia bandpass to generate the time series 
@@ -14912,7 +14913,7 @@ are examples for what to do with FITS cubes or spectra.
 This way, of course, without a datalink-enabled client people might be
 locked out from the dataset entirely.  On the other hand, DaCHS comes
 with a stylesheet that enables datalink operation from a common web
-brower, so that's perhaps not too bad.
+browser, so that's perhaps not too bad.
 
 Aladin likes it when columns containing datalink URLs are marked up.
 DaCHS has two properties that let you add that markup, *targetType* and
@@ -15072,7 +15073,7 @@ could look like this::
   </rowfilter>
 
 (this assumes takes away to path elements from the relative paths, which
-typically reproduces an external hierachy).  If you need to do more
+typically reproduces an external hierarchy).  If you need to do more
 complex manipulations, you can have a custom rowfilter, maybe like
 this if you have both FITS files (for which you want DaCHS' default
 behaviour selected with ``AUTO``) and ``.complex`` files with some
@@ -15367,7 +15368,7 @@ nevow resource.  The recommended pattern is like this::
     def form_ivoid(self, ctx, data={}):
       form = formal.Form()
       form.addField("ivoid", formal.String(required=True), label="IVOID",
-        description="An IVOID for a registred VO resource"),
+        description="An IVOID for a registered VO resource"),
       form.addAction(self.submitAction, label="Next")
       return form
 
@@ -15385,7 +15386,7 @@ The ``formal.ResourceMixin`` lets you define and interpret forms.  The
 credential checking and the like).  The ``web.CustomTemplateMixin`` lets
 you get your template from a DaCHS template (cf. `templating guide`_)
 from a resdir-relative directory given in the ``customTemplate``
-attribute.  For widely distributed code, you should additionaly provide
+attribute.  For widely distributed code, you should additionally provide
 some embedded stan fallback in the ``defaultDocFactory`` attribute -- of
 course, you can also give the template in stan in the first place.
 
@@ -15408,7 +15409,7 @@ This template could, for this service, look like this::
     <p>VOiDOI lets you obtain DOIs for registered VO services.</p>
 
     <p>In the form below, enter the IVOID of the resource you want a DOI for.
-    If the resource is known to our registry but has no DOI yet, the registred
+    If the resource is known to our registry but has no DOI yet, the registered
     contact will be sent an e-mail to confirm DOI creation.</p>
     <n:invisible n:render="form ivoid"/>
   </body>
@@ -15419,7 +15420,7 @@ exception is the ``form ivoid``.  This makes the
 ``formal.ResourceMixin`` call the ``form_ivoid`` in ``MainPage`` and put
 in whatever HTML/stan that returns.  If nevow detects that the request
 already results from filling out the form, it will execute what your
-registred in ``addAction`` -- in this case, it's the ``submitAction``
+registered in ``addAction`` -- in this case, it's the ``submitAction``
 method.
 
 *Important*: anything you do within ``addAction`` runs within the
@@ -15504,7 +15505,7 @@ spectrum according to the data model.  There's a mixin for that::
 In addition to adding lots and lots of params, the mixin also defines
 two columns, ``spectral`` and ``flux``; these have units and ucds as
 taken from the SSA metadata.  You can add additional columns (e.g., a
-flux error depending on the spectral coordinate) as requried.
+flux error depending on the spectral coordinate) as required.
 
 The actual spectral instances can be built by sdmCores and delivered
 through DaCHS' product interface.
@@ -15775,7 +15776,7 @@ to your module.  You can then run things like::
 
 and see the rows as they're generated.
 
-A row iterator will be instanciated for each source processed.  Thus,
+A row iterator will be instantiated for each source processed.  Thus,
 you should usually not perform expensive operations in the constructor
 unless they depend on sourceToken.  In general, you should rather define
 a function ``makeDataPack`` in the module.  Whatever is returned by this
@@ -16248,7 +16249,7 @@ that are immediately accessible in the namespace:
   returns absath relative to the DaCHS inputsDir.
   
   If ``absPath`` is not below ``inputsDir``, a ``ValueError`` results.  On 
-  ``liberalChars``, wee see the `function getRelativePath`_.
+  ``liberalChars``, we see the `function getRelativePath`_.
   
   In rowmakers and rowfilters, you'll usually use the macro
   ``\inputRelativePath`` that inserts the appropriate code.
@@ -16275,7 +16276,7 @@ that are immediately accessible in the namespace:
   
   The publisher dataset identifier (PubDID) is important in protocols like
   SSAP and obscore.  If you use this function, the PubDID will be your
-  authority, the path compontent ~, and the inputs-relative path of 
+  authority, the path component ~, and the inputs-relative path of 
   the input file as the parameter.
   
   ``path`` can be relative, in which case it is interpreted relative to
@@ -16761,7 +16762,7 @@ Class Data
 
 A collection of tables.
 
-``Data``, in essence, is the instanciation of a ``DataDescriptor``.
+``Data``, in essence, is the instantiation of a ``DataDescriptor``.
 
 It is what ``makeData`` returns.  In typical one-table situations, 
 you just want to call the ``getPrimaryTable()`` method to obtain the
@@ -17451,10 +17452,10 @@ i.e., axis=1 cuts along NAXIS1, which is the *last* index in a numpy
 array.
 
 WCS CRPIXes in hdu's header will be updated.  Axes and specified will
-not be touched.  It is an error to specifiy cuts for an axis twice 
+not be touched.  It is an error to specify cuts for an axis twice 
 (behaviour is undefined).
 
-Note that this will lose all extensions the orginal FITS file might have
+Note that this will lose all extensions the original FITS file might have
 had.
 
 
@@ -17602,7 +17603,7 @@ The behaviour of this function for timezone-aware datetimes is undefined.
 For convenience, None is returned as None.
 
 Also for convenience, you can pass in a string; this will then be parsed
-first, which provides both some basic format validation and guranteed
+first, which provides both some basic format validation and guaranteed
 DALI-compliant serialisation.
 
 >>> formatISODT(datetime.datetime(2015, 10, 20, 12, 34, 22, 250))
@@ -17739,7 +17740,7 @@ Signature: ``getInputsRelativePath(absPath, liberalChars=True)``
 returns absath relative to the DaCHS inputsDir.
 
 If ``absPath`` is not below ``inputsDir``, a ``ValueError`` results.  On 
-``liberalChars``, wee see the `function getRelativePath`_.
+``liberalChars``, we see the `function getRelativePath`_.
 
 In rowmakers and rowfilters, you'll usually use the macro
 ``\inputRelativePath`` that inserts the appropriate code.
@@ -17840,7 +17841,7 @@ returns the standard DaCHS PubDID for ``path``.
 
 The publisher dataset identifier (PubDID) is important in protocols like
 SSAP and obscore.  If you use this function, the PubDID will be your
-authority, the path compontent ~, and the inputs-relative path of 
+authority, the path component ~, and the inputs-relative path of 
 the input file as the parameter.
 
 ``path`` can be relative, in which case it is interpreted relative to
@@ -18067,7 +18068,7 @@ which case even a successful import will not be committed)..
 You can pass in a data instance created by yourself in data.  This
 makes sense if you want to, e.g., add some meta information up front.
 
-makeData will ususally iterate over the sources given in dd.  You
+makeData will usually iterate over the sources given in dd.  You
 can override this with forceSource, which can contain a single
 source passed to a grammar.  If you need to pass in multiple
 sources, use a MultiForcedSources object (or anything that has
@@ -18458,7 +18459,7 @@ Signature: ``procmain(processorClass, rdId, ddId)``
 
 The "standard" main function for processor scripts.
 
-The function returns the instanciated processor so you can communicate
+The function returns the instantiated processor so you can communicate
 from your processor back to your own main.
 
 See :dachsdoc:`processors.html` for details.
@@ -18522,7 +18523,7 @@ Signature: ``restoreDump(dumpFile)``
 
 restores a dump.
 
-dumpFile is an open file object containing a file crated by createDump.
+dumpFile is an open file object containing a file created by createDump.
 
 This comprises recrating all mentioned tables, copying in the associated
 data, and re-creating all indices.
@@ -19334,7 +19335,7 @@ Manipulate this table through gavo imp on tables that have an obscore
 mixin, or by dropping RDs or purging tables that are part of obscore.
 
 **tableName**
-  (text) -- Name of the table that generated this fragment (ususally
+  (text) -- Name of the table that generated this fragment (usually
   through a mixin)
 **sqlFragment**
   (text) -- The SQL fragment contributed from tableName
@@ -19498,7 +19499,7 @@ querying.
 **column_name**
   (text) -- Name of a column belonging to the group
 **column_utype**
-  (text) -- utype the column withing the group
+  (text) -- utype the column within the group
 **group_name**
   (text) -- Name of the group
 **group_utype**

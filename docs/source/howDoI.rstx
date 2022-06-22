@@ -1460,7 +1460,7 @@ If (as they should) your services are registered, you have to re-publish
 them, as the URLs are baked into the registry records.  To do that,
 run::
 
-  dachs pub -a
+  dachs pub ALL
 
 However, changing the host name will also change the access URL of your
 publishing registry endpoint.  If that is what you use to distribute the

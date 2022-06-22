@@ -1052,6 +1052,51 @@ in some structure.  To produce something you can execute, then say::
 or somesuch.
 
 
+ADQL User Defined Functions
+===========================
+
+ADQL user defined functions currently all live in adql.ufunctions, and
+their tests are centralised in ufunctest.  We should probably have a
+canonical place where individual operators can add them from reliably.
+
+To write a UDF, write a function matching the signature explained in
+``adql.ufunctions.userFunction`` and apply that decorator.  For the names,
+you *must* use something starting with either ``gavo_`` or ``ivo_`` as
+per ADQL 2.1 (where you can only use ``ivo_`` if you've got someone else
+also implementing it).
+
+If you can, produce nodes and raise a ReplaceNode (as in, e.g.,
+``gavo_transform``).  Most existing UDFs admittedly return strings,
+which leads to lousy tree annotation and makes it impossible to later
+morph the result – but I'll give you it's much simpler to write
+functions returning fixed strings.  If you do that, be sure to never
+include unparsed literals; remember: ``args`` is quite strongly under
+user control.  Hence, make it a habit of always writing
+``notes.flatten(args[n])`` whenever you use args.  This also has the
+advantage that expressions in the arguments of your UDFs will be
+flattened, too.
+
+UDFs will typically start their existence as ``gavo_whatever``.  If, as
+is rather common, this later becomes an interoperable UDF (i.e., listed
+in the UDF catalogue), this should then become ``ivo_whatever``.
+However, existing queries using the gavo-prefixed forms should keep
+working.  To make that happen, do:
+
+* pass the ``ivo_`` version as userFunction's first argument
+* add the ``gavo_`` version in the ``additionalNames`` keyword argument.
+
+Users will no longer see the ``gavo_`` version in the capabilities, and
+hence TOPCAT will mark a syntax error if folks type the old name.  I'd
+say that's ok.  People should change their queries after all.
+
+There's an example for that migration technique in
+``ufunctions._ivo_histogram``.  In that case, there is the additional
+complication that that's just handing through to a SQL function created
+in //adql; this is still called ``gavo_histogram``, and to unify the
+names this is using a custom node (which is convenient here because we
+want to fiddle with the node's annotation anyway).
+
+
 Schema updates
 ==============
 
