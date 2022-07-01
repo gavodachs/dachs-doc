@@ -1143,6 +1143,90 @@ following should do::
 You can observe this in its natural habitat in :samplerd:`apo/res/apo`.
 
 
+...customise the ADQL query form?
+---------------------------------
+
+DaCHS comes with a basic form that lets people without a proper TAP
+client enter ADQL queries at ``/__system__/adql/query``.  This is rather
+basic at this point, and if you'd like to add a bit more glitz for your
+browser-only users, it may be worth doing some customisation here.  The
+built-in service cannot really be customised by users (at least for
+until we add some hooks), except by overriding the ADQL RD (cf.
+:dachsdoc:`tutorial.html#overridden-system-rds`; this is really not
+recommended).
+
+You can, however, create a custom ADQL-entering service yourself by
+putting an RD like the following into, say,
+``/var/gavo/inputs/adqlform/q``::
+
+  <resource schema="dc" resdir=".">
+
+    <meta name="_intro" format="rst"><![CDATA[
+      From this form, you can run ADQL queries on my data center in case
+      you don't have TOPCAT or some other TAP client at hand.  Let me
+      particularly recommend running queries on the **mauve.results** and
+      **violet.images** tables.
+  ]]>	
+    </meta>
+    <meta name="_bottominfo" format="rst">
+      There is a fixed limit to 100000 rows on this service.  If this
+      bugs you, use \RSTservicelink{tap}{TAP} (you should anyway).
+
+      Oh, and here's a few queries you could try:
+
+      * Trivial
+
+        ::
+
+          SELECT foo FROM bar
+      
+      * Less trivial
+
+        ::
+
+          SELECT bar FROM foo
+    </meta>
+
+    <service id="q">
+      <adqlCore>
+        <inputTable id="adqlInput">
+          <inputKey name="query" tablehead="ADQL query" type="text"
+            description="A query in the Astronomical Data Query Language"
+            widgetFactory="widgetFactory(ScalingTextArea, rows=6)"
+            required="True"/>
+          <inputKey name="_TIMEOUT" type="integer" unit="s" 
+            tablehead="Timeout after" 
+            description="Seconds until the query is aborted.  If you find 
+              yourself having to raise this beyond 200 or so, please contact 
+              the site operators for hints on how to optimize your query">
+            <values default="5"/>
+          </inputKey>
+        </inputTable>
+      </adqlCore>
+
+      <meta name="shortName">myadql</meta>
+      <meta name="title">My Local ADQL Query</meta>
+      <publish render="form" sets="local"/>
+    </service>
+
+  </resource>
+
+That way, you'll get a customised form at
+``http://localhost:8080/adqlform/q/q``; if you ``dachs pub`` that RD, it
+will also appear on your root page.  Come to think of it, you could even
+put::
+
+  [web]
+  root: /adqlform/q/q/form
+
+into your ``/etc/gavo.rc`` and have that as your root page.
+
+If this still does not provide sufficient flexibility for your use case,
+look into overriding the ``form`` template (probably based on what you
+get back from ``dachs adm dumpDF templates/defaultresponse.html``).  See
+:dachsdoc:`templating.html` for details.
+
+
 VO Protocols
 ============
 
