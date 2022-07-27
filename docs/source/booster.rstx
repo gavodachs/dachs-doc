@@ -342,7 +342,7 @@ Arrays
 Boosters can write arrays, but for now it's a bit rudimentary.  If you
 have ideas for abstracting this a bit,  do contact the authors.
 
-Note: If you have boosters still calling ``packFloatArray(buf, vals,
+Note: If you have boosters still calling ``packFloatArray(buf, float_arr,
 nVals)``, replace that call with ``packArray(buf, vals, nVals, 700,
 sizeof(float), 1)`` (or make that final thing a 0 if you're on a
 big-endian platform).
@@ -398,13 +398,13 @@ column, you could have in your getTuple::
   #define ARRBUFSZ (36+ARRLEN*8)
   
   static unsigned char matbuf[ARRBUFSZ];
-  float vals[ARRLEN];  /* does not need to be static */
+  float tmparr[ARRLEN];  /* does not need to be static */
   size_t tmplen;
   ...
-  for (i=0; i<4; i++) {
-    vals[i] = data[7+i][rowIndex];
+  for (i=0; i<ARRLEN; i++) {
+    tmparr[i] = data[7+i][rowIndex];
   }
-  tmplen = packArray(matbuf, vals, 4, 700, sizeof(float), 1);
+  tmplen = packArray(matbuf, tmparr, ARRLEN, 700, sizeof(float), 1);
   MAKE_ARRAY(fi_matarr, matbuf, tmplen);
 
 
@@ -414,9 +414,11 @@ Booster Types
 Line-based boosters
 -------------------
 
-These are boosters that read from a text file, line by line.  Currently,
-the maximum line length is set to 4000 (``INPUT_LINE_MAX`` in
-``boosterskel.c``).  It is up to the parsing function to split and
+These are boosters that read from a text file, line by line.  The
+maximumg line length is set by the direct grammar's recordSize
+attribute.
+
+It is up to the parsing function to split and
 digest this text line.
 
 

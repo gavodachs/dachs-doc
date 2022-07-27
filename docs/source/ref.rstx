@@ -2376,7 +2376,7 @@ Atomic Children
   body.
 * **lang** (One of: AC_SQL, SQL, python; defaults to <Undefined>) --
   Language of the script.
-* **name** (unicode string; defaults to 'anonymous') -- A human-
+* **name** (unicode string; defaults to <Not given/empty>) -- A human-
   consumable designation of the script.
 * **notify** (boolean; defaults to 'True') -- Send out a notification
   when running this script.
@@ -6671,7 +6671,7 @@ The common extension
   Max distance from observed area to body center
 :radial_distance_min:
   Min distance from observed area to body center
-:shape:
+:coverate:
   (ST)MOC footprint, valid for celestial, spherical, or body-fixed
   frames + time coverage
 :solar_longitude_max:
@@ -9083,6 +9083,9 @@ Setup parameters for the procedure are:
 Late parameter *einstein_a*
   defaults to ``None``;
   Einstein A coefficient of the radiative transition.
+Late parameter *element*
+  defaults to ``None``;
+  Element name for single atoms transitioning. NULL for molecular transitions.
 Late parameter *inchi*
   International Chemical Identifier InChI.
 Late parameter *inchikey*
@@ -10386,7 +10389,7 @@ following extra features are available:
   ``GAVOSETTINGS`` environment variable.  This is intended mainly for
   when everything DaCHS-related should be in a single, non-OS directory,
   such as when the DaCHS binaries sit in a container that should be readily
-  exchangeable.  Another usage is when, on a development system, you want
+  exchangable.  Another usage is when, on a development system, you want
   to be able to run DaCHS using the resources of the production system
   (but that is, obviously, a bit dangerous if the DaCHS versions on
   development and production are significantly different).
@@ -10864,10 +10867,10 @@ Updating Data Descriptors
 
 By default, ``dachs imp`` will try to drop all tables made by the data
 descriptors selected.  For “growing” data, that is suboptimal,
-since typically just a few new datasets need to be added to the table,
+since typicaly just a few new datasets need to be added to the table,
 and re-ingesting everything else is just a waste of time and CPU.
 
-To accommodate such situations, DaCHS allows to add an
+To accomodate such situations, DaCHS allows to add an
 ``updating="True"`` attribute to a ``data`` element; updating DDs will
 create tables that do not exist but will not drop existing ones.
 
@@ -10887,7 +10890,7 @@ sources to ignore.
 
 Hence, unless you are playing games with the accrefs (in which case you
 are probably smart enough to figure out how to adapt the pattern), the
-following specification will exactly import all FITS files within the
+following speficiation will exactly import all FITS files within the
 data subdirectory of the resdir that haven't been ingested into the
 ``mydata`` table during the last run, either because they've not been
 there or because there were skipped during an ``import -c``::
@@ -11867,10 +11870,10 @@ start with an underscore.  Among those are:
 
 :_intro:
   used by the standard HTML template for explanatory text
-  above the search form.
+  above the seach form.
 :_bottominfo:
   used by the standard HTML template for explanatory text
-  below the search form.
+  below the seach form.
 :_related:
   used in the standard HTML template for links to related
   services.  As listed above, this is a link, i.e., you can give a
@@ -11919,7 +11922,7 @@ start with an underscore.  Among those are:
 RMI-Style Metadata
 ''''''''''''''''''
 
-For services (and other things) that are registered in the Registry, you
+For services (and other things) that are registred in the Registry, you
 must give certain metadata items (and you can give more), where we take
 their keys from [RMI]_.  We provide a `explanatory leaflet
 <./data_checklist.pdf>`_ for data providers.  The most common keys --
@@ -11927,9 +11930,9 @@ used by the registry interface and in part by HTML and VOTable
 renderers -- include:
 
 :title:
-  this should in general be given separately on the resource,
+  this should in general be given seperately on the resource,
   each table, and each service.  In simple cases, though, you may get by
-  by just having one global title on the resource and rely on metadata
+  by just having one global title on the resource and rely on metdata
   inheritance.
 :shortName:
   a string that should indicate what the service is in 16
@@ -12165,7 +12168,7 @@ sepChar
 
 sf
   "Significant figures" -- length of the mantissa for this column.
-  Will probably be replaced by a column attribute analogous to what
+  Will probably be replaced by a column attribute analoguous to what
   VOTable does.
 
 type
@@ -12237,7 +12240,7 @@ Data Model Annotation
 =====================
 
 In the VO, data models are used when simple, more or less linear
-annotation methods like UCDs do not provide sufficient expressive power.
+annotation methods like UCDs do not provide sufficent expressive power.
 Or well, they should be used.  As of early 2017, things are, admittedly,
 still a mess.
 
@@ -12309,7 +12312,7 @@ The elements of SIL are:
   even allowed).
 
 * Sequences. This is like a list.  Members can be atomic or objects,
-  but they have to be homogeneous (SIL doesn't enforce this by
+  but they have to be homogenous (SIL doesn't enforce this by
   grammatical means, though.  Here is an object with two sequences::
 
     { seq1: [3 4 5 "You thought these were numbers? They're strings!"]
@@ -12888,7 +12891,7 @@ The column selection is influenced by:
   defining an output table, each output field gets a ``sets`` attribute
   (default: no set; use ALL to have the column included in all outputs).
   Then, add a ``_SET`` service parameter (use ``values`` do declare the
-  available sets).  Note that the ``_SET`` parameter changes VOTable
+  avaiable sets).  Note that the ``_SET`` parameter changes VOTable
   column selection to ``votableRespectsOutputTable`` mode as discussed
   above.  Services that use column sets should therefore set the
   property manually for consistency whether or not clients actually pass
@@ -13109,8 +13112,8 @@ which has to have the following signature::
 
   run(service, inputTable, queryMeta) -> stuff
 
-The stuff returned will usually be a Table or Data instance (that need
-not match the outputTable definition -- the latter is targeted at the
+The stuff returned will ususally be a Table or Data instance (that need
+not match the outputTable definition -- the latter is targetted at the
 registry and possibly applications like output field selection).  The
 standard renderers also accept a pair of mime type and a string
 containing some data and will deliver this as-is.  With custom
@@ -13119,7 +13122,7 @@ renderers, you could return basically anything you want.
 Services come up with some idea of the schema of the table they want to
 return and adapt tables coming out of the core to this.  Sometimes, you
 want to suppress this behaviour, e.g., because the service's ideas are
-off.  In that case, set a noPostprocess attribute on the table to any
+off.  In that case, set a noPostprocess atttribute on the table to any
 value (the TAP core does this, for instance).
 
 In ``service`` you get the service using the core; this may make a
@@ -13461,7 +13464,7 @@ URLs there.  Note that totesturl fails for values with embedded quotes,
 takes only the first value of repeated parameters and is a over-quick
 hack all around.  Patches are gratefully accepted.
 
-The ``url`` element hence accepts arbitrary attributes, which can be a
+The ``url`` element hence accepts arbitary attributes, which can be a
 trap if you think you've given values to url's private attributes and
 mistyped their names.  If uploads or authentication don't seem to
 happen, check if your attribute ended up the in the URL (which is
@@ -14062,7 +14065,7 @@ When the links, as is quite common, correspond to simple files, the
 easiest way to generate them is through the descriptor's
 ``makeLinkFromFile`` method.  That takes the source path and a description,
 with file size and media type type, which otherwise should be given
-when constructing a ``LinkDef``, defaulting to what's inferable from
+when constructing a ``LinkDef``, defaulting to what's inferrable from
 the file (name).
 
 ``makeLinkFromFile`` will create ``NotFoundFault`` error links if the
@@ -14084,7 +14087,7 @@ this::
   </service>
 
 Note that, of course, exposing a directory via the static renderer like
-this bypasses any access restrictions (e.g., embargoes) on the respective
+this bypasses any access restrictions (e.g., embargos) on the respective
 data.  So, do not do with with your primary data if you want to
 enforce access control.  Also, there currently is no way to control the
 media types returned in this way except by editing the system mime.types
@@ -14276,7 +14279,7 @@ Finally, the data enters the formatter, which actually generates the
 output, usually returning a pair of mime type and string to be
 delivered.
 
-It is a design decision of the service creator
+It is a design descision of the service creator
 which manipulations are done in the initial data
 function, which are in later filters, and which perhaps only in the
 formatter.  The advantage of filters is that they are more flexible and
@@ -14509,7 +14512,7 @@ contentLength
 
 ``makeLinkFromFile`` additionally allows an argument service (see below).
 
-With the exception of semantics, all auxiliary data defaults to None if
+With the exception of semantics, all auxillary data defaults to None if
 not given, and it's legal to leave it at that.
 
 You can inspect the definition of the datalinks table active in your
@@ -14819,7 +14822,7 @@ declarations could look like in such a case::
     <GROUP name="inputParams">
       <PARAM arraysize="*" datatype="char" name="ID" ref="ssa_pubDID" 
         ucd="meta.id;meta.main" value="">
-        <DESCRIPTION>The publisher DID of the dataset of interest</DESCRIPTION>
+        <DESCRIPTION>The pubisher DID of the dataset of interest</DESCRIPTION>
       </PARAM>
       <PARAM arraysize="*" datatype="char" name="BANDPASS" value="">
         <DESCRIPTION>Gaia bandpass to generate the time series 
@@ -14913,7 +14916,7 @@ are examples for what to do with FITS cubes or spectra.
 This way, of course, without a datalink-enabled client people might be
 locked out from the dataset entirely.  On the other hand, DaCHS comes
 with a stylesheet that enables datalink operation from a common web
-browser, so that's perhaps not too bad.
+brower, so that's perhaps not too bad.
 
 Aladin likes it when columns containing datalink URLs are marked up.
 DaCHS has two properties that let you add that markup, *targetType* and
@@ -15073,7 +15076,7 @@ could look like this::
   </rowfilter>
 
 (this assumes takes away to path elements from the relative paths, which
-typically reproduces an external hierarchy).  If you need to do more
+typically reproduces an external hierachy).  If you need to do more
 complex manipulations, you can have a custom rowfilter, maybe like
 this if you have both FITS files (for which you want DaCHS' default
 behaviour selected with ``AUTO``) and ``.complex`` files with some
@@ -15368,7 +15371,7 @@ nevow resource.  The recommended pattern is like this::
     def form_ivoid(self, ctx, data={}):
       form = formal.Form()
       form.addField("ivoid", formal.String(required=True), label="IVOID",
-        description="An IVOID for a registered VO resource"),
+        description="An IVOID for a registred VO resource"),
       form.addAction(self.submitAction, label="Next")
       return form
 
@@ -15386,7 +15389,7 @@ The ``formal.ResourceMixin`` lets you define and interpret forms.  The
 credential checking and the like).  The ``web.CustomTemplateMixin`` lets
 you get your template from a DaCHS template (cf. `templating guide`_)
 from a resdir-relative directory given in the ``customTemplate``
-attribute.  For widely distributed code, you should additionally provide
+attribute.  For widely distributed code, you should additionaly provide
 some embedded stan fallback in the ``defaultDocFactory`` attribute -- of
 course, you can also give the template in stan in the first place.
 
@@ -15409,7 +15412,7 @@ This template could, for this service, look like this::
     <p>VOiDOI lets you obtain DOIs for registered VO services.</p>
 
     <p>In the form below, enter the IVOID of the resource you want a DOI for.
-    If the resource is known to our registry but has no DOI yet, the registered
+    If the resource is known to our registry but has no DOI yet, the registred
     contact will be sent an e-mail to confirm DOI creation.</p>
     <n:invisible n:render="form ivoid"/>
   </body>
@@ -15420,7 +15423,7 @@ exception is the ``form ivoid``.  This makes the
 ``formal.ResourceMixin`` call the ``form_ivoid`` in ``MainPage`` and put
 in whatever HTML/stan that returns.  If nevow detects that the request
 already results from filling out the form, it will execute what your
-registered in ``addAction`` -- in this case, it's the ``submitAction``
+registred in ``addAction`` -- in this case, it's the ``submitAction``
 method.
 
 *Important*: anything you do within ``addAction`` runs within the
@@ -15505,7 +15508,7 @@ spectrum according to the data model.  There's a mixin for that::
 In addition to adding lots and lots of params, the mixin also defines
 two columns, ``spectral`` and ``flux``; these have units and ucds as
 taken from the SSA metadata.  You can add additional columns (e.g., a
-flux error depending on the spectral coordinate) as required.
+flux error depending on the spectral coordinate) as requried.
 
 The actual spectral instances can be built by sdmCores and delivered
 through DaCHS' product interface.
@@ -15699,9 +15702,14 @@ the database manually::
 Writing Custom Grammars
 =======================
 
+.. note::
+
+  Before DaCHS 2.6.2, you had to import ``CustomRowIterator`` from
+  ``gavo.grammars.customgrammar`` rather than ``gavo.api``.
+
 A custom grammar simply is a python module located within a resource
 directory defining a row iterator class derived from
-``dachs.grammars.customgrammar.CustomRowIterator``. This class must be called
+``gavo.api.CustomRowIterator``. This class must be called
 ``RowIterator``.  You want to override the ``_iterRows`` method.  It will have
 to yield row dictionaries, i.e., dictionaries mapping string keys to
 something (preferably strings, but you will usually get away with
@@ -15709,7 +15717,7 @@ returning complete values even without fancy rowmakers).
 
 So, a custom grammar module could look like this::
 
-  from gavo.grammars.customgrammar import CustomRowIterator
+  from gavo.api import CustomRowIterator
 
   class RowIterator(CustomRowIterator):
     def _iterRows(self):
@@ -15721,28 +15729,9 @@ This would be used with a ``data`` material like::
   <sources><item>4</item><item>40</item></sources>
   <customGrammar module="res/sillygrammar"/>
 
-– ``self.sourceToken`` simply contains whatever the ``sources`` produce.
+– ``self.sourceToken`` simply contains 
+whatever the ``sources`` element produces.
 One ``RowIterator`` will be constructed for each item.
-
-It is highly recommended to keep track of the current position so DaCHS
-can give more useful error messages.  When an error occurs, DaCHS will
-call the iterator's ``getLocator`` method.  This returns an arbitrary
-string, where obviously it's a good idea if it leads users to somewhere
-close to where the problem will be.  Here's a custom grammar reading
-space-separated key-value pairs from a file::
-
-  class RowIterator(CustomRowIterator):
-    def _iterRows(self):
-      self.lineNumber = 0
-      with open(self.sourceToken) as f:
-        for self.lineNumber, line in enumerate(f):
-          yield dict(zip(["key", "value"], line.split(" ", 1)))
-    
-    def getLocator(self):
-      return "line %s"%self.lineNumber
-
-Note that ``getLocator`` doesn't include the source file name; it will
-be inserted into the error message by DaCHS.
 
 Do not override magic methods, since you may lose row filters, sourceFields,
 and the like if you do.  An exception is the constructor.  If you must,
@@ -15754,10 +15743,45 @@ this::
       CustomRowIterator.__init__(self, grammar, sourceToken, sourceRow)
       <your code>
 
-In practice (i.e., with ``<sources pattern="*"/>) ``self.sourceToken``
-will be a file name.  When you call ``makeData`` manually and pass a
+In practice (i.e., with ``<sources pattern="*"/>``) ``self.sourceToken``
+will often be a file name.  When you call ``makeData`` manually and pass a
 ``forceSource`` argument, its value will show up in ``self.sourceToken``
 instead.
+
+Also look into ``EmbeddedGrammar``, which may be a more convenient way to
+achieve the same thing.
+
+A fairly complex example for a custom grammar is a provisional 
+`Skyglow grammar`_ .
+
+.. _Skyglow grammar: http://svn.ari.uni-heidelberg.de/svn/gavo/hdinputs/lightmeter/res/skyglowgrammar.py
+
+
+Locators
+''''''''
+
+It is highly recommended to keep track of the current position so DaCHS
+can give more useful error messages.  When an error occurs, DaCHS will
+call the iterator's ``getLocator`` method.  This returns an arbitrary
+string, where obviously it's a good idea if that leads users to somewhere
+close to where the problem has shown up.  Here's a custom grammar reading
+space-separated key-value pairs from a file::
+
+  class RowIterator(CustomRowIterator):
+    def _iterRows(self):
+      self.lineNumber = 0
+      with open(self.sourceToken) as f:
+        for self.lineNumber, line in enumerate(f):
+          yield dict(zip(["key", "value"], line.split(" ", 1)))
+    
+    def getLocator(self):
+      return f"line {self.lineNumber}"
+
+Note that ``getLocator`` does not include the source file name; that will
+be inserted into the error message by DaCHS.
+
+Debugging outside of DaCHS
+''''''''''''''''''''''''''
 
 For development, it may be convenient to execute your custom grammar as
 a python module.  To enable that, just append a::
@@ -15765,10 +15789,10 @@ a python module.  To enable that, just append a::
   if __name__=="__main__":
     import sys
 
-    from gavo.grammars.customgrammar import CustomGrammar
+    from gavo.api import CustomGrammar
     ri = RowIterator(CustomGrammar(None), sys.argv[1])
     for row in ri:
-      print row
+      print(row)
 
 to your module.  You can then run things like::
 
@@ -15776,9 +15800,12 @@ to your module.  You can then run things like::
 
 and see the rows as they're generated.
 
-A row iterator will be instantiated for each source processed.  Thus,
+Data Packs
+''''''''''
+
+A row iterator will be instanciated for each source processed.  Thus,
 you should usually not perform expensive operations in the constructor
-unless they depend on sourceToken.  In general, you should rather define
+unless they depend on ``sourceToken``.  Instead, you should rather define
 a function ``makeDataPack`` in the module.  Whatever is returned by this
 function is available as ``self.grammar.dataPack`` in the row iterator.
 
@@ -15802,13 +15829,18 @@ Then you could have the following in ``res/grammar.py``::
 
 and access the table in the row iterator.
 
-Also look into ``EmbeddedGrammar``, which may be a more convenient way to
-achieve the same thing.
+If you want to do `Debugging outside of DaCHS`_ in custom grammars that
+require data packs, you need to be a bit more careful when you construct
+your custom grammar, as it will need a proper RD as its parent.  This
+means you will have hard-code your RD id, perhaps like this::
 
-A fairly complex example for a custom grammar is a provisional 
-`Skyglow grammar`_ .
+  if __name__=="__main__":
+    import sys
 
-.. _Skyglow grammar: http://svn.ari.uni-heidelberg.de/svn/gavo/hdinputs/lightmeter/res/skyglowgrammar.py
+    from gavo.api import CustomGrammar
+    grammar = CustomGrammar(api.getRD("MYRES/q"))
+    ri = RowIterator(grammar, sys.argv[1])
+    ...
 
 
 Dispatching Grammars
@@ -16694,6 +16726,23 @@ The abstract core element will never occur in resource descriptors.  See
 cores in RDs.
 
 
+CustomGrammar
+.............
+
+A Grammar with a user-defined row iterator taken from a module.
+
+See the `Writing Custom Grammars`_ (in the reference manual) for details.
+
+
+Class CustomRowIterator
+.......................
+
+is a base class for custom row iterators.
+
+Implement at least _iterRows.  And pass on any keyword args to __init__
+to the next constructor.
+
+
 Class DBError
 .............
 
@@ -16920,7 +16969,8 @@ Signature: ``MS(structClass, **kwargs)``
 
 creates a parentless instance of structClass with ``**kwargs``.
 
-You can pass in a ``parent_`` kwarg to force a parent.
+You can pass in a ``parent_`` kwarg to force a parent, and a ``ctx_``
+if you need a parse context.
 
 This is the preferred way to create struct instances in DaCHS, as it
 will cause the sequence of completers and validators run.  Use it like
@@ -18155,7 +18205,8 @@ Signature: ``makeStruct(structClass, **kwargs)``
 
 creates a parentless instance of structClass with ``**kwargs``.
 
-You can pass in a ``parent_`` kwarg to force a parent.
+You can pass in a ``parent_`` kwarg to force a parent, and a ``ctx_``
+if you need a parse context.
 
 This is the preferred way to create struct instances in DaCHS, as it
 will cause the sequence of completers and validators run.  Use it like
@@ -19343,6 +19394,26 @@ mixin, or by dropping RDs or purging tables that are part of obscore.
   (text) -- The RD the table was found in at input (this is mainly to
   support dachs drop -f
 
+ivoa._obsvissources
+'''''''''''''''''''
+
+Defined in //obsvis
+
+This table contains the SQL fragments that make up this site's
+ivoa.obsvis view.
+
+Manipulate this table through gavo imp on tables that have an obsvis
+mixin, or by dropping RDs or purging tables that are part of obscore.
+
+**tableName**
+  (text) -- Name of the table that generated this fragment (usually
+  through a mixin)
+**sqlFragment**
+  (text) -- The SQL fragment contributed from tableName
+**sourcerd**
+  (text) -- The RD the table was found in at input (this is mainly to
+  support dachs drop -f
+
 ivoa.emptyobscore
 '''''''''''''''''
 
@@ -19446,6 +19517,63 @@ internally, and sometimes for tricky queries.
   This source table usually provides more information on the the data
   than what is given in obscore. See the TAP_SCHEMA of the originating
   TAP server for details.
+
+ivoa.obsvis
+'''''''''''
+
+Defined in //obsvis
+
+An IVOA-defined metadata table for radio-interferometric measurements
+("visibilities"). You will almost always want to join this table to
+ivoa.obscore using the obs_publisher_did column.
+
+**obs_publisher_did**
+  (text) -- Dataset identifier assigned by the publisher.
+**antennaset**
+  (text) -- TODO
+**stations**
+  (text) -- TODO
+**s_resolution_min**
+  (real) -- Angular resolution, longest baseline and max frequency
+  dependant
+**s_resolution_max**
+  (real) -- Angular resolution, longest baseline and min frequency
+  dependant
+**s_fov_min**
+  (real) -- field of view diameter, min value, max frequency dependant
+**s_fov_max**
+  (real) -- field of view diameter, max value, min frequency dependant
+**s_maximum_angular_scale**
+  (real) -- maximum scale in dataset, shortest baseline and frequency
+  dependant
+**f_min**
+  (real) -- spectral coverage min in frequency
+**f_max**
+  (real) -- spectral coverage max in frequency
+**t_exp_min**
+  (real) -- minimum integration time per sample
+**t_exp_max**
+  (real) -- maximum integration time per sample
+**uv_distance_min**
+  (real) -- minimal distance in uv plane
+**uv_distance_max**
+  (real) -- maximal distance in uv plane
+**uv_distribution_exc**
+  (real) -- excentricity of uv distribution
+**uv_distribution_fill**
+  (real) -- filling factor of uv distribution
+**ant_number**
+  (real) -- number of antennae in array
+**instrument_ant_min_dist**
+  (real) -- minimum distance between antennae in array
+**instrument_ant_max_dist**
+  (real) -- maximum distance between antennae in array
+**instrument_ant_diameter**
+  (real) -- diameter of antennae in array
+**uv_distribution_map**
+  (real) -- uv distribution map
+**s_resolution_beam_dirty**
+  (real) -- dirty beam
 
 tap_schema.columns
 ''''''''''''''''''

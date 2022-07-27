@@ -4649,9 +4649,14 @@ the database manually::
 Writing Custom Grammars
 =======================
 
+.. note::
+
+  Before DaCHS 2.6.2, you had to import ``CustomRowIterator`` from
+  ``gavo.grammars.customgrammar`` rather than ``gavo.api``.
+
 A custom grammar simply is a python module located within a resource
 directory defining a row iterator class derived from
-``dachs.grammars.customgrammar.CustomRowIterator``. This class must be called
+``gavo.api.CustomRowIterator``. This class must be called
 ``RowIterator``.  You want to override the ``_iterRows`` method.  It will have
 to yield row dictionaries, i.e., dictionaries mapping string keys to
 something (preferably strings, but you will usually get away with
@@ -4659,7 +4664,7 @@ returning complete values even without fancy rowmakers).
 
 So, a custom grammar module could look like this::
 
-  from gavo.grammars.customgrammar import CustomRowIterator
+  from gavo.api import CustomRowIterator
 
   class RowIterator(CustomRowIterator):
     def _iterRows(self):
@@ -4671,28 +4676,9 @@ This would be used with a ``data`` material like::
   <sources><item>4</item><item>40</item></sources>
   <customGrammar module="res/sillygrammar"/>
 
-– ``self.sourceToken`` simply contains whatever the ``sources`` produce.
+– ``self.sourceToken`` simply contains 
+whatever the ``sources`` element produces.
 One ``RowIterator`` will be constructed for each item.
-
-It is highly recommended to keep track of the current position so DaCHS
-can give more useful error messages.  When an error occurs, DaCHS will
-call the iterator's ``getLocator`` method.  This returns an arbitrary
-string, where obviously it's a good idea if it leads users to somewhere
-close to where the problem will be.  Here's a custom grammar reading
-space-separated key-value pairs from a file::
-
-  class RowIterator(CustomRowIterator):
-    def _iterRows(self):
-      self.lineNumber = 0
-      with open(self.sourceToken) as f:
-        for self.lineNumber, line in enumerate(f):
-          yield dict(zip(["key", "value"], line.split(" ", 1)))
-    
-    def getLocator(self):
-      return "line %s"%self.lineNumber
-
-Note that ``getLocator`` doesn't include the source file name; it will
-be inserted into the error message by DaCHS.
 
 Do not override magic methods, since you may lose row filters, sourceFields,
 and the like if you do.  An exception is the constructor.  If you must,
@@ -4704,10 +4690,45 @@ this::
       CustomRowIterator.__init__(self, grammar, sourceToken, sourceRow)
       <your code>
 
-In practice (i.e., with ``<sources pattern="*"/>) ``self.sourceToken``
-will be a file name.  When you call ``makeData`` manually and pass a
+In practice (i.e., with ``<sources pattern="*"/>``) ``self.sourceToken``
+will often be a file name.  When you call ``makeData`` manually and pass a
 ``forceSource`` argument, its value will show up in ``self.sourceToken``
 instead.
+
+Also look into ``EmbeddedGrammar``, which may be a more convenient way to
+achieve the same thing.
+
+A fairly complex example for a custom grammar is a provisional 
+`Skyglow grammar`_ .
+
+.. _Skyglow grammar: http://svn.ari.uni-heidelberg.de/svn/gavo/hdinputs/lightmeter/res/skyglowgrammar.py
+
+
+Locators
+''''''''
+
+It is highly recommended to keep track of the current position so DaCHS
+can give more useful error messages.  When an error occurs, DaCHS will
+call the iterator's ``getLocator`` method.  This returns an arbitrary
+string, where obviously it's a good idea if that leads users to somewhere
+close to where the problem has shown up.  Here's a custom grammar reading
+space-separated key-value pairs from a file::
+
+  class RowIterator(CustomRowIterator):
+    def _iterRows(self):
+      self.lineNumber = 0
+      with open(self.sourceToken) as f:
+        for self.lineNumber, line in enumerate(f):
+          yield dict(zip(["key", "value"], line.split(" ", 1)))
+    
+    def getLocator(self):
+      return f"line {self.lineNumber}"
+
+Note that ``getLocator`` does not include the source file name; that will
+be inserted into the error message by DaCHS.
+
+Debugging outside of DaCHS
+''''''''''''''''''''''''''
 
 For development, it may be convenient to execute your custom grammar as
 a python module.  To enable that, just append a::
@@ -4715,10 +4736,10 @@ a python module.  To enable that, just append a::
   if __name__=="__main__":
     import sys
 
-    from gavo.grammars.customgrammar import CustomGrammar
+    from gavo.api import CustomGrammar
     ri = RowIterator(CustomGrammar(None), sys.argv[1])
     for row in ri:
-      print row
+      print(row)
 
 to your module.  You can then run things like::
 
@@ -4726,9 +4747,12 @@ to your module.  You can then run things like::
 
 and see the rows as they're generated.
 
+Data Packs
+''''''''''
+
 A row iterator will be instanciated for each source processed.  Thus,
 you should usually not perform expensive operations in the constructor
-unless they depend on sourceToken.  In general, you should rather define
+unless they depend on ``sourceToken``.  Instead, you should rather define
 a function ``makeDataPack`` in the module.  Whatever is returned by this
 function is available as ``self.grammar.dataPack`` in the row iterator.
 
@@ -4752,13 +4776,18 @@ Then you could have the following in ``res/grammar.py``::
 
 and access the table in the row iterator.
 
-Also look into ``EmbeddedGrammar``, which may be a more convenient way to
-achieve the same thing.
+If you want to do `Debugging outside of DaCHS`_ in custom grammars that
+require data packs, you need to be a bit more careful when you construct
+your custom grammar, as it will need a proper RD as its parent.  This
+means you will have hard-code your RD id, perhaps like this::
 
-A fairly complex example for a custom grammar is a provisional 
-`Skyglow grammar`_ .
+  if __name__=="__main__":
+    import sys
 
-.. _Skyglow grammar: http://svn.ari.uni-heidelberg.de/svn/gavo/hdinputs/lightmeter/res/skyglowgrammar.py
+    from gavo.api import CustomGrammar
+    grammar = CustomGrammar(api.getRD("MYRES/q"))
+    ri = RowIterator(grammar, sys.argv[1])
+    ...
 
 
 Dispatching Grammars
