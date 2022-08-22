@@ -2994,26 +2994,70 @@ attribute containing the primary header as given by pyfits.
 
 The descriptor is then passed, in turn, to all meta makers given.  These
 must ``yield`` ``LinkDef`` instances that describe additional data
-products; a single meta maker may yield zero or more of these.  An
-example where multiple ``LinkDef`` instances are yielded from a single
-``metaMaker``  can be found in the ``dl`` service of
-:samplerd:`cars/q`.  
+products; a single meta maker may yield zero or more of these. You
+generally should not construct LinkDefs yourself, as there are
+convenience methods doing that on the descriptor which prevent some
+common errors.
 
-Meta makers returning links must have a ``semantics`` attribute giving
-the semantics of links they return (this is a lie, but it's a
-benevolent one).  Take the value for that attribute from the controlled
-vocabulary at http://www.ivoa.net/rdf/datalink/core (and complain to
-the semantics working group if you can't find an appropriate term in
-there).  In a pinch, you can pass a semantics argument to ``makeLink``,
-but, really, a single meta maker should only return links with identical
-semantics.
+These methods are ``descriptor.makeLink`` (for when you have external
+links) and ``descriptor.makeLinkFromFile`` (for when you link to files
+published through a static renderer by DaCHS itself).  These take some
+common arguments:
 
-When the links, as is quite common, correspond to simple files, the
-easiest way to generate them is through the descriptor's
-``makeLinkFromFile`` method.  That takes the source path and a description,
-with file size and media type type, which otherwise should be given
-when constructing a ``LinkDef``, defaulting to what's inferrable from
-the file (name).
+* ``semantics`` – you must give something here (this is a lie, but it's
+  a benevolent one).  Take the value for that attribute from the
+  controlled vocabulary at http://www.ivoa.net/rdf/datalink/core (and
+  complain to the semantics working group if you can't find an
+  appropriate term in there).  Keep a leading hash on these words for
+  datalink.  In a pinch, you can pass a semantics argument to
+  ``makeLink``, but it is much better if you don't and instead define
+  the ``semantics`` attribute on the metaMaker element (because then any
+  error message that may result will have the right semantics).
+* ``description`` – human-readable information about what the link
+  references.  Feel free to be verbose here and consider that many
+  consumers of your datalink document will not be familiar with your
+  particular instrument or pipeline at all.
+* ``contentType`` – a media type.  Make sure it is consistent with what
+  the server actually returns.
+* ``contentLength`` – the (approximate) size of the resource at
+  accessURL, in bytes (not for ``makeLinkFromFile``, which takes it from
+  the file system)
+* ``localSemantics`` – some string that identifies the particular kind
+  of link in some opaque and only locally meaningful way.  This is
+  intended for clients that always want to show the same sort of link
+  when people browse multiple datasets from a single service.  When
+  there are multiple links for a single piece of semantics,
+  localSemantics can be used to tell apart the various items.  If you
+  only have one link per semantics, or if all links for a certain piece
+  of semantics are equivalent, do not touch this.
+
+Except for ``semantics``, all of these are optional and must be passed
+in as keyword arguments.
+
+``makeLinkFromFile`` additionally accepts a positional argument
+containing a local file name; ``makeLink`` instead has a URL in a
+string.
+
+When returning link definitions, the tricky part mostly is to come up
+with the URLs.  Use the ``makeAbsoluteURL`` rowmaker function to make
+them from relative URLs; the rest just depends on your URL scheme.  An
+example could look like this::
+
+  <metaMaker semantics="#error">
+    <code>
+      yield descriptor.makeLink(
+        makeAbsoluteURL("get/"+descriptor.accref[:-5]+".err.fits"),
+        contentType="image/fits",
+        description="Errors for this dataset")
+    </code>
+  <metaMaker semantics="#progenitor">
+    <code>
+      yield descriptor.makeLink(
+        "http://foo.bar/raw/"+descriptor.accref.split("/")[-1],
+        contentType="image/fits",
+        description="Un-flatfielded, uncalibrated source data")
+    </code>
+  </metaMaker>
 
 ``makeLinkFromFile`` will create ``NotFoundFault`` error links if the
 file does not exist, thus alerting the user (and possibly you) that an
@@ -3046,7 +3090,8 @@ automatically added by DaCHS unless a ``suppressAutoLinks`` attribute is
 set on the descriptor (you can set that in a meta maker or the
 descriptor generator).
 
-For more information on the elements used here, see below.
+
+
 
 Defining Processing Services
 ''''''''''''''''''''''''''''
@@ -3424,69 +3469,11 @@ When this gets rendered, the client will be redirected to whatever
 Meta Makers
 '''''''''''
 
-Meta makers (see `element metaMaker`_) contain code that produces pieces
-of service metadata from a data descriptor.  All meta makers belonging
-to a service are unconditionally executed, and all must be generator
-bodies (i.e., contain a yield statement).
-
-
 Link Definitions
-.................
+................
 
-While meta makers see the ``LinkDef`` class itself, too, you should
-normally use the ``makeLink`` or ``makeLinkFromFile`` methods of the
-descriptor (they are available if the descriptor class was derived from
-``datalink.ProductDescriptor``, as it usually should).
-
-These methods take a link or a path as the first argument, respectively.
-The rest are keyword arguments corresponding to the datalink columns,
-viz., 
-
-description
-  A human-readable short information on what's behind the link
-semantics
-  A term from a controlled-vocabulary describing what's behind the link
-  (see below); you will usually define this in the semantics attribute
-  on the meta maker itself, as it should be constant for all links
-  produced by a single meta maker.
-contentType
-  An (advisory) media type of whatever this link points to.  Please make
-  sure it's consistent with what the server actually returns if the
-  protocol used by accessURL supports that.
-contentLength
-  The (approximate) size of the resource at accessURL, in bytes 
-  (not for ``makeLinkFromFile``, which takes it from the file system)
-
-``makeLinkFromFile`` additionally allows an argument service (see below).
-
-With the exception of semantics, all auxillary data defaults to None if
-not given, and it's legal to leave it at that.
-
-You can inspect the definition of the datalinks table active in your
-system by saying ``dachs admin dumpDF //datalink | less``
-(the table definition is right at the top).
-
-When returning link definitions, the tricky part mostly is to come up
-with the URLs.  Use the ``makeAbsoluteURL`` rowmaker function to make
-them from relative URLs; the rest just depends on your URL scheme.  An
-example could look like this::
-
-  <metaMaker semantics="#error">
-    <code>
-      yield descriptor.makeLink(
-        makeAbsoluteURL("get/"+descriptor.accref[:-5]+".err.fits"),
-        contentType="image/fits",
-        description="Errors for this dataset")
-    </code>
-  <metaMaker semantics="#progenitor">
-    <code>
-      yield descriptor.makeLink(
-        "http://foo.bar/raw/"+descriptor.accref.split("/")[-1],
-        contentType="image/fits",
-        description="Un-flatfielded, uncalibrated source data")
-    </code>
-  </metaMaker>
-
+The use of meta makers to produce link rows was already discussed in
+`Making Datalinks`_.
 
 Parameter Definitions
 .....................
