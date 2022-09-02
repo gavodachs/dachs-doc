@@ -1227,6 +1227,42 @@ get back from ``dachs adm dumpDF templates/defaultresponse.html``).  See
 :dachsdoc:`templating.html` for details.
 
 
+...have math in my descriptions?
+--------------------------------
+
+If you have non-trivial math in your ``description``, ``_longdoc``, or
+``note`` meta items (or, indeed, elsewhere in your meta elements), use
+the ``rst`` format.  ReStructuredText has an interpreted text role and a
+diretive both called ``math``.  With these, you can write things like::
+
+  Newton figured out that :math:`F=ma`, and that specifically for
+  gavitation:
+
+  .. math::
+
+    F = G \frac{M \cdot m}{r^2}
+
+Much of LaTeX math is supported in these constructs.
+
+DaCHS tells the ReStructuredText machinery (docutils) to produce HTML
+from this.  This sometimes is good enough in common browsers.  Most of
+the time, however, you will want to include some extra CSS to improve
+the appearance of the formalae.  DaCHS has that on board; the challenge
+is to smuggle this CSS into the formatted documents, because as you do
+not know where your meta items will be rendered, and hence the
+``extraCSS`` property of any single service will usually not work.
+
+The current workaround is to include the following material in your meta
+item::
+
+	.. role:: raw-html(raw)
+  	:format: html
+
+	:raw-html:`<style type="text/css">@import url(/static/css/math.css);</style>`
+
+Yeah, that's not pretty, and we'll try to think of something better.
+
+
 VO Protocols
 ============
 

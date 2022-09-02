@@ -14079,10 +14079,13 @@ common arguments:
   accessURL, in bytes (not for ``makeLinkFromFile``, which takes it from
   the file system)
 * ``localSemantics`` – some string that identifies the particular kind
-  of link locally meaningful.  This is intended for clients that always
-  want to show the same link when people browse multiple datasets from a
-  single service.  When there are multiple links for a single piece of
-  semantics, use this to tell apart the various items.
+  of link in some opaque and only locally meaningful way.  This is
+  intended for clients that always want to show the same sort of link
+  when people browse multiple datasets from a single service.  When
+  there are multiple links for a single piece of semantics,
+  localSemantics can be used to tell apart the various items.  If you
+  only have one link per semantics, or if all links for a certain piece
+  of semantics are equivalent, do not touch this.
 
 Except for ``semantics``, all of these are optional and must be passed
 in as keyword arguments.
