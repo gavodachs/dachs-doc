@@ -2791,6 +2791,35 @@ column with a datalink URL in the SSAP table.  The ssap+datalink
 template already has such a column in its source table and fills it in
 import's rowmaker.
 
+You will usually want to touch up the instance table's metadata a bit.
+For example, the VOTable name of these tables by default will be
+constant (``instance``, usually), which will then show up, e.g., in the
+spectrum browser of SPLAT, where it is not terribly useful.  It is hence
+usually a good idea to have an apply in then parmaker of your sdm
+instance-making data item.
+
+Note that the SSAP row with your metadata is not in ``vars`` here as
+usual elsewhere.  Instead, you will find it as the ``sourceToken`` on
+the parser.  The following example, lifted from :samplerd:`gaia/s3`,
+ought to help you figure things out::
+
+  <make table="instance">
+    <parmaker>
+      <apply procDef="//ssap#feedSSAToSDM"/>
+      <apply name="update_metadata">
+        <code>
+          sourceId = vars["parser_"].sourceToken["source_id"]
+          targetTable.setMeta("description",
+            base.getMetaText(targetTable, "description")
+            +" for Gaia DR3 object {}".format(sourceId))
+          targetTable.setMeta("name", str(sourceId))
+        </code>
+      </apply>
+    </parmaker>
+    <rowmaker idmaps="*"/>
+  </make>
+
+
 
 SSAP for Time Series
 ''''''''''''''''''''
