@@ -32,12 +32,31 @@ Debian.  On a suitably recent system, just execute::
 
 With that, you are ready to proceed to the tutorial_.
 
-On older systems, you need to `add our APT repository`_ to your
-`/etc/apt/sources.list` before running the ``apt install``.
-
 This is the recommended way to get up to speed with DaCHS regardless of
 whether you want to run the bleeding-edge version.  You can
 :dachsdoc:`switch later <howDoI.html#switch-between-svn-and-packaged-dachs>`.
+
+On older systems, you need to `add our APT repository`_ to your
+``/etc/apt/sources.list`` before running the ``apt install``.
+
+You are probably saving yourself quite a bit of grief if you just choose
+Debian stable as your platform when you are going for Debian
+derivatives.  *If* you insist on running, say, Ubuntu, please note that
+they do not package DaCHS (so you have to add our APT repo no matter
+what) and that they do not package the q3c and pgsphere packages that
+DaCHS cannot live without.  Hence, on Ubuntu or similar Debian
+derivatives, you will almost certainly have to follow more or less the
+following sequence:
+
+(1) `Add the postgres APT repository`_
+(2) `Add our APT repository`_
+(3) ``apt install gavodachs2-server``
+
+.. _Add the postgres apt repository: https://www.postgresql.org/download/linux/debian/
+
+If this fails, make sure the postgres instance listening on your port
+5432 really *is* the one you got from the postgres repo, *not* the one
+from Ubuntu.
 
 .. _add our apt repository: http://soft.g-vo.org/repo
 .. _tutorial: tutorial.html
@@ -149,8 +168,8 @@ Test that it works, you should get a password prompt::
   $ sudo -u postgres psql -h 127.0.0.1 -U postgres template1
 
 
-Install distribution supplied dependenency packages
----------------------------------------------------
+Install distribution supplied dependency packages
+-------------------------------------------------
 
 This is realatively straighforward::
 
@@ -166,8 +185,8 @@ Make/install extra packages
 ---------------------------
 
 The RedHat/CentOS package universe is smaller than that available to Fedora
-and Debian.  Insstead of searching for rpm's that may or may not be compatible
-with your OS, is ususally more reliable to just build packages from sources 
+and Debian.  Instead of searching for rpms that may or may not be compatible
+with your OS, is ususally more reliable to just build packages from source 
 if they are not available in the primary repositories.
 
 
@@ -194,7 +213,7 @@ Test (difficult due to user permissions, but possible)::
   $ exit
 
 
-QC3
+q3c
 '''
 
 ::

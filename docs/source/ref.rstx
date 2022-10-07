@@ -9828,8 +9828,14 @@ Parameter *qnd*
 
 Yields standard BAND params.
 
-This adds lambdaToMeterFactor and lambdaAxis attributes to the
-descriptor for later use by fits_makeBANDSlice
+DaCHS should in general be smart enough to convert between common
+spectral units (like MHz, or keV, or whatever) and the meter
+that SODA BAND expects.  If your files do to give VOUnits-parseable
+units on the spectral axis' CUNIT header, use the wavelengthOverride 
+param.
+
+This adds specToMeter, meterToSpec, and spectralAxis attributes to the
+descriptor for later use by fits_makeBANDSlice.
 
 
 Setup parameters for the procedure are:
@@ -9837,7 +9843,7 @@ Setup parameters for the procedure are:
 
 Parameter *fitsAxis*
   defaults to ``3``;
-  FITS axis index (1-based) of the wavelength dimension
+  FITS axis index (1-based) of the spectral dimension
 Parameter *wavelengthOverride*
   defaults to ``None``;
   Override for the FITS unit given for the wavelength (for when it is botched or missing; leave at None for taking it from the header); this is a python literal.
@@ -10105,7 +10111,7 @@ Otherwise, no cutout will be performed.
 *Defaults* for macros used in this stream:
 
 * spectralAxis: '0'
-* wavelengthOverride: 'None'
+* wavelengthOverride: ''
 
 
 
@@ -16435,6 +16441,9 @@ that are immediately accessible in the namespace:
   data products served, DaCHS will then put in the scheme used
   for the query.
   
+  DaCHS (almost always) also allows full http URIs as accrefs.  These
+  will be returned unchanged.
+  
 
 *makeSitePath(path)*
   returns a rooted local part for a server-internal URL.
@@ -18178,6 +18187,9 @@ of this function into the database, it is advisable to cut off
 the scheme part of the URI (e.g., ``split(":", 1)[-1]``).  In
 data products served, DaCHS will then put in the scheme used
 for the query.
+
+DaCHS (almost always) also allows full http URIs as accrefs.  These
+will be returned unchanged.
 
 
 Function makeSitePath
