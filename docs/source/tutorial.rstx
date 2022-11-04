@@ -5992,6 +5992,11 @@ starting with this::
 
   pg_dump -f (some descriptive name).pgdump -F c gavo
 
+If you are using the Debian package, do that as ``dachsroot``; that user
+has the necessary privileges.
+
+The remainder of this is assumed to be executed as root.
+
 Let's say you are upgrading from 11 to 12.  Since we will need these
 numbers quite a few times, set them in variables – but be *very*
 careful, if you  get this wrong, the commands further down will nuke
@@ -6098,11 +6103,19 @@ while you are going home) and run it like this::
 
   sudo -u postgres sh ./analyze_new_cluster.sh
 
-Finally, pg_upgrade has printed a command that will remove the old
+Pg_upgrade has also printed a command that will remove the old
 cluster; execute it, and finally deinstall the old postgres packages to
 avoid confusion – locate them somehow like::
 
   dpkg -l | grep "postgres.*$OLDVER"
+
+What is left is one last step, that is, informing postgres about any
+upgrade extensions that DaCHS uses.  This needs to be run as a database
+superuser, and so DaCHS itself cannot do it.  It can, however, produce
+the necessary commands.  So, become ``dachsroot`` again and as that
+user, execute::
+
+  dachs upgrade -e | psql gavo
 
 When that's all done, take a deep breath and relax.
 
