@@ -9088,7 +9088,7 @@ Late parameter *einstein_a*
   Einstein A coefficient of the radiative transition.
 Late parameter *element*
   defaults to ``None``;
-  Element name for single atoms transitioning. NULL for molecular transitions.
+  Element name for atomic transitions, NULL otherwise.
 Late parameter *inchi*
   International Chemical Identifier InChI.
 Late parameter *inchikey*
@@ -9106,7 +9106,7 @@ Late parameter *mass_number*
   Number of nucleons in the atom or molecule
 Late parameter *method*
   defaults to ``None``;
-  Method the wavelength was obtained with (observed/theory/ritz)
+  Method the wavelength was obtained with (XSAMS controlled vocabulary)
 Late parameter *title*
   Human-readable line designation.
 Late parameter *upper_energy*

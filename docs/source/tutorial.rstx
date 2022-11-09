@@ -4625,7 +4625,7 @@ necessary, you can reload userconfig itself using::
 
   gavo serve exp %
 
-Note that for ``gavo serve exp`` to work, you need to set `The Admin
+Note that for ``dachs serve exp`` to work, you need to set `The Admin
 Password`_, and if all that confuses you you can always just restart the
 server.
 
@@ -5187,7 +5187,7 @@ GAVO DaCHS is lenient with missing metadata and will deliver invalid
 VOResource for records missing some.  It is not unlikely that your
 registry will not validate on the first attempt.  Reading the error
 messages should give you a hint what's wrong.  You can also use the
-``gavo val`` command on the RDs that generate invalid records to figure
+``dachs val`` command on the RDs that generate invalid records to figure
 out what's wrong.  Also, see `Simple OAI Operation`_ for hints.
 
 Once your registry passes the validation test, you can add it to the
@@ -5402,21 +5402,21 @@ yearly maintenance of your DaCHS server.
 Starting and stopping the server
 --------------------------------
 
-The ``gavo serve`` subcommand is used to control the server.  ``gavo
+The ``dachs serve`` subcommand is used to control the server.  ``dachs
 serve start`` starts the server, changes the user to what is specified
 in the ``[web]user`` config item if it has the privileges to do so
 and detaches from the terminal.
 
-Analoguosly, ``gavo serve stop`` stops the server.  To reload some of
+Analoguosly, ``dachs serve stop`` stops the server.  To reload some of
 the server configuration (e.g., the resource descriptors, the vanity
-map, and the /etc/gavo.rc and ~/.gavorc files), run ``gavo
+map, and the /etc/gavo.rc and ~/.gavorc files), run ``dachs
 serve reload``.  This does not reload database profiles, and not all
 configuration items are applied (e.g., changes to the bind address and
 port only take effect after a restart).  If you remove a configuration
 item entriely, their built-in defaults do not get restored on reload
 either.
 
-Finally, ``gavo serve restart`` restarts the server.  The start, stop,
+Finally, ``dachs serve restart`` restarts the server.  The start, stop,
 reload, and restart operations generally should be run as root; you
 can run them as the server user (by default, gavo), too, as long as the
 server doesn't try to bind to a privileged port (lower than 1025).
@@ -5434,7 +5434,7 @@ With this, on your typical system, you can control DaCHS with::
   sudo service dachs stop
   sudo service dachs restart
 
-For development work or to see what is going on, you can run ``gavo
+For development work or to see what is going on, you can run ``dachs
 serve debug``; this does not detach and does not change users, and it
 also gives a lot more tracebacks in the logs. See `Debugging`_ for how
 to use this to figure out misbehaviour.
@@ -5543,7 +5543,7 @@ TAP proposals stilts doesn't expect; in case of doubt, as on
 dachs-support.  However, it is far more common that your metadata got
 our of whack for some reason or other.  For instance, you may have
 changed RD metadata (which controls the output on the tables endpoint)
-without running ``gavo imp -m`` which updates TAP_SCHEMA).
+without running ``dachs imp -m`` which updates TAP_SCHEMA).
 An easy way to fix all such problems is to just run::
 
   gavo admin updateTAPSchema
@@ -5618,8 +5618,8 @@ within the RD.
 Admin CLI Interfaces
 ''''''''''''''''''''
 
-You can also perform various housekeeping operations using ``gavo
-admin``.  Try ``gavo admin --help``.  This includes `User/Group
+You can also perform various housekeeping operations using ``dachs
+admin``.  Try ``dachs admin --help``.  This includes `User/Group
 Management`_, precomputing automatic previews, and creating registry
 records for deleted services that got lost.
 
@@ -5627,7 +5627,7 @@ Sometimes people execute stupid TAP queries
 on your machine (e.g., constraining ra and dec in separate intervals,
 which is both slow and physically at least doubtful) and you would like
 to give them a friendly nudge on how to do it better.  This is when 
-``gavo admin tapabort`` is your friend.
+``dachs admin tapabort`` is your friend.
 
 Call it with a TAP job id (which you can obtain from ``/tap/async``
 unless people authenticated; if they did authenticate, you will have to
@@ -5730,7 +5730,7 @@ with a CA's signature); these need to come concatenated in PEM format in a
 file called ``/var/gavo/hazmat/bundle.pem``.  Just so the whole crypto
 thing doesn't become a total carnival, you should have the hazmat
 directory owned by root and with permissions 700.  DaCHS will only read
-it when starting up using ``gavo serve`` and before dropping privileges.
+it when starting up using ``dachs serve`` and before dropping privileges.
 That way, if there's a minor security issue in DaCHS, you at least don't
 necessarily lose your private key.
 
