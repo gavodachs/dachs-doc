@@ -7532,8 +7532,8 @@ write the equivalent vizier-like expressions)::
           baseTS = datetime.datetime.combine(inPars["date"], inPars["time"])
           dt = datetime.timedelta(minutes=inPars["within"])
           yield "date BETWEEN %%(%s)s AND %%(%s)s"%(
-            vizierexprs.getSQLKey("date", baseTS-dt, outPars),
-            vizierexprs.getSQLKey("date", baseTS+dt, outPars))
+            base.getSQLKey("date", baseTS-dt, outPars),
+            base.getSQLKey("date", baseTS+dt, outPars))
         </code>
       </phraseMaker>
     </condDesc>

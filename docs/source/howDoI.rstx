@@ -1263,6 +1263,64 @@ item::
 Yeah, that's not pretty, and we'll try to think of something better.
 
 
+...query against Array-valued columns?
+--------------------------------------
+
+First, if you have arrays in your tables' columns, that's a
+de-normalisation: in the pure relational creed, values in columns are
+atomic.  Many interesting things become a lot simpler when you unfold
+these arrays to another table – for ingestion, you would look into 
+:dachsref:`dispatching grammars` then.
+
+But there are many cases when it actually makes sense to have arrays for
+convenience, speed, or simplicity.  Consider a list of target objects,
+declared like this::
+
+   <column name="objects" type="text[]"
+      ucd="meta.id;src"
+      tablehead="Objs."
+      description="Names objects from the observation log."/>
+
+and filled, perhaps, like this::
+
+   <map key="objects">@mapped_names.split("|")</map>
+  
+The trouble starts when you try to write a constraint against this; the
+desired behaviour would be “let people choose from a list of array
+elements and match when they give one or more of what's in a row's
+array“.  This is a bit subtle, for one because you can't rely on DaCHS'
+column statistics (which can't deal with arrays) and need to do a custom
+collection, and then because you can't compare your input to the column
+for equality.
+
+Here's a condDesc that fits the bill::
+
+    <condDesc>
+      <inputKey name="object" type="text" multiplicity="multiple"
+          tablehead="Target Object" 
+          description="Object being observed, Simbad-resolvable form"
+          ucd="meta.name">
+          <values fromdb="unnest(objects) FROM fai50mak.main"/>
+      </inputKey>
+      <phraseMaker>
+      	<setup imports="numpy"/>
+        <code><![CDATA[
+          yield "%({})s && objects".format(
+            base.getSQLKey("object", 
+            numpy.array(inPars["object"]), outPars))
+        ]]></code>
+      </phraseMaker>
+    </condDesc>
+
+Note the ``numpy.array`` – this is necessary here because normal Python
+lists get converted to tuples rather than arrays by DaCHS.
+
+Note that this does not support indexes, and the list of objects will be
+collected on each RD load.  This means that as your tables grow beyond,
+perhaps, 10'000 rows or so, this will become impractible and you should
+go for a proper relational solution.
+
+
 VO Protocols
 ============
 
