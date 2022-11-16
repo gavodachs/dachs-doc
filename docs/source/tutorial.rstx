@@ -1273,11 +1273,13 @@ you wisely manage the permissions (short version: ``sudo adduser `id
 -nu` gavo`` to add you to the gavo group, then log out and in again to
 make it effective).  For testing, however, we recommend
 doing it as the data center administrative account (for the Debian
-package, that's dachsroot, if you did the setup manually, it's whatever
-user did the ``dachs init``).
+package, that's ``dachsroot``; if you did the setup manually, it's
+whatever user did the ``dachs init``).  If you want to stay yourself,
+see `becoming a DaCHS operator`_.
 
 To get a quick start, just pull in the RD in use by GAVO's data center::
 
+  sudo -u dachsroot bash
   cd /var/gavo/inputs
   mkdir arihip
   cd arihip
@@ -4323,6 +4325,37 @@ issues.  When you have larger tables, you should also have a look at a
 
 .. _post on parallel queries: https://blog.g-vo.org/parallel-queries.html
 .. _this blog post: https://blog.g-vo.org/taming-the-postgres-jit/
+
+
+Becoming a DaCHS operator
+-------------------------
+
+When you write RDs, run ``dachs serve debug``, write in
+``/var/gavo/etc`` or do similar DaCHS administrative work, you need to
+be in the ``gavo`` group, and things are simpler when you are a postgres
+superuser.  The default Debian package creates the ``dachsroot`` system
+user for that purpose but disables logins for that; you could run
+``sudo -u dachsroot bash`` before doing DaCHS work or enable logins for
+dachsroot by running ``passwd dachsroot``.
+
+If, on the other hand, you want to be yourself when doing DaCHS work,
+add userself to the ``gavo`` group::
+
+  sudo adduser `id -nu` gavo
+
+and make yourself a postgres superuser::
+
+  sudo -u postgres createuser -s `id -nu`
+
+If multiple people work in ``/var/gavo/inputs``, you will either want to
+play with POSIX ACLs or at least make things group-writable and make
+sure everything is group-owned by gavo.  Also, set the setgid bit of all
+directories and subdirectories you create there, as in::
+
+  sudo chmod g+s /var/gavo/inputs
+
+That way, you minimise permission problems (see also ``help umask`` in
+bash or the equivalent in your shell if you don't use bash).
 
 
 Basic Gavo.rc Settings

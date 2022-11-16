@@ -81,7 +81,8 @@ that, define an addOptions static method, like this::
         dest="catPath", default="res/plates.cat")
 
 Make sure you always do the upward call.  Cf. the optparse documentation
-for what you can do.  The options object returned by optParser is
+for what you can do (sorry: it's still optparse; give us a nudge and
+we'll migrate to argparse).  The options object returned by optParser is
 available as the opts attribute on your processor.  To keep the chance
 of name clashes in this sort of inheritance low, always use long options
 only.
@@ -693,7 +694,7 @@ processor using it could look like this::
   
     def _mungeHeader(self, srcName, hdr):
       plateid = hdr["PLATEID"] # more typically: grab it from srcName
-      thismeta = self.platemeta["plateid"]
+      thismeta = self.platemeta[plateid]
 
       # you'll usually want to drop some junky headers from hdr
       del hdr["BROKEN"]
@@ -702,7 +703,7 @@ processor using it could look like this::
         fitstricks.WFPDB_TEMPLATE,
         originalHeader=hdr,
         DATEORIG=api.jYearToDateTime(float(thismeta["epoch"])).isoformat(),
-        EMULISON=thismeta["epoch"],
+        EMULSION=thismeta["epoch"],
         OBSERVER=thismeta["observer"],
         OBJECT=thismeta["object"],
         ORIGIN="Contant")

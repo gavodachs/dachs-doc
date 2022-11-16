@@ -1276,11 +1276,13 @@ But there are many cases when it actually makes sense to have arrays for
 convenience, speed, or simplicity.  Consider a list of target objects,
 declared like this::
 
-   <column name="objects" type="text[]"
+   <column name="objects" type="char(15)[]"
       ucd="meta.id;src"
       tablehead="Objs."
       description="Names objects from the observation log."/>
 
+– sorry, VOTable can't do arrays of variable-length strings and hence
+DaCHS refuses that, too; so, you can't say ``text[]`` –
 and filled, perhaps, like this::
 
    <map key="objects">@mapped_names.split("|")</map>
