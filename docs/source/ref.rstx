@@ -16156,7 +16156,7 @@ that are immediately accessible in the namespace:
   returns a modified julian date for a datetime instance.
   
 
-*degToDms(deg, sepChar=' ', secondFracs=2, preserveLeading=False, truncate=False)*
+*degToDms(deg, sepChar=' ', secondFracs=2, preserveLeading=False, truncate=False, addSign=True)*
   converts a float angle in degrees to a sexagesimal string.
   
   This takes a lot of optional arguments:
@@ -16167,13 +16167,17 @@ that are immediately accessible in the namespace:
     preserved
   * truncate can be set to True if fractional seconds should be truncated
     rather then rounded (as necessary for building IAU identifiers)
+  * addSign, if true, makes the function return a + in front of positive
+    values (the default)
   
   >>> degToDms(-3.24722, "", 0, True, True)
   '-031449'
   >>> degToDms(0)
   '+0 00 00.00'
-  >>> degToDms(-0.25)
-  '-0 15 00.00'
+  >>> degToDms(0, addSign=False)
+  '0 00 00.00'
+  >>> degToDms(-0.25, sepChar=":")
+  '-0:15:00.00'
   >>> degToDms(-23.50, secondFracs=4)
   '-23 30 00.0000'
   >>> "%.4f"%dmsToDeg(degToDms(-25.6835, sepChar=":"), sepChar=":")
@@ -16190,8 +16194,8 @@ that are immediately accessible in the namespace:
   * truncate can be set to True if fractional seconds should be truncated
     rather then rounded (as necessary for building IAU identifiers)
   
-  >>> degToHms(0)
-  '00 00 00.000'
+  >>> degToHms(0, sepChar=":")
+  '00:00:00.000'
   >>> degToHms(122.057, secondFracs=1)
   '08 08 13.7'
   >>> degToHms(122.057, secondFracs=1, truncate=True)
@@ -16202,6 +16206,10 @@ that are immediately accessible in the namespace:
   '-00 00 13'
   >>> degToHms(-1.056, secondFracs=0)
   '-00 04 13'
+  >>> degToHms(-1.056, secondFracs=0)
+  '-00 04 13'
+  >>> degToHms(359.9999999)
+  '24 00 00.000'
   >>> degToHms(359.2222, secondFracs=4, sepChar=":")
   '23:56:53.3280'
   >>> "%.4f"%hmsToDeg(degToHms(256.25, secondFracs=9))
@@ -16346,6 +16354,25 @@ that are immediately accessible in the namespace:
   >>> hmsToDeg("junk")
   Traceback (most recent call last):
   ValueError: Invalid time with sepChar None: 'junk'
+  
+
+*hoursToHms(decimal_hours, sepChar=':', secondFracs=0)*
+  returns a time span in hours in sexagesmal time (h:m:s).
+  
+  The optional argments are as for degToHms.
+  
+  >>> hoursToHms(0)
+  '00:00:00'
+  >>> hoursToHms(23.5)
+  '23:30:00'
+  >>> hoursToHms(23.55)
+  '23:33:00'
+  >>> hoursToHms(23.525)
+  '23:31:30'
+  >>> hoursToHms(23.553, secondFracs=2)
+  '23:33:10.80'
+  >>> hoursToHms(123.553, secondFracs=2)
+  '123:33:10.80'
   
 
 *iterSimpleText(f)*
@@ -17539,7 +17566,7 @@ returns a modified julian date for a datetime instance.
 Function degToDms
 .................
 
-Signature: ``degToDms(deg, sepChar=' ', secondFracs=2, preserveLeading=False, truncate=False)``
+Signature: ``degToDms(deg, sepChar=' ', secondFracs=2, preserveLeading=False, truncate=False, addSign=True)``
 
 converts a float angle in degrees to a sexagesimal string.
 
@@ -17551,13 +17578,17 @@ This takes a lot of optional arguments:
   preserved
 * truncate can be set to True if fractional seconds should be truncated
   rather then rounded (as necessary for building IAU identifiers)
+* addSign, if true, makes the function return a + in front of positive
+  values (the default)
 
 >>> degToDms(-3.24722, "", 0, True, True)
 '-031449'
 >>> degToDms(0)
 '+0 00 00.00'
->>> degToDms(-0.25)
-'-0 15 00.00'
+>>> degToDms(0, addSign=False)
+'0 00 00.00'
+>>> degToDms(-0.25, sepChar=":")
+'-0:15:00.00'
 >>> degToDms(-23.50, secondFracs=4)
 '-23 30 00.0000'
 >>> "%.4f"%dmsToDeg(degToDms(-25.6835, sepChar=":"), sepChar=":")
@@ -17578,8 +17609,8 @@ This takes a lot of optional arguments:
 * truncate can be set to True if fractional seconds should be truncated
   rather then rounded (as necessary for building IAU identifiers)
 
->>> degToHms(0)
-'00 00 00.000'
+>>> degToHms(0, sepChar=":")
+'00:00:00.000'
 >>> degToHms(122.057, secondFracs=1)
 '08 08 13.7'
 >>> degToHms(122.057, secondFracs=1, truncate=True)
@@ -17590,6 +17621,10 @@ This takes a lot of optional arguments:
 '-00 00 13'
 >>> degToHms(-1.056, secondFracs=0)
 '-00 04 13'
+>>> degToHms(-1.056, secondFracs=0)
+'-00 04 13'
+>>> degToHms(359.9999999)
+'24 00 00.000'
 >>> degToHms(359.2222, secondFracs=4, sepChar=":")
 '23:56:53.3280'
 >>> "%.4f"%hmsToDeg(degToHms(256.25, secondFracs=9))
@@ -17993,6 +18028,29 @@ returns the time angle (h m s.decimals) as a float in degrees.
 >>> hmsToDeg("junk")
 Traceback (most recent call last):
 ValueError: Invalid time with sepChar None: 'junk'
+
+
+Function hoursToHms
+...................
+
+Signature: ``hoursToHms(decimal_hours, sepChar=':', secondFracs=0)``
+
+returns a time span in hours in sexagesmal time (h:m:s).
+
+The optional argments are as for degToHms.
+
+>>> hoursToHms(0)
+'00:00:00'
+>>> hoursToHms(23.5)
+'23:30:00'
+>>> hoursToHms(23.55)
+'23:33:00'
+>>> hoursToHms(23.525)
+'23:31:30'
+>>> hoursToHms(23.553, secondFracs=2)
+'23:33:10.80'
+>>> hoursToHms(123.553, secondFracs=2)
+'123:33:10.80'
 
 
 Function iterSimpleText

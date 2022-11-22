@@ -718,21 +718,29 @@ argument).
 Astrometry.net
 --------------
 
-Calibration using Astrometry.net
-''''''''''''''''''''''''''''''''
+Astrometric Calibration
+'''''''''''''''''''''''
 
-If you have uncalibrated (optical) images, you can try to
-automatically calibrate them using astrometry.net.  The DC software
-comes with an interface to it in helpers.anet, and the file processing
-infrastructure is what you want to use here.
+If you have sky images lacking WCS headers, the
+software produced by astrometry.net can probably help you.  While there
+is a Python interface to astrometry.net now, DaCHS has support for it
+built in, too, and it nicely works with the processor infrastructure.
+So, you may want to think about using it.
 
-You probably want to inherit from AnetHeaderProcessor, more or less like
-this::
+DaCHS assumes you have installed the ``astrometry.net`` and
+``source-extractor``\ [#sextractor]_ packages (which are not declared as
+dependencies) on your path.  On non-Debian systems, make sure the
+source-extractor binary is called that (rather than its legacy name
+sextractor).
+
+To use it, inherit from ``AnetHeaderProcessor``, for instance::
 
   from gavo import api
 
   class MyProcessor(api.AnetHeaderProcessor):
-    sp_indices = ["index-4215"],
+    indexPath = "/usr/share/astrometry
+    sourceExtractorControl = ""
+    sp_indices = ["index-*.fits"],
     sp_lower_pix = 0.1
     sp_upper_pix = 0.2
     sp_endob = 50
@@ -748,12 +756,28 @@ this::
 
 
 The class attributes starting with ``sp_`` are parameters for the solver.
-The `anet module docstring`_ explains what is available.  The endob
+The `anet module docstring`_ explains what is available (still prefix these
+names with the ``sp_``).  The ``sp_endob``
 parameter is important on larger images because it instructs anet to
 give up when no identification has been possible within the first endob
 objects.  It keeps the solver from wasting enormous amounts of time on
 potentially thousands of spurious detections, e.g., on photographic
-plates.  
+plates. 
+
+Setting ``sourceExtractorControl`` to an empty string makes DaCHS
+instruct astrometry.net to use source-extractor rather than some
+built-in tool to find objects on the images.  This is almost always what
+you want, except you may want to further configure source-extractor (see
+below).
+
+You also need index files for astrometry.net.  You can obtain some
+generic indexes from in Debian packages (try ``apt search
+astrometry-data``).  If you want to use these, set ``indexPath`` as
+above.  DaCHS' default is ``/var/gavo/astrometry-indexes``, which is
+where you would drop your custom indexes.  See `a blog post on how to
+create such indexes`_ for details on how to do that.
+
+.. _a blog post on how to create such indexes: http://blog.tfiu.de/TODO
 
 Overriding ``_mungeHeader`` lets you add header cards of your own.  The
 default is again to just return the header.  Here, we're using DaCHS
@@ -766,28 +790,34 @@ Note that the ``_mungeHeader`` code can run independently of the
 with ``--no-anet --reprocess`` to re-create the headers computed there
 without re-running astrometry.net.
 
-If you want to use SExtractor for source extraction, add a sexControl
-class attribute.  If it is empty, extraction will be done using some
-default parameters.  You can add more (refer to the sextractor manual)::
+The ``sourceExtractorControl`` class attribute can also have a nonempty
+value, in which case that is used as the content of a source-extractor
+control file.  See the `source-extractor manual`_ for ideas what to
+configure here.  For instance, on a high-resolution scan, you might
+say::
 
-  sexControl = """
-    DETECT_MINAREA   100
+  sourceExtractorControl = """
+    DETECT_MINAREA   800
     DETECT_THRESH    8
     SEEING_FWHM      1.2
     """
 
--- do not change CATALOG_TYPE, CATALOG_NAME, and PARAMETERS_NAME.
+.. _source-extractor manual: https://sextractor.readthedocs.io/en/latest/
 
-You can even filter what sextractor has obtained.  To do that, define
-and ``objectFilter`` method (in addition to the ``sexControl``
-attribute)::
+– do not change CATALOG_TYPE, CATALOG_NAME, and PARAMETERS_NAME.
+
+You may need to filter the objects found by source-extractor, for
+instance to remove detections from plate markings or scratches.
+To do that, define an ``objectFilter`` method (in addition to the
+``sourceExtractorControl`` attribute; filtering only works with
+astrometry.net-external source extraction), for instance::
 
   import numpy
   from gavo.utils import pyfits
   ...
 
   def objectFilter(self, inName):
-    """throws out funny-looking objects from inName and throws out objects
+    """throws out funny-looking objects from inName as well as objects
     near the border.
     """
     hdulist = pyfits.open(inName)
@@ -808,33 +838,37 @@ attribute)::
     hdulist.close()
     os.rename("foo.xyls", inName)
 
-Just make sure to rename the result you come up with to whatever is
-passed in in ``inName``.
-
-Note, incidentally, that we take pyfits from gavo.utils.  You should
-never import pyfits directly, since this may pull in pyfits in a way
-incompatible with what the rest of the DC software expects.
+Make sure to rename the result you come up with to whatever is
+passed in in ``inName``.  The pyfits you get from gavo.utils is
+basically astropy.io.fits; if you are more comfortable working with
+that, feel free to.  The days when we regularly had to monkeypatch pyfits
+are fortunately over.
 
 If you need more control over the parameters of astrometry.net, override
-the _runAnet method.  Its default implementation is::
+the ``_runAnet`` method.  Its default implementation is::
 
   def _runAnet(self, srcName):
-     return anet.getWCSFieldsFor(srcName, self.solverParameters,
-      self.sexControl, self.objectFilter, self.opts.copyTo,
+     return anet.getWCSFieldsFor(
+      srcName, 
+      self.solverParameters,
+      self.sexControl, 
+      self.objectFilter, 
+      self.opts.copyTo,
+      self.indexPath,
       self.opts.beVerbose)
 
 
-So, if you had an attribute ``sexControl_in`` containing
+So, if you had an attribute ``control_in`` containing
 ``DETECT_MINAREA %d``, you could do something like::
 
   def _runAnet(self, srcName):
     for minArea in [300, 50, 150, 800, 2000, 8000]:
       try:
-        self.sexControl = self.sexControl_in%minArea
+        self.sourceExtractorControl = self.control_in%minArea
         res = api.AnetHeaderProcessor._runAnet(self, srcName)
         if res is not None:
           return res
-      except ShellCommandFailed:  # Ignore failures
+      except ShellCommandFailed:  # Ignore failures until the last one
         pass
     raise anet.ShellCommandFailed("No anet parameter worked", None)
 
@@ -850,31 +884,32 @@ you want filters of your own.  This could look like this::
       return False
     return api.AnetHeaderProcessor.historyFilter(self, value)
 
-To skip computation on some "known bad" cases without overriding
+To skip computation on some “known bad” cases without overriding
 ``_getHeader``, you can override ``_shouldRunAnet(srcName, hdr)``.  If
 you return false there, no astrometric calibration is attempted.
 
-.. _anet module docstring: apidoc/gavo.helpers.anet-module.html
+.. _anet module docstring: apidoc/gavo.helpers.anet.html
+
 
 Analyzing calibration failures
 ''''''''''''''''''''''''''''''
 
 If astrometry.net fails to solve fields, you can get a copy of the
-"sandbox" in which the helpers.anet runs the software by passing
-your processing script the --copy-to=path option. Caution: If
-the directory path already exists, it will be deleted.
-If you run your processor with --bail, it will stop at the first
+“sandbox” in which the helpers.anet runs the software by passing
+your processing script the ``--copy-to=path`` option. Caution: If
+the directory ``path`` already exists, it will be deleted.
+If you run your processor with ``--bail``, it will stop at the first
 non-solvable field.  
 
 Going to the sandbox directory, you will find at least:
 
- * img.fits -- a copy of the input file
- * backend.cfg -- a configuration file for solve-field, in particular
+ * ``img.fits`` – a copy of the input file
+ * ``backend.cfg`` – a configuration file for solve-field, in particular
    containing the indices to be used.
- * img.axy -- the extracted source positions in a binary FITS table
- * lastCommand.log -- A log of what the commands ran spat out.
+ * ``img.axy`` – the extracted source positions in a binary FITS table
+ * ``lastCommand.log`` – A log of what the commands ran spat out.
 
-There may also be sextractor control files, images generated by
+There may also be source-extractor control files, images generated by
 solve-field, and more.
 
 To figure out what's wrong, the first stop should be lastCommand.log.
@@ -883,56 +918,56 @@ you can modify them to try and figure out things (but the command lines
 do not include quoting; this is usually harmless for what the
 astrometric calibration does, but you have been warned).
 
-To rerun SExtractor, say::
+To rerun source-extractor, say::
 
-  sextractor -c anet.control img.fits
+  source-extractor -c anet.control img.fits
 
-You should sort the result by magnitude, since that's what anet's solver
+You should sort the result by magnitude, since that is what anet's solver
 expects.  In the normal case, you can do this like so::
 
-  $ANET_PATH/tabsort  MAG_ISO img.axy out.axy && mv out.axy img.axy
+  tabsort MAG_ISO img.axy out.axy && mv out.axy img.axy
 
 To get an idea what the source extraction has done, you can try anet's
-plotxy.  You could use anet's solve-field, but this probably will not
-reflect what is actually going on within the helper, in particular not if
-sextractor is in use.
-
-Instead, do something like::
+``plotxy``; for large, high-resolution plate scans, you will want to
+scale down the images to keep things manageable.  The 6.25% scale is
+present in the following command line twice::
 
   gm convert -flip -scale 6.25% img.fits pnm:- | $ANET_PATH/plotxy -I - -i img.axy -C red -P -w 2  -N50 -s circle -S 0.0625 -X X_IMAGE -Y Y_IMAGE > ws.png
 
-We use gm (from GraphicsMagick) here since netpbm's fitstopnm has issues with
-large files.  You will want to use different scales for larger or
+We use gm (from the package ``graphics-magick``) in these command lines;
+of course, you can use something else to convert the FITSes to pnm if
+you prefer.  You will want to use different scales for larger or
 smaller images both in gm convert's scale and plotxy's -S option, or
 leave them out altogether, like this::
 
   gm convert -flip img.fits pnm:- | $ANET_PATH/plotxy -I - -i img.axy -C red -P -w 2  -N50 -s circle -X X_IMAGE -Y Y_IMAGE > ws.png
 
-for smaller images.  Also, change the argument to -N if you change endob
-in the solverParameters to get an idea which objects are actually looked
+for smaller images.  Also, change the argument to ``-N`` if you change endob
+in the solver parameters to get an idea which objects are actually looked
 at.
 
 What to Try
 '''''''''''
 
-In the case of calibration failures you may play around with SExtractor's
-parameters DETECT_MINAREA and DETECT_THRESH. This is done by running::
+In the case of calibration failures you may play around with
+source-extractor's parameters DETECT_MINAREA and DETECT_THRESH. 
 
-  calibrate.py --minarea=MINAREA --detectthreshold=DETECTTHRESH
-
-DETECT_THRESH refers to the detection threshold (in sigma) above the local
+DETECT_THRESH refers to the detection threshold (in standard deviations
+of the noise) above the local
 background. A group (of pixels) is formed by a number of pixels connected
 to each other whose values exceed the local threshold. DETECT_MINAREA sets
 a lower bound on the number of pixels a group should have to trigger a
 detection.
 
-The default values used for the calibration are MINAREA = 300 and
-DETECTTHRESH = 4. In some cases it is useful to decrease the MINAREA
-parameter and to increase the detection reliability by increasing the
-threshold value, e.g.::
+For instance, your processor might set a class attribute::
 
-  calibrate.py --minarea=10 --detectthreshold=6
+  sourceExtractorControl = """
+    DETECT_MINAREA   300
+    DETECT_THRESH    4
+  """
 
+.. [#sextractor] source-extractor used to be called sextractor, and
+  perhaps still is upstream.  We follow the Debian naming here.
 
 .. _utils.imgtools: http://docs.g-vo.org/DaCHS/apidoc/gavo.utils.imgtools-module.html
 .. |date| date::
