@@ -8,9 +8,9 @@ def setup(app):
         # (usually for RDs)
         text = rstutils.unescape(text)
         url = "http://svn.ari.uni-heidelberg.de/svn/gavo/hdinputs/"+text+".rd"
-        return [nodes.reference(text, text, internal=False, refuri=url)
-                ], []
+        return [nodes.reference(text, text, internal=False, refuri=url)], []
 
     # RSTExtensions.makeTextRole("samplerd", _samplerdRoleFunc)
     # del _samplerdRoleFunc
     app.add_role('samplerd', _samplerdRoleFunc)
+

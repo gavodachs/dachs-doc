@@ -6,7 +6,7 @@ def setup(app):
     def _dachsrefRoleFunc(name, rawText, text, lineno, inliner,
                           options={}, content=[]):
         # this will guess a link into the ref documentation
-        print name,rawText,text
+        print(name,rawText,text)
         text = rstutils.unescape(text)
         fragId = re.sub("[^a-z0-9]+", "-", text.lower())
         url = app.config.dachsref_base +"#"+ fragId
@@ -15,3 +15,4 @@ def setup(app):
 
     app.add_config_value('dachsref_base', "http://docs.g-vo.org/DaCHS/ref.html", False)
     app.add_role('dachsref', _dachsrefRoleFunc)
+
