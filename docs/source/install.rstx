@@ -21,8 +21,8 @@ distribution pages`_ for details on those.
 .. _GAVO DC's software distribution pages: http://vo.ari.uni-heidelberg.de/soft
 
 
-Debian Systems
-==============
+Debian Systems (and Derivatives)
+================================
 
 The preferred way to run DaCHS is on Debian stable or compatible
 systems.   Starting with Debian bullseye (11.0), DaCHS is part of
@@ -44,13 +44,23 @@ Debian stable as your platform when you are going for Debian
 derivatives.  *If* you insist on running, say, Ubuntu, please note that
 they do not package DaCHS (so you have to add our APT repo no matter
 what) and that they do not package the q3c and pgsphere packages that
-DaCHS cannot live without.  Hence, on Ubuntu or similar Debian
-derivatives, you will almost certainly have to follow more or less the
-following sequence:
+DaCHS cannot live without.  
 
-(1) `Add the postgres APT repository`_
-(2) `Add our APT repository`_
-(3) ``apt install gavodachs2-server``
+A workable fix is to install the packages from postgres' APT repository
+(these are basically equivalent to what Debian has).  However, these
+have multiple postgres versions at the same time, and hence you will
+need to manually make sure that the postgres server and the extensions
+match. 
+
+Hence, on dpkg-based distributions more remote from Debian, try a
+sequence more or less like:
+
+(#) Purge all postgres packages that may already be on your system
+(#) `Add the postgres APT repository`_
+(#) `Add our APT repository`_
+(#) ``sudo apt update``
+(#) ``export PGVER=13; sudo apt install postgresql-$PGVER postgresql-$PGVER-q3c postgresql-$PGVER-pgsphere``
+(#) ``apt install gavodachs2-server``
 
 .. _Add the postgres apt repository: https://www.postgresql.org/download/linux/debian/
 

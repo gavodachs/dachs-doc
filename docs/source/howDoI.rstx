@@ -307,8 +307,8 @@ friend) and adapt them within your tables rather than use the mixin.
 .. _userconfig RD: http://docs.g-vo.org/DaCHS/tutorial.html#the-userconfig-rd
 
 
-Services in General
-===================
+Services and RDs in General
+===========================
 
 ...set a constant input to a core?
 ----------------------------------
@@ -658,6 +658,27 @@ redirect to the process that actually serves the data::
       </dataFunction>
     </datalinkCore>
   </service>
+
+
+...run code when and RD is loaded?
+----------------------------------
+
+There are no *onload* scripts in DaCHS.  If you really need to do some
+magic when an RD is initialised (and you should probably ask on
+dachs-support if you think you need to do that), you can abuse the
+:dachsref:`Element LOOP` with ``codeItems``, perhaps like this::
+
+  <LOOP>
+    <!-- initialise the foobar module at RD load time.  This will not
+    generate any RD elements. -->
+    <codeItems>
+      import foobar
+      foobar.initialise()
+      if False:
+        yield
+    </codeItems>
+    <events/>
+  </LOOP>
 
 
 
@@ -1255,10 +1276,10 @@ not know where your meta items will be rendered, and hence the
 The current workaround is to include the following material in your meta
 item::
 
-	.. role:: raw-html(raw)
-  	:format: html
+  .. role:: raw-html(raw)
+    :format: html
 
-	:raw-html:`<style type="text/css">@import url(/static/css/math.css);</style>`
+  :raw-html:`<style type="text/css">@import url(/static/css/math.css);</style>`
 
 Yeah, that's not pretty, and we'll try to think of something better.
 
@@ -1305,7 +1326,7 @@ Here's a condDesc that fits the bill::
           <values fromdb="unnest(objects) FROM fai50mak.main"/>
       </inputKey>
       <phraseMaker>
-      	<setup imports="numpy"/>
+        <setup imports="numpy"/>
         <code><![CDATA[
           yield "%({})s && objects".format(
             base.getSQLKey("object", 

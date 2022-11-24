@@ -813,18 +813,18 @@ To do that, define an ``objectFilter`` method (in addition to the
 astrometry.net-external source extraction), for instance::
 
   import numpy
-  from gavo.utils import pyfits
   ...
 
-  def objectFilter(self, inName):
+
+ def objectFilter(self, inName):
     """throws out funny-looking objects from inName as well as objects
     near the border.
     """
-    hdulist = pyfits.open(inName)
+    hdulist = api.pyfits.open(inName)
     data = hdulist[1].data
     width = max(data.field("X_IMAGE"))
     height = max(data.field("Y_IMAGE"))
-    badBorder = 0.3
+    badBorder = 0.2
     data = data[data.field("ELONGATION")<1.2]
     data = data[data.field("X_IMAGE")>width*badBorder]
     data = data[data.field("X_IMAGE")<width-width*badBorder]
@@ -833,15 +833,15 @@ astrometry.net-external source extraction), for instance::
 
     # the extra numpy.array below works around a bug in several versions
     # of pyfits that would write the full, not the filtered array
-    hdu = pyfits.new_table(numpy.array(data))
+    hdu = api.pyfits.BinTableHDU(numpy.array(data))
     hdu.writeto("foo.xyls")
     hdulist.close()
     os.rename("foo.xyls", inName)
 
 Make sure to rename the result you come up with to whatever is
-passed in in ``inName``.  The pyfits you get from gavo.utils is
-basically astropy.io.fits; if you are more comfortable working with
-that, feel free to.  The days when we regularly had to monkeypatch pyfits
+passed in in ``inName``.  The ``api.pyfits`` module
+basically is astropy.io.fits; if you are more comfortable working with
+the latter, feel free to.  The days when we regularly had to monkeypatch pyfits
 are fortunately over.
 
 If you need more control over the parameters of astrometry.net, override
@@ -932,7 +932,7 @@ To get an idea what the source extraction has done, you can try anet's
 scale down the images to keep things manageable.  The 6.25% scale is
 present in the following command line twice::
 
-  gm convert -flip -scale 6.25% img.fits pnm:- | $ANET_PATH/plotxy -I - -i img.axy -C red -P -w 2  -N50 -s circle -S 0.0625 -X X_IMAGE -Y Y_IMAGE > ws.png
+  gm convert -flip -scale 6.25% img.fits pnm:- | plotxy -I - -i img.axy -C red -P -w 2  -N50 -s circle -S 0.0625 -X X_IMAGE -Y Y_IMAGE > ws.png
 
 We use gm (from the package ``graphics-magick``) in these command lines;
 of course, you can use something else to convert the FITSes to pnm if
@@ -940,7 +940,7 @@ you prefer.  You will want to use different scales for larger or
 smaller images both in gm convert's scale and plotxy's -S option, or
 leave them out altogether, like this::
 
-  gm convert -flip img.fits pnm:- | $ANET_PATH/plotxy -I - -i img.axy -C red -P -w 2  -N50 -s circle -X X_IMAGE -Y Y_IMAGE > ws.png
+  gm convert -flip img.fits pnm:- | plotxy -I - -i img.axy -C red -P -w 2  -N50 -s circle -X X_IMAGE -Y Y_IMAGE > ws.png
 
 for smaller images.  Also, change the argument to ``-N`` if you change endob
 in the solver parameters to get an idea which objects are actually looked
