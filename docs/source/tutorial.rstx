@@ -3547,8 +3547,10 @@ Since Datalink is very flexible, defining datalink services is a bit
 involved.  The reference documentation has a `large section on it`_.
 Here, we discuss some extra usage patterns.  The concrete application to
 spectra and images is discussed in `SSAP and Datalink`_ and 
-`SIAP and Datalink`_.
+`SIAP and Datalink`_.  See also the `Datalink showcase`_ in the GAVO
+data centre for live examples of datalink documents.
 
+.. _Datalink showcase: http://dc.g-vo.org/static/datalinks.shtml
 .. _large section on it: http://docs.g-vo.org/DaCHS/ref.html#datalink-cores
 
 

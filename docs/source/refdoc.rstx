@@ -3030,6 +3030,14 @@ common arguments:
   localSemantics can be used to tell apart the various items.  If you
   only have one link per semantics, or if all links for a certain piece
   of semantics are equivalent, do not touch this.
+* ``contentQualifier`` – this can be an identifier of what sort of data
+  is at the other end of the link, usually used to distinguish between
+  spectra, time series, images, etc.  Like semantics, there is a default
+  vocabulary for these, http://www.ivoa.net/rdf/product-type.  To state
+  that the link points to an image, you would thus put ``#image`` into
+  content qualifier.  Clients are intended to use this information to
+  route the links to whatever SAMP clients can be expected to handle
+  them (version 2.8+).
 
 Except for ``semantics``, all of these are optional and must be passed
 in as keyword arguments.
