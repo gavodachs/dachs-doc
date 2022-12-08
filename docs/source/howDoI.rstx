@@ -1238,7 +1238,7 @@ will also appear on your root page.  Come to think of it, you could even
 put::
 
   [web]
-  root: /adqlform/q/q/form
+  root: adqlform/q/q/form
 
 into your ``/etc/gavo.rc`` and have that as your root page.
 

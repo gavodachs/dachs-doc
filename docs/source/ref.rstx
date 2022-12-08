@@ -9815,6 +9815,9 @@ Setup parameters for the procedure are:
 Parameter *accrefPrefix*
   defaults to ``None``;
   A prefix for the accrefs the parent SODA service works on. Calls on all other accrefs will be rejected with a 403 forbidden. You should always include a restriction like this when you make assumptions about the FITSes (e.g., what axes are available).
+Parameter *contentQualifier*
+  defaults to ``"#image"``;
+  An identifier for the sort of data #this is. Choose from http://www.ivoa.net/rdf/product-type in case the default does not quite work for you (version 2.8+).
 Parameter *descClass*
   defaults to ``FITSProductDescriptor``;
   The descriptor class to use. The default is fine for vanilla FITS files, but when you deliver datalinks through the product table, you'll have to use DLFITSDescriptor here. Also, you can define a descriptor yourself in the setup (inherit from FITSDescriptor).
@@ -9935,6 +9938,9 @@ Setup parameters for the procedure are:
 Parameter *accrefPrefix*
   defaults to ``None``;
   A prefix for the accrefs the parent SODA service works on. Calls on all other accrefs will be rejected with a 403 forbidden. You should always include a restriction like this when you make assumptions about the FITSes (e.g., what axes are available).
+Parameter *contentQualifier*
+  defaults to ``None``;
+  An identifier for the sort of data #this is. Choose from http://www.ivoa.net/rdf/product-type if you want to give clients a hint what other client might be suitable to work with that link (version 2.8+).
 
 //soda#generateProduct
 ......................
@@ -9978,6 +9984,9 @@ the original row in the SSA table.
 Setup parameters for the procedure are:
 
 
+Parameter *contentQualifier*
+  defaults to ``"#spectrum"``;
+  The sort of data that #this is; you might want to override this if you are abusing this for time series or so (version 2.8+).
 Late parameter *descriptorClass*
   defaults to ``ssap.SSADescriptor``;
   The SSA descriptor class to use. You'll need to override this if the dc.products path doesn't actually lead to the file (see `custom generators <#custom-product-descriptor-generators>`_). This class must have an fromSSAResult constructor.
@@ -14099,7 +14108,7 @@ common arguments:
   that the link points to an image, you would thus put ``#image`` into
   content qualifier.  Clients are intended to use this information to
   route the links to whatever SAMP clients can be expected to handle
-  them.
+  them (version 2.8+).
 
 Except for ``semantics``, all of these are optional and must be passed
 in as keyword arguments.
