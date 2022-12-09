@@ -9313,6 +9313,11 @@ The bandpass ids known are contained in a file supplied by
 DaCHS that you should consult for supported values by running
 ``dachs admin dumpDF data/filters.txt``.
 
+If you pass in an unknown filter name, no keys will be generated,
+but no diagnostics will be emitted either.  Make sure to dachs info
+on the imported table if you expect no NULLs in the bandpass
+columns.
+
 All values filled in here are in meters.
 
 If this is used, it must run after //siap#setMeta since 

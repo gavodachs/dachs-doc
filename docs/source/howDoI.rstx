@@ -660,6 +660,51 @@ redirect to the process that actually serves the data::
   </service>
 
 
+...pre-set a value for a datalink parameter?
+--------------------------------------------
+
+Sometimes you would like to pre-fill a parameter that you generate in a
+datalink metaMaker.
+
+Regrettably, as of Datalink 1.0, this is not generally possible, because
+there is no way to interoperably communicate such an editable default to
+a client (if you set the InputKey's value, it will become a constant
+input that the user can no longer edit).
+
+However, in DaCHS and with DaCHS' datalink stylesheet, you can put in a
+default on most widgets by setting the ``defaultForForm`` property on
+the InputKey, for instance::
+
+  <metaMaker>
+      <code>
+      ik = MS(InputKey, name="format", type="text",
+        ucd="meta.format",
+        description="Output format desired",
+        values=MS(Values,
+          options=[MS(Option, content_=descriptor.mime),
+            MS(Option, content_="application/fits")]))
+      ik.setProperty("defaultForForm", "application/fits")
+      yield ik
+      </code>
+  </metaMaker>
+
+By a custom (but non-interfering) extension to Datalink, this produces::
+
+  <LINK action="rdf" content-role="#pre-set" value="application/fits"/>
+
+as a child to the VOTable PARAM produced. DaCHS' own datalink stylesheet
+picks this up and pre-fills the HTML widget it spits out.  It is
+virtually certain that that will not be what a future standard will say
+about pre-setting parameters; but I can almost promise that whatever the
+standard will say, DaCHS will keep the ``setProperty`` technique, so
+your RD still ought to work once a proper standard is there.
+
+This may not work for all widgets that the style sheet produces (for
+instance, intervals are only covered starting version 2.7.1); if it
+doesn't work for you, complain on dachs-support.
+
+
+
 ...run code when and RD is loaded?
 ----------------------------------
 
@@ -1187,7 +1232,7 @@ putting an RD like the following into, say,
       you don't have TOPCAT or some other TAP client at hand.  Let me
       particularly recommend running queries on the **mauve.results** and
       **violet.images** tables.
-  ]]>	
+  ]]>  
     </meta>
     <meta name="_bottominfo" format="rst">
       There is a fixed limit to 100000 rows on this service.  If this
