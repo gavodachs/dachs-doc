@@ -3064,8 +3064,8 @@ Atomic Children
   default it's None meaning the data was dumped to the file
   sequentially.  Set it to fortran for fortran unformatted files (4
   byte length before and after the payload).
-* **enc** (unicode string; defaults to None) -- Encoding of strings
-  coming in from source.
+* **enc** (unicode string; defaults to None) -- Encoding of the source
+  file(s).
 * **original** (id reference; defaults to None) -- An id of an element
   to base the current one on.  This provides a simple inheritance
   method.  The general rules for advanced referencing in RDs apply.
@@ -3154,8 +3154,8 @@ Atomic Children
 
 * **autoAtomize** (boolean; defaults to 'False') -- Unpack 1-element
   lists to their first value.
-* **enc** (unicode string; defaults to None) -- Encoding of strings
-  coming in from source.
+* **enc** (unicode string; defaults to None) -- Encoding of the source
+  file(s).
 * **original** (id reference; defaults to None) -- An id of an element
   to base the current one on.  This provides a simple inheritance
   method.  The general rules for advanced referencing in RDs apply.
@@ -3210,8 +3210,8 @@ Atomic Children
 * **commentIntroducer** (unicode string; defaults to <Not
   given/empty>) -- A character sequence that, when found at the
   beginning of a line makes this line ignored
-* **enc** (unicode string; defaults to None) -- Encoding of strings
-  coming in from source.
+* **enc** (unicode string; defaults to None) -- Encoding of the source
+  file(s).
 * **gunzip** (boolean; defaults to 'False') -- Unzip sources while
   reading? (Deprecated, use preFilter='zcat')
 * **original** (id reference; defaults to None) -- An id of an element
@@ -3281,8 +3281,8 @@ bit table-like, they can also carry metadata.
 Atomic Children
 ...............
 
-* **enc** (unicode string; defaults to None) -- Encoding of strings
-  coming in from source.
+* **enc** (unicode string; defaults to None) -- Encoding of the source
+  file(s).
 * **inputTD** (id reference; defaults to <Not given/empty>) -- The
   input table from which to take the input keys
 * **original** (id reference; defaults to None) -- An id of an element
@@ -3324,9 +3324,6 @@ that convention, you *must* give names (as in ``names='raj2000,
 dej2000, magV'``), or you'll lose the first line and have silly
 column names.
 
-CSVGrammars currently do not support non-ASCII inputs.
-Contact the authors if you need that.
-
 If data is left after filling the defined keys, it is available under
 the NOTASSIGNED key.
 
@@ -3335,8 +3332,8 @@ Atomic Children
 ...............
 
 * **delimiter** (unicode string; defaults to ',') -- CSV delimiter
-* **enc** (unicode string; defaults to None) -- Encoding of strings
-  coming in from source.
+* **enc** (unicode string; defaults to None) -- Encoding of the source
+  file(s).
 * **gunzip** (boolean; defaults to 'False') -- Unzip sources while
   reading? (Deprecated, use preFilter='zcat')
 * **names** (Comma-separated list of strings; defaults to None) --
@@ -3389,8 +3386,8 @@ See the `Writing Custom Grammars`_ (in the reference manual) for details.
 Atomic Children
 ...............
 
-* **enc** (unicode string; defaults to None) -- Encoding of strings
-  coming in from source.
+* **enc** (unicode string; defaults to None) -- Encoding of the source
+  file(s).
 * **isDispatching** (boolean; defaults to 'False') -- Is this a
   dispatching grammar (i.e., does the row iterator return pairs of
   role, row rather than only rows)?
@@ -3434,8 +3431,8 @@ Atomic Children
 
 * **asPars** (boolean; defaults to 'False') -- Just return the first
   item of the list as parameters row and exit?
-* **enc** (unicode string; defaults to None) -- Encoding of strings
-  coming in from source.
+* **enc** (unicode string; defaults to None) -- Encoding of the source
+  file(s).
 * **notify** (boolean; defaults to 'False') -- Enable notification of
   begin/end of processing (as for other grammars; dictlistGrammars are
   usually internal, where notification is unwelcome).  Note that the
@@ -3571,8 +3568,8 @@ a SourceParseError, somewhat like this::
 Atomic Children
 ...............
 
-* **enc** (unicode string; defaults to None) -- Encoding of strings
-  coming in from source.
+* **enc** (unicode string; defaults to None) -- Encoding of the source
+  file(s).
 * **isDispatching** (boolean; defaults to 'False') -- Is this a
   dispatching grammar (i.e., does the row iterator return pairs of
   role, row rather than only rows)?
@@ -3637,8 +3634,8 @@ to get the first data item in the tenth row in the second HDU.
 Atomic Children
 ...............
 
-* **enc** (unicode string; defaults to None) -- Encoding of strings
-  coming in from source.
+* **enc** (unicode string; defaults to None) -- Encoding of the source
+  file(s).
 * **hdu** (integer; defaults to '0') -- Take the header from this HDU.
   You must say qnd='False' for this to take effect.
 * **hdusField** (unicode string; defaults to None) -- If set, the
@@ -3692,8 +3689,8 @@ the FITS.
 Atomic Children
 ...............
 
-* **enc** (unicode string; defaults to None) -- Encoding of strings
-  coming in from source.
+* **enc** (unicode string; defaults to None) -- Encoding of the source
+  file(s).
 * **hdu** (integer; defaults to '1') -- Take the data from this
   extension (primary=0). Tabular data typically resides in the first
   extension.
@@ -3748,8 +3745,8 @@ expressions.  Here's an example::
 Atomic Children
 ...............
 
-* **enc** (unicode string; defaults to None) -- Encoding of strings
-  coming in from source.
+* **enc** (unicode string; defaults to None) -- Encoding of the source
+  file(s).
 * **ignoreJunk** (boolean; defaults to 'False') -- Ignore everything
   outside of the row production
 * **original** (id reference; defaults to None) -- An id of an element
@@ -3817,8 +3814,8 @@ Atomic Children
 * **dataset** (unicode string; defaults to <Undefined>) -- The name of
   the HDF5 dataset/group containing the table.  At this point, only
   datasets that are children of root are supported.
-* **enc** (unicode string; defaults to None) -- Encoding of strings
-  coming in from source.
+* **enc** (unicode string; defaults to None) -- Encoding of the source
+  file(s).
 * **original** (id reference; defaults to None) -- An id of an element
   to base the current one on.  This provides a simple inheritance
   method.  The general rules for advanced referencing in RDs apply.
@@ -3910,8 +3907,8 @@ Atomic Children
 
 * **commentPattern** (unicode string; defaults to '(?m)#.*') -- A
   regular expression describing comments.
-* **enc** (unicode string; defaults to None) -- Encoding of strings
-  coming in from source.
+* **enc** (unicode string; defaults to None) -- Encoding of the source
+  file(s).
 * **kvSeparators** (unicode string; defaults to ':=') -- Characters
   accepted as separators between key and value
 * **original** (id reference; defaults to None) -- An id of an element
@@ -4068,8 +4065,8 @@ improve this or complain to the authors.
 Atomic Children
 ...............
 
-* **enc** (unicode string; defaults to None) -- Encoding of strings
-  coming in from source.
+* **enc** (unicode string; defaults to None) -- Encoding of the source
+  file(s).
 * **gunzip** (boolean; defaults to 'False') -- Unzip sources while
   reading? (Deprecated, use preFilter='zcat')
 * **original** (id reference; defaults to None) -- An id of an element
@@ -4109,8 +4106,8 @@ A grammar that never returns any rows.
 Atomic Children
 ...............
 
-* **enc** (unicode string; defaults to None) -- Encoding of strings
-  coming in from source.
+* **enc** (unicode string; defaults to None) -- Encoding of the source
+  file(s).
 * **original** (id reference; defaults to None) -- An id of an element
   to base the current one on.  This provides a simple inheritance
   method.  The general rules for advanced referencing in RDs apply.
@@ -4162,8 +4159,8 @@ to your source database (e.g., odbc-postgresql).
 Atomic Children
 ...............
 
-* **enc** (unicode string; defaults to None) -- Encoding of strings
-  coming in from source.
+* **enc** (unicode string; defaults to None) -- Encoding of the source
+  file(s).
 * **original** (id reference; defaults to None) -- An id of an element
   to base the current one on.  This provides a simple inheritance
   method.  The general rules for advanced referencing in RDs apply.
@@ -4271,8 +4268,8 @@ git://github.com/RyanBalfanz/PyPDS.git
 Atomic Children
 ...............
 
-* **enc** (unicode string; defaults to None) -- Encoding of strings
-  coming in from source.
+* **enc** (unicode string; defaults to None) -- Encoding of the source
+  file(s).
 * **original** (id reference; defaults to None) -- An id of an element
   to base the current one on.  This provides a simple inheritance
   method.  The general rules for advanced referencing in RDs apply.
@@ -4317,8 +4314,8 @@ Atomic Children
   material to be ignored (note: make this match the entire comment, or
   you'll get random mess from partly-matched comments.  Use
   '(?m)^#.*$' for beginning-of-line hash-comments.
-* **enc** (unicode string; defaults to None) -- Encoding of strings
-  coming in from source.
+* **enc** (unicode string; defaults to None) -- Encoding of the source
+  file(s).
 * **fieldSep** (unicode string; defaults to '\\s+') -- RE for
   separating two fields in a record.
 * **gunzip** (boolean; defaults to 'False') -- Unzip sources while
@@ -4439,8 +4436,8 @@ This grammar probably is only useful for internal purposes.
 Atomic Children
 ...............
 
-* **enc** (unicode string; defaults to None) -- Encoding of strings
-  coming in from source.
+* **enc** (unicode string; defaults to None) -- Encoding of the source
+  file(s).
 * **fieldsFrom** (id reference; defaults to <Undefined>) -- the table
   defining the columns in the tuples.
 * **original** (id reference; defaults to None) -- An id of an element
@@ -4531,8 +4528,8 @@ it.
 Atomic Children
 ...............
 
-* **enc** (unicode string; defaults to None) -- Encoding of strings
-  coming in from source.
+* **enc** (unicode string; defaults to None) -- Encoding of the source
+  file(s).
 * **original** (id reference; defaults to None) -- An id of an element
   to base the current one on.  This provides a simple inheritance
   method.  The general rules for advanced referencing in RDs apply.
@@ -4572,8 +4569,8 @@ in the types they are supposed to have.
 Atomic Children
 ...............
 
-* **enc** (unicode string; defaults to None) -- Encoding of strings
-  coming in from source.
+* **enc** (unicode string; defaults to None) -- Encoding of the source
+  file(s).
 * **gunzip** (boolean; defaults to 'False') -- Unzip sources while
   reading?
 * **original** (id reference; defaults to None) -- An id of an element
@@ -4627,8 +4624,8 @@ Do not use this for VOTables; use VOTableGrammar instead.
 Atomic Children
 ...............
 
-* **enc** (unicode string; defaults to None) -- Encoding of strings
-  coming in from source.
+* **enc** (unicode string; defaults to None) -- Encoding of the source
+  file(s).
 * **normalizeWhitespace** (boolean; defaults to 'True') -- By default,
   the parser will return whitespace-only content as None and will turn
   internal whitespace to a single blank.  Set this to False to
@@ -13614,7 +13611,9 @@ Here's a list of assertion methods defined right now:
   prefixes statically mapped; there's currently v2 (VOTable
   1.2), v1 (VOTable 1.1), v (whatever VOTable version
   is the current DaCHS default), h (the namespace of the
-  XHTML elements DaCHS generates), and o (OAI-PMH 2.0).
+  XHTML elements DaCHS generates), m (the provisional MIVOT namespace)
+  and o (OAI-PMH 2.0).
+  
   If you need more prefixes, hack the source and feed back
   your changes (or just add to self.XPATH_NAMESPACE_MAP
   locally).
