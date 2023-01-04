@@ -900,10 +900,10 @@ start with an underscore.  Among those are:
 
 :_intro:
   used by the standard HTML template for explanatory text
-  above the seach form.
+  above the search form.
 :_bottominfo:
   used by the standard HTML template for explanatory text
-  below the seach form.
+  below the search form.
 :_related:
   used in the standard HTML template for links to related
   services.  As listed above, this is a link, i.e., you can give a
@@ -952,7 +952,7 @@ start with an underscore.  Among those are:
 RMI-Style Metadata
 ''''''''''''''''''
 
-For services (and other things) that are registred in the Registry, you
+For services (and other things) that are registered in the Registry, you
 must give certain metadata items (and you can give more), where we take
 their keys from [RMI]_.  We provide a `explanatory leaflet
 <./data_checklist.pdf>`_ for data providers.  The most common keys --
@@ -960,9 +960,9 @@ used by the registry interface and in part by HTML and VOTable
 renderers -- include:
 
 :title:
-  this should in general be given seperately on the resource,
+  this should in general be given separately on the resource,
   each table, and each service.  In simple cases, though, you may get by
-  by just having one global title on the resource and rely on metdata
+  by just having one global title on the resource and rely on metadata
   inheritance.
 :shortName:
   a string that should indicate what the service is in 16
@@ -1198,7 +1198,7 @@ sepChar
 
 sf
   "Significant figures" -- length of the mantissa for this column.
-  Will probably be replaced by a column attribute analoguous to what
+  Will probably be replaced by a column attribute analogous to what
   VOTable does.
 
 type
@@ -1270,7 +1270,7 @@ Data Model Annotation
 =====================
 
 In the VO, data models are used when simple, more or less linear
-annotation methods like UCDs do not provide sufficent expressive power.
+annotation methods like UCDs do not provide sufficient expressive power.
 Or well, they should be used.  As of early 2017, things are, admittedly,
 still a mess.
 
@@ -1342,7 +1342,7 @@ The elements of SIL are:
   even allowed).
 
 * Sequences. This is like a list.  Members can be atomic or objects,
-  but they have to be homogenous (SIL doesn't enforce this by
+  but they have to be homogeneous (SIL doesn't enforce this by
   grammatical means, though.  Here is an object with two sequences::
 
     { seq1: [3 4 5 "You thought these were numbers? They're strings!"]
@@ -1921,7 +1921,7 @@ The column selection is influenced by:
   defining an output table, each output field gets a ``sets`` attribute
   (default: no set; use ALL to have the column included in all outputs).
   Then, add a ``_SET`` service parameter (use ``values`` do declare the
-  avaiable sets).  Note that the ``_SET`` parameter changes VOTable
+  available sets).  Note that the ``_SET`` parameter changes VOTable
   column selection to ``votableRespectsOutputTable`` mode as discussed
   above.  Services that use column sets should therefore set the
   property manually for consistency whether or not clients actually pass
@@ -2142,8 +2142,8 @@ which has to have the following signature::
 
   run(service, inputTable, queryMeta) -> stuff
 
-The stuff returned will ususally be a Table or Data instance (that need
-not match the outputTable definition -- the latter is targetted at the
+The stuff returned will usually be a Table or Data instance (that need
+not match the outputTable definition -- the latter is targeted at the
 registry and possibly applications like output field selection).  The
 standard renderers also accept a pair of mime type and a string
 containing some data and will deliver this as-is.  With custom
@@ -2152,7 +2152,7 @@ renderers, you could return basically anything you want.
 Services come up with some idea of the schema of the table they want to
 return and adapt tables coming out of the core to this.  Sometimes, you
 want to suppress this behaviour, e.g., because the service's ideas are
-off.  In that case, set a noPostprocess atttribute on the table to any
+off.  In that case, set a noPostprocess attribute on the table to any
 value (the TAP core does this, for instance).
 
 In ``service`` you get the service using the core; this may make a
@@ -2494,7 +2494,7 @@ URLs there.  Note that totesturl fails for values with embedded quotes,
 takes only the first value of repeated parameters and is a over-quick
 hack all around.  Patches are gratefully accepted.
 
-The ``url`` element hence accepts arbitary attributes, which can be a
+The ``url`` element hence accepts arbitrary attributes, which can be a
 trap if you think you've given values to url's private attributes and
 mistyped their names.  If uploads or authentication don't seem to
 happen, check if your attribute ended up the in the URL (which is
@@ -3086,7 +3086,7 @@ this::
   </service>
 
 Note that, of course, exposing a directory via the static renderer like
-this bypasses any access restrictions (e.g., embargos) on the respective
+this bypasses any access restrictions (e.g., embargoes) on the respective
 data.  So, do not do with with your primary data if you want to
 enforce access control.  Also, there currently is no way to control the
 media types returned in this way except by editing the system mime.types
@@ -3279,7 +3279,7 @@ Finally, the data enters the formatter, which actually generates the
 output, usually returning a pair of mime type and string to be
 delivered.
 
-It is a design descision of the service creator
+It is a design decision of the service creator
 which manipulations are done in the initial data
 function, which are in later filters, and which perhaps only in the
 formatter.  The advantage of filters is that they are more flexible and
@@ -3764,7 +3764,7 @@ declarations could look like in such a case::
     <GROUP name="inputParams">
       <PARAM arraysize="*" datatype="char" name="ID" ref="ssa_pubDID" 
         ucd="meta.id;meta.main" value="">
-        <DESCRIPTION>The pubisher DID of the dataset of interest</DESCRIPTION>
+        <DESCRIPTION>The publisher DID of the dataset of interest</DESCRIPTION>
       </PARAM>
       <PARAM arraysize="*" datatype="char" name="BANDPASS" value="">
         <DESCRIPTION>Gaia bandpass to generate the time series 
@@ -3858,7 +3858,7 @@ are examples for what to do with FITS cubes or spectra.
 This way, of course, without a datalink-enabled client people might be
 locked out from the dataset entirely.  On the other hand, DaCHS comes
 with a stylesheet that enables datalink operation from a common web
-brower, so that's perhaps not too bad.
+browser, so that's perhaps not too bad.
 
 Aladin likes it when columns containing datalink URLs are marked up.
 DaCHS has two properties that let you add that markup, *targetType* and
@@ -4018,7 +4018,7 @@ could look like this::
   </rowfilter>
 
 (this assumes takes away to path elements from the relative paths, which
-typically reproduces an external hierachy).  If you need to do more
+typically reproduces an external hierarchy).  If you need to do more
 complex manipulations, you can have a custom rowfilter, maybe like
 this if you have both FITS files (for which you want DaCHS' default
 behaviour selected with ``AUTO``) and ``.complex`` files with some
@@ -4331,7 +4331,7 @@ The ``formal.ResourceMixin`` lets you define and interpret forms.  The
 credential checking and the like).  The ``web.CustomTemplateMixin`` lets
 you get your template from a DaCHS template (cf. `templating guide`_)
 from a resdir-relative directory given in the ``customTemplate``
-attribute.  For widely distributed code, you should additionaly provide
+attribute.  For widely distributed code, you should additionally provide
 some embedded stan fallback in the ``defaultDocFactory`` attribute -- of
 course, you can also give the template in stan in the first place.
 
@@ -4450,7 +4450,7 @@ spectrum according to the data model.  There's a mixin for that::
 In addition to adding lots and lots of params, the mixin also defines
 two columns, ``spectral`` and ``flux``; these have units and ucds as
 taken from the SSA metadata.  You can add additional columns (e.g., a
-flux error depending on the spectral coordinate) as requried.
+flux error depending on the spectral coordinate) as required.
 
 The actual spectral instances can be built by sdmCores and delivered
 through DaCHS' product interface.
@@ -4745,7 +4745,7 @@ and see the rows as they're generated.
 Data Packs
 ''''''''''
 
-A row iterator will be instanciated for each source processed.  Thus,
+A row iterator will be instantiiated for each source processed.  Thus,
 you should usually not perform expensive operations in the constructor
 unless they depend on ``sourceToken``.  Instead, you should rather define
 a function ``makeDataPack`` in the module.  Whatever is returned by this
