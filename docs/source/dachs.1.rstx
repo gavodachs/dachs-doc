@@ -862,9 +862,6 @@ Options
   Also make sure that tables that are on disk (somewhat)
   match the definition in the RD.
 
--u, --accept-free-units
-  Do not warn against units not listed in VOUnits.
-
 
 THE upgrade SUBCOMMAND
 ======================

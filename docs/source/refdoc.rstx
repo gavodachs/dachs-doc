@@ -3296,8 +3296,8 @@ Descriptor generators (see `element descriptorGenerator`_) are procedure
 applications that, roughly, see a pubDID value and are expected to return a
 ``datalink.ProductDescriptor`` instance, or something derived from it.  
 
-Simple Product Descriptor Generator
-...................................
+Simple Product Descriptor Generators
+....................................
 
 In the end, this usually boils down to figuring out the value of accref
 in the product table and using what's there to construct the descriptor
@@ -3320,6 +3320,7 @@ attributes to the ``ProductDescriptor`` generated in this way.
 The default ``ProductDescriptor`` class exposes as attributes 
 all the columns from the products table.  See `dc.products`_ for their
 names and descriptions.
+
 
 Spectrum Product Descriptor Generators
 ......................................
@@ -4742,9 +4743,9 @@ to your module.  You can then run things like::
 
 and see the rows as they're generated.
 
+
 Data Packs
 ''''''''''
-
 A row iterator will be instantiiated for each source processed.  Thus,
 you should usually not perform expensive operations in the constructor
 unless they depend on ``sourceToken``.  Instead, you should rather define

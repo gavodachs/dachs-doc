@@ -545,7 +545,10 @@ Futher metadata on columns includes:
   just happens to come out as 1), things that can't have units to
   begin with (e.g., an observer name), and things that should have units
   but are written in a way that they can't (e.g., sexagesimal
-  coordinates or ISO datetime strings).
+  coordinates or ISO datetime strings).  In case you must have units
+  not in VOUnits (e.g., mCrab or jupiterMass), enclose them in single
+  quotes as forseen by VOUnits.  DaCHS will then not complain about
+  them.
 * ``tablehead`` – a very short string designating the content.  This string
   is typically used for display purposes, e.g., as table headings or
   labels on input fields and defaults to the capitalized column name.
