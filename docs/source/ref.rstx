@@ -282,7 +282,9 @@ Atomic Children
   upload, int4range; defaults to 'real') -- datatype for the column
   (SQL-like type system)
 * **ucd** (unicode string; defaults to '') -- UCD of the column
-* **unit** (unicode string; defaults to '') -- Unit of the values
+* **unit** (unicode string; defaults to '') -- Unit of the values.
+  Use VOUnits syntax and use single quotes when you use custom units
+  (you should avoid that).
 * **utype** (unicode string; defaults to None) -- utype for this
   column
 * **verbLevel** (integer; defaults to '20') -- Minimal verbosity level
@@ -1056,7 +1058,9 @@ Atomic Children
   upload, int4range; defaults to 'real') -- datatype for the column
   (SQL-like type system)
 * **ucd** (unicode string; defaults to '') -- UCD of the column
-* **unit** (unicode string; defaults to '') -- Unit of the values
+* **unit** (unicode string; defaults to '') -- Unit of the values.
+  Use VOUnits syntax and use single quotes when you use custom units
+  (you should avoid that).
 * **utype** (unicode string; defaults to None) -- utype for this
   column
 * **verbLevel** (integer; defaults to '20') -- Minimal verbosity level
@@ -1475,7 +1479,9 @@ Atomic Children
   upload, int4range; defaults to 'real') -- datatype for the column
   (SQL-like type system)
 * **ucd** (unicode string; defaults to '') -- UCD of the column
-* **unit** (unicode string; defaults to '') -- Unit of the values
+* **unit** (unicode string; defaults to '') -- Unit of the values.
+  Use VOUnits syntax and use single quotes when you use custom units
+  (you should avoid that).
 * **utype** (unicode string; defaults to None) -- utype for this
   column
 * **verbLevel** (integer; defaults to '20') -- Minimal verbosity level
@@ -1726,7 +1732,9 @@ Atomic Children
   upload, int4range; defaults to 'real') -- datatype for the column
   (SQL-like type system)
 * **ucd** (unicode string; defaults to '') -- UCD of the column
-* **unit** (unicode string; defaults to '') -- Unit of the values
+* **unit** (unicode string; defaults to '') -- Unit of the values.
+  Use VOUnits syntax and use single quotes when you use custom units
+  (you should avoid that).
 * **utype** (unicode string; defaults to None) -- utype for this
   column
 * **verbLevel** (integer; defaults to '20') -- Minimal verbosity level
@@ -8437,7 +8445,7 @@ what kind of semantics is contained, try
 http://www.w3.org/2012/pyRdfa/Overview.html and feed it the
 example URL of your service.
 
-The default content of _example is ReStructuredText, and really, not much
+The default content of _example is ReStructuredText, and, really, not much
 else  makes sense.  An example for such a meta item can be viewed by
 executing ``gavo admin dumpDF //userconfig``, in the tapexamples STREAM.
 
@@ -8466,7 +8474,24 @@ These are the custom directives:
 
 Examples for how to write TAP examples are in the userconfig.rd 
 distributed with DaCHS.  Examples for Datalink examples can
-be found in the GAVO RDs feros/q and califa/q3.
+be found in the GAVO RDs feros/q and califa/q3.A
+
+In addition, you can define moreExamples meta items.  These point to
+further DALI-compliant examples document(s) and will typically be
+presented in a hierarchical fashion by clients.  The content is
+either a URI to the examples document (when it starts with https?://)
+or a DaCHS-internal reference to a service with the examples.  They
+should have a (short) title meta child to give clients a hint as to
+what the continuation is about, somewhat like this::
+
+  <meta>
+    # more examples provided by the ex service in the RD rr/q
+    moreExamples: rr/q#ex
+    moreExamples.title: RegTAP
+    # more examples provided by an external document
+    moreExamples: http://ivoa.net/doc/obscore/tap-examples.xhtml
+    moreExamples.title: ObsCore
+  </meta>
 
 
 The external Renderer
@@ -11890,10 +11915,10 @@ start with an underscore.  Among those are:
 
 :_intro:
   used by the standard HTML template for explanatory text
-  above the seach form.
+  above the search form.
 :_bottominfo:
   used by the standard HTML template for explanatory text
-  below the seach form.
+  below the search form.
 :_related:
   used in the standard HTML template for links to related
   services.  As listed above, this is a link, i.e., you can give a
@@ -11942,7 +11967,7 @@ start with an underscore.  Among those are:
 RMI-Style Metadata
 ''''''''''''''''''
 
-For services (and other things) that are registred in the Registry, you
+For services (and other things) that are registered in the Registry, you
 must give certain metadata items (and you can give more), where we take
 their keys from [RMI]_.  We provide a `explanatory leaflet
 <./data_checklist.pdf>`_ for data providers.  The most common keys --
@@ -11950,9 +11975,9 @@ used by the registry interface and in part by HTML and VOTable
 renderers -- include:
 
 :title:
-  this should in general be given seperately on the resource,
+  this should in general be given separately on the resource,
   each table, and each service.  In simple cases, though, you may get by
-  by just having one global title on the resource and rely on metdata
+  by just having one global title on the resource and rely on metadata
   inheritance.
 :shortName:
   a string that should indicate what the service is in 16
@@ -12027,6 +12052,11 @@ renderers -- include:
   the service's own accessURL here, it will be filtered from this
   registry record; this is so you can use the same RD on the primary
   site and the mirror.
+:_example:
+  A DALI example.  See :dachsdoc:`tutorials.html#writing-examples`
+:moreExamples:
+  A URI for an additional DALI examples document.  These get translated
+  to DALI continuation-s.
 
 While you can set any of these in etc/defaultmeta.txt, the following items
 are usually set there:
@@ -12188,7 +12218,7 @@ sepChar
 
 sf
   "Significant figures" -- length of the mantissa for this column.
-  Will probably be replaced by a column attribute analoguous to what
+  Will probably be replaced by a column attribute analogous to what
   VOTable does.
 
 type
@@ -12260,7 +12290,7 @@ Data Model Annotation
 =====================
 
 In the VO, data models are used when simple, more or less linear
-annotation methods like UCDs do not provide sufficent expressive power.
+annotation methods like UCDs do not provide sufficient expressive power.
 Or well, they should be used.  As of early 2017, things are, admittedly,
 still a mess.
 
@@ -12332,7 +12362,7 @@ The elements of SIL are:
   even allowed).
 
 * Sequences. This is like a list.  Members can be atomic or objects,
-  but they have to be homogenous (SIL doesn't enforce this by
+  but they have to be homogeneous (SIL doesn't enforce this by
   grammatical means, though.  Here is an object with two sequences::
 
     { seq1: [3 4 5 "You thought these were numbers? They're strings!"]
@@ -12911,7 +12941,7 @@ The column selection is influenced by:
   defining an output table, each output field gets a ``sets`` attribute
   (default: no set; use ALL to have the column included in all outputs).
   Then, add a ``_SET`` service parameter (use ``values`` do declare the
-  avaiable sets).  Note that the ``_SET`` parameter changes VOTable
+  available sets).  Note that the ``_SET`` parameter changes VOTable
   column selection to ``votableRespectsOutputTable`` mode as discussed
   above.  Services that use column sets should therefore set the
   property manually for consistency whether or not clients actually pass
@@ -13132,8 +13162,8 @@ which has to have the following signature::
 
   run(service, inputTable, queryMeta) -> stuff
 
-The stuff returned will ususally be a Table or Data instance (that need
-not match the outputTable definition -- the latter is targetted at the
+The stuff returned will usually be a Table or Data instance (that need
+not match the outputTable definition -- the latter is targeted at the
 registry and possibly applications like output field selection).  The
 standard renderers also accept a pair of mime type and a string
 containing some data and will deliver this as-is.  With custom
@@ -13142,7 +13172,7 @@ renderers, you could return basically anything you want.
 Services come up with some idea of the schema of the table they want to
 return and adapt tables coming out of the core to this.  Sometimes, you
 want to suppress this behaviour, e.g., because the service's ideas are
-off.  In that case, set a noPostprocess atttribute on the table to any
+off.  In that case, set a noPostprocess attribute on the table to any
 value (the TAP core does this, for instance).
 
 In ``service`` you get the service using the core; this may make a
@@ -13484,7 +13514,7 @@ URLs there.  Note that totesturl fails for values with embedded quotes,
 takes only the first value of repeated parameters and is a over-quick
 hack all around.  Patches are gratefully accepted.
 
-The ``url`` element hence accepts arbitary attributes, which can be a
+The ``url`` element hence accepts arbitrary attributes, which can be a
 trap if you think you've given values to url's private attributes and
 mistyped their names.  If uploads or authentication don't seem to
 happen, check if your attribute ended up the in the URL (which is
@@ -14161,7 +14191,7 @@ this::
   </service>
 
 Note that, of course, exposing a directory via the static renderer like
-this bypasses any access restrictions (e.g., embargos) on the respective
+this bypasses any access restrictions (e.g., embargoes) on the respective
 data.  So, do not do with with your primary data if you want to
 enforce access control.  Also, there currently is no way to control the
 media types returned in this way except by editing the system mime.types
@@ -14354,7 +14384,7 @@ Finally, the data enters the formatter, which actually generates the
 output, usually returning a pair of mime type and string to be
 delivered.
 
-It is a design descision of the service creator
+It is a design decision of the service creator
 which manipulations are done in the initial data
 function, which are in later filters, and which perhaps only in the
 formatter.  The advantage of filters is that they are more flexible and
@@ -14371,8 +14401,8 @@ Descriptor generators (see `element descriptorGenerator`_) are procedure
 applications that, roughly, see a pubDID value and are expected to return a
 ``datalink.ProductDescriptor`` instance, or something derived from it.  
 
-Simple Product Descriptor Generator
-...................................
+Simple Product Descriptor Generators
+....................................
 
 In the end, this usually boils down to figuring out the value of accref
 in the product table and using what's there to construct the descriptor
@@ -14395,6 +14425,7 @@ attributes to the ``ProductDescriptor`` generated in this way.
 The default ``ProductDescriptor`` class exposes as attributes 
 all the columns from the products table.  See `dc.products`_ for their
 names and descriptions.
+
 
 Spectrum Product Descriptor Generators
 ......................................
@@ -14839,7 +14870,7 @@ declarations could look like in such a case::
     <GROUP name="inputParams">
       <PARAM arraysize="*" datatype="char" name="ID" ref="ssa_pubDID" 
         ucd="meta.id;meta.main" value="">
-        <DESCRIPTION>The pubisher DID of the dataset of interest</DESCRIPTION>
+        <DESCRIPTION>The publisher DID of the dataset of interest</DESCRIPTION>
       </PARAM>
       <PARAM arraysize="*" datatype="char" name="BANDPASS" value="">
         <DESCRIPTION>Gaia bandpass to generate the time series 
@@ -14933,7 +14964,7 @@ are examples for what to do with FITS cubes or spectra.
 This way, of course, without a datalink-enabled client people might be
 locked out from the dataset entirely.  On the other hand, DaCHS comes
 with a stylesheet that enables datalink operation from a common web
-brower, so that's perhaps not too bad.
+browser, so that's perhaps not too bad.
 
 Aladin likes it when columns containing datalink URLs are marked up.
 DaCHS has two properties that let you add that markup, *targetType* and
@@ -15093,7 +15124,7 @@ could look like this::
   </rowfilter>
 
 (this assumes takes away to path elements from the relative paths, which
-typically reproduces an external hierachy).  If you need to do more
+typically reproduces an external hierarchy).  If you need to do more
 complex manipulations, you can have a custom rowfilter, maybe like
 this if you have both FITS files (for which you want DaCHS' default
 behaviour selected with ``AUTO``) and ``.complex`` files with some
@@ -15406,7 +15437,7 @@ The ``formal.ResourceMixin`` lets you define and interpret forms.  The
 credential checking and the like).  The ``web.CustomTemplateMixin`` lets
 you get your template from a DaCHS template (cf. `templating guide`_)
 from a resdir-relative directory given in the ``customTemplate``
-attribute.  For widely distributed code, you should additionaly provide
+attribute.  For widely distributed code, you should additionally provide
 some embedded stan fallback in the ``defaultDocFactory`` attribute -- of
 course, you can also give the template in stan in the first place.
 
@@ -15525,7 +15556,7 @@ spectrum according to the data model.  There's a mixin for that::
 In addition to adding lots and lots of params, the mixin also defines
 two columns, ``spectral`` and ``flux``; these have units and ucds as
 taken from the SSA metadata.  You can add additional columns (e.g., a
-flux error depending on the spectral coordinate) as requried.
+flux error depending on the spectral coordinate) as required.
 
 The actual spectral instances can be built by sdmCores and delivered
 through DaCHS' product interface.
@@ -15817,10 +15848,10 @@ to your module.  You can then run things like::
 
 and see the rows as they're generated.
 
+
 Data Packs
 ''''''''''
-
-A row iterator will be instanciated for each source processed.  Thus,
+A row iterator will be instantiiated for each source processed.  Thus,
 you should usually not perform expensive operations in the constructor
 unless they depend on ``sourceToken``.  Instead, you should rather define
 a function ``makeDataPack`` in the module.  Whatever is returned by this
@@ -16380,7 +16411,7 @@ that are immediately accessible in the namespace:
 *hoursToHms(decimal_hours, sepChar=':', secondFracs=0)*
   returns a time span in hours in sexagesmal time (h:m:s).
   
-  The optional argments are as for degToHms.
+  The optional arguments are as for degToHms.
   
   >>> hoursToHms(0)
   '00:00:00'
@@ -18058,7 +18089,7 @@ Signature: ``hoursToHms(decimal_hours, sepChar=':', secondFracs=0)``
 
 returns a time span in hours in sexagesmal time (h:m:s).
 
-The optional argments are as for degToHms.
+The optional arguments are as for degToHms.
 
 >>> hoursToHms(0)
 '00:00:00'
@@ -19619,17 +19650,17 @@ ivoa.obscore using the obs_publisher_did column.
   (text) -- TODO
 **s_resolution_min**
   (real) -- Angular resolution, longest baseline and max frequency
-  dependant
+  dependent
 **s_resolution_max**
   (real) -- Angular resolution, longest baseline and min frequency
-  dependant
+  dependent
 **s_fov_min**
-  (real) -- field of view diameter, min value, max frequency dependant
+  (real) -- field of view diameter, min value, max frequency dependent
 **s_fov_max**
-  (real) -- field of view diameter, max value, min frequency dependant
+  (real) -- field of view diameter, max value, min frequency dependent
 **s_maximum_angular_scale**
   (real) -- maximum scale in dataset, shortest baseline and frequency
-  dependant
+  dependent
 **f_min**
   (real) -- spectral coverage min in frequency
 **f_max**

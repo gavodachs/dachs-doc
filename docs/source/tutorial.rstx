@@ -7847,6 +7847,37 @@ examples (which may work for you to some extent), you could add::
     moreExamples.title: ObsCore queries
 
 
+Inspecting the Triples
+''''''''''''''''''''''
+
+The best way to make sure your RDFa actually says what you intend it to
+say is to transform it to the Turtle_ (alias N3) format, which is
+reasonably human-readable when you have grokked the basics of RDFa
+(`recommended reading`_).
+
+.. _Turtle: https://en.wikipedia.org/wiki/Turtle_(syntax)
+.. _recommended reading: http://eprints.gla.ac.uk/101484/
+
+There used to be a `simple web service`_ for this kind of thing, but it
+seems it has fallen into disrepair, and in general RDFa tooling at this
+point seems somewhat marginal.  In early 2023, what I did was create a
+virtual python environment (see virtualenv) and then running::
+
+  pip install pyrdfa requests
+
+.. _simple web service: http://www.w3.org/2012/pyRdfa/Overview.html
+
+(don't do that with sudo: only use pip with virtual environments).  Then
+you can run a program like this::
+
+  from rdflib import Graph
+  g = Graph()
+  g.parse("http://dc.g-vo.org/tap/examples", format='rdfa') 
+  print(g.serialize(format="turtle"))
+
+(changing the URI as appropriate).
+
+
 Debugging
 ---------
 
