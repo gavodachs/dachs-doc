@@ -1037,6 +1037,11 @@ renderers -- include:
   the service's own accessURL here, it will be filtered from this
   registry record; this is so you can use the same RD on the primary
   site and the mirror.
+:_example:
+  A DALI example.  See :dachsdoc:`tutorials.html#writing-examples`
+:moreExamples:
+  A URI for an additional DALI examples document.  These get translated
+  to DALI continuation-s.
 
 While you can set any of these in etc/defaultmeta.txt, the following items
 are usually set there:

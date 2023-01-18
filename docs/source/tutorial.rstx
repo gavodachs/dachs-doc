@@ -7769,8 +7769,82 @@ Note that such examples best sit in the service rather than top-level in
 the RD; if they were direct children of the RD, they would appear in all
 services defined in the RD.
 
-DaCHS does not yet have support for the *capability* and *continuation*
-properties defined by DALI.  Ask if you need them.
+DaCHS does not yet have support for the *capability* 
+property defined by DALI.  Ask if you need it.
+
+
+Hierarchical Examples
+'''''''''''''''''''''
+
+In particular for TAP, you may collect so many examples over the time
+that a flat list becomes unwieldy.  In that case, you can collect
+examples in stand-alone DALI examples documents (which are XHTML) or
+other services and reference these extra examples collections from, say,
+the TAP examples.  You can co-locate these within other services or
+create an extra examples-only service, for instance::
+
+  <service id="ex" allowed="examples">
+    <meta name="title">RegTAP examples</meta>
+    <meta name="description">This service has the examples from the
+      RegTAP spec in the form of a DALI examples document.
+    </meta>
+    <meta name="_example" title="Find all TAP services; return their
+      accessURLs.">
+      As the capability type is in :taptable:`rr.capability`, whereas
+      the access URL can be found from :taptable:`rr.interface`, this
+      requires a (natural) join.
+
+      .. tapquery::
+        SELECT ivoid, access_url
+        FROM rr.capability
+        NATURAL JOIN rr.interface
+        WHERE standard_id like 'ivo://ivoa.net/std/tap%'
+           AND intf_role='std'
+           AND authenticated_only=0
+    </meta>
+
+
+    <meta name="_example" title="Find all SIA services that might have spiral
+      galaxies">
+      Translating the intention into “find all SIA services that mention
+      spiral in either the subject (from :taptable:`rr.res_subject`),
+      the description, or the title (which are in
+      :taptable:`rr.resource`)“, the query would become:
+
+      .. tapquery::
+        SELECT ivoid, access_url
+        FROM rr.capability 
+          NATURAL JOIN rr.resource
+          NATURAL JOIN rr.interface
+          NATURAL JOIN rr.res_subject
+        WHERE standard_id like 'ivo://ivoa.net/std/sia%'
+          AND intf_role='std'
+          AND (
+            1=ivo_nocasematch(res_subject, '%spiral%')
+            OR 1=ivo_hasword(res_description, 'spiral')
+            OR 1=ivo_hasword(res_title, 'spiral'))
+    </meta>
+    <nullCore/>
+  </service>
+
+If this were within the RD rr/q, you could then amend your
+``tapexamples`` STREAM in the userconfig with::
+
+  <meta>
+    moreExamples: rr/q#ex
+    moreExamples.title: RegTAP queries
+  </meta>
+
+Suffiently advanced clients will pick this up and display it in
+something like a submenu.
+
+You can repeat moreExamples, and you can use URLs rather than service
+references in there (provided there are indeed DALI examples documents
+at those URLs).  For instance, to include the Heidelberg obscore
+examples (which may work for you to some extent), you could add::
+
+    moreExamples: https://dc.g-vo.org/static/obscore-examples.shtml
+    moreExamples.title: ObsCore queries
 
 
 Debugging
