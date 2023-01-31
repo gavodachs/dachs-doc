@@ -143,7 +143,7 @@ DaCHS code for the actual Simbad interface)::
     mat = pat.match(regionSpec)
     if mat:
       return mat.group()
-  
+
   def _makeSimbadRegion(regionSpec):
     if not _getRegionId(regionSpec)=="simbad":
       return

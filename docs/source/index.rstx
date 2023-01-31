@@ -51,7 +51,7 @@ them.
 Deployment Options
 ------------------
 
-* :doc:`Installation and configuration <install>` 
+* :doc:`Installation and configuration <install>`
   (:download:`As PDF <http://docs.g-vo.org/DaCHS/install.pdf>`)
 
 * You can also run DaCHS (plus postgres) within Docker containers.
@@ -65,7 +65,7 @@ For Data Center Operators
 -------------------------
 
 * :doc:`dachs command manpage <dachs.1>`
-* :doc:`Tutorial <tutorial>` 
+* :doc:`Tutorial <tutorial>`
   (:download:`As PDF <http://docs.g-vo.org/DaCHS/tutorial.pdf>`)
 * :doc:`Reference <ref>`
   (:download:`As PDF <http://docs.g-vo.org/DaCHS/ref.pdf>`)

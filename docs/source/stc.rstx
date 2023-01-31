@@ -11,7 +11,7 @@ A library to process VO STC specifications
 :Copyright: Waived under `CC-0`_
 
 
-.. contents:: 
+.. contents::
   :depth: 2
   :backlinks: entry
   :class: toc
@@ -91,10 +91,10 @@ to see what operations it exposes.  Here are some examples::
   utypes <QSTCS> -- prints the utypes for the quoted STC string <QSTCS>.
   $ gavostc resprof "Polygon ICRS 20 20 21 19 18 17" | xmlstarlet fo
   <?xml version="1.0"?>
-  <STCResourceProfile 
-    xmlns="http://www.ivoa.net/xml/STC/stc-v1.30.xsd" 
-    xmlns:xlink="http://www.w3.org/1999/xlink" 
-    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+  <STCResourceProfile
+    xmlns="http://www.ivoa.net/xml/STC/stc-v1.30.xsd"
+    xmlns:xlink="http://www.w3.org/1999/xlink"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xsi:schemaLocation="http://www.ivoa.net/xml/STC/stc-v1.30.xsd http://vo.ari.uni-heidelberg.de/docs/schemata/stc-v1.30.xsd http://www.w3.org/1999/xlink http://vo.ari.uni-heidelberg.de/docs/schemata/xlink.xsd">
     <AstroCoordSystem id="thgloml">
       <SpaceFrame id="thdbgwl">
@@ -207,7 +207,7 @@ Limitations
 Extensions to STC-S
 -------------------
 
-* After ECLIPTIC, FK4, or FK5, an equinox specification is allowed.  This is 
+* After ECLIPTIC, FK4, or FK5, an equinox specification is allowed.  This is
   either J<number> or B<number>.
 * For velocities, arbitrary combinations of spaceUnit/timeUnit are
   allowed.
@@ -215,7 +215,7 @@ Extensions to STC-S
   a System keyword with an STC Library tag at the end of a phrase (e.g.,
   ``System TT-ICRS-TOPO``).  This overwrites all previous system
   information (e.g., ``Time ET Position FK4 System TT-ICRS-TOPO`` will
-  result in TT time scale and ICRS spatial frame).  We admit it's not nice, 
+  result in TT time scale and ICRS spatial frame).  We admit it's not nice,
   and are open to suggestions for better solutions.
 
 
@@ -291,7 +291,7 @@ in dm.py.  Meanwhile, we will try to maintain the following properties:
   spectralFrame, and redshiftFrame attributes.
 * NULL is consistently represented as None, except when the values
   would be sequences, in which case NULL is an empty tuple.
-  
+
 
 Parsing STC-X
 '''''''''''''
@@ -464,7 +464,7 @@ specifications are equivalent.  Python's built-in equivalence operator
 requires all values in two ASTs to be identical except of the values of
 id attributes.
 
-Frequently, you want to be more lenient: 
+Frequently, you want to be more lenient:
 
 * you might decide that unspecified values match anything
 * you may ignore certain keys entirely (e.g., the reference position

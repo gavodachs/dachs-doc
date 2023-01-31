@@ -21,7 +21,7 @@ Index to Elements and Attributes
 
 This is an index of DaCHS elements and attributes in use at GAVO's
 data center, intended primarily to help people looking for concrete
-usage examples.  The index keys are xpath-like expressions, where the basic 
+usage examples.  The index keys are xpath-like expressions, where the basic
 ``resource`` node is left out; since element and attributes are by and large
 equivalent in RDs, we do not distinguish between them.
 
@@ -51,7 +51,7 @@ def doSpecials(name, value, element, keys):
 	elif name=="displayHint":
 		keys.add("displayHint[%s]"%value)
 	elif name=="property":
-		keys.add("property[%s]"%(element.attrib.get("key") 
+		keys.add("property[%s]"%(element.attrib.get("key")
 			or element.attrib["name"]))
 
 
@@ -85,7 +85,7 @@ def gatherXPaths(inFile):
 
 
 def getPathIndex():
-	"""returns a dictionary mapping xpath-like things to rd ids in which 
+	"""returns a dictionary mapping xpath-like things to rd ids in which
 	they appear.
 
 	The RDs are gathered by traversion [general]inputsDir.

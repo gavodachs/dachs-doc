@@ -7,7 +7,7 @@ DaCHS Reference Documentation
 :Date: |date|
 :Copyright: Waived under `CC-0`_
 
-.. contents:: 
+.. contents::
   :depth: 2
   :backlinks: entry
   :class: toc
@@ -164,16 +164,16 @@ column ``flux``, and you need to change its unit, you would say::
   </table>
 
 .. replaceWithResult getMixinDocs(docStructure, [
-  "//products#table", 
+  "//products#table",
   "//scs#q3cindex", "//scs#pgs-pos-index",
-  "//siap#pgs", 
+  "//siap#pgs",
   "//ssap#mixc", "//ssap#hcd",
   "//ssap#view", "//ssap#plainlocation", "//ssap#simpleCoverage",
   "//timeseries#phot-0",
   "//obscore#publish", "//obscore#publishObscoreLike",
   "//obscore#publishSIAP", "//slap#basic",
   "//ssap#sdm-instance",
-  "//obscore#publishSSAPMIXC", 
+  "//obscore#publishSSAPMIXC",
   "//epntap2#table-2_0",
   "//epntap2#localfile-2_0",
   "//linetap#table-0"])
@@ -224,10 +224,10 @@ Procedures available for rowmaker/parmaker apply
 
 .. replaceWithResult _makeProcsDocumenter([
     "//procs#simpleSelect", "//procs#resolveObject",
-    "//procs#mapValue", "//procs#fullQuery", "//procs#dictMap", 
+    "//procs#mapValue", "//procs#fullQuery", "//procs#dictMap",
     "//siap#computePGS",
     "//siap#setMeta", "//ssap#setMeta", "//ssap#setMixcMeta",
-    "//siap#getBandFromFilter", 
+    "//siap#getBandFromFilter",
     "//ssap#fill-plainlocation", "//ssap#feedSSAToSDM",
     "//slap#fillBasic",
     "//epntap2#populate-2_0",
@@ -249,7 +249,7 @@ Procedures available for datalink cores
 '''''''''''''''''''''''''''''''''''''''
 
 .. replaceWithResult _makeProcsDocumenter(["//soda#"+s for s in [
-    "fromStandardPubDID", 
+    "fromStandardPubDID",
     "trivialFormatter",
     "generateProduct",
     "sdm_genDesc",
@@ -300,8 +300,8 @@ Other Streams
 
 .. replaceWithResult getStreamsDoc([
       "//procs#declare-indexes-from",
-      "//procs#license-cc0", 
-      "//procs#license-cc-by", 
+      "//procs#license-cc0",
+      "//procs#license-cc-by",
       "//procs#license-cc-by-sa"]
     +['//obscore#obscore-columns']
     +['//ssap#'+id for id in ["atomicCoords",
@@ -317,7 +317,7 @@ Configuration Reference
 DaCHS' basic configuration is done through one or more INI-style files,
 which are parsed using Python's configparser module; in case of doubt on
 features and syntax, refer to the Python reference documentation of the
-Python version you are using.  
+Python version you are using.
 
 Some of the more common items are discussed in the tutorial
 (:dachsdoc:`tutorial.html#configuration-settings`).
@@ -358,7 +358,7 @@ This section contains a few general points for python code embedded in
 DaCHS.  Most of the material applies to procedure definitions (`Element
 apply`_, `Element dataFormatter`_, `Element dataFunction`_, `Element
 descriptorGenerator`_, `Element iterator`_, `Element metaMaker`_,
-`Element processEarly`_, `Element processLate`_, 
+`Element processEarly`_, `Element processLate`_,
 `Element pargetter`_, `Element phraseMaker`_,
 `Element regTest`_, `Element rowfilter`_, `Element sourceFields`_) as
 well as to other pieces of code, such as in `Element customGrammar`_,
@@ -417,7 +417,7 @@ might be interested in:
 * getWritableAdminConn – a connection that lets you read and write
   about everywhere.  When using this, you must explicitly commit the
   connection, or your changes will be lost.
-* getAdminConn – like getWritableAdminConn, but will automatically be 
+* getAdminConn – like getWritableAdminConn, but will automatically be
   committed as it is returned to the pool (unless an exception
   happened, in which case the connection will be closed without
   committing it).
@@ -425,7 +425,7 @@ might be interested in:
 With DaCHS' connections, you usually will not obtain cursors but
 directly use one of the
 
-* ``query(q, args={}, timeout=None)`` or 
+* ``query(q, args={}, timeout=None)`` or
 * ``queryToDict(q, args={}, timeout=None, caseFixer=None)`` methods.
 
 The query ``q`` has psycopg2-style placeholders (``... WHERE
@@ -466,7 +466,7 @@ more robust, just a lot harder to figure out.
 Data Descriptors
 ================
 
-Most basic information on data descriptors is contained in 
+Most basic information on data descriptors is contained in
 :dachsdoc:`tutorial.html`.  The material here just covers some advanced
 topics.
 
@@ -492,9 +492,9 @@ have duplicate records for sources that existed during the first import.
 To avoid that, you (usually) need to ignore existing sources (see
 `Element ignoreSources`_).  In the typical case, where a dataset's accref
 is just the inputs-relative path to the dataset's source, that is easily
-accomplished through the ``fromdb`` attribute of ``ignoreSources``; its 
+accomplished through the ``fromdb`` attribute of ``ignoreSources``; its
 value is a database query that returns the inputs-relative paths of
-sources to ignore.  
+sources to ignore.
 
 Hence, unless you are playing games with the accrefs (in which case you
 are probably smart enough to figure out how to adapt the pattern), the
@@ -513,7 +513,7 @@ there or because there were skipped during an ``import -c``::
         <bind key="table">"\schema.mydata"</bind>
       </rowfilter>
     </fitsProdGrammar>
-    
+
     <make table="mydata">
       <!-- your rowmaker here -->
     </make>
@@ -558,10 +558,10 @@ turn this into an overwrite using the ``table``'s ``forceUnique`` and
 The following snippet illustrates the technique::
 
   <table id="withdate" mixin="//products#table" onDisk="True"
-      primary="accref" 
-      forceUnique="True" 
+      primary="accref"
+      forceUnique="True"
       dupePolicy="overwrite">
-    <column name="mtime" type="timestamp" 
+    <column name="mtime" type="timestamp"
       ucd="time;meta.file"
       tablehead="Timestamp"
       description="Modification date of the source file."/>
@@ -570,7 +570,7 @@ The following snippet illustrates the technique::
 
   <data id="import" updating="True">
     <sources pattern="data/*.fits">
-      <ignoreSources 
+      <ignoreSources
         fromdbUpdating="select accref, mtime from \schema.withdate"/>
     </sources>
     <fitsProdGrammar>
@@ -706,13 +706,13 @@ meta name with a bang (!).  Here is an example::
 
 The resulting meta structure is like this::
 
-  +-- title 
+  +-- title
   |     +---- "An improved Meta example
   |
-  +-- subject 
+  +-- subject
   |     +---- "Examples
   |     +---- "DaCHS
-  |       
+  |
   +-- creator
   |     +----- name
   |     |       +---- "Nations, U.N.
@@ -849,7 +849,7 @@ plain
   i.e., whitespace will be stripped from the start and the end,
   runs of blanks and tabs are replaced by a single blank, and empty
   lines translate into paragraphs.  In HTML, these blocks com in
-  plainmeta div elements.  
+  plainmeta div elements.
 
 rst
   The textual content of the element is interpreted as ReStructuredText_.
@@ -941,7 +941,7 @@ start with an underscore.  Among those are:
   then again, if you can inject RDs, you probably don't need CSS attacks).
   Keys evaluated include:
 
-  * xselIndex – 0-based index of the column plotted on the x-axis 
+  * xselIndex – 0-based index of the column plotted on the x-axis
     (default: 0)
   * yselIndex – 0-based index of the column plotted on the y-axis
     (default: length of the column list; that's "histogram on y)
@@ -967,32 +967,32 @@ renderers -- include:
 :shortName:
   a string that should indicate what the service is in 16
   characters or less.
-:creationDate: 
-  Use ISO format with time, UTC only, like this: 
+:creationDate:
+  Use ISO format with time, UTC only, like this:
   2007-10-04T12:00:00Z
-:_dataUpdated: 
+:_dataUpdated:
   The timestamp of the last successful ``dachs imp``,
   again in DALI/ISO format.
-:_metadataUpdated: 
+:_metadataUpdated:
   Timestamp when the metadata was last updated.  On
   RDs, that's the timestamp of the RD source, on published things,
   it's the timestamp of the last ``dachs pub``.
-:subject: 
+:subject:
   A subject keyword.  By VOResource 1.1, these should be taken
   from http://www/ivoa.net/rdf/uat
-:rights: 
-  freetext copyright notice.  See 
+:rights:
+  freetext copyright notice.  See
   :dachsdoc:`tutorial.html#Licensing` for details.
-:rightsURI: 
+:rightsURI:
   machine readable license URI.  There's no formal list of
   acknowledged URIs yet, but the common CC URIs are a good start.
-:source: 
+:source:
   bibcodes will be expanded to ADS links here.
-:referenceURL: 
+:referenceURL:
   again, a link, so you can give a title for
   presentation purposes.  If you give no referenceURL, the service's
   info page will be used.
-:creator.name: 
+:creator.name:
   this should be the name of the "author" of the data
   set.  If you set this, you may want to override creator.logo as well.
   For persons, always use the form “Last, F.I.“; this saves all
@@ -1000,10 +1000,10 @@ renderers -- include:
   sorting these strings will naturally yield the sequence people expect.
   Also, if you have multiple creators, better just set ``creator`` as
   discussed in `Typed Meta Elements`_.
-:type: 
-  one of Other, Archive, Bibliography, Catalog, 
-  Journal, Library, Simulation, Survey, Transformation, Education, 
-  Outreach, EPOResource, Animation, Artwork, Background, BasicData, 
+:type:
+  one of Other, Archive, Bibliography, Catalog,
+  Journal, Library, Simulation, Survey, Transformation, Education,
+  Outreach, EPOResource, Animation, Artwork, Background, BasicData,
   Historical, Photographic, Press, Organisation, Project, Registry –
   it's optional and we doubt its usefulness.  You may repeat the content
   type if you need to; see also [RMI]_, sect. 3.3.
@@ -1026,7 +1026,7 @@ renderers -- include:
   by DaCHS.  Do not override this unless you know what you are doing
   (which at least means you know how to make DaCHS declare an authority
   and claim it).  If you do override the identifier of a service that's
-  already published, make sure you run 
+  already published, make sure you run
   ``dachs admin makeDeletedRecord <previous identifier>`` (before or
   after the ``dachs pub`` on the resource, or the registries will have
   two copies of your record, one of which will not be updated any more;
@@ -1081,7 +1081,7 @@ There are two meta keys pertinent to coverage metadata:
 
 The legacy ``coverage.profile`` meta key should not be used any more.
 
-To give proper, numeric STC coverage, use the `Element coverage`_.  
+To give proper, numeric STC coverage, use the `Element coverage`_.
 
 It has three children, one each for the spatial, spectral, and temporal
 axes.  For spectral and temporal, just add as many intervals as
@@ -1108,8 +1108,8 @@ A complete coverage element would thus look like this::
     <spectral>3.8e-07 5.2e-07</spectral>
     <temporal>18867 27155</temporal>
     <spatial>
-      4/2068 
-      5/8263,8268-8269,8271,8280,8323,8326,8329,9376,9378 
+      4/2068
+      5/8263,8268-8269,8271,8280,8323,8326,8329,9376,9378
       6/33045-33047,33049,33051,33069,33080-33081,33083,33104-33106,
         33112,33124-33126,33128-33130,33287,33289,33291,33297-33299,
         33313,33315,33323-33326,33328-33330,37416,37418,37536
@@ -1138,7 +1138,7 @@ the RD, complain fiercely.
 Operators then run ``dachs limits q`` (assuming the RD is called
 ``q.rd``), and DaCHS will fill out the three coverage elements (in case
 you want to fix them: the heuristics it uses to do that are in
-gavo.user.info).  
+gavo.user.info).
 
 In this construction, DaCHS will overwrite any previous content in the
 coverage child elements.  If you want to fill out some coverage items
@@ -1180,7 +1180,7 @@ doubles when you increase mocOrder by one).
 Display Hints
 =============
 
-Display hints use an open vocabulary.  As you add value formatters, you can 
+Display hints use an open vocabulary.  As you add value formatters, you can
 evaluate any display hint you like.  Display hints understood by the
 built-in value formatters include:
 
@@ -1322,7 +1322,7 @@ The elements of SIL are:
   * ``"""Yes,"" the computer said."``
   * ``"could write (type:foo) {bar. baz} here"`` (elements of SIL are
     protected in quoted literals)
-  
+
   Invalid literals include:
 
   * ``http://www.g-vo.org`` (: and / may not occur in literals)
@@ -1339,7 +1339,7 @@ The elements of SIL are:
 * Object annotation.  This is like a dictionary; only plain identifiers
   are allowed as keys.  So, an object looks like this::
 
-    { foo: bar 
+    { foo: bar
       longer: "This is a value with blanks in it"
     }
 
@@ -1362,9 +1362,9 @@ The elements of SIL are:
   principle anything else in RDs) can be referenced from within SIL.
   A reference starts with an @ and is then a normal DaCHS cross
   identifier (columns and params within a table can be referenced by
-  name only, columns take precedence on name clashes).  If you use 
-  odd characters in your RD names or in-RD identifiers, think again: 
-  only [._/#-] are allowed in such references.  Here is an object 
+  name only, columns take precedence on name clashes).  If you use
+  odd characters in your RD names or in-RD identifiers, think again:
+  only [._/#-] are allowed in such references.  Here is an object
   with some valid references::
 
     { long: @raj2000  /* a column in the enclosing table */
@@ -1465,7 +1465,7 @@ any applications of this in planetology, though.  *crs* is optional (but
 standards-compliant GeoJSON clients will interpret your coordinates as
 WGS84 on Earth if you leave it out).
 
-For *geometry*, several values for *type* are defined by DaCHS, 
+For *geometry*, several values for *type* are defined by DaCHS,
 depending on how
 the GeoJSON geometry should be constructed from the table.  Currently
 defined types include (complain if you need something else, it's not
@@ -1487,7 +1487,7 @@ hard to add):
 * ``seppoly`` – this constructs a spherical polygon out of column references.
   These have the form *c_n_m*, where m is 1 or 2, and n is counted from
   1 up to the number of points.  DaCHS will stop collecting points as
-  soon as it doesn't find an expected key.  If you find yourself using 
+  soon as it doesn't find an expected key.  If you find yourself using
   this, check your data model.  An example::
 
     <dm>
@@ -1495,10 +1495,10 @@ hard to add):
         feature: {
           geometry: {
             type: seppoly /* a triangle of some kind */
-            c1_1: @rb0 
+            c1_1: @rb0
             c1_2: @rb1
             c2_1: @lb0
-            c2_2: @lb1 
+            c2_2: @lb1
             c3_1: @t0
             c3_2: @t1 }}}
     </dm>
@@ -1520,7 +1520,7 @@ hard to add):
 
 * ``geometry`` – this constructs a geometry from a pgsphere column.
   Since GeoJSON doesn't have circles, only spoint and spoly columns can
-  be used.   They are referenced from the *value* key. For instance, 
+  be used.   They are referenced from the *value* key. For instance,
   obscore and friends could use::
 
     <dm>
@@ -1546,7 +1546,7 @@ computation, the renderer adapts input and outputs to what a protocol or
 interface expects.  While a service always has exactly one core (could
 be a nullCore, though), it can support more than one renderer, although
 the parameters in all renderers are, within reason, about the same,
-within reason.  
+within reason.
 
 However, parameters on a form interface will typcially be interpreted
 differently from a VO interface on the same core.  For instance, ranges
@@ -1585,7 +1585,7 @@ The input table, together with the raw arguments coming from the client,
 is then used to build a ``svcs.CoreArgs`` instance, which in turn takes
 the set of input keys to build a context grammar.  The core args have the
 underlying input table (with the input keys for the metadata) in the
-``inputTD`` attribute, the parsed arguments in the dictionary ``args``.  
+``inputTD`` attribute, the parsed arguments in the dictionary ``args``.
 
 For each input key ``args`` maps its name to a value; context grammars
 are case-semisensitive, meaning that case in the HTTP parameter names is
@@ -1599,7 +1599,7 @@ The values in ``args`` are a bit tricky:
   instance, if an inputKey is a real[2], it will be parsed as a float
   array.
 * if no raw parameter is given for an input key, its value will be None.
-* when an inputKey specifies multiplicity="multiple", the non-None value 
+* when an inputKey specifies multiplicity="multiple", the non-None value
   in the core args is a list.  Each list item is something that came out of
   the inputKey's parser (i.e., it could be another list for array-valued
   parameters).
@@ -1652,7 +1652,7 @@ to input them, too, DaCHS will also honor the displayUnit display hint
 for forms.  for instance, if you wrote::
 
   <table id="ex1">
-    <column name="minDist" 
+    <column name="minDist"
       unit="deg"
       displayHint="displayUnit=arcsec"/>
     ...
@@ -1704,7 +1704,7 @@ should pre-fill a sensible choice.  In that case, use the
 ``defaultForForm`` property::
 
   <condDesc>
-    <inputKey original="radius"> 
+    <inputKey original="radius">
       <property key="defaultForForm">0.5</property>
     </inputKey>
   <condDesc>
@@ -1830,7 +1830,7 @@ Grouping Input Keys
 
 For special effects, you can group inputKeys.  This will make them show
 up under a common label and in a single line in HTML forms.  Other
-renderers currently don't do anything with the groups.  
+renderers currently don't do anything with the groups.
 
 Here's an example for a simple range selector::
 
@@ -1898,7 +1898,7 @@ The column selection is influenced by:
   not exceeding verbosity (or, if not given, VERB*10) are included in
   the result set.  This, in particular, means that columns with
   ``verbLevel`` larger than 30 are never automatically included in
-  output tables (but they can be manually selected for HTML using 
+  output tables (but they can be manually selected for HTML using
   ``_ADDITEM``).
 * Output Format.  While VOTable takes the core's output table and apply
   the verbosity filter, HTML uses the service's output table as the basis
@@ -2094,7 +2094,7 @@ by the ``build_result`` data item in ``times.rd``::
 
   <table id="times">
     <column name="ut1" type="timestamp" tablehead="UT1"
-      ucd="time.epoch;meta.main" verbLevel="1" 
+      ucd="time.epoch;meta.main" verbLevel="1"
       description="Time and date (UT1)" displayHint="type=humanDate"/>
     <column name="gmst" type="time" tablehead="GMST"
       verbLevel="1" description="Greenwich mean sidereal time"
@@ -2120,7 +2120,7 @@ by the ``build_result`` data item in ``times.rd``::
   </data>
 
 So, the core needs to say “my output table has the structure of
-#times”.  
+#times”.
 
 As usual with DaCHS structures, you should not override the
 constructor, as it is defined by a metaclass.  Instead, Cores call,
@@ -2192,7 +2192,7 @@ going on)::
           yield c
 
       elif expr.operator=='..':
-        for c in expandDates(expr.children[0], 
+        for c in expandDates(expr.children[0],
             expr.children[1], interval):
           yield c
 
@@ -2283,7 +2283,7 @@ db/defaultLimit value.  These values are integers.
 
 So, if you order a table widget, you should do something like::
 
-  cursor.execute("SELECT .... LIMIT %(queryLimit)s", 
+  cursor.execute("SELECT .... LIMIT %(queryLimit)s",
     {"queryLimit": queryMeta["dbLimit"],...})
 
 In general, you should warn people if the query limit was reached; a
@@ -2343,7 +2343,7 @@ in the procApp's namespace::
             "re": val.real,
             "im": val.imag,
             "log": cmath.log(val).real})
-        
+
         return rsc.TableForDef(self.outputTable, rows=rows)
       </code>
     </coreProc>
@@ -2453,7 +2453,7 @@ always with procDefs, ``code``.
 Here are some hints on development:
 
 1) Give the test you're just developing an id; at the GAVO DC, we're
-   usually using cur; that way, we run variations of 
+   usually using cur; that way, we run variations of
    ``dachs test rdId#cur``, and only the test in question is run.
 2) After defining the url, just put an ``assert False`` into the test
    code.  Then run ``dachs test -Devidence.xml rdId#cur`` or similar.
@@ -2470,14 +2470,14 @@ RegTest URLs
 The `url element`_ encapsulates all aspects of building the request.  In
 the simplest case, you just can have a simple URL, in which case it
 works as an attribute, like this::
-  
+
   <regTest title="example" url="svc/form">
     ...
 
 URLs without a scheme and a leading slash are interpreted relative to
 the RD's root URL, so you'd usually just give the service id and the
 renderer to be applied.  You can also specify root-relative and fully
-specified URLs as described in the documentation of the `url element`_. 
+specified URLs as described in the documentation of the `url element`_.
 
 White space in URLs is removed, which lets you break long URLs as
 convenient.
@@ -2491,7 +2491,7 @@ give them as attributes to the element::
 
 The ``parSet=form`` here sets up things such that processing for the
 form renderer is performed – our form library nevow formal has some
-hidden parameters that you don't want to repeat in every URL.  
+hidden parameters that you don't want to repeat in every URL.
 
 To easily translate URLs taken from a browser's address bar or the form
 renderer's result link, you can run ``dachs totesturl`` and paste the
@@ -2503,7 +2503,7 @@ The ``url`` element hence accepts arbitrary attributes, which can be a
 trap if you think you've given values to url's private attributes and
 mistyped their names.  If uploads or authentication don't seem to
 happen, check if your attribute ended up the in the URL (which is
-displayed with the failure message) and fix the attribute name; 
+displayed with the failure message) and fix the attribute name;
 most private url attributes start with ``http``.  If you really need
 to pass a parameter named like one of url's private attributes, pass it
 in the URL if you can.  If you can't because you're posting, spank us.
@@ -2530,14 +2530,14 @@ A test using this would look like this::
 
 By default, a test will perform a GET request.  To change this, set
 the ``httpMethod`` attribute.  That's particularly important with
-uploads (which must be POSTed).  
+uploads (which must be POSTed).
 
 For uploads, the url element offers two facilities.  You can set a
 request payload from a file using the ``postPayload`` attribute (the
 path is interpreted relative to the resource directory), but it's much
 more common to do a file upload like browsers do them.  Use the
 ``httpUpload`` element for this, as in::
-  
+
   <url> <httpUpload name="UPLOAD"
     fileName="remote.txt">a,b,c</httpUpload> svc1/async </url>
 
@@ -2568,12 +2568,12 @@ RegTest Tests
 
 Since regression tests are just procDefs, the actual assertions are
 contained in the ``code`` child of the ``regTest``.  The code in there
-sees the test itself in self, and it can access 
+sees the test itself in self, and it can access
 
-* ``self.data`` (the response content as a byte string), 
-* ``self.headers`` (a sequence of header name, value pairs; note that you 
+* ``self.data`` (the response content as a byte string),
+* ``self.headers`` (a sequence of header name, value pairs; note that you
   should match the names case-insensitively here),
-* ``self.status`` (the HTTP response code), 
+* ``self.status`` (the HTTP response code),
 * ``self.requestTime`` (the time the URI request actually took; this
   will be None for failed requests), and
 * the URL actually retrieved in ``self.url.httpURL``.
@@ -2629,7 +2629,7 @@ RDs it touches and run them.  It will then output a brief report listing
 the RDs that had failed tests for closer inspection.
 
 It is recommended to run something like::
-  
+
   dachs val -tv ALL
 
 before committing changes into your inputs repository.  That way,
@@ -2648,8 +2648,8 @@ or a cross-rd reference to an individual test.  For example,
 
 ::
 
-  dachs test res1/q 
-  dachs test res2/q#suite1 
+  dachs test res1/q
+  dachs test res2/q#suite1
   dachs test res2/q#test45
 
 would run all the tests given in the RD ``res1/q``, the tests in
@@ -2691,10 +2691,10 @@ usually count as noise in regression testing).  Also note how we have
 escaped embedded XML fragments; an alternative to this shown below
 is making the code a CDATA section::
 
-  <regTest title="Info page looks ok" 
+  <regTest title="Info page looks ok"
     url="siap/info">
     <code>
-      self.assertHasStrings("SIAP Query", "siap.xml", "form", 
+      self.assertHasStrings("SIAP Query", "siap.xml", "form",
         "Other services", "SIZE&lt;/td>", "Verb. Level")
     </code>
   </regTest>
@@ -2714,7 +2714,7 @@ data::
 This is how parameters should be passed into the request::
 
   <regTest title="NV Maidanak SIAP returns accref.">
-    <url POS="340.12,3.3586" SIZE="0.1" INTERSECT="OVERLAPS" 
+    <url POS="340.12,3.3586" SIZE="0.1" INTERSECT="OVERLAPS"
       _TDENC="True" _DBOPTIONS_LIMIT="10">siap/siap.xml</url>
     <code>
       self.assertHasStrings('&lt;TD>AZT 22')
@@ -2812,7 +2812,7 @@ If you still run SOAP services, here's one way to test them::
         >qall/soap/go</url>
       <code>
         self.assertHasStrings(
-          '="xsd:date">2008-02-03Z&lt;/tns:isodate>', 
+          '="xsd:date">2008-02-03Z&lt;/tns:isodate>',
         '&lt;tns:raCio xsi:type="xsd:double">25.35')
       </code>
     </regTest>
@@ -2833,7 +2833,7 @@ Datalink and SODA
 [Datalink]_ is an IVOA protocol that allows associating various products
 and artifacts with a data set id.  Think the association of error or
 mask maps, progenitor datasets, or processed data products, with a data
-set.  
+set.
 
 It also lets you associate data processing services with datasets,
 which allows on-the-fly generation of cutouts, format conversions or
@@ -2927,7 +2927,7 @@ column::
   </table>
 
   <service id="dlsvc" allowed="dlmeta,dlget">
-    <meta name="dlget.description">A service for 
+    <meta name="dlget.description">A service for
       slicing and dicing.</meta>
     ...
   </service>
@@ -2986,12 +2986,12 @@ A descriptor generator – in the example, one that has additional
 functionality for FITS files, although the default
 (`//soda#fromStandardPubDID`_) would work here, too – is passed
 the pubDID and returns an instance of ``datalink.ProductDescriptor`` (or
-a derived class).  If a descriptor generator returns 
+a derived class).  If a descriptor generator returns
 None, the datalink request will be rejected with a 404.
 
 Whatever is returned by the descriptor generator is then available as
 ``descriptor`` to the remaining datalink procs (in this case, the meta
-makers).  The columns of the product table (see `dc.products`_) 
+makers).  The columns of the product table (see `dc.products`_)
 are available as attributes of this object.  In addition,
 subclasses of ``data.ProductDescriptor`` may add more attributes; the
 ``fits_genDesc`` used in the example, for instance, provides a ``hdr``
@@ -3162,7 +3162,7 @@ In the first case, the core would like this piece extracted from
 the ``dl`` service in :samplerd:`califa/q3`::
 
     <datalinkCore>
-      <descriptorGenerator procDef="//soda#fits_genDesc" 
+      <descriptorGenerator procDef="//soda#fits_genDesc"
           name="genFITSDesc">
         <bind key="accrefPrefix">'califa/datadr3'</bind>
         <bind key="descClass">DLFITSProductDescriptor</bind>
@@ -3178,7 +3178,7 @@ than actual file paths in the product table.  You would leave the
 themselves.
 
 Giving an ``accrefPrefix`` to anything using the product table to get
-accrefs (`//soda#fromStandardPubDID`_ is another example for these) 
+accrefs (`//soda#fromStandardPubDID`_ is another example for these)
 usually is a good idea.  If you don't give
 it, users can apply the datalink service to any dataset you publish,
 which might lead to information leaks and hard-to-understand error
@@ -3261,7 +3261,7 @@ concrete dataset.  This means that, contrary to normal DaCHS services,
 services with a Datalink core have a variable interface; in particular,
 the interface on the dlmeta renderer (essentially, just ID) is very
 different from the one on the dlget renderer (ID plus whatever the meta
-makers produce).  
+makers produce).
 
 The input key so produced are used to build a context grammar that
 parses the request.  If this succeeds, the data descriptor is passed to the
@@ -3299,7 +3299,7 @@ Descriptor Generators
 
 Descriptor generators (see `element descriptorGenerator`_) are procedure
 applications that, roughly, see a pubDID value and are expected to return a
-``datalink.ProductDescriptor`` instance, or something derived from it.  
+``datalink.ProductDescriptor`` instance, or something derived from it.
 
 Simple Product Descriptor Generators
 ....................................
@@ -3311,7 +3311,7 @@ generator.  In the simplest case, the pubDID will be in DaCHS'
 the `macro standardPubDID`_), in
 which case the default descriptor generator works and you don't have to
 specify anything.  You could manually insert that default by saying::
-  
+
   <descriptorGenerator procDef="//soda#fromStandardPubDID"/>
 
 This happens to be DaCHS' default if no descriptor generator is given,
@@ -3322,7 +3322,7 @@ The easiest way to furnish your descriptors with additional information
 is to grab that code (use ``dachs adm dumpDF //soda``) and just add
 attributes to the ``ProductDescriptor`` generated in this way.
 
-The default ``ProductDescriptor`` class exposes as attributes 
+The default ``ProductDescriptor`` class exposes as attributes
 all the columns from the products table.  See `dc.products`_ for their
 names and descriptions.
 
@@ -3348,11 +3348,11 @@ definition is in ``//soda#sdm_genDesc``, but the gist of it is::
         ssaTD = base.resolveCrossId(ssaTD, rscdef.TableDef)
       </code>
     </setup>
-    
+
     <code>
       with base.getTableConn() as conn:
         ssaTable = rsc.TableForDef(ssaTD, connection=conn)
-        matchingRows = list(ssaTable.iterQuery(ssaTable.tableDef, 
+        matchingRows = list(ssaTable.iterQuery(ssaTable.tableDef,
           "ssa_pubdid=%(pubdid)s", {"pubdid": pubDID}))
         if not matchingRows:
           return DatalinkFault.NotFoundFault(pubDID,
@@ -3367,15 +3367,15 @@ definition is in ``//soda#sdm_genDesc``, but the gist of it is::
 
 Here, we use ``ssa.SSADescriptor``, derived from ``ProductDescriptor``,
 rather than monkeypatching the extra ``ssaRow`` attribute the former
-provides; being explicit here may help when debugging.  
+provides; being explicit here may help when debugging.
 As usual, the descriptor generates encodes how to resolve a
-pubDID to an accref, in this case using an SSA table.  
+pubDID to an accref, in this case using an SSA table.
 If the product table just lists a datalink
-URL, you will want to override the accessPath this comes up with.  
+URL, you will want to override the accessPath this comes up with.
 See, for instance, :samplerd:`pcslg/q` for how to do this.
 
-Incidentally, in this case you could stuff the entire code into the 
-main ``code`` element, saving on the extra ``setup`` element.  
+Incidentally, in this case you could stuff the entire code into the
+main ``code`` element, saving on the extra ``setup`` element.
 However, apart from a
 minor speed benefit, keeping things like function or class definitions
 in setup allows easier re-use of such definitions in procedure
@@ -3495,7 +3495,7 @@ Parameter Definitions
 To define a datalink service's processing capabilities, meta makers
 yield input keys (``InputKey`` instances).  The classes usually required
 to build input keys return (InputKey, Values, Option) are available to
-the code as local names.  As usual, DaCHS structs 
+the code as local names.  As usual, DaCHS structs
 should not be constructed directly but only using the ``MS`` helper
 (which is really an alias for base.makeStruct; it takes care that the
 special postprocessing of DaCHS structures takes place).
@@ -3517,11 +3517,11 @@ should be done on the client side) could be::
   <metaMaker>
     <setup imports="gavo.utils.unitconv"/>
     <code>
-      yield MS(InputKey, name="FREQ", unit="MHz", ucd="em.freq", 
+      yield MS(InputKey, name="FREQ", unit="MHz", ucd="em.freq",
         description="Spectral cutout interval",
         type="double precision[2]" xtype="interval"
         multiplicity="forced-single"
-        values=MS(Values, 
+        values=MS(Values,
           min=1e-6*unitconv.LIGHT_C/(descriptor.ssaRow["ssa_specstart"],
           max=1e-6*unitconv.LIGHT_C/descriptor.ssaRow["ssa_specend"]))
     </code>
@@ -3592,7 +3592,7 @@ Data Functions
 ''''''''''''''
 
 Data functions (see `element dataFunction`_) generate or manipulate
-data.  They see the descriptor and the arguments (as ``args``), 
+data.  They see the descriptor and the arguments (as ``args``),
 parsed according to
 the input keys produced by the meta makers, where the descriptor's
 ``data`` attribute is filled out by the first data function called (the
@@ -3661,7 +3661,7 @@ example above, consider this::
 There are situations in which a data function must shortcut, mostly
 because it is doing something other than just “pushing on”
 descriptor.data.  Examples include preview producers or a data function
-that should produce the FITS header only.  
+that should produce the FITS header only.
 For cases like this, data functions can
 raise one of ``DeliverNow`` (which means ``descriptor.data`` must be
 something servable, see `Data Formatters`_ and causes that to be
@@ -3675,7 +3675,7 @@ STREAM ``//soda#fits_genKindPar``::
     <setup imports="gavo.utils.fitstools"/>
     <code>
       if args["KIND"]=="HEADER":
-        descriptor.data = ("application/fits-header", 
+        descriptor.data = ("application/fits-header",
           fitstools.serializeHeader(descriptor.data[0].header))
         raise DeliverNow()
     </code>
@@ -3713,7 +3713,7 @@ or Data instance, the following could work::
       return "text/plain", formats.getAsText(descriptor.data)
     </code>
   </dataFormatter>
- 
+
 
 Another example is an excerpt from ``//soda#sdm_cutout``::
 
@@ -3756,24 +3756,24 @@ declarations could look like in such a case::
   <RESOURCE name="links" type="meta" utype="adhoc:service">
     <DESCRIPTION>...</DESCRIPTION>
     <GROUP name="inputParams">
-      <PARAM arraysize="*" datatype="char" name="ID" ref="ssa_pubDID" 
+      <PARAM arraysize="*" datatype="char" name="ID" ref="ssa_pubDID"
         ucd="meta.id;meta.main" value=""/>
     </GROUP>
-    <PARAM arraysize="*" datatype="char" name="standardID" 
+    <PARAM arraysize="*" datatype="char" name="standardID"
       value="ivo://ivoa.net/std/DataLink#links-1.0"/>
-    <PARAM arraysize="*" datatype="char" name="accessURL" 
+    <PARAM arraysize="*" datatype="char" name="accessURL"
       value="http://localhost:8080/gaia/q2/tsdl/dlmeta"/>
   </RESOURCE>
 
   <RESOURCE ID="proc_svc" name="proc_svc" type="meta" utype="adhoc:service">
     <DESCRIPTION>...</DESCRIPTION>
     <GROUP name="inputParams">
-      <PARAM arraysize="*" datatype="char" name="ID" ref="ssa_pubDID" 
+      <PARAM arraysize="*" datatype="char" name="ID" ref="ssa_pubDID"
         ucd="meta.id;meta.main" value="">
         <DESCRIPTION>The publisher DID of the dataset of interest</DESCRIPTION>
       </PARAM>
       <PARAM arraysize="*" datatype="char" name="BANDPASS" value="">
-        <DESCRIPTION>Gaia bandpass to generate the time series 
+        <DESCRIPTION>Gaia bandpass to generate the time series
           for.</DESCRIPTION>
         <VALUES>
           <OPTION name="G" value="G"/>
@@ -3782,9 +3782,9 @@ declarations could look like in such a case::
         </VALUES>
       </PARAM>
     </GROUP>
-    <PARAM arraysize="*" datatype="char" name="accessURL" 
+    <PARAM arraysize="*" datatype="char" name="accessURL"
       ucd="meta.ref.url" value="http://localhost:8080/gaia/q2/tsdl/dlget"/>
-    <PARAM arraysize="*" datatype="char" name="standardID" 
+    <PARAM arraysize="*" datatype="char" name="standardID"
       value="ivo://ivoa.net/std/SODA#sync-1.0"/>
   </RESOURCE>
 
@@ -3924,7 +3924,7 @@ functionality of a FITS cutout service with datalink products would be::
    <service id="dl" allowed="dlget,dlmeta">
     <meta name="title">My Cutout Service</meta>
     <datalinkCore>
-      <descriptorGenerator procDef="//soda#fits_genDesc" 
+      <descriptorGenerator procDef="//soda#fits_genDesc"
         name="genFITSDesc">
         <bind key="accrefPrefix">'mysvcs/data'</bind>
         <bind key="descClass">DLFITSProductDescriptor</bind>
@@ -3958,9 +3958,9 @@ you'd add flux errors if you needed to::
       fluxDescription="Flux"
       >//ssap#sdm-instance</mixin>
 
-    <column name="fluxerror" 
+    <column name="fluxerror"
       ucd="stat.error;phot.flux.density;em.wl"
-      unit="m" 
+      unit="m"
       description="Estimate for error in flux based on the procedure
         discussed at referenceURL"/>
   </table>
@@ -3994,7 +3994,7 @@ builds this table.  Here's one that fills the table from the database::
 that comes with the files is boken).
 
 The ``parmaker`` with the ``//ssap#feedSSAToSDM`` call is generic, i.e.,
-you won't usually need any more tricks here.  
+you won't usually need any more tricks here.
 
 
 Product Previews
@@ -4068,7 +4068,7 @@ b) say that the previews are standard DaCHS generated in the
    ``//products#define`` rowfilter.  The main thing you have to
    decide here is the MIME type of the previews you're generating.
    You will usually use either the `macro standardPreviewPath`_
-   (preferable when you have less than a couple of thousand products) 
+   (preferable when you have less than a couple of thousand products)
    or the `macro splitPreviewPath`_ to fill the preview path, but you
    can really enter whatever paths are convenient for you here::
 
@@ -4078,8 +4078,8 @@ b) say that the previews are standard DaCHS generated in the
         <bind key="preview_mime">"image/jpeg"</bind>
         <bind key="preview">\standardPreviewPath</bind>
       </rowfilter>
-    
-   
+
+
 c) actually compute the previews.  This is usually not defined in the RD
    but rather using DaCHS' processing framework. `Precomputing
    previews`_ in the processor documentation covers this in more detail;
@@ -4193,7 +4193,7 @@ few things to keep in mind.
 
 (1) You'll need to prepare your database to keep track of your custom
 jobs (just once)::
-  
+
   dachs imp //uws enable_useruws
 
 (2) You'll have to allow the ``uws.xml`` renderer on the service in
@@ -4287,7 +4287,7 @@ to write a custom page.
 First, in the RD, define a service allowing a custom page.  These
 normally have no cores (the customPage renderer will ignore the core)::
 
-  <service id="ui" core="null" allowed="custom" 
+  <service id="ui" core="null" allowed="custom"
     customPage="res/registration.py">
     <meta name="shortName">DOI registration</meta>
     <meta name="title">VOiDOI DOI registration web service</meta>
@@ -4303,7 +4303,7 @@ nevow resource.  The recommended pattern is like this::
 
 
   class MainPage(
-      formal.ResourceMixin, 
+      formal.ResourceMixin,
       web.CustomTemplateMixin,
       web.ServiceBasedPage):
 
@@ -4331,7 +4331,7 @@ nevow resource.  The recommended pattern is like this::
     def submitAction(self, ctx, form, data):
       self.workItems = ["Working on %s"%data["ivoid"]]
       return self
-      
+
 The ``formal.ResourceMixin`` lets you define and interpret forms.  The
 ``web.ServiceBasedPage`` does all the interfacing to the DaCHS (e.g.,
 credential checking and the like).  The ``web.CustomTemplateMixin`` lets
@@ -4386,7 +4386,7 @@ here's how this looks like::
       runRegistrationFor, data["ivoid"]
       ).addCallback(self._renderResponse
       ).addErrback(self._renderErrors)
-  
+
   def _renderResponse(self, result):
     # do something to render a success message (or return Redirect)
     return self
@@ -4398,7 +4398,7 @@ here's how this looks like::
 
 The embedding RD is available in the custom pages's global namespace as
 ``RD``.  Thus, the standard pattern for creating a read only table is::
-  
+
   with api.getTableConn() as conn: table =
     api.TableForDef(RD.getById("my_table"), connection=conn)
 
@@ -4524,7 +4524,7 @@ and maximum (Echelle) order, and the like.  To pull these columns into
 your metadata table, use the ssacols stream, for example like this::
 
   <table id="ordersmeta" onDisk="True" adql="True">
-    <meta name="description">SSA metadata for split-order 
+    <meta name="description">SSA metadata for split-order
       Flash/Heros Echelle spectra</meta>
     <mixin
       [...]
@@ -4563,7 +4563,7 @@ system ``//obscore`` RD.  Here's an somewhat more elaborate example::
   </STREAM>
 
   <STREAM id="obscore-extrapars">
-    <mixinPar name="fillFactor" 
+    <mixinPar name="fillFactor"
       description="The SED's fill factor">NULL</mixinPar>
   </STREAM>
 
@@ -4640,7 +4640,7 @@ error like::
 
 The fastest way to fix this situation is to drop the offending line in
 the database manually::
-  
+
   psql gavo -c "delete from ivoa._obscoresources where tablename='whatever.main'"
 
 .. _Userconfig RD in the operator's guide: http://docs.g-vo.org/DaCHS/opguide.html#userconfig-rd
@@ -4661,7 +4661,7 @@ directory defining a row iterator class derived from
 ``RowIterator``.  You want to override the ``_iterRows`` method.  It will have
 to yield row dictionaries, i.e., dictionaries mapping string keys to
 something (preferably strings, but you will usually get away with
-returning complete values even without fancy rowmakers).  
+returning complete values even without fancy rowmakers).
 
 So, a custom grammar module could look like this::
 
@@ -4677,7 +4677,7 @@ This would be used with a ``data`` material like::
   <sources><item>4</item><item>40</item></sources>
   <customGrammar module="res/sillygrammar"/>
 
-– ``self.sourceToken`` simply contains 
+– ``self.sourceToken`` simply contains
 whatever the ``sources`` element produces.
 One ``RowIterator`` will be constructed for each item.
 
@@ -4699,7 +4699,7 @@ instead.
 Also look into ``EmbeddedGrammar``, which may be a more convenient way to
 achieve the same thing.
 
-A fairly complex example for a custom grammar is a provisional 
+A fairly complex example for a custom grammar is a provisional
 `Skyglow grammar`_ .
 
 .. _Skyglow grammar: http://svn.ari.uni-heidelberg.de/svn/gavo/hdinputs/lightmeter/res/skyglowgrammar.py
@@ -4721,7 +4721,7 @@ space-separated key-value pairs from a file::
       with open(self.sourceToken) as f:
         for self.lineNumber, line in enumerate(f):
           yield dict(zip(["key", "value"], line.split(" ", 1)))
-    
+
     def getLocator(self):
       return f"line {self.lineNumber}"
 
@@ -4820,7 +4820,7 @@ are yielding from your dispatching grammar.  This means that without
 further action, your files will not end up in the product table at all.
 In turn, getproducts will return 404s instead of your products.
 
-To fix this, you need to explicitly yield the rows destined for the 
+To fix this, you need to explicitly yield the rows destined for the
 products table with a products role, from within your grammar.  Where
 the grammar yield rows for the table with metadata (i.e., rows that actually
 contain the fields with prodtblAccref, prodtblPath, etc), yield
@@ -4864,8 +4864,8 @@ Python scripts
 Python scripts can be indented by a constant amount.
 
 The table object currently processed is accessible as table.  In
-particular, you can use this to issue queries using 
-``table.connection.execute(query, arguments)`` 
+particular, you can use this to issue queries using
+``table.connection.execute(query, arguments)``
 (parallel to dbapi.execute) and to
 delete rows using ``table.deleteMatching(condition, pars)``.  The
 current RD is accessible as ``table.tableDef.rd``, so you can access items from
@@ -4875,7 +4875,7 @@ read stuff from the resource directory is
 
 Some types of scripts may have additional names available.  Currently:
 
-* ``newSource`` and ``sourceDone`` have the name ``sourceToken``; this 
+* ``newSource`` and ``sourceDone`` have the name ``sourceToken``; this
   is the sourceToken as passed to the grammar; usually, that's the file
   name that's parsed from, but other constellations are possible.
 * ``sourceDone`` has ``feeder`` -- that is the DaCHS-internal glue
@@ -4915,7 +4915,7 @@ that's an RD, so we can access sourceToken.sourceId::
 
       <script type="newSource" lang="python" id="markDeleted">
         table.connection.execute("UPDATE %s SET deleted=True"
-          " WHERE sourceRD=%%(sourceRD)s"%id, 
+          " WHERE sourceRD=%%(sourceRD)s"%id,
           {"sourceRD": sourceToken.sourceId})
       </script>
 
@@ -4934,7 +4934,7 @@ be executed.  It's usually much smarter to tell the database to do the
 housekeeping.  Rules are typically set in postCreation scripts::
 
   <script type="postCreation" lang="SQL">
-    CREATE OR REPLACE RULE cleanupProducts AS 
+    CREATE OR REPLACE RULE cleanupProducts AS
       ON DELETE TO \qName DO ALSO
       DELETE FROM products WHERE key=OLD.accref
   </script>
@@ -4946,14 +4946,14 @@ script's purpose.
 Another use for scripts is SQL function definition::
 
       <script type="postCreation" lang="SQL" name="Define USNOB matcher">
-        CREATE OR REPLACE FUNCTION usnob_getmatch(alpha double precision, 
+        CREATE OR REPLACE FUNCTION usnob_getmatch(alpha double precision,
           delta double precision, windowSecs float
         ) RETURNS SETOF usnob.data AS $$
         DECLARE
           rec RECORD;
         BEGIN
-          FOR rec IN (SELECT * FROM usnob.data WHERE 
-            q3c_join(alpha, delta, raj2000, dej2000, windowSecs/3600.)) 
+          FOR rec IN (SELECT * FROM usnob.data WHERE
+            q3c_join(alpha, delta, raj2000, dej2000, windowSecs/3600.))
           LOOP
             RETURN NEXT rec;
           END LOOP;
@@ -4967,11 +4967,11 @@ beforeImport would work as well here)::
     <script type="preIndex" lang="SQL" name="create USNOB-PPMX crossmatch">
         SET work_mem=1000000;
         INSERT INTO usnob.ppmxcross (
-          SELECT q3c_ang2ipix(raj2000, dej2000) AS ipix, p.localid 
-          FROM 
-            ppmx.data AS p, 
-            usnob.data AS u 
-          WHERE q3c_join(p.alphaFloat, p.deltaFloat, 
+          SELECT q3c_ang2ipix(raj2000, dej2000) AS ipix, p.localid
+          FROM
+            ppmx.data AS p,
+            usnob.data AS u
+          WHERE q3c_join(p.alphaFloat, p.deltaFloat,
             u.raj2000, u.dej2000, 1.5/3600.))
     </script>
 
@@ -4980,7 +4980,7 @@ ReStructuredText
 ================
 
 Text needing some amount of markup within DaCHS is almost always
-input as ReStructuredText (RST).  The source versions of the 
+input as ReStructuredText (RST).  The source versions of the
 `DaCHS documentation`_ give examples for such markup, and DaCHS users
 should at least briefly skim the `ReStructuredText primer`_.
 
@@ -4995,22 +4995,22 @@ bibcode
   as HTML.  For technical reasons, this currently ignores the configured
   ADS mirror and always uses the Heidelberg one.  Complain if this bugs
   you.  To use it, you'd write::
-    
+
     See also :bibcode:`2011AJ....142....3H`.
 
 Extensions for writing DaCHS-related documentation include:
 
-dachsdoc 
+dachsdoc
   A text role generating a link into the current DaCHS documentation.
-  The argument is the relative path, e.g., 
+  The argument is the relative path, e.g.,
   ``:dachsdoc:`opguide.html#userconfig-rd```.
 
-dachsref 
-  A text role generating a link into the reference documentation.  The 
+dachsref
+  A text role generating a link into the reference documentation.  The
   argument is a section header within the reference documentation, e.g.,
-  ``:dachsref:`//epntap2#populate-2_0``` or 
+  ``:dachsref:`//epntap2#populate-2_0``` or
   ``:dachsref:`the form renderer```.
-samplerd 
+samplerd
   A text role generating a link to an RD used by the GAVO data center
   (exhibiting some feature).  The argument is the relative path to
   the RD (or, really, anything else in the VCS), e.g.,
@@ -5113,11 +5113,11 @@ which, again, you can read in source using ``dachs admin dumpDF
    "Referencing STC in VOTable", Version 2.0,
    http://www.ivoa.net/Documents/Notes/VOTableSTC/20100618/NOTE-VOTableSTC-2.0-20100618.pdf
 .. _the DaCHS tutorial: http://docs.g-vo.org/DaCHS/tutorial.html
-.. [DALI] Dowler, P, et al, "Data Access Layer Interface Version 1.0", 
+.. [DALI] Dowler, P, et al, "Data Access Layer Interface Version 1.0",
    http://ivoa.net/documents/DALI/20131129/
 .. [SODA] Bonnarel, F., et al, "IVOA Server-side Operations for Data
    Access", http://ivoa.net/documents/SODA/
-.. [Datalink] Dowler, P., et al, "IVOA DataLink", 
+.. [Datalink] Dowler, P., et al, "IVOA DataLink",
    http://ivoa.net/documents/DataLink/
 .. [IVOA Identifiers] Demleitner, M., et al, "IVOA Identifiers",
    http://ivoa.net/Documents/IVOAIdentifiers/index.html

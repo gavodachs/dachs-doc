@@ -1,9 +1,9 @@
 Extra interpreted text roles for writing such documents:
 
 * dachsdoc -- generates a link into the current DaCHS documentation.
-  The argument is the relative path, e.g., 
+  The argument is the relative path, e.g.,
   :dachsdoc:`opguide.html#userconfig-rd`.
-* dachsref -- generates a link into the reference documentation.  The 
+* dachsref -- generates a link into the reference documentation.  The
   argument is a section header within the reference documentation, e.g.,
   :dachsref:`//epntap#populate-2_0` or :dachsref:`the form renderer`.
 * samplerd -- generates a link to an RD used by the GAVO data center
@@ -14,5 +14,5 @@ Extra interpreted text roles for writing such documents:
 (if you add anything here, please also amend the
 :dachsref:`ReStructedText` section in the references).
 
-Please *do not* edit ref.rstx, it is generated (externally, using 
+Please *do not* edit ref.rstx, it is generated (externally, using
 dachs gendoc) from refdoc.rstx and the DaCHS source code.

@@ -8,7 +8,7 @@ Development notes for GAVO DaCHS
 :Copyright: Waived under `CC-0`_
 
 
-.. contents:: 
+.. contents::
   :depth: 2
   :backlinks: entry
   :class: toc
@@ -27,7 +27,7 @@ factoring out libraries).
   contains the main functions, classes, etc., of the sub-package
   interface most clients will be concerned with.  Clients needing
   special tricks may still import individual modules (but then they're
-  in much larger danger of breaking).  What's in __init__ should be 
+  in much larger danger of breaking).  What's in __init__ should be
   considered "public interface" and hence changed very carefully if
   at all.
 * Within each subpackage, *no* module imports the sub-package, i.e.,
@@ -43,10 +43,10 @@ factoring out libraries).
   ``from . import`` over the current absolute imports (``from gavo.base
   import...``).
 * There is a hierarchy of subpackages, where subpackages lower in the
-  hierarchy may not import anything from the higher or equal levels, but 
+  hierarchy may not import anything from the higher or equal levels, but
   only from lower levels.  This hierarchy currently looks like this:
-  imp [<] utils < stc < (votable, adql) < base < dm < rscdef < grammars 
-  < formats < rsc < svcs < registry < protocols < web < rscdesc 
+  imp [<] utils < stc < (votable, adql) < base < dm < rscdef < grammars
+  < formats < rsc < svcs < registry < protocols < web < rscdesc
   < (helpers, user)
   utils should never assume anything from imp is present, i.e., it may
   *attempt* to import from there, but it should not fail hard if the
@@ -68,7 +68,7 @@ days is:
     method to get dicts of rows; all arguments are optional and
     default to pulling all;  ``selectClause`` is just a list of column
     names::
-    
+
       for row in td.doSimpleQuery(["col1", "col2"],
           "col1<%(lim1)s AND col2=%(foo)s",
           {'lim1': 23, 'foo': 42}):
@@ -79,7 +79,7 @@ operations, use the context managers (typically ``getTableConn`` when
 querying, ``getWritableAdminConn`` when writing) using a context manager::
 
   with base.getTableConn() as conn:
-    for row in conn.queryToDicts(myComplexQuery, 
+    for row in conn.queryToDicts(myComplexQuery,
         {'arg1': 23, 'pat': 'M32'}):
       ...
 
@@ -188,21 +188,21 @@ base.ObserverBase.  This lets you stuff like::
     @listensTo("NewSource")
     def announceNewSource(self, srcString):
       print "Starting %s"%srcString
-  
+
 However, you can also just handle single events by saying things like::
 
   from gavo import base
 
   def handleNewSource(srcToken):
     pass
-  
+
   base.ui.subscribeNewSource(handleNewSource)
 
 Most logging is done in user.logui; if you want logging, say::
 
   from gavo.user import logui
   logui.LoggingUI(base.ui)
-  
+
 
 
 Catching exceptions
@@ -322,7 +322,7 @@ the normal way configuration files are read.
 helpers.testhelpers needs a dachstest database for which the current user
 is a superuser.  It will create it provided you're a DB superuser with
 ident authentication (see install to figure out how to set this up).
- 
+
 There are doctests in modules (though fewer than I'd like), and pyunit- and
 trial-based tests in ``<project root>/tests``.  ``tests/runAllTests.py``
 takes care of locating and executing them all.
@@ -332,7 +332,7 @@ In addition to setting up the test environment, testhelpers provides
 ``getTestRD``), the ``VerboseTest`` class adding test resources and some
 assertions to the normal ``unittest.TestCase``. Do *not* import it in
 production code.  Test-like functionality interesting to production code
-should go to ``helpers.testtricks``.  
+should go to ``helpers.testtricks``.
 
 ``testhelpers.main`` is useful after an ``if __name__=='__main__'`` in
 test modules.  Pass a default test class, and you can call the module
@@ -405,7 +405,7 @@ There's a shell script ``genCov.sh`` in tests that runs all unit tests
 and all regression tests.  It then combines the coverage from all these
 runs to ``.coverage``.  So, after running this, just running
 ``python3-coverage report -i`` or ``python3-coverage html -i`` should do
-the right thing.  
+the right thing.
 
 You need the ``-i`` flag because during testing a lot of generated or
 extracted code will be executed, and there's no sane way I can think of
@@ -443,7 +443,7 @@ recommended for everyone, though)
 
 * ``dachs test -t bigserver -u http://dc.g-vo.org/ ALL`` (which runs
   all tests defined in the local RDs, even for the production server,
-  against the production server; this does what it's supposed to da as 
+  against the production server; this does what it's supposed to da as
   the repo for the RDs is the same on development and production).
 
 
@@ -462,7 +462,7 @@ test in a chroot.  Here's my current practice:
       sudo chroot /home/pbuilder/unstable-i386/base.cow/ bash
 
       apt install subversion vim
-      apt install libjs-jquery libjs-jquery-flot python3-cryptography python3-docutils  python3-lxml python3-matplotlib python3-pkg-resources python3-psycopg2 python3-pymoc python3-rjsmin python3-testresources python3-twisted python3-astropy python3-docutils python3-numpy python3-pil python3-pkg-resources python3-psycopg2 python3-pyparsing libcfitsio-dev python3-healpy 
+      apt install libjs-jquery libjs-jquery-flot python3-cryptography python3-docutils  python3-lxml python3-matplotlib python3-pkg-resources python3-psycopg2 python3-pymoc python3-rjsmin python3-testresources python3-twisted python3-astropy python3-docutils python3-numpy python3-pil python3-pkg-resources python3-psycopg2 python3-pyparsing libcfitsio-dev python3-healpy
 
 (c) Make a user to run the things, and make it identical to what you're
     using to run the unit tests outside of the chroot::
@@ -480,13 +480,13 @@ test in a chroot.  Here's my current practice:
       svn co https://svn.ari.uni-heidelberg.de/svn/gavo/python/trunk
 
     As root in the container::
-      
+
       python3 /home/msdemlei/trunk/setup.py develop
 
     Back as msdemlei::
 
       cd trunk/tests
-      python3 runAllTests.py 
+      python3 runAllTests.py
 
     This will fail because it won't find the database (or createdb).
     Just copy the data from your external test harness, i.e., from the
@@ -498,7 +498,7 @@ test in a chroot.  Here's my current practice:
 	  Back in the chroot, this should now work::
 
       python3 runAllTests.py
-	    
+	
     To run DaCHS interactively, an alias like the following comes handy::
 
       alias testgavo='env GAVOSETTINGS=/home/msdemlei/trunk/tests/test_data/test-gavorc GAVOCUSTOM=/invalid gavo'
@@ -528,7 +528,7 @@ file exists (but has no element with the id in question), in
 ``//userconfig``.
 
 When using the elements, always use the canonical abbreviation for
-userconfig, ``%``, as in 
+userconfig, ``%``, as in
 ``<FEED source="%#registry-interfacerecords"/>``.
 
 Future
@@ -570,7 +570,7 @@ almost; meta is an exception).
 
 A structure instance has the following callbacks:
 
-* ``completeElement(ctx)`` -- called when the element's closing tag 
+* ``completeElement(ctx)`` -- called when the element's closing tag
   is encountered, used to fill in computed defaults.  ``ctx`` is a
   parse context that you can use to, e.g. resolve XML ids.
 * ``validate()`` -- called after completeElement, used to raise errors if
@@ -602,7 +602,7 @@ names in the *entire* DaCHS code must be unique, since docgen generates
 section heading from those names and actually checks that these headings
 are unique; hence, only one (essentially randomly selected) of two
 identically-named elements would be documented, and parent links would
-both point there.  
+both point there.
 
 Since there are cases when that limitation is a real pain (e.g., the
 publish element of services and data), there's a workaround: you can set
@@ -667,12 +667,12 @@ Setting Metadata
 
 You can programmatically set metadata on any metadata container by
 calling its method ``addMeta(key, value)``, where both key and value are
-(unicode-compatible) strings.  You can build any hierarchy in this way, 
+(unicode-compatible) strings.  You can build any hierarchy in this way,
 provided you stick with typeless meta values or can do with the default
 types.  Those are set by key in meta._typesForKeys.
 
 To build sequences, call addMeta repeatedly.  To have a sequence of
-containers, call addMeta with None or an empty string as value, like 
+containers, call addMeta with None or an empty string as value, like
 this:
 
 m.addMeta("p.q", "x")
@@ -862,7 +862,7 @@ in something like::
 after the print (of course, this only makes sense if you're running
 ``dachs serve debug``, as the actual server detaches from its tty).  This
 lets you go through the objects referring to the first struct left over
-by hitting Return.  
+by hitting Return.
 
 Enter anything to follow the (inverse) reference, except that a d will
 drop you in the debugger and x will continue normal execution.  Do this
@@ -950,13 +950,13 @@ infrastructure given in rscdef.procdef.  It basically leads up to
 ``ProcApp`` inherits from ``ProcDef``, a procedure definition.  Such a
 definition gives some (python) code that is executed when the procedure
 is applied.  To set up the execution environment of this code, there's
-the definition's setup child.   
+the definition's setup child.
 
 The setup contains code and parameters.  The code is executed to set up
 the namespace that the procedure will run in; it is thus executed once
 -- at construction -- per procedure.  The parameters allow
 configuration of the procedure.  This is the place to do relatively
-expensive operations like I/O or imports.  
+expensive operations like I/O or imports.
 
 For example, ``//procs#resolveObject`` creates the resolver in its
 setup code; this happens only once per creation of the embedding RD::
@@ -1105,7 +1105,7 @@ gavo.user.upgrade.  See the docstring on Upgrade on what you can and
 should do in there, and read on.
 
 The basic idea is that each upgrade step is written as a class
-inheriting Upgrader.  Its ``version`` attribute must be the value of 
+inheriting Upgrader.  Its ``version`` attribute must be the value of
 ``upgrader.CURRENT_SCHEMAVERSION`` (defined near the top) when you start
 working.  After you have defined your upgrader, increase
 CURRENT_SCHEMAVERSION by one.
@@ -1207,7 +1207,7 @@ javascript.
 After some hesitation, we decided to use the jquery javascript library
 (we used to have MochiKit but left that when we wanted nice in-browser
 plotting; so, if you still see MochiKit somewhere, please disregard).
-We also include some of jquery-ui.  
+We also include some of jquery-ui.
 
 We keep all javascript in "full" source form (in resources/web/js).
 DaCHS performs on-the-fly minimisaton (unless [web]jsSource is False).
@@ -1240,7 +1240,7 @@ define a template in your HTML as a script of type text/html::
 
   <script type="text/html" id="tmpl_authorHeader">
     <li>
-      <a class="arrow-e" 
+      <a class="arrow-e"
         onclick="toggleAuthorResources(this)" name="$author"/>
         $author ($nummatch)
     </li>
@@ -1324,7 +1324,7 @@ stuff is being frowned upon (and it stinks).
 To keep things in sync as good as we can, we need to update the built-in
 javascript files as we go to a new Debian.  To do that, go to
 gavo/resources/web/js in a checkout and run::
-  
+
   sudo apt install libjs-jquery libjs-jquery-flot
   python3 ../../../web/ifpages.py
 
@@ -1350,7 +1350,7 @@ Different Database Backends
 A request we get fairly regularly is to make DaCHS work with database
 engines other than Postgres, with MySQL and Oracle being the most
 popular alternatives for external requests and SQLite something we
-personally would like to see for ease of deployment.  
+personally would like to see for ease of deployment.
 
 The short answer to all this: It's tricky.  You might get away with
 using `foreign data wrappers`_ in some cases; a group at Paris
@@ -1371,7 +1371,7 @@ some project mines (innocuous-looking things that blow up into a lot of
 refactoring once you step on them):
 
 (a) separate what's specific to postgresql+psycopg2 from sqlsupport,
-    put that into a module (backend_postgres, say), devise some sort 
+    put that into a module (backend_postgres, say), devise some sort
     of dispatcher to backends, and have, to work out things, a second
     backend, that would then contain different implementations for
     tableExists, indexExists, and so on.  Actually, throwing out

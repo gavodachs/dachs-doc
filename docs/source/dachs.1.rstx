@@ -22,7 +22,7 @@ DESCRIPTION
 ===========
 
 dachs  provides  support for data ingestion and publishing, for metadata
-handling, and for a variety of VO protocols and standards, e.g. the 
+handling, and for a variety of VO protocols and standards, e.g. the
 Table Access Protocol (TAP) or the Simple Cone Search (SCS).
 
 There are numerous sub-commands covering the various tasks (importing,
@@ -110,7 +110,7 @@ Subsubcommands
 * ``deluser user`` -- remove a DaCHS user from the user table.
 * ``dumpDF path`` -- Dumps the source of a file included with the DaCHS
   distribution.  The argument is a package resource path
-  (like /inputs/__system__/scs.rd); for system RDs, the special 
+  (like /inputs/__system__/scs.rd); for system RDs, the special
   //rd-id syntax is supported.
 * ``execute exec-id`` -- Execute the contents of an RD execute element. You
   must give that element an explicit id in order to make this work; then
@@ -118,7 +118,7 @@ Subsubcommands
 * ``hashPassword pw`` -- hash a password.  adduser and friends already
   hash themselves, so this is likely only useful for the
   [web]adminPasswd setting.
-* ``indexStatements tableRef`` -- show the statements to create the 
+* ``indexStatements tableRef`` -- show the statements to create the
   indices on a table.  The tableRef has the format RD-id#table-id; it
   is *not* a database table reference.
 * ``listusers`` -- dump the user table
@@ -126,7 +126,7 @@ Subsubcommands
   the resource is removed.  This is only necessary when recovering
   from disasters that made you lose records from DaCHS' internal
   tables.
-* ``suggestucds tableId`` -- Make suggestions for UCDs of the columns 
+* ``suggestucds tableId`` -- Make suggestions for UCDs of the columns
   of the referenced table (rd-id#table-id format) not having one.
   This is based on their descriptions and uses a GAVO web service.
 * ``tapabort jobId helpMsg`` -- manually abort a TAP job and return
@@ -209,7 +209,7 @@ Synopsis::
 
 Positional argument:
 
-source         
+source
     Name of a DaCHS-produced data package zip file.
 
 Optional arguments:
@@ -234,7 +234,7 @@ Synopsis::
        drop [-h] [-s] [--all] rd-id [dd-id ...]
 
 This is the reverse of import: Tables created by a ``dachs imp`` with
-identical arguments are being torn down by ``dachs drop``.  This will 
+identical arguments are being torn down by ``dachs drop``.  This will
 not work reliably if the RD has been modified between the imp and the
 drop, in particular if the RD has been deleted.  In such situations, you
 can use the ``-f`` flag, which unconditionally tears down everything
@@ -289,7 +289,7 @@ present; note that this will also drop any views they might be part of,
 as well as any rows that have foreign keys on this table.  After
 loading, indices and primary keys on the restored tables will be
 recreated, but no scripts or similar are run.  Hence, you will have to
-manually re-create any dependent resources after a restore.  
+manually re-create any dependent resources after a restore.
 
 This also means that, for example, restoring a table with products
 without also restoring //products#products will lose the products that
@@ -311,10 +311,10 @@ all onDisk-tables defined in the RD will be dumped.
 
 Positional arguments:
 
-dumpFile 
+dumpFile
           Name of a file to write the dump to; use - to dump to stderr.
 
-ids 
+ids
           ids of table definitions (as in myres/q#main) or RDs to dump.
 
 
@@ -338,7 +338,7 @@ before
 
 Positional argument:
 
-source 
+source
   File to restore from. Use - to restore from stdin.
 
 dump ls
@@ -352,9 +352,9 @@ List tables and dump metadata from a DaCHS dump.
 
 Positional arguments:
 
-source 
+source
   source file to list
-  
+
 
 
 THE gencol SUBCOMMAND
@@ -392,7 +392,7 @@ material for use in columnGrammar-s.
 Argument
 --------
 
-FILE                  
+FILE
   Source file to generate the columns from. This can be
   a FITS, a VOTable, or Vizier Column-by-column
   description, and DaCHS will guess based on the
@@ -401,7 +401,7 @@ FILE
 Options
 -------
 
--h, --help            
+-h, --help
    show this help message and exit
 -f FMT, --format FMT
    Format of the input table: FITS binary (``fits``), VOTable (``vot``), or
@@ -413,7 +413,7 @@ THE import SUBCOMMAND
 
 Synopsis::
 
-       dachs import [options] rd-name [data-id] 
+       dachs import [options] rd-name [data-id]
 
 This subcommand is used to ingest data described by an RD.  For special
 applications, ingestion can be restricted to specific data items within
@@ -423,51 +423,51 @@ an RD.
 Options
 -------
 
--h, --help            
+-h, --help
   show this help message and exit
 
--n, --updateRows      
+-n, --updateRows
   Deprecated.  Use updating data items instead.
 
--d, --dumpRows        
+-d, --dumpRows
   Dump raw rows as they are emitted by the grammar.
 
--D, --dumpIngestees   
+-D, --dumpIngestees
   Dump processed rows as emitted by the row makers.
 
--R, --redoIndex       
+-R, --redoIndex
   Drop indices before updating a table and recreate them
   when done
 
--m, --meta-only       
+-m, --meta-only
   just update table meta (privileges, column descriptions,...).  This
   will also update the tables' obscore clauses, but you will have to
   ``dachs imp //obscore`` to update the obscore view itself in this
   case.
 
--I, --meta-and-index  
+-I, --meta-and-index
   do not import, but update table meta (privileges,
   column descriptions,...) and recreate the indices
 
--u, --update          
+-u, --update
   update mode -- don't drop tables before writing.
 
--s, --system          
+-s, --system
   (re-)create system tables, too
 
--v, --verbose         
+-v, --verbose
   talk a lot while working
 
--r, --reckless        
+-r, --reckless
   Do not validate rows before ingestion
 
 -M MAX, --stop-after=MAX
   Stop after having parsed MAX rows
 
--b N, --batch-size=N  
+-b N, --batch-size=N
   deliver N rows at a time to the database.
 
--c, --continue-bad    
+-c, --continue-bad
   do not bail out after an error, just skip the current
   source and continue with the next one.
 
@@ -479,7 +479,7 @@ Options
   The price is that users will see empty tables during
   the import.
 
---hide-adql           
+--hide-adql
   Interpret adql=True on tables as adql=hidden (this is for fallback mirrors)
 
 
@@ -561,19 +561,19 @@ Arguments
 
 itemId
   either an RD id or a table reference in the from rd-id#table-id.
-  A single ALL will expand to all RDs that already have limits-obtained 
+  A single ALL will expand to all RDs that already have limits-obtained
   metadata.
 
 Options
 -------
 
--t, --tables-only     
+-t, --tables-only
     Only acquire table/resource-level metadata (rather than column
     metadata, which usually takes a lot longer).
 -s P, --sample-percent P
     Only look at P percent of the table to determine min/max/mean.
 -d, --dump
-    Do not obtain statistics but rather dump the results of the 
+    Do not obtain statistics but rather dump the results of the
     last run
 
 THE mkboost SUBCOMMAND
@@ -636,7 +636,7 @@ for details.
 Arguments
 ---------
 
-rd                   
+rd
     RDs to publish; you can give ids or file paths. Use
     the magic value ALL to check all published RDs,
     ALL_RECURSE to look for RDs in the file system (check
@@ -651,7 +651,7 @@ Options
       sometimes be desirable with minor updates to an RD that don't
       justify a re- publication to the VO.
 
--u, --unpublish       
+-u, --unpublish
       Unpublish all resources coming from this RD Note that this will in
       general create "deleted records", i.e., essentially empty resource
       records only stating that the resource referenced by an identifier
@@ -698,7 +698,7 @@ Subsubcommands
 ---------------
 
 * ``debug`` -- run a server and remain in the foreground, dumping all
-  kinds of stuff to the terminal.  If you have an SSL certificate, this 
+  kinds of stuff to the terminal.  If you have an SSL certificate, this
   will try bind an https interface to port 40443; that's exclusively
   for little experiments, do not use it for actual operations.
 * ``reload`` -- reload server configuration (incomplete)
@@ -709,15 +709,15 @@ Subsubcommands
   While in general, DaCHS reloads an RD if it finds it changed,
   sometimes it does not realise some dependency has changed.  In that
   case, this subsubcommand can expunge the RD so it will be re-parsed
-  when the next access occurs.  Note that this requires 
+  when the next access occurs.  Note that this requires
   [web]adminpasswd be set; the command uses [web]serverURL to figure
   out where to connect the running server.
 
 The ``start`` subcommand accepts a ``--foreground/-f`` option.  If you pass
 it, the server will not double-detach and not redirect stderr to a log
 file and instead stay in the foreground; it will also not check for PID
-files or create them.  In contrast to ``debug``, it 
-will change users, etc., and not put the DaCHS into debug mode.  
+files or create them.  In contrast to ``debug``, it
+will change users, etc., and not put the DaCHS into debug mode.
 This option is primarily useful for systemd units.
 
 
@@ -782,19 +782,19 @@ id
 Options
 -------
 
--h, --help            
+-h, --help
   show this help message and exit
 
--v, --verbose         
+-v, --verbose
   Talk while working
 
--d, --dump-negative   
+-d, --dump-negative
   Dump the content of failing tests to stdout
 
--t TAG, --tag TAG     
+-t TAG, --tag TAG
   Also run tests tagged with TAG.
 
--R N, --n-repeat N    
+-R N, --n-repeat N
   Run each test N times
 
 -T SECONDS, --timeout SECONDS
@@ -826,7 +826,7 @@ Synopsis::
 
      dachs validate [-h] [-x] [-v] rd [rd...]
 
-This checks RDs for well-formedness and some aspects  of  VO-friendliness  
+This checks RDs for well-formedness and some aspects  of  VO-friendliness
 
 
 Arguments
@@ -840,7 +840,7 @@ rd
 Options
 -------
 
--h, --help            
+-h, --help
   show this help message and exit
 
 -p, --pre-publication
@@ -848,17 +848,17 @@ Options
   if they are not (this may produce spurious errors if
   unpublished services are in the RD).
 
--v, --verbose         
+-v, --verbose
   Talk while working
 
--t, --run-tests       
+-t, --run-tests
   Run regression tests embedded in the checked RDs
 
 -T SECONDS, --timeout SECONDS
   When running tests, abort and fail requests after
   inactivity of SECONDS
 
--c, --compare-db      
+-c, --compare-db
   Also make sure that tables that are on disk (somewhat)
   match the definition in the RD.
 

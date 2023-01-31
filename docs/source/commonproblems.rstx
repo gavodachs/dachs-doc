@@ -8,7 +8,7 @@ Common Problems with DaCHS
 :Copyright: Waived under `CC-0`_
 
 
-.. contents:: 
+.. contents::
   :depth: 1
   :backlinks: entry
   :class: toc
@@ -31,7 +31,7 @@ Import fails with "Column xy missing" and very few keys
 
 This error is caused by the row validation of the table ingestor – it
 wants to see values for all table columns, and it's missing one or more.
-This may be flabbergasting when your grammar yields the fields that 
+This may be flabbergasting when your grammar yields the fields that
 are missing here.  The reason is simple: You must map them in the
 rowmaker.  If you see this error, you probably wanted to write
 ``idmaps="*"`` or something like that in the rowmaker.
@@ -79,7 +79,7 @@ call psdb) will help you::
 rights on that database; it's not hard to figure out the psql command
 line for other scenarios).  This could output something like::
 
-   procpid |  usename  |    current_query        | date_trunc 
+   procpid |  usename  |    current_query        | date_trunc
   ---------+-----------+-------------------------+------------
       9301 | gavoadmin | <IDLE>                  | 16:55:39
       9302 | gavoadmin | <IDLE> in transaction   | 16:55:39
@@ -152,7 +152,7 @@ binaryRecordDef doesn't match the input in some other way.
 
 DaCHS expects each RD to have a "resource directory" that contains
 input files, auxillary data, etc.  Multiple RDs may share a single
-resource directory.  
+resource directory.
 
 By default, the resource directory is <inputsDir>/<schema>. If you don't
 need any auxillary files, the resdir does not even need to exist. In that
@@ -218,7 +218,7 @@ gavo imp dies with Permission denied: '/home/gavo/logs/dcErrors'
 
 (or something similar).  The reason for these typically is that the user
 that runs ``gavo imp`` is not in the ``gavo`` group (actually, whatever
-[general]gavoGroup says).  To fix it, add that user to the group.  
+[general]gavoGroup says).  To fix it, add that user to the group.
 If that user was, say, fred, you'd say::
 
   sudo adduser fred gavo
@@ -418,9 +418,9 @@ error message and look in ivoa._obscoresources like this::
 
   $ psql gavo
   ...
-  # select tablename 
+  # select tablename
   - from ivoa._obscoresources where sqlfragment like '%CAST(/RR/V/%';
-       tablename      
+       tablename
   --------------------
    test.pgs_siaptable
 
@@ -639,7 +639,7 @@ module 'gavo.utils' has no attribute 'pyparsingWhitechars'
 
 You are probably running ``dachs limits`` on the DaCHS that comes with
 Debian bullseye (11).  Its ``dachs --version`` would give you something
-like ``Software (2.3) Schema (26/26)``.  
+like ``Software (2.3) Schema (26/26)``.
 
 If that is true: Well, don't run DaCHS limits on that version.  The
 functionality has received a fairly fundamental revamp in 2.4 and later

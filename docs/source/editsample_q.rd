@@ -50,7 +50,7 @@
 				<formatter>
 					return T.a(class_="buttonlike", href="/\rdId/edit/form?"
 						+urllib.parse.urlencode({
-							"id": data[0], 
+							"id": data[0],
 							"remarks": data[1] or ""}))["Edit this"]
 				</formatter>
 			</outputField>

@@ -8,11 +8,11 @@ HTML Templates in GAVO DaCHS
 :Copyright: Waived under `CC-0`_
 
 
-.. contents:: 
+.. contents::
   :backlinks: entry
   :class: toc
 
-.. highlights:: While you do not have to write any HTML to publish 
+.. highlights:: While you do not have to write any HTML to publish
    data using DaCHS, and indeed we discourage spending much effort on
    fancy web pages – the VO is about generically usable APIs, not fancy,
    but non-interoperable web pages –, for some special effects or even
@@ -66,7 +66,7 @@ above the opening div in sidebar.html and reload a page showing the
 sidebar.  Your new material should show in the page.
 
 Note that, if you override a template, it is a good idea to evaluate
-changes in the upstream templates after updating DaCHS.  
+changes in the upstream templates after updating DaCHS.
 You can do this by
 running::
 
@@ -125,7 +125,7 @@ The Root Template
 
 The ``root.html`` template is what is rendered when users request the
 root resource of your DaCHS installation, so it is a fairly good target
-for changing (and it's also fairly safe to override).  
+for changing (and it's also fairly safe to override).
 While you could put any well-formed XHTML there, we
 recommend you base your template on either the distributed
 ``root.html``, which mainly gives a list of all services
@@ -173,8 +173,8 @@ XHTML.  This is because nevow just adds a few elements and attributes in
 a separate namespace.  This must be declared alongside the XHTML
 namespace; a standalone template will thus have to start like this::
 
-  <html 
-    xmlns:n="http://nevow.com/ns/nevow/0.1" 
+  <html
+    xmlns:n="http://nevow.com/ns/nevow/0.1"
     xmlns="http://www.w3.org/1999/xhtml">
 
 (prepending this with a doctype declaration like::
@@ -196,9 +196,9 @@ you're not supposed to understand things here, this is just a reference):
   element.  If you know ``xsl.attribute``: same thing.
 * ``n:slot`` – an element replacing itself with the value a mapping
   in the context data has for its ``name`` attribute.
-* ``n:render`` – a universal (i.e., can go on any HTML tag) attribute 
+* ``n:render`` – a universal (i.e., can go on any HTML tag) attribute
   changing the way the DOM tree is built below that element.  To avoid
-  confusion with DaCHS renderers, we will call the values of these 
+  confusion with DaCHS renderers, we will call the values of these
   attributes "nevow renderers" in the following.
 * ``n:pattern`` – a universal attribute a bit like a tree-typed
   argument to a nevow renderer
@@ -231,7 +231,7 @@ This T is already in the namespace of the renderer function (see below).
 
 More information and this (as well as the whole template language) is
 available in `Meet Stan <http://docs.g-vo.org/meetstan.html>`_.
-    
+
 
 
 Template Language Example
@@ -272,7 +272,7 @@ The next magic thing is::
 Again, this is asks to pull in a whole lot of elements, this time from a
 template (you probably guessed that it is ``sidebar.html``), except that
 this renderer does not discard children present in the template but adds
-them in a ``div``.  Perhaps the implementation 
+them in a ``div``.  Perhaps the implementation
 helps here (don't sweat the details at this point; the code is in
 web.grend.GavoRenderMixin)::
 
@@ -287,7 +287,7 @@ web.grend.GavoRenderMixin)::
         oldChildren
       ]]
 
-(where ``self._sidebar`` contains a parse of the sidebar template). 
+(where ``self._sidebar`` contains a parse of the sidebar template).
 
 Going on, you'll see::
 
@@ -340,7 +340,7 @@ the result would have been::
 
   <a href="http://foo.bar/baz">a link</a>
 
-– while introducing constants in this way doesn't 
+– while introducing constants in this way doesn't
 make much sense, it might be useful if, for
 instance, the context object were a relative link, in which case you
 could have written::
@@ -370,7 +370,7 @@ object: ``rendAvail``.  This is again taken from the DaCHS renderer
 (still the ``ServiceInfoRenderer``), which reads::
 
   def data_rendAvail(self, ctx, data):
-    return [{"rendName": rend, 
+    return [{"rendName": rend,
         "rendExpl": RendExplainer.explain(rend, self.service)}
       for rend in self.service.allowed]
 
@@ -491,7 +491,7 @@ Until we get to imporve that, here's an overview of the nevow renderers
   (from  GavoRenderMixin) takes a config key from its content and
   renders it as the value of this configuration item, e.g.::
 
-    Finish up in 
+    Finish up in
     <span n:render="getconfig">[async]defaultExecTime</span> seconds
 
   If you leave out the section, [general] is assumed as usual.
@@ -583,7 +583,7 @@ Until we get to imporve that, here's an overview of the nevow renderers
   (from HTMLResultRenderMixin) a parameterised renderer that takes a
   python format string and formats the value of the param named in the
   content with it, for instance::
-    
+
     <span n:render="param %5.2f">rv</span>
 
 :resultmeta:
@@ -681,7 +681,7 @@ minor::
 is all that's needed.  The template goes on saying::
 
   <p n:data="inputRec" n:render="mapping">
-    ICRS position is &alpha;=<n:slot name="alpha"/>, 
+    ICRS position is &alpha;=<n:slot name="alpha"/>,
     &delta;=<n:slot name="delta"/>.
   </p>
 
@@ -692,7 +692,7 @@ computed by the service's input data descriptor.
 
 Finally, when the result is in context, we do::
 
-  <p style="border:2px solid red; max-width:400px; padding:5pt" 
+  <p style="border:2px solid red; max-width:400px; padding:5pt"
     n:render="multiplicityWarning"/>
 
 We would do this today by attaching a ``_warning`` meta item on the
@@ -795,11 +795,11 @@ And here's the template::
   </head>
   <body n:data="result">
     <p style="text-align:center">
-      Neptune rising: 
+      Neptune rising:
         <span class="horizontime" n:render="param %s">next_rising</span>
     </p>
     <p style="text-align:center">
-      Neptune setting: 
+      Neptune setting:
         <span class="horizontime" n:render="param %s">next_setting</span>
     </p>
     <n:invisible n:render="form genForm"/>
@@ -819,7 +819,7 @@ stuck, ask back, and we'll provide a solution and a new exercise.
 .. _apfs/res/apfs_new RD: https://svn.ari.uni-heidelberg.de/svn/gavo/hdinputs/apfs/res/apfs_new.rd
 
 
-.. [#dtd] One reason *not* to declare a DTD is that careless clients 
+.. [#dtd] One reason *not* to declare a DTD is that careless clients
    other than web browsers (on system with misconfigured system
    catalogs) might stumble across such a page and try do download the
    DTD; the W3C was so pissed with clients doing that that they are now

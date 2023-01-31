@@ -44,13 +44,13 @@ Debian stable as your platform when you are going for Debian
 derivatives.  *If* you insist on running, say, Ubuntu, please note that
 they do not package DaCHS (so you have to add our APT repo no matter
 what) and that they do not package the q3c and pgsphere packages that
-DaCHS cannot live without.  
+DaCHS cannot live without.
 
 A workable fix is to install the packages from postgres' APT repository
 (these are basically equivalent to what Debian has).  However, these
 have multiple postgres versions at the same time, and hence you will
 need to manually make sure that the postgres server and the extensions
-match. 
+match.
 
 Hence, on dpkg-based distributions more remote from Debian, try a
 sequence more or less like:
@@ -94,15 +94,15 @@ If postgres is running shut it down::
 
 Moving the database cluster:  The database cluster is typically in the
 ``$HOME/data`` directory of the postgres user.  Changing this under CentOS 7
-which uses systemd is a bit different.  Configuration files are now .ini 
+which uses systemd is a bit different.  Configuration files are now .ini
 style files (not bash scripts) and they live under
 ``/usr/lib/systemd/system/``.
-  
+
 The default configuration file for postgres is
 ``/usr/lib/systemd/system/postgresql.service``.
 
 The files in ``/usr/lib/systemd`` are maintained by the package manager so you
-should leave them alone.  Forturnatly, systemd looks for overrides in an 
+should leave them alone.  Forturnatly, systemd looks for overrides in an
 alternate directory first before loading the deflault service configuration.
 
 Local user defined overrides for services go in the
@@ -113,37 +113,37 @@ Local user defined overrides for services go in the
 
      [Service]
      Environment=PGDATA=<your path here>/data
-	  
+	
 into ``/etc/systemd/system/postgresql.service``; of course *<your path
 here>* needs to be substituted with the path to somewhere where there's
 enough space for what you expect in your database; it's usually a good
 idea to use a directory on a separate partition here.  The examples
 below assume ``/disk/1/pgsql`` (and need to be adjusted accordingly in
 the likey event that you chose something else).
-  
+
 Let systemd know that you've changed something::
 
   $ sudo /bin/systemctl daemon-reload
-  
+
 Also, the home directory for the postgres user should be changed to::
 
   $ $EDITOR /etc/passwd  (change postgres user home directory)
   $ sudo mkdir /disk/1/pgsql
   $ sudo cp /var/lib/pgsql/.bash_profile /disk/1/pgsql
   $ sudo chown -R postgres:postgres /disk/1/pgsql
-  
+
 Now initialize the db-cluster::
 
-  $ sudo su -l postgres 
+  $ sudo su -l postgres
   $ initdb -D $HOME/data --locale=C --lc-collate=C --lc-ctype=C -E UTF8
-  $ $EDITOR data/pg_hba.conf 
+  $ $EDITOR data/pg_hba.conf
     > change 'trust' authentication to 'ident'
-	 
+	
 Start up the service::
 
   $ sudo systemctl enable postgresql.service
   $ sudo systemctl start postgresql.service
-  
+
 Test the service::
 
   $ sudo su -l postgres
@@ -158,7 +158,7 @@ interface::
   postgres# alter user postgres encrypted password '*********'; (remember this)
   postgres# \q
   $ rm .psql_history  (or else the password is stored on disk)
-  
+
   $ cd data
   $ vim pg_hba.conf
     <<< change <<<
@@ -167,9 +167,9 @@ interface::
     >>> to >>>>
        host    all         all             127.0.0.1/32            md5
 	    host    all         all             ::1/128                 md5
-  
+
 and restart the postmaster::
-  
+
   $ exit   (postgres account)
   $ sudo systemctl restart postgresql.service
 
@@ -191,12 +191,12 @@ This is realatively straighforward::
   $ sudo yum install python3-docutils
   $ sudo yum install python3-pillow  #New name for Python Image Manipulation Lib
 
-Make/install extra packages 
+Make/install extra packages
 ---------------------------
 
 The RedHat/CentOS package universe is smaller than that available to Fedora
 and Debian.  Instead of searching for rpms that may or may not be compatible
-with your OS, is ususally more reliable to just build packages from source 
+with your OS, is ususally more reliable to just build packages from source
 if they are not available in the primary repositories.
 
 
@@ -209,9 +209,9 @@ PGSphere
   $ cd pgsphere
   $ make USE_PGXS=1 PG_CONFIG=/usr/bin/pg_config
   $ sudo make USE_PGXS=1 PG_CONFIG=/usr/bin/pg_config install
-  
+
 Test (difficult due to user permissions, but possible)::
-  
+
   $ mkdir results
   $ sudo chmod 777 . results
   $ sudo su postgres
@@ -233,8 +233,8 @@ q3c
   $ make
   $ sudo make install
 
-  
-  
+
+
 Automat
 '''''''
 
@@ -298,7 +298,7 @@ instances of dachs that you may have running::
   $ sudo su -l gavo
   $ dachs serve stop
   $ exit
-  
+
 Let systemd know a config file has changed::
 
   $ sudo /bin/systemctl daemon-reload

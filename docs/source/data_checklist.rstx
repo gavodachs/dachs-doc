@@ -68,7 +68,7 @@ The italicized text in the explanations is taken from [RMI]_.
   possible, the subjects should come from a controlled vocabulary, which
   by now is http://www.ivoa.net/rdf/uat.  If you find something there,
   add it; if you have extra terms, don't worry.  Nobody will come after
-  you for inventing terms as long as the UAT really doesn't have a 
+  you for inventing terms as long as the UAT really doesn't have a
   matching concept.
 
 :Description:
@@ -106,7 +106,7 @@ The italicized text in the explanations is taken from [RMI]_.
   identifiers that in turn makes more information about a facility
   accessible within the VO.  GAVO can give you such an identifier if you
   want.
-  
+
 :Instrument:
   Optional. *Can be a specific instrument name (Wide Field/Planetary
   Camera 2) or generic instrument type (CCD camera).  Theoretical data
@@ -137,7 +137,7 @@ The italicized text in the explanations is taken from [RMI]_.
 
   Somewhat relatedly, GAVO also offers "embargoed" publication where,
   for a limited time, only persons having a password can access data
-  files or a service.  
+  files or a service.
 
 
 Other issues

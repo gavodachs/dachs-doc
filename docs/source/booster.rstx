@@ -7,7 +7,7 @@ GAVO DaCHS: DirectGrammars and Boosters
 :Date: |date|
 :Copyright: Waived under `CC-0`_
 
-.. contents:: 
+.. contents::
   :depth: 2
   :backlinks: entry
   :class: toc
@@ -56,7 +56,7 @@ A quick start on using boosters:
    which would look somewhat like this::
 
     <directGrammar id="fits" type="fits" cBooster="res/boosterfunc.c"/>
-   
+
 2) Generate the booster::
 
     gavo mkboost your/rd#fits > res/boosterfunc.c
@@ -76,7 +76,7 @@ what kind of source you're parsing from.  Values allowed here include:
   ``columnGrammar``
 * ``bin`` – parse from data that has fixed-length binary records (this
   is stuff that a ``binaryGrammar`` would grok)
-* ``split`` – parse from files that have fields separated by some 
+* ``split`` – parse from files that have fields separated by some
   constant sequence of character (conventionally, these can be parsed
   by a ``reGrammar``)
 * ``fits`` – parse from FITS binary tables (that's what a
@@ -201,10 +201,10 @@ situations:
   correctly, silently does nothing for anything non-numeric
 * ``void parseFloatWithMagicNULL(char *src, Field *field, int start, int
   len, char *magicVal)`` – parses a float from a decimal serialisation
-  in ``src[start:start+len]`` into field, writing NULL when magicVal is 
+  in ``src[start:start+len]`` into field, writing NULL when magicVal is
   found in the field.
 * ``void parseDouble(char *src, Field *field, int start, int len)`` –
-  parses a double from ``src[start:start+len]`` into field, writing NULL if 
+  parses a double from ``src[start:start+len]`` into field, writing NULL if
   it's whitespace only.
 * ``void parseInt(char *src, Field *field, int start, int len)`` – parses a
   32-bit int from ``src[start:start+len]`` into field.
@@ -385,7 +385,7 @@ big-endian machine or have big-endian data in memory or have big-endian
 floats (which may happen on some little-endian architectures, I'm told),
 make it 0.
 
-This function goes together with the 
+This function goes together with the
 ``MAKE_ARRAY(fi, buf, nbytes)`` macro that
 tells postgres that in the referenced field info there's ``nbytes`` of
 serialised array material.  As with strings, you need to make ``buf``
@@ -396,7 +396,7 @@ column, you could have in your getTuple::
 
   #define ARRLEN 4
   #define ARRBUFSZ (36+ARRLEN*8)
-  
+
   static unsigned char matbuf[ARRBUFSZ];
   float tmparr[ARRLEN];  /* does not need to be static */
   size_t tmplen;
@@ -507,7 +507,7 @@ FITS boosters
 
 These read from FITS binary tables, which come with enough metadata that
 it might just be possible to make DaCHS generate a booster working
-without editing any C code.  
+without editing any C code.
 
 To build one of those, DaCHS inspects the first file matched by
 the parent data's ``sources`` element (which also means these won't work
@@ -526,8 +526,8 @@ are welcome, but we'll also fix this if you ask for it).
 
 In case your column names in the database are different from the FITS
 input (modulo case), you can use :dachsref:`Element mapKeys` to inform
-the direct grammar.  For instance, 
-``<mapKeys> raj2000:RA, dej2000:DEC </mapKeys>`` 
+the direct grammar.  For instance,
+``<mapKeys> raj2000:RA, dej2000:DEC </mapKeys>``
 will map column named RA in your source file to column named raj2000 in
 your database table and analoguosly for DEC. If you don't do this, only
 column names from your DB table will be read and imported.
@@ -593,7 +593,7 @@ The preference is to make it coredump rather than give fancy errors,
 under the assumption that error messages from the booster would in
 general help less than the post-mortem dumps; this of course also means
 that you should not use direct grammars to parse from potentially
-malicious sources unless you substantially harden the generated code.  
+malicious sources unless you substantially harden the generated code.
 
 To figure out what's wrong if things go wrong, say::
 
@@ -627,11 +627,11 @@ This resulted in a segmentation fault, which made gdb say::
   gdb:
     Program terminated with signal 11, Segmentation fault.
     #0  0x0000000000406cde in getTuple (data=0x7fff592a41a0, nulls=0x7fff592a4250, rowIndex=0)
-  
+
 To figure out where the program crashed, say::
 
   (gdb) where
-  #0  0x0000000000406cde in getTuple (data=0x7fff592a41a0, nulls=0x7fff592a4250, 
+  #0  0x0000000000406cde in getTuple (data=0x7fff592a41a0, nulls=0x7fff592a4250,
       rowIndex=0) at func.c:73
   #1  0x0000000000407784 in createDumpfile (argc=2, argv=0x7fff592a53c8)
       at func.c:296
@@ -661,7 +661,7 @@ Voila, we crashed on the first row already.  Let's go back into getTuple
 to figure out which column was bad::
 
   (gdb) down
-  #0  0x0000000000406cde in getTuple (data=0x7fff592a41a0, nulls=0x7fff592a4250, 
+  #0  0x0000000000406cde in getTuple (data=0x7fff592a41a0, nulls=0x7fff592a4250,
       rowIndex=0) at func.c:73
   73	in func.c
 

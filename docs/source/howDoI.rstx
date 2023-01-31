@@ -495,9 +495,9 @@ For TAP, there's a trick because the service element includes the
 tapdescription STREAM from the userconfig RD.  So, get userconfig unless
 you already have it (cf. :dachsdoc:`tutorial.html#the-userconfig-rd`)
 and simply add::
- 
+
   <limitTo>tapusers</limitTo>
-  
+
 after the ``<STREAM id="tapdescription">``.  To make DaCHS see the
 change, you need to restart the server or run ``dachs serve exp //tap``.
 
@@ -623,7 +623,7 @@ redirect to the process that actually serves the data::
 
       <metaMaker>
         <code>
-          yield MS(InputKey, name="TIME_MJD", 
+          yield MS(InputKey, name="TIME_MJD",
             type="double precision[2]",
             xtype="interval",
             ucd="meta.epoch",
@@ -761,7 +761,7 @@ is what dbCore normally produces), plus our ``_r`` column::
       unit="deg" ucd="pos.distance"
       tablehead="Dist."
       description="Distance to the search center"
-      select="degrees(spoint(radians(centerAlpha), radians(centerDelta)) 
+      select="degrees(spoint(radians(centerAlpha), radians(centerDelta))
         &lt;-> %(X_search_center)s)"
       displayHint="displayUnit=arcmin,sf=0"/>
   </outputTable>
@@ -1120,7 +1120,7 @@ use VOTable unicodeChars, you need to declare the corresponding fields
 as ``unicode``.  To do that, drop something like::
 
   <column original="instrument_host_name" type="unicode"/>
-  
+
 into the body of the table having the mixin.
 
 
@@ -1232,7 +1232,7 @@ putting an RD like the following into, say,
       you don't have TOPCAT or some other TAP client at hand.  Let me
       particularly recommend running queries on the **mauve.results** and
       **violet.images** tables.
-  ]]>  
+  ]]>
     </meta>
     <meta name="_bottominfo" format="rst">
       There is a fixed limit to 100000 rows on this service.  If this
@@ -1245,7 +1245,7 @@ putting an RD like the following into, say,
         ::
 
           SELECT foo FROM bar
-      
+
       * Less trivial
 
         ::
@@ -1260,10 +1260,10 @@ putting an RD like the following into, say,
             description="A query in the Astronomical Data Query Language"
             widgetFactory="widgetFactory(ScalingTextArea, rows=6)"
             required="True"/>
-          <inputKey name="_TIMEOUT" type="integer" unit="s" 
-            tablehead="Timeout after" 
-            description="Seconds until the query is aborted.  If you find 
-              yourself having to raise this beyond 200 or so, please contact 
+          <inputKey name="_TIMEOUT" type="integer" unit="s"
+            tablehead="Timeout after"
+            description="Seconds until the query is aborted.  If you find
+              yourself having to raise this beyond 200 or so, please contact
               the site operators for hints on how to optimize your query">
             <values default="5"/>
           </inputKey>
@@ -1335,7 +1335,7 @@ Yeah, that's not pretty, and we'll try to think of something better.
 First, if you have arrays in your tables' columns, that's a
 de-normalisation: in the pure relational creed, values in columns are
 atomic.  Many interesting things become a lot simpler when you unfold
-these arrays to another table – for ingestion, you would look into 
+these arrays to another table – for ingestion, you would look into
 :dachsref:`dispatching grammars` then.
 
 But there are many cases when it actually makes sense to have arrays for
@@ -1352,7 +1352,7 @@ DaCHS refuses that, too; so, you can't say ``text[]`` –
 and filled, perhaps, like this::
 
    <map key="objects">@mapped_names.split("|")</map>
-  
+
 The trouble starts when you try to write a constraint against this; the
 desired behaviour would be “let people choose from a list of array
 elements and match when they give one or more of what's in a row's
@@ -1365,7 +1365,7 @@ Here's a condDesc that fits the bill::
 
     <condDesc>
       <inputKey name="object" type="text" multiplicity="multiple"
-          tablehead="Target Object" 
+          tablehead="Target Object"
           description="Object being observed, Simbad-resolvable form"
           ucd="meta.name">
           <values fromdb="unnest(objects) FROM fai50mak.main"/>
@@ -1374,7 +1374,7 @@ Here's a condDesc that fits the bill::
         <setup imports="numpy"/>
         <code><![CDATA[
           yield "%({})s && objects".format(
-            base.getSQLKey("object", 
+            base.getSQLKey("object",
             numpy.array(inPars["object"]), outPars))
         ]]></code>
       </phraseMaker>
@@ -1487,7 +1487,7 @@ inspection::
 slow translate essentially 1:1 to SQL; you can also pull translated
 queries from /var/gavo/logs/dcInfos.
 
-Inspect the resulting file and watch out for 
+Inspect the resulting file and watch out for
 “Seq Scan” – if these happen on large tables,
 things will we slow.  For small tables (a couple of thousand records,
 perhaps), on the other hand, it doesn't really matter.
@@ -1521,7 +1521,7 @@ the day then, DaCHS offers the ``-f`` flag to ``drop``::
 With ``-f``, ``dachs drop`` doesn't even bother to look at what might
 have been in the RD.  It just visits all tables in which rows record
 which RD they came from, and when the RD id you give matches the source
-of the row, it does down the drain.  
+of the row, it does down the drain.
 
 This is somewhat dangerous when the RD contained published services.  If
 you absolutely have to use ``drop -f`` on such an RD, please be sure to
@@ -1795,7 +1795,7 @@ Then restart your server and run::
 
   dachs test ALL
 
-If you have `defined regression tests`_, this should show you 
+If you have `defined regression tests`_, this should show you
 troublesome spots.  If you don't have regression tests, gnash your teeth
 and perhaps see if ``dachs val`` points you to problems.
 
@@ -1848,7 +1848,7 @@ If you use text-base grammars (columnGrammar, reGrammar, ...) and your
 inputs contain non-ASCII chars, you could previously get away with it
 under some circumstances.  You will not any longer (but since that only
 breaks on import, I figured it's not so bad).  To fix things, add
-``enc="e"`` attributes to the grammar elements (where ``e`` will typically 
+``enc="e"`` attributes to the grammar elements (where ``e`` will typically
 be one of iso-8859-1 or utf-8).
 
 That's about it as long as you didn't venture into the land of

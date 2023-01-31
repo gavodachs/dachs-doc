@@ -7,7 +7,7 @@ GAVO DaCHS: File Processing
 :Date: |date|
 :Copyright: Waived under `CC-0`_
 
-.. contents:: 
+.. contents::
   :depth: 2
   :backlinks: entry
   :class: toc
@@ -57,7 +57,7 @@ Here is an example checking whether the sizes of files match what an
 
 
 The call to ``procmain`` arranges for the command line to be
-parsed and expects, in addition to the processor *class*, an id for 
+parsed and expects, in addition to the processor *class*, an id for
 the resource descriptor for the data it should process, and the id of
 the data descriptor that ingests the files.
 
@@ -73,11 +73,11 @@ for example, read the expected sizes from some sort of catalogue.  To do
 that, define an addOptions static method, like this::
 
   class Processor(api.FileProcessor):
-    @staticmethod 
+    @staticmethod
     addOptions(optParser):
       api.FileProcessor.addOptions(optParser)
       optParser.add_option("--cat-name", help="Resdir-relative path to"
-        " the plate catalogue", action="store", type="str", 
+        " the plate catalogue", action="store", type="str",
         dest="catPath", default="res/plates.cat")
 
 Make sure you always do the upward call.  Cf. the optparse documentation
@@ -95,7 +95,7 @@ Simple FileProcessors support the following options:
   out new code on just one file or a small subset of files.
 --bail
   Rather than going on when a process method lets an exception escape,
-  abort the processing at the first error and dump a traceback.  Use 
+  abort the processing at the first error and dump a traceback.  Use
   this to figure out bugs in your (or our) code.
 --report
   More on this in `Processor Report Generation`_
@@ -132,7 +132,7 @@ Parallel Execution
 Processors in principle can be executed in parallel *processes* (using
 the ``-j`` flag as with make), provided they are written to support this
 – which means no temporary files that could have name clashes, no other
-shared mutable resources without synchronization, and so on.  
+shared mutable resources without synchronization, and so on.
 
 The main problem with when forking out workers are database connections
 – in short, if you want to run your processors in parallel, you must
@@ -348,7 +348,7 @@ one-channel jpegs for some image format understood by PIL::
 
   import os
   from cStringIO import StringIO
-  
+
   from PIL import Image
 
   from gavo import api
@@ -356,11 +356,11 @@ one-channel jpegs for some image format understood by PIL::
   class PreviewMaker(api.PreviewMaker):
     def getPreviewData(self, accref):
       srcName = os.path.join(api.getConfig("inputsDir"), accref)
-      
+
       im = Image.open(srcName)
       scale = max(im.size)/200.
       resized = im.resize((
-        int(im.size[0]/scale), 
+        int(im.size[0]/scale),
         int(im.size[1]/scale)))
 
       rendered = StringIO()
@@ -400,8 +400,8 @@ DaCHS doesn't handle automatically)::
   class PreviewMaker(api.PreviewMaker):
     def getPreviewData(self, srcName):
       with open(os.path.join(api.getConfig("inputsDir"), srcName)) as inFile:
-        pixels = numpy.array([row 
-          for row in fitstools.iterScaledRows(inFile, 
+        pixels = numpy.array([row
+          for row in fitstools.iterScaledRows(inFile,
             destSize=PREVIEW_SIZE)])
       return imgtools.jpegFromNumpyArray(pixels)
 
@@ -497,7 +497,7 @@ Here's an example for a simple ImmediateHeaderProcessor::
     def _isProcessed(self, srcName):
       hdr = self.getPrimaryHeader(srcName)
       return hdr.get("FN-PRE", "").startswith("http")
-    
+
     def _changeHeader(self, srcName, hdr):
       baseName = os.path.splitext(os.path.basename(srcName))[0]
       hdr.set("FN-WEDGE", "%s/wedges/%sw.fits"%(self.staticBase, baseName),
@@ -536,7 +536,7 @@ header, there is ``_mungeHeader`` that receives the current header.
 
 _mungeHeader should in general raise a api.CannotComputeHeader
 exception if it cannot generate a header (e.g., missing catalogue entry,
-nonsensical input data).  If you return None from either _mungeHeader or 
+nonsensical input data).  If you return None from either _mungeHeader or
 _getHeader, a generic CannotComputeHeader exception will be raised.
 
 Note again that you have to return a *complete* header when you override
@@ -572,8 +572,8 @@ the source code), where proc stands of the name of the ingesting program:
    ".hdr" attached to them.  The headers are *not* applied to the
    original files.
  * ``proc --apply --no-compute`` applies cached headers to the input
-   files that do not yet have headers.  In particular when processing 
-   is lengthy (e.g., astrometrical calibration), it is probably a good 
+   files that do not yet have headers.  In particular when processing
+   is lengthy (e.g., astrometrical calibration), it is probably a good
    idea to keep processing and header application a two-step process.
  * ``proc --apply`` in addition tries to compute header caches and
    applies them.  This could be the default operation when header
@@ -676,7 +676,7 @@ processor using it could look like this::
   from gavo import api
 
   class PAHeaderAdder(api.HeaderProcessor):
-    
+
     def _createAuxiliaries(self, dd):
       # read the observation log from somewher in the resdir
       # it's usually a good idea to use a DaCHS parser for that, but
@@ -692,7 +692,7 @@ processor using it could look like this::
     def _isProcessed(self, srcName):
       # typically, check for a header that's not in your input files
       return "OBSERVER" in self.getPrimaryHeader(srcName)
-  
+
     def _mungeHeader(self, srcName, hdr):
       plateid = hdr["PLATEID"] # more typically: grab it from srcName
       thismeta = self.platemeta[plateid]
@@ -763,7 +763,7 @@ parameter is important on larger images because it instructs anet to
 give up when no identification has been possible within the first endob
 objects.  It keeps the solver from wasting enormous amounts of time on
 potentially thousands of spurious detections, e.g., on photographic
-plates. 
+plates.
 
 Setting ``sourceExtractorControl`` to an empty string makes DaCHS
 instruct astrometry.net to use source-extractor rather than some
@@ -850,10 +850,10 @@ the ``_runAnet`` method.  Its default implementation is::
 
   def _runAnet(self, srcName):
      return anet.getWCSFieldsFor(
-      srcName, 
+      srcName,
       self.solverParameters,
-      self.sexControl, 
-      self.objectFilter, 
+      self.sexControl,
+      self.objectFilter,
       self.opts.copyTo,
       self.indexPath,
       self.opts.beVerbose)
@@ -900,7 +900,7 @@ If astrometry.net fails to solve fields, you can get a copy of the
 your processing script the ``--copy-to=path`` option. Caution: If
 the directory ``path`` already exists, it will be deleted.
 If you run your processor with ``--bail``, it will stop at the first
-non-solvable field.  
+non-solvable field.
 
 Going to the sandbox directory, you will find at least:
 
@@ -951,7 +951,7 @@ What to Try
 '''''''''''
 
 In the case of calibration failures you may play around with
-source-extractor's parameters DETECT_MINAREA and DETECT_THRESH. 
+source-extractor's parameters DETECT_MINAREA and DETECT_THRESH.
 
 DETECT_THRESH refers to the detection threshold (in standard deviations
 of the noise) above the local
