@@ -5361,7 +5361,7 @@ If you want to publish both services to the VO, you could add
 ``publish`` elements with ``sets="ivo_managed"`` to both ``service``
 elements – but that would yield two resource records (which you then
 should link via relatedTo metas).  At least when the form interface
-doesn't add significant functionality, this would usually seem
+does not add significant functionality, this would usually seem
 undesirable – e.g., your service would show up twice in sufficiently
 unconstrained responses from the VO Registry.
 
@@ -5387,6 +5387,12 @@ Here's an example::
     <publish render="form" sets="ivo_managed" service="web"/>
     ...
   </service>
+
+Note that since both services are published through the same resource,
+they share a title – the one of the parent of publish.  You hence need
+to make sure that that title fits the browser service, too.  For
+instance, don't say “Parrot Survey SSAP“ but rather “Parrot Survey
+Spectra“ (which, I would propose, is preferable anyway).
 
 
 Creating an Organisation Record
