@@ -726,6 +726,35 @@ dachs-support if you think you need to do that), you can abuse the
   </LOOP>
 
 
+...attach a param to a column?
+------------------------------
+
+Sometimes it is useful to associate a param with a column; the classic
+case is when you have flux values in columns and want to push out the
+spectral points in a single VOTable PARAM to save space (provided
+they're all the same).
+
+To do that, (ab)use the dm element.  You can freely invent “data models“
+for that purpose until there are some that work for your case and
+clients actually interpret use dm annotation.  In our example, you could
+write in the table definition, with made-up class and attribute names::
+
+  <table id="spectra">
+    <dm>
+      (spec:spectrum) {
+        spectralAxis: @spectral
+        fluxAxis: @flux
+      }
+    </dm>
+    <param name="spectral" type="real[5]" unit="J"
+      >1e-19 2e-19 3e-19 4e-19 5e-19</param>
+    <column name="flux" type="real[5]" unit="Jy"/>
+  </table>
+
+Incidentally: Yes, you need the explicit length here if you want TOPCAT
+to notice that spectral and flux belong together (again, until there's
+proper DM annotation).
+
 
 Form-based interfaces
 =====================
