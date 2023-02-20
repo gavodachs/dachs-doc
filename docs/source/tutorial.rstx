@@ -3342,13 +3342,17 @@ want the table(s) to be visible from your site's front page.
 EPN-TAP
 -------
 
-EPN-TAP is a standard for publishing planetary data via TAP.  DaCHS
-has had support for version 0.37, which is in the //epntap RD.  Do not
-use that for new projects.
-
-The `EPN-TAP proposed specification`_ is now in version 2.0, and support
+EPN-TAP is a standard for publishing planetary data via TAP\ [#prevepn]_.
+The `EPN-TAP recommendation`_ is now in version 2.0, and support
 for that is provided by //epntap2.  There's an official web-based client
-for EPN-TAP at http://vespa.obspm.fr.
+for EPN-TAP at http://vespa.obspm.fr.  A hands-on guide on how to do
+EPN-TAP publications from scratch with a view to this custom client is
+`available on the VO Paris wiki`_.  If you have not at least skimmed
+this document's `Introduction`_ and the `Dachs Basics`_, by all means
+start there.
+
+.. _available on the VO Paris wiki: https://voparis-wiki.obspm.fr/display/VES/Setting-up+an+EPN-TAP+service%3A+Tutorial+for+Beginners
+.. _EPN-TAP recommendation: https://ivoa.net/documents/EPNTAP/20220822/
 
 You can use EPN-TAP to publish data without any associated datasets;
 this happens, for instance, in the catalogue of minor planets,
@@ -3442,6 +3446,21 @@ above, a few of these optional columns are actually required if you want
 to publish data products through EPN-TAP.  The reference
 documentation lists what is available.  You can, of course, define
 further, non-standard columns as usual.
+
+So, an EPN-TAP-publishable table might be defined like this::
+
+  <table id="epn_core">
+    <mixin spatial_frame_type="body"
+      optional_columns= "access_url access_format access_estsize
+      access_md5 alt_target_name publisher
+      bib_reference" >//epntap2#table-2_0</mixin>
+
+      <column name="acquisition_id" type="text"
+          tablehead="Acquisition_id"
+            description="Extra: ID of the data file in the original archive"
+            ucd="meta.id"
+          verbLevel="2"/>
+  </table>
 
 
 Filling EPNcore Tables
@@ -9217,6 +9236,9 @@ that's really not our fault.
   you're still on DaCHS 2.3.  Additionally in the DaCHS version that is
   in Debian bullseye (which is also a 2.3) the limits subcommand is
   broken.  Bottom line: If you want dachs limits, use 2.4 or newer.
+
+.. [#prevepn]  DaCHS has had support for version 0.37, which is in the
+  //epntap RD.  Do not use that for new projects.
 
 .. |date| date::
 .. _CC-0: http://creativecommons.org/publicdomain/zero/1.0

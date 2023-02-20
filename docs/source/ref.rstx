@@ -556,8 +556,9 @@ Structure Children
   directGrammar, embeddedGrammar, fitsProdGrammar, freeREGrammar,
   hdf5Grammar, keyValueGrammar, mySQLDumpGrammar, nullGrammar,
   transparentGrammar, odbcGrammar, pdsGrammar, reGrammar,
-  rowsetGrammar, voTableGrammar, csvGrammar, fitsTableGrammar,
-  xmlGrammar) -- Grammar used to parse this data set.
+  rowsetGrammar, unionGrammar, voTableGrammar, csvGrammar,
+  fitsTableGrammar, xmlGrammar) -- Grammar used to parse this data
+  set.
 * makes (contains `Element make`_ and may be repeated zero or more
   times) -- Specification of a target table and the rowmaker to feed
   them.
@@ -832,7 +833,7 @@ A condition on a row that, if true, causes the row to be dropped.
 Here, you can set bail to abort an import when the condition is met
 rather than just dropping the row.
 
-May occur in `Element rowmaker`_, `Element binaryGrammar`_, `Element cdfHeaderGrammar`_, `Element columnGrammar`_, `Element contextGrammar`_, `Element csvGrammar`_, `Element customGrammar`_, `Element dictlistGrammar`_, `Element embeddedGrammar`_, `Element fitsProdGrammar`_, `Element fitsTableGrammar`_, `Element freeREGrammar`_, `Element hdf5Grammar`_, `Element keyValueGrammar`_, `Element mySQLDumpGrammar`_, `Element nullGrammar`_, `Element odbcGrammar`_, `Element pdsGrammar`_, `Element reGrammar`_, `Element rowsetGrammar`_, `Element transparentGrammar`_, `Element voTableGrammar`_, `Element xmlGrammar`_.
+May occur in `Element rowmaker`_, `Element binaryGrammar`_, `Element cdfHeaderGrammar`_, `Element columnGrammar`_, `Element contextGrammar`_, `Element csvGrammar`_, `Element customGrammar`_, `Element dictlistGrammar`_, `Element embeddedGrammar`_, `Element fitsProdGrammar`_, `Element fitsTableGrammar`_, `Element freeREGrammar`_, `Element hdf5Grammar`_, `Element keyValueGrammar`_, `Element mySQLDumpGrammar`_, `Element nullGrammar`_, `Element odbcGrammar`_, `Element pdsGrammar`_, `Element reGrammar`_, `Element rowsetGrammar`_, `Element transparentGrammar`_, `Element unionGrammar`_, `Element voTableGrammar`_, `Element xmlGrammar`_.
 
 Atomic Children
 ...............
@@ -3787,6 +3788,37 @@ Other Children
 
 Macros predefined here: `Macro RSTservicelink`_, `Macro RSTtable`_, `Macro colNames`_, `Macro decapitalize`_, `Macro dlMetaURI`_, `Macro fullDLURL`_, `Macro getConfig`_, `Macro inputRelativePath`_, `Macro inputSize`_, `Macro internallink`_, `Macro lower`_, `Macro magicEmpty`_, `Macro metaSeq`_, `Macro metaString`_, `Macro property`_, `Macro quote`_, `Macro rdId`_, `Macro rdIdDotted`_, `Macro reSub`_, `Macro resdir`_, `Macro rootlessPath`_, `Macro schema`_, `Macro sourceDate`_, `Macro splitPreviewPath`_, `Macro sql_standardPubDID`_, `Macro sqlquote`_, `Macro srcstem`_, `Macro standardPreviewPath`_, `Macro test`_, `Macro today`_, `Macro upper`_, `Macro urlquote`_
 
+Element handles
+'''''''''''''''
+
+A declaration of what grammar to use within a UnionGrammar.
+
+Each handler has a (full, python) regular expression defining what
+file names the grammar is responsible in the filePattern attribute;
+note that the pattern is matched against the full file name using search
+so you can match path parts, but you must take care not to overmatch.
+The other child is a normal DaCHS grammar.
+
+May occur in `Element unionGrammar`_.
+
+Atomic Children
+...............
+
+* **pattern** (unicode string; defaults to <Undefined>) --
+  Undocumented
+
+Structure Children
+..................
+
+* grammar (contains one of binaryGrammar, cdfHeaderGrammar,
+  columnGrammar, contextGrammar, customGrammar, dictlistGrammar,
+  directGrammar, embeddedGrammar, fitsProdGrammar, freeREGrammar,
+  hdf5Grammar, keyValueGrammar, mySQLDumpGrammar, nullGrammar,
+  transparentGrammar, odbcGrammar, pdsGrammar, reGrammar,
+  rowsetGrammar, unionGrammar, voTableGrammar, csvGrammar,
+  fitsTableGrammar, xmlGrammar) -- Grammar used to handle these kinds
+  of files
+
 Element hdf5Grammar
 '''''''''''''''''''
 
@@ -4394,7 +4426,7 @@ Here, you can only access whatever comes from the grammar.  You can
 access grammar keys in late parameters as row[key] or, if key is
 like an identifier, as @key.
 
-May occur in `Element binaryGrammar`_, `Element cdfHeaderGrammar`_, `Element columnGrammar`_, `Element contextGrammar`_, `Element csvGrammar`_, `Element customGrammar`_, `Element dictlistGrammar`_, `Element embeddedGrammar`_, `Element fitsProdGrammar`_, `Element fitsTableGrammar`_, `Element freeREGrammar`_, `Element hdf5Grammar`_, `Element keyValueGrammar`_, `Element mySQLDumpGrammar`_, `Element nullGrammar`_, `Element odbcGrammar`_, `Element pdsGrammar`_, `Element reGrammar`_, `Element rowsetGrammar`_, `Element transparentGrammar`_, `Element voTableGrammar`_, `Element xmlGrammar`_.
+May occur in `Element binaryGrammar`_, `Element cdfHeaderGrammar`_, `Element columnGrammar`_, `Element contextGrammar`_, `Element csvGrammar`_, `Element customGrammar`_, `Element dictlistGrammar`_, `Element embeddedGrammar`_, `Element fitsProdGrammar`_, `Element fitsTableGrammar`_, `Element freeREGrammar`_, `Element hdf5Grammar`_, `Element keyValueGrammar`_, `Element mySQLDumpGrammar`_, `Element nullGrammar`_, `Element odbcGrammar`_, `Element pdsGrammar`_, `Element reGrammar`_, `Element rowsetGrammar`_, `Element transparentGrammar`_, `Element unionGrammar`_, `Element voTableGrammar`_, `Element xmlGrammar`_.
 
 Atomic Children
 ...............
@@ -4488,7 +4520,7 @@ passed in as sourceToken.  When parsing from files, this simply is the file
 name.  The data the rows will be delivered to is available as "data", which
 is useful for adding or retrieving meta information.
 
-May occur in `Element binaryGrammar`_, `Element cdfHeaderGrammar`_, `Element columnGrammar`_, `Element contextGrammar`_, `Element csvGrammar`_, `Element customGrammar`_, `Element dictlistGrammar`_, `Element embeddedGrammar`_, `Element fitsProdGrammar`_, `Element fitsTableGrammar`_, `Element freeREGrammar`_, `Element hdf5Grammar`_, `Element keyValueGrammar`_, `Element mySQLDumpGrammar`_, `Element nullGrammar`_, `Element odbcGrammar`_, `Element pdsGrammar`_, `Element reGrammar`_, `Element rowsetGrammar`_, `Element transparentGrammar`_, `Element voTableGrammar`_, `Element xmlGrammar`_.
+May occur in `Element binaryGrammar`_, `Element cdfHeaderGrammar`_, `Element columnGrammar`_, `Element contextGrammar`_, `Element csvGrammar`_, `Element customGrammar`_, `Element dictlistGrammar`_, `Element embeddedGrammar`_, `Element fitsProdGrammar`_, `Element fitsTableGrammar`_, `Element freeREGrammar`_, `Element hdf5Grammar`_, `Element keyValueGrammar`_, `Element mySQLDumpGrammar`_, `Element nullGrammar`_, `Element odbcGrammar`_, `Element pdsGrammar`_, `Element reGrammar`_, `Element rowsetGrammar`_, `Element transparentGrammar`_, `Element unionGrammar`_, `Element voTableGrammar`_, `Element xmlGrammar`_.
 
 Atomic Children
 ...............
@@ -4545,6 +4577,66 @@ Atomic Children
 Structure Children
 ..................
 
+* ignoreOn (contains `Element ignoreOn`_) -- Conditions for ignoring
+  certain input records.  These triggers drop an input record
+  entirely.  In modern RDs, prefer rowfilters raising SkipThis.
+* rowfilters (contains `Element rowfilter`_ and may be repeated zero
+  or more times) -- Row filters for this grammar.
+* sourceFields (contains `Element sourceFields`_) -- Code returning a
+  dictionary of values added to all returned rows.
+
+Other Children
+..............
+
+* **property** (mapping of user-defined keywords in the name attribute
+  to string values) -- Properties (i.e., user-defined key-value pairs)
+  for the element.
+
+Macros predefined here: `Macro RSTservicelink`_, `Macro RSTtable`_, `Macro colNames`_, `Macro decapitalize`_, `Macro dlMetaURI`_, `Macro fullDLURL`_, `Macro getConfig`_, `Macro inputRelativePath`_, `Macro inputSize`_, `Macro internallink`_, `Macro lower`_, `Macro magicEmpty`_, `Macro metaSeq`_, `Macro metaString`_, `Macro property`_, `Macro quote`_, `Macro rdId`_, `Macro rdIdDotted`_, `Macro reSub`_, `Macro resdir`_, `Macro rootlessPath`_, `Macro schema`_, `Macro sourceDate`_, `Macro splitPreviewPath`_, `Macro sql_standardPubDID`_, `Macro sqlquote`_, `Macro srcstem`_, `Macro standardPreviewPath`_, `Macro test`_, `Macro today`_, `Macro upper`_, `Macro urlquote`_
+
+Element unionGrammar
+''''''''''''''''''''
+
+A grammar using one of a sequence of grammars to parse its sources.
+
+(since version 2.7.2)
+
+Use this if you have differing input formats eventually processible
+by the same row maker (of course, you can make the row maker flexible
+enough to cope with different grammar outputs).  To do that, use
+two or more handles definitions, each giving a regular expression
+against the full file name (but matched with re.search) and a grammar
+to use for such files.
+
+Handles definitions will be tried in sequence; you can hence have
+special cases early and catch-alls later.
+
+The basic idea is that you write something like::
+
+  <unionGrammar>
+    <handles pattern=".*\.txt$">
+      <reGrammar...>
+    </handles>
+    <handles pattern=".*\.csv$">
+      <csvGrammar...>
+    </handles>
+  </unionGrammar>
+
+
+Atomic Children
+...............
+
+* **enc** (unicode string; defaults to None) -- Encoding of the source
+  file(s).
+* **original** (id reference; defaults to None) -- An id of an element
+  to base the current one on.  This provides a simple inheritance
+  method.  The general rules for advanced referencing in RDs apply.
+
+Structure Children
+..................
+
+* handles (contains `Element handles`_ and may be repeated zero or
+  more times) -- Recipe for what grammar to use for what sort of file.
 * ignoreOn (contains `Element ignoreOn`_) -- Conditions for ignoring
   certain input records.  These triggers drop an input record
   entirely.  In modern RDs, prefer rowfilters raising SkipThis.
@@ -5338,6 +5430,8 @@ In addition to the usual names available to ProcApps, meta makers have:
 - Values -- the class to make for input parameters' values attributes
 - Options -- used by Values
 - LinkDef -- a class to define further links within datalink services.
+- ProcLinkDef -- a class to reference dlget services outside of the current
+  service
 - DatalinkFault -- a container of datalink error generators
 - soda -- the soda module.
 
@@ -5870,7 +5964,7 @@ title, if given, is the anchor text.
 
 The result is a link in the short form for restructured test.
 
-Available in `Element FEED`_, `Element LFEED`_, `Element LOOP`_, `Element binaryGrammar`_, `Element cdfHeaderGrammar`_, `Element columnGrammar`_, `Element contextGrammar`_, `Element csvGrammar`_, `Element customGrammar`_, `Element dictlistGrammar`_, `Element embeddedGrammar`_, `Element fitsProdGrammar`_, `Element fitsTableGrammar`_, `Element freeREGrammar`_, `Element hdf5Grammar`_, `Element inputTable`_, `Element keyValueGrammar`_, `Element mixinDef`_, `Element mySQLDumpGrammar`_, `Element nullGrammar`_, `Element odbcGrammar`_, `Element outputTable`_, `Element pdsGrammar`_, `Element reGrammar`_, `Element resRec`_, `Element resource`_, `Element rowmaker`_, `Element rowsetGrammar`_, `Element service`_, `Element table`_, `Element transparentGrammar`_, `Element voTableGrammar`_, `Element xmlGrammar`_
+Available in `Element FEED`_, `Element LFEED`_, `Element LOOP`_, `Element binaryGrammar`_, `Element cdfHeaderGrammar`_, `Element columnGrammar`_, `Element contextGrammar`_, `Element csvGrammar`_, `Element customGrammar`_, `Element dictlistGrammar`_, `Element embeddedGrammar`_, `Element fitsProdGrammar`_, `Element fitsTableGrammar`_, `Element freeREGrammar`_, `Element hdf5Grammar`_, `Element inputTable`_, `Element keyValueGrammar`_, `Element mixinDef`_, `Element mySQLDumpGrammar`_, `Element nullGrammar`_, `Element odbcGrammar`_, `Element outputTable`_, `Element pdsGrammar`_, `Element reGrammar`_, `Element resRec`_, `Element resource`_, `Element rowmaker`_, `Element rowsetGrammar`_, `Element service`_, `Element table`_, `Element transparentGrammar`_, `Element unionGrammar`_, `Element voTableGrammar`_, `Element xmlGrammar`_
 
 Macro RSTtable
 ''''''''''''''
@@ -5882,7 +5976,7 @@ Macro RSTtable
 adds an reStructured test link to a tableName pointing to its table
 info.
 
-Available in `Element FEED`_, `Element LFEED`_, `Element LOOP`_, `Element binaryGrammar`_, `Element cdfHeaderGrammar`_, `Element columnGrammar`_, `Element contextGrammar`_, `Element csvGrammar`_, `Element customGrammar`_, `Element dictlistGrammar`_, `Element embeddedGrammar`_, `Element fitsProdGrammar`_, `Element fitsTableGrammar`_, `Element freeREGrammar`_, `Element hdf5Grammar`_, `Element inputTable`_, `Element keyValueGrammar`_, `Element mixinDef`_, `Element mySQLDumpGrammar`_, `Element nullGrammar`_, `Element odbcGrammar`_, `Element outputTable`_, `Element pdsGrammar`_, `Element reGrammar`_, `Element resRec`_, `Element resource`_, `Element rowmaker`_, `Element rowsetGrammar`_, `Element service`_, `Element table`_, `Element transparentGrammar`_, `Element voTableGrammar`_, `Element xmlGrammar`_
+Available in `Element FEED`_, `Element LFEED`_, `Element LOOP`_, `Element binaryGrammar`_, `Element cdfHeaderGrammar`_, `Element columnGrammar`_, `Element contextGrammar`_, `Element csvGrammar`_, `Element customGrammar`_, `Element dictlistGrammar`_, `Element embeddedGrammar`_, `Element fitsProdGrammar`_, `Element fitsTableGrammar`_, `Element freeREGrammar`_, `Element hdf5Grammar`_, `Element inputTable`_, `Element keyValueGrammar`_, `Element mixinDef`_, `Element mySQLDumpGrammar`_, `Element nullGrammar`_, `Element odbcGrammar`_, `Element outputTable`_, `Element pdsGrammar`_, `Element reGrammar`_, `Element resRec`_, `Element resource`_, `Element rowmaker`_, `Element rowsetGrammar`_, `Element service`_, `Element table`_, `Element transparentGrammar`_, `Element unionGrammar`_, `Element voTableGrammar`_, `Element xmlGrammar`_
 
 Macro colNames
 ''''''''''''''
@@ -5893,7 +5987,7 @@ Macro colNames
 
 returns an SQL-ready list of column names of this table.
 
-Available in `Element binaryGrammar`_, `Element cdfHeaderGrammar`_, `Element columnGrammar`_, `Element contextGrammar`_, `Element csvGrammar`_, `Element customGrammar`_, `Element dictlistGrammar`_, `Element embeddedGrammar`_, `Element fitsProdGrammar`_, `Element fitsTableGrammar`_, `Element freeREGrammar`_, `Element hdf5Grammar`_, `Element keyValueGrammar`_, `Element mySQLDumpGrammar`_, `Element nullGrammar`_, `Element odbcGrammar`_, `Element outputTable`_, `Element pdsGrammar`_, `Element reGrammar`_, `Element rowsetGrammar`_, `Element table`_, `Element transparentGrammar`_, `Element voTableGrammar`_, `Element xmlGrammar`_
+Available in `Element binaryGrammar`_, `Element cdfHeaderGrammar`_, `Element columnGrammar`_, `Element contextGrammar`_, `Element csvGrammar`_, `Element customGrammar`_, `Element dictlistGrammar`_, `Element embeddedGrammar`_, `Element fitsProdGrammar`_, `Element fitsTableGrammar`_, `Element freeREGrammar`_, `Element hdf5Grammar`_, `Element keyValueGrammar`_, `Element mySQLDumpGrammar`_, `Element nullGrammar`_, `Element odbcGrammar`_, `Element outputTable`_, `Element pdsGrammar`_, `Element reGrammar`_, `Element rowsetGrammar`_, `Element table`_, `Element transparentGrammar`_, `Element unionGrammar`_, `Element voTableGrammar`_, `Element xmlGrammar`_
 
 Macro curtable
 ''''''''''''''
@@ -5918,7 +6012,7 @@ Macro decapitalize
 
 returns aString with the first character lowercased.
 
-Available in `Element FEED`_, `Element LFEED`_, `Element LOOP`_, `Element binaryGrammar`_, `Element cdfHeaderGrammar`_, `Element columnGrammar`_, `Element contextGrammar`_, `Element csvGrammar`_, `Element customGrammar`_, `Element dictlistGrammar`_, `Element embeddedGrammar`_, `Element fitsProdGrammar`_, `Element fitsTableGrammar`_, `Element freeREGrammar`_, `Element hdf5Grammar`_, `Element inputTable`_, `Element keyValueGrammar`_, `Element mixinDef`_, `Element mySQLDumpGrammar`_, `Element nullGrammar`_, `Element odbcGrammar`_, `Element outputTable`_, `Element pdsGrammar`_, `Element reGrammar`_, `Element resRec`_, `Element resource`_, `Element rowmaker`_, `Element rowsetGrammar`_, `Element service`_, `Element table`_, `Element transparentGrammar`_, `Element voTableGrammar`_, `Element xmlGrammar`_
+Available in `Element FEED`_, `Element LFEED`_, `Element LOOP`_, `Element binaryGrammar`_, `Element cdfHeaderGrammar`_, `Element columnGrammar`_, `Element contextGrammar`_, `Element csvGrammar`_, `Element customGrammar`_, `Element dictlistGrammar`_, `Element embeddedGrammar`_, `Element fitsProdGrammar`_, `Element fitsTableGrammar`_, `Element freeREGrammar`_, `Element hdf5Grammar`_, `Element inputTable`_, `Element keyValueGrammar`_, `Element mixinDef`_, `Element mySQLDumpGrammar`_, `Element nullGrammar`_, `Element odbcGrammar`_, `Element outputTable`_, `Element pdsGrammar`_, `Element reGrammar`_, `Element resRec`_, `Element resource`_, `Element rowmaker`_, `Element rowsetGrammar`_, `Element service`_, `Element table`_, `Element transparentGrammar`_, `Element unionGrammar`_, `Element voTableGrammar`_, `Element xmlGrammar`_
 
 Macro dlMetaURI
 '''''''''''''''
@@ -5935,7 +6029,7 @@ which is used by this).
 dlId is the XML id of the datalink service, which is supposed to
 be in the sameRD as the rowmaker.
 
-Available in `Element binaryGrammar`_, `Element cdfHeaderGrammar`_, `Element columnGrammar`_, `Element contextGrammar`_, `Element csvGrammar`_, `Element customGrammar`_, `Element dictlistGrammar`_, `Element embeddedGrammar`_, `Element fitsProdGrammar`_, `Element fitsTableGrammar`_, `Element freeREGrammar`_, `Element hdf5Grammar`_, `Element keyValueGrammar`_, `Element mySQLDumpGrammar`_, `Element nullGrammar`_, `Element odbcGrammar`_, `Element pdsGrammar`_, `Element reGrammar`_, `Element rowmaker`_, `Element rowsetGrammar`_, `Element transparentGrammar`_, `Element voTableGrammar`_, `Element xmlGrammar`_
+Available in `Element binaryGrammar`_, `Element cdfHeaderGrammar`_, `Element columnGrammar`_, `Element contextGrammar`_, `Element csvGrammar`_, `Element customGrammar`_, `Element dictlistGrammar`_, `Element embeddedGrammar`_, `Element fitsProdGrammar`_, `Element fitsTableGrammar`_, `Element freeREGrammar`_, `Element hdf5Grammar`_, `Element keyValueGrammar`_, `Element mySQLDumpGrammar`_, `Element nullGrammar`_, `Element odbcGrammar`_, `Element pdsGrammar`_, `Element reGrammar`_, `Element rowmaker`_, `Element rowsetGrammar`_, `Element transparentGrammar`_, `Element unionGrammar`_, `Element voTableGrammar`_, `Element xmlGrammar`_
 
 Macro docField
 ''''''''''''''
@@ -5967,7 +6061,7 @@ dlService is the id of the datalink service in the current RD.
 This is intended for "virtual" data where the dataset is generated
 on the fly through datalink.
 
-Available in `Element binaryGrammar`_, `Element cdfHeaderGrammar`_, `Element columnGrammar`_, `Element contextGrammar`_, `Element csvGrammar`_, `Element customGrammar`_, `Element dictlistGrammar`_, `Element embeddedGrammar`_, `Element fitsProdGrammar`_, `Element fitsTableGrammar`_, `Element freeREGrammar`_, `Element hdf5Grammar`_, `Element keyValueGrammar`_, `Element mySQLDumpGrammar`_, `Element nullGrammar`_, `Element odbcGrammar`_, `Element pdsGrammar`_, `Element reGrammar`_, `Element rowsetGrammar`_, `Element transparentGrammar`_, `Element voTableGrammar`_, `Element xmlGrammar`_
+Available in `Element binaryGrammar`_, `Element cdfHeaderGrammar`_, `Element columnGrammar`_, `Element contextGrammar`_, `Element csvGrammar`_, `Element customGrammar`_, `Element dictlistGrammar`_, `Element embeddedGrammar`_, `Element fitsProdGrammar`_, `Element fitsTableGrammar`_, `Element freeREGrammar`_, `Element hdf5Grammar`_, `Element keyValueGrammar`_, `Element mySQLDumpGrammar`_, `Element nullGrammar`_, `Element odbcGrammar`_, `Element pdsGrammar`_, `Element reGrammar`_, `Element rowsetGrammar`_, `Element transparentGrammar`_, `Element unionGrammar`_, `Element voTableGrammar`_, `Element xmlGrammar`_
 
 Macro fullPath
 ''''''''''''''
@@ -5993,7 +6087,7 @@ the current value of configuration item {section}{name}.
 You can also only give one argument to access settings from the
 general section.
 
-Available in `Element FEED`_, `Element LFEED`_, `Element LOOP`_, `Element binaryGrammar`_, `Element cdfHeaderGrammar`_, `Element columnGrammar`_, `Element contextGrammar`_, `Element csvGrammar`_, `Element customGrammar`_, `Element dictlistGrammar`_, `Element embeddedGrammar`_, `Element fitsProdGrammar`_, `Element fitsTableGrammar`_, `Element freeREGrammar`_, `Element hdf5Grammar`_, `Element inputTable`_, `Element keyValueGrammar`_, `Element mixinDef`_, `Element mySQLDumpGrammar`_, `Element nullGrammar`_, `Element odbcGrammar`_, `Element outputTable`_, `Element pdsGrammar`_, `Element reGrammar`_, `Element resRec`_, `Element resource`_, `Element rowmaker`_, `Element rowsetGrammar`_, `Element service`_, `Element table`_, `Element transparentGrammar`_, `Element voTableGrammar`_, `Element xmlGrammar`_
+Available in `Element FEED`_, `Element LFEED`_, `Element LOOP`_, `Element binaryGrammar`_, `Element cdfHeaderGrammar`_, `Element columnGrammar`_, `Element contextGrammar`_, `Element csvGrammar`_, `Element customGrammar`_, `Element dictlistGrammar`_, `Element embeddedGrammar`_, `Element fitsProdGrammar`_, `Element fitsTableGrammar`_, `Element freeREGrammar`_, `Element hdf5Grammar`_, `Element inputTable`_, `Element keyValueGrammar`_, `Element mixinDef`_, `Element mySQLDumpGrammar`_, `Element nullGrammar`_, `Element odbcGrammar`_, `Element outputTable`_, `Element pdsGrammar`_, `Element reGrammar`_, `Element resRec`_, `Element resource`_, `Element rowmaker`_, `Element rowsetGrammar`_, `Element service`_, `Element table`_, `Element transparentGrammar`_, `Element unionGrammar`_, `Element voTableGrammar`_, `Element xmlGrammar`_
 
 Macro getParam
 ''''''''''''''
@@ -6034,7 +6128,7 @@ with the product mixin are within the result path.
 In rowmakers fed by grammars with //products#define, better use
 @prodtblAccref.
 
-Available in `Element binaryGrammar`_, `Element cdfHeaderGrammar`_, `Element columnGrammar`_, `Element contextGrammar`_, `Element csvGrammar`_, `Element customGrammar`_, `Element dictlistGrammar`_, `Element embeddedGrammar`_, `Element fitsProdGrammar`_, `Element fitsTableGrammar`_, `Element freeREGrammar`_, `Element hdf5Grammar`_, `Element keyValueGrammar`_, `Element mySQLDumpGrammar`_, `Element nullGrammar`_, `Element odbcGrammar`_, `Element pdsGrammar`_, `Element reGrammar`_, `Element rowmaker`_, `Element rowsetGrammar`_, `Element transparentGrammar`_, `Element voTableGrammar`_, `Element xmlGrammar`_
+Available in `Element binaryGrammar`_, `Element cdfHeaderGrammar`_, `Element columnGrammar`_, `Element contextGrammar`_, `Element csvGrammar`_, `Element customGrammar`_, `Element dictlistGrammar`_, `Element embeddedGrammar`_, `Element fitsProdGrammar`_, `Element fitsTableGrammar`_, `Element freeREGrammar`_, `Element hdf5Grammar`_, `Element keyValueGrammar`_, `Element mySQLDumpGrammar`_, `Element nullGrammar`_, `Element odbcGrammar`_, `Element pdsGrammar`_, `Element reGrammar`_, `Element rowmaker`_, `Element rowsetGrammar`_, `Element transparentGrammar`_, `Element unionGrammar`_, `Element voTableGrammar`_, `Element xmlGrammar`_
 
 Macro inputSize
 '''''''''''''''
@@ -6045,7 +6139,7 @@ Macro inputSize
 
 returns an expression giving the size of the current source.
 
-Available in `Element binaryGrammar`_, `Element cdfHeaderGrammar`_, `Element columnGrammar`_, `Element contextGrammar`_, `Element csvGrammar`_, `Element customGrammar`_, `Element dictlistGrammar`_, `Element embeddedGrammar`_, `Element fitsProdGrammar`_, `Element fitsTableGrammar`_, `Element freeREGrammar`_, `Element hdf5Grammar`_, `Element keyValueGrammar`_, `Element mySQLDumpGrammar`_, `Element nullGrammar`_, `Element odbcGrammar`_, `Element pdsGrammar`_, `Element reGrammar`_, `Element rowmaker`_, `Element rowsetGrammar`_, `Element transparentGrammar`_, `Element voTableGrammar`_, `Element xmlGrammar`_
+Available in `Element binaryGrammar`_, `Element cdfHeaderGrammar`_, `Element columnGrammar`_, `Element contextGrammar`_, `Element csvGrammar`_, `Element customGrammar`_, `Element dictlistGrammar`_, `Element embeddedGrammar`_, `Element fitsProdGrammar`_, `Element fitsTableGrammar`_, `Element freeREGrammar`_, `Element hdf5Grammar`_, `Element keyValueGrammar`_, `Element mySQLDumpGrammar`_, `Element nullGrammar`_, `Element odbcGrammar`_, `Element pdsGrammar`_, `Element reGrammar`_, `Element rowmaker`_, `Element rowsetGrammar`_, `Element transparentGrammar`_, `Element unionGrammar`_, `Element voTableGrammar`_, `Element xmlGrammar`_
 
 Macro internallink
 ''''''''''''''''''
@@ -6056,7 +6150,7 @@ Macro internallink
 
 an absolute URL from a path relative to the DC root.
 
-Available in `Element FEED`_, `Element LFEED`_, `Element LOOP`_, `Element binaryGrammar`_, `Element cdfHeaderGrammar`_, `Element columnGrammar`_, `Element contextGrammar`_, `Element csvGrammar`_, `Element customGrammar`_, `Element dictlistGrammar`_, `Element embeddedGrammar`_, `Element fitsProdGrammar`_, `Element fitsTableGrammar`_, `Element freeREGrammar`_, `Element hdf5Grammar`_, `Element inputTable`_, `Element keyValueGrammar`_, `Element mixinDef`_, `Element mySQLDumpGrammar`_, `Element nullGrammar`_, `Element odbcGrammar`_, `Element outputTable`_, `Element pdsGrammar`_, `Element reGrammar`_, `Element resRec`_, `Element resource`_, `Element rowmaker`_, `Element rowsetGrammar`_, `Element service`_, `Element table`_, `Element transparentGrammar`_, `Element voTableGrammar`_, `Element xmlGrammar`_
+Available in `Element FEED`_, `Element LFEED`_, `Element LOOP`_, `Element binaryGrammar`_, `Element cdfHeaderGrammar`_, `Element columnGrammar`_, `Element contextGrammar`_, `Element csvGrammar`_, `Element customGrammar`_, `Element dictlistGrammar`_, `Element embeddedGrammar`_, `Element fitsProdGrammar`_, `Element fitsTableGrammar`_, `Element freeREGrammar`_, `Element hdf5Grammar`_, `Element inputTable`_, `Element keyValueGrammar`_, `Element mixinDef`_, `Element mySQLDumpGrammar`_, `Element nullGrammar`_, `Element odbcGrammar`_, `Element outputTable`_, `Element pdsGrammar`_, `Element reGrammar`_, `Element resRec`_, `Element resource`_, `Element rowmaker`_, `Element rowsetGrammar`_, `Element service`_, `Element table`_, `Element transparentGrammar`_, `Element unionGrammar`_, `Element voTableGrammar`_, `Element xmlGrammar`_
 
 Macro lastSourceElements
 ''''''''''''''''''''''''
@@ -6081,7 +6175,7 @@ returns aString lowercased.
 
 There's no guarantees for characters outside ASCII.
 
-Available in `Element FEED`_, `Element LFEED`_, `Element LOOP`_, `Element binaryGrammar`_, `Element cdfHeaderGrammar`_, `Element columnGrammar`_, `Element contextGrammar`_, `Element csvGrammar`_, `Element customGrammar`_, `Element dictlistGrammar`_, `Element embeddedGrammar`_, `Element fitsProdGrammar`_, `Element fitsTableGrammar`_, `Element freeREGrammar`_, `Element hdf5Grammar`_, `Element inputTable`_, `Element keyValueGrammar`_, `Element mixinDef`_, `Element mySQLDumpGrammar`_, `Element nullGrammar`_, `Element odbcGrammar`_, `Element outputTable`_, `Element pdsGrammar`_, `Element reGrammar`_, `Element resRec`_, `Element resource`_, `Element rowmaker`_, `Element rowsetGrammar`_, `Element service`_, `Element table`_, `Element transparentGrammar`_, `Element voTableGrammar`_, `Element xmlGrammar`_
+Available in `Element FEED`_, `Element LFEED`_, `Element LOOP`_, `Element binaryGrammar`_, `Element cdfHeaderGrammar`_, `Element columnGrammar`_, `Element contextGrammar`_, `Element csvGrammar`_, `Element customGrammar`_, `Element dictlistGrammar`_, `Element embeddedGrammar`_, `Element fitsProdGrammar`_, `Element fitsTableGrammar`_, `Element freeREGrammar`_, `Element hdf5Grammar`_, `Element inputTable`_, `Element keyValueGrammar`_, `Element mixinDef`_, `Element mySQLDumpGrammar`_, `Element nullGrammar`_, `Element odbcGrammar`_, `Element outputTable`_, `Element pdsGrammar`_, `Element reGrammar`_, `Element resRec`_, `Element resource`_, `Element rowmaker`_, `Element rowsetGrammar`_, `Element service`_, `Element table`_, `Element transparentGrammar`_, `Element unionGrammar`_, `Element voTableGrammar`_, `Element xmlGrammar`_
 
 Macro magicEmpty
 ''''''''''''''''
@@ -6095,7 +6189,7 @@ returns __EMPTY__ if val is empty.
 This is necessary when feeding possibly empty params from mixin
 parameters (don't worry if you don't understand this).
 
-Available in `Element FEED`_, `Element LFEED`_, `Element LOOP`_, `Element binaryGrammar`_, `Element cdfHeaderGrammar`_, `Element columnGrammar`_, `Element contextGrammar`_, `Element csvGrammar`_, `Element customGrammar`_, `Element dictlistGrammar`_, `Element embeddedGrammar`_, `Element fitsProdGrammar`_, `Element fitsTableGrammar`_, `Element freeREGrammar`_, `Element hdf5Grammar`_, `Element inputTable`_, `Element keyValueGrammar`_, `Element mixinDef`_, `Element mySQLDumpGrammar`_, `Element nullGrammar`_, `Element odbcGrammar`_, `Element outputTable`_, `Element pdsGrammar`_, `Element reGrammar`_, `Element resRec`_, `Element resource`_, `Element rowmaker`_, `Element rowsetGrammar`_, `Element service`_, `Element table`_, `Element transparentGrammar`_, `Element voTableGrammar`_, `Element xmlGrammar`_
+Available in `Element FEED`_, `Element LFEED`_, `Element LOOP`_, `Element binaryGrammar`_, `Element cdfHeaderGrammar`_, `Element columnGrammar`_, `Element contextGrammar`_, `Element csvGrammar`_, `Element customGrammar`_, `Element dictlistGrammar`_, `Element embeddedGrammar`_, `Element fitsProdGrammar`_, `Element fitsTableGrammar`_, `Element freeREGrammar`_, `Element hdf5Grammar`_, `Element inputTable`_, `Element keyValueGrammar`_, `Element mixinDef`_, `Element mySQLDumpGrammar`_, `Element nullGrammar`_, `Element odbcGrammar`_, `Element outputTable`_, `Element pdsGrammar`_, `Element reGrammar`_, `Element resRec`_, `Element resource`_, `Element rowmaker`_, `Element rowsetGrammar`_, `Element service`_, `Element table`_, `Element transparentGrammar`_, `Element unionGrammar`_, `Element voTableGrammar`_, `Element xmlGrammar`_
 
 Macro metaSeq
 '''''''''''''
@@ -6110,7 +6204,7 @@ by joiner.
 This will be an empty string if there is no corresponding metadata (or
 default, if passed).
 
-Available in `Element FEED`_, `Element LFEED`_, `Element LOOP`_, `Element binaryGrammar`_, `Element cdfHeaderGrammar`_, `Element columnGrammar`_, `Element contextGrammar`_, `Element csvGrammar`_, `Element customGrammar`_, `Element dictlistGrammar`_, `Element embeddedGrammar`_, `Element fitsProdGrammar`_, `Element fitsTableGrammar`_, `Element freeREGrammar`_, `Element hdf5Grammar`_, `Element inputTable`_, `Element keyValueGrammar`_, `Element mixinDef`_, `Element mySQLDumpGrammar`_, `Element nullGrammar`_, `Element odbcGrammar`_, `Element outputTable`_, `Element pdsGrammar`_, `Element reGrammar`_, `Element resRec`_, `Element resource`_, `Element rowmaker`_, `Element rowsetGrammar`_, `Element service`_, `Element table`_, `Element transparentGrammar`_, `Element voTableGrammar`_, `Element xmlGrammar`_
+Available in `Element FEED`_, `Element LFEED`_, `Element LOOP`_, `Element binaryGrammar`_, `Element cdfHeaderGrammar`_, `Element columnGrammar`_, `Element contextGrammar`_, `Element csvGrammar`_, `Element customGrammar`_, `Element dictlistGrammar`_, `Element embeddedGrammar`_, `Element fitsProdGrammar`_, `Element fitsTableGrammar`_, `Element freeREGrammar`_, `Element hdf5Grammar`_, `Element inputTable`_, `Element keyValueGrammar`_, `Element mixinDef`_, `Element mySQLDumpGrammar`_, `Element nullGrammar`_, `Element odbcGrammar`_, `Element outputTable`_, `Element pdsGrammar`_, `Element reGrammar`_, `Element resRec`_, `Element resource`_, `Element rowmaker`_, `Element rowsetGrammar`_, `Element service`_, `Element table`_, `Element transparentGrammar`_, `Element unionGrammar`_, `Element voTableGrammar`_, `Element xmlGrammar`_
 
 Macro metaString
 ''''''''''''''''
@@ -6130,7 +6224,7 @@ Because it's sometimes useful, if the expander itself doesn't
 have metadat, this goes up in the RD tree until it finds something
 that has metadata.
 
-Available in `Element FEED`_, `Element LFEED`_, `Element LOOP`_, `Element binaryGrammar`_, `Element cdfHeaderGrammar`_, `Element columnGrammar`_, `Element contextGrammar`_, `Element csvGrammar`_, `Element customGrammar`_, `Element dictlistGrammar`_, `Element embeddedGrammar`_, `Element fitsProdGrammar`_, `Element fitsTableGrammar`_, `Element freeREGrammar`_, `Element hdf5Grammar`_, `Element inputTable`_, `Element keyValueGrammar`_, `Element mixinDef`_, `Element mySQLDumpGrammar`_, `Element nullGrammar`_, `Element odbcGrammar`_, `Element outputTable`_, `Element pdsGrammar`_, `Element reGrammar`_, `Element resRec`_, `Element resource`_, `Element rowmaker`_, `Element rowsetGrammar`_, `Element service`_, `Element table`_, `Element transparentGrammar`_, `Element voTableGrammar`_, `Element xmlGrammar`_
+Available in `Element FEED`_, `Element LFEED`_, `Element LOOP`_, `Element binaryGrammar`_, `Element cdfHeaderGrammar`_, `Element columnGrammar`_, `Element contextGrammar`_, `Element csvGrammar`_, `Element customGrammar`_, `Element dictlistGrammar`_, `Element embeddedGrammar`_, `Element fitsProdGrammar`_, `Element fitsTableGrammar`_, `Element freeREGrammar`_, `Element hdf5Grammar`_, `Element inputTable`_, `Element keyValueGrammar`_, `Element mixinDef`_, `Element mySQLDumpGrammar`_, `Element nullGrammar`_, `Element odbcGrammar`_, `Element outputTable`_, `Element pdsGrammar`_, `Element reGrammar`_, `Element resRec`_, `Element resource`_, `Element rowmaker`_, `Element rowsetGrammar`_, `Element service`_, `Element table`_, `Element transparentGrammar`_, `Element unionGrammar`_, `Element voTableGrammar`_, `Element xmlGrammar`_
 
 Macro nameForUCD
 ''''''''''''''''
@@ -6178,7 +6272,7 @@ Macro property
 returns an expression giving the value of the property propName
 on the current DD.
 
-Available in `Element binaryGrammar`_, `Element cdfHeaderGrammar`_, `Element columnGrammar`_, `Element contextGrammar`_, `Element csvGrammar`_, `Element customGrammar`_, `Element dictlistGrammar`_, `Element embeddedGrammar`_, `Element fitsProdGrammar`_, `Element fitsTableGrammar`_, `Element freeREGrammar`_, `Element hdf5Grammar`_, `Element keyValueGrammar`_, `Element mySQLDumpGrammar`_, `Element nullGrammar`_, `Element odbcGrammar`_, `Element pdsGrammar`_, `Element reGrammar`_, `Element rowmaker`_, `Element rowsetGrammar`_, `Element transparentGrammar`_, `Element voTableGrammar`_, `Element xmlGrammar`_
+Available in `Element binaryGrammar`_, `Element cdfHeaderGrammar`_, `Element columnGrammar`_, `Element contextGrammar`_, `Element csvGrammar`_, `Element customGrammar`_, `Element dictlistGrammar`_, `Element embeddedGrammar`_, `Element fitsProdGrammar`_, `Element fitsTableGrammar`_, `Element freeREGrammar`_, `Element hdf5Grammar`_, `Element keyValueGrammar`_, `Element mySQLDumpGrammar`_, `Element nullGrammar`_, `Element odbcGrammar`_, `Element pdsGrammar`_, `Element reGrammar`_, `Element rowmaker`_, `Element rowsetGrammar`_, `Element transparentGrammar`_, `Element unionGrammar`_, `Element voTableGrammar`_, `Element xmlGrammar`_
 
 Macro qName
 '''''''''''
@@ -6201,7 +6295,7 @@ Macro quote
 returns the argument in quotes (with internal quotes backslash-escaped
 if necessary).
 
-Available in `Element FEED`_, `Element LFEED`_, `Element LOOP`_, `Element binaryGrammar`_, `Element cdfHeaderGrammar`_, `Element columnGrammar`_, `Element contextGrammar`_, `Element csvGrammar`_, `Element customGrammar`_, `Element dictlistGrammar`_, `Element embeddedGrammar`_, `Element fitsProdGrammar`_, `Element fitsTableGrammar`_, `Element freeREGrammar`_, `Element hdf5Grammar`_, `Element inputTable`_, `Element keyValueGrammar`_, `Element mixinDef`_, `Element mySQLDumpGrammar`_, `Element nullGrammar`_, `Element odbcGrammar`_, `Element outputTable`_, `Element pdsGrammar`_, `Element reGrammar`_, `Element resRec`_, `Element resource`_, `Element rowmaker`_, `Element rowsetGrammar`_, `Element service`_, `Element table`_, `Element transparentGrammar`_, `Element voTableGrammar`_, `Element xmlGrammar`_
+Available in `Element FEED`_, `Element LFEED`_, `Element LOOP`_, `Element binaryGrammar`_, `Element cdfHeaderGrammar`_, `Element columnGrammar`_, `Element contextGrammar`_, `Element csvGrammar`_, `Element customGrammar`_, `Element dictlistGrammar`_, `Element embeddedGrammar`_, `Element fitsProdGrammar`_, `Element fitsTableGrammar`_, `Element freeREGrammar`_, `Element hdf5Grammar`_, `Element inputTable`_, `Element keyValueGrammar`_, `Element mixinDef`_, `Element mySQLDumpGrammar`_, `Element nullGrammar`_, `Element odbcGrammar`_, `Element outputTable`_, `Element pdsGrammar`_, `Element reGrammar`_, `Element resRec`_, `Element resource`_, `Element rowmaker`_, `Element rowsetGrammar`_, `Element service`_, `Element table`_, `Element transparentGrammar`_, `Element unionGrammar`_, `Element voTableGrammar`_, `Element xmlGrammar`_
 
 Macro rdId
 ''''''''''
@@ -6212,7 +6306,7 @@ Macro rdId
 
 the identifier of the current resource descriptor.
 
-Available in `Element FEED`_, `Element LFEED`_, `Element LOOP`_, `Element binaryGrammar`_, `Element cdfHeaderGrammar`_, `Element columnGrammar`_, `Element contextGrammar`_, `Element csvGrammar`_, `Element customGrammar`_, `Element dictlistGrammar`_, `Element embeddedGrammar`_, `Element fitsProdGrammar`_, `Element fitsTableGrammar`_, `Element freeREGrammar`_, `Element hdf5Grammar`_, `Element inputTable`_, `Element keyValueGrammar`_, `Element mixinDef`_, `Element mySQLDumpGrammar`_, `Element nullGrammar`_, `Element odbcGrammar`_, `Element outputTable`_, `Element pdsGrammar`_, `Element reGrammar`_, `Element resRec`_, `Element resource`_, `Element rowmaker`_, `Element rowsetGrammar`_, `Element service`_, `Element table`_, `Element transparentGrammar`_, `Element voTableGrammar`_, `Element xmlGrammar`_
+Available in `Element FEED`_, `Element LFEED`_, `Element LOOP`_, `Element binaryGrammar`_, `Element cdfHeaderGrammar`_, `Element columnGrammar`_, `Element contextGrammar`_, `Element csvGrammar`_, `Element customGrammar`_, `Element dictlistGrammar`_, `Element embeddedGrammar`_, `Element fitsProdGrammar`_, `Element fitsTableGrammar`_, `Element freeREGrammar`_, `Element hdf5Grammar`_, `Element inputTable`_, `Element keyValueGrammar`_, `Element mixinDef`_, `Element mySQLDumpGrammar`_, `Element nullGrammar`_, `Element odbcGrammar`_, `Element outputTable`_, `Element pdsGrammar`_, `Element reGrammar`_, `Element resRec`_, `Element resource`_, `Element rowmaker`_, `Element rowsetGrammar`_, `Element service`_, `Element table`_, `Element transparentGrammar`_, `Element unionGrammar`_, `Element voTableGrammar`_, `Element xmlGrammar`_
 
 Macro rdIdDotted
 ''''''''''''''''
@@ -6224,7 +6318,7 @@ Macro rdIdDotted
 the identifier for the current resource descriptor with slashes replaced
 with dots (so they work as the "host part" in URIs.
 
-Available in `Element FEED`_, `Element LFEED`_, `Element LOOP`_, `Element binaryGrammar`_, `Element cdfHeaderGrammar`_, `Element columnGrammar`_, `Element contextGrammar`_, `Element csvGrammar`_, `Element customGrammar`_, `Element dictlistGrammar`_, `Element embeddedGrammar`_, `Element fitsProdGrammar`_, `Element fitsTableGrammar`_, `Element freeREGrammar`_, `Element hdf5Grammar`_, `Element inputTable`_, `Element keyValueGrammar`_, `Element mixinDef`_, `Element mySQLDumpGrammar`_, `Element nullGrammar`_, `Element odbcGrammar`_, `Element outputTable`_, `Element pdsGrammar`_, `Element reGrammar`_, `Element resRec`_, `Element resource`_, `Element rowmaker`_, `Element rowsetGrammar`_, `Element service`_, `Element table`_, `Element transparentGrammar`_, `Element voTableGrammar`_, `Element xmlGrammar`_
+Available in `Element FEED`_, `Element LFEED`_, `Element LOOP`_, `Element binaryGrammar`_, `Element cdfHeaderGrammar`_, `Element columnGrammar`_, `Element contextGrammar`_, `Element csvGrammar`_, `Element customGrammar`_, `Element dictlistGrammar`_, `Element embeddedGrammar`_, `Element fitsProdGrammar`_, `Element fitsTableGrammar`_, `Element freeREGrammar`_, `Element hdf5Grammar`_, `Element inputTable`_, `Element keyValueGrammar`_, `Element mixinDef`_, `Element mySQLDumpGrammar`_, `Element nullGrammar`_, `Element odbcGrammar`_, `Element outputTable`_, `Element pdsGrammar`_, `Element reGrammar`_, `Element resRec`_, `Element resource`_, `Element rowmaker`_, `Element rowsetGrammar`_, `Element service`_, `Element table`_, `Element transparentGrammar`_, `Element unionGrammar`_, `Element voTableGrammar`_, `Element xmlGrammar`_
 
 Macro reSub
 '''''''''''
@@ -6246,7 +6340,7 @@ an alarm sign that you're probably doing it wrong.
 Oh: closing curly braces can be included in the argument by
 backslash-escaping them.
 
-Available in `Element FEED`_, `Element LFEED`_, `Element LOOP`_, `Element binaryGrammar`_, `Element cdfHeaderGrammar`_, `Element columnGrammar`_, `Element contextGrammar`_, `Element csvGrammar`_, `Element customGrammar`_, `Element dictlistGrammar`_, `Element embeddedGrammar`_, `Element fitsProdGrammar`_, `Element fitsTableGrammar`_, `Element freeREGrammar`_, `Element hdf5Grammar`_, `Element inputTable`_, `Element keyValueGrammar`_, `Element mixinDef`_, `Element mySQLDumpGrammar`_, `Element nullGrammar`_, `Element odbcGrammar`_, `Element outputTable`_, `Element pdsGrammar`_, `Element reGrammar`_, `Element resRec`_, `Element resource`_, `Element rowmaker`_, `Element rowsetGrammar`_, `Element service`_, `Element table`_, `Element transparentGrammar`_, `Element voTableGrammar`_, `Element xmlGrammar`_
+Available in `Element FEED`_, `Element LFEED`_, `Element LOOP`_, `Element binaryGrammar`_, `Element cdfHeaderGrammar`_, `Element columnGrammar`_, `Element contextGrammar`_, `Element csvGrammar`_, `Element customGrammar`_, `Element dictlistGrammar`_, `Element embeddedGrammar`_, `Element fitsProdGrammar`_, `Element fitsTableGrammar`_, `Element freeREGrammar`_, `Element hdf5Grammar`_, `Element inputTable`_, `Element keyValueGrammar`_, `Element mixinDef`_, `Element mySQLDumpGrammar`_, `Element nullGrammar`_, `Element odbcGrammar`_, `Element outputTable`_, `Element pdsGrammar`_, `Element reGrammar`_, `Element resRec`_, `Element resource`_, `Element rowmaker`_, `Element rowsetGrammar`_, `Element service`_, `Element table`_, `Element transparentGrammar`_, `Element unionGrammar`_, `Element voTableGrammar`_, `Element xmlGrammar`_
 
 Macro resdir
 ''''''''''''
@@ -6260,7 +6354,7 @@ descriptor.
 
 This never has a trailing slash.
 
-Available in `Element FEED`_, `Element LFEED`_, `Element LOOP`_, `Element binaryGrammar`_, `Element cdfHeaderGrammar`_, `Element columnGrammar`_, `Element contextGrammar`_, `Element csvGrammar`_, `Element customGrammar`_, `Element dictlistGrammar`_, `Element embeddedGrammar`_, `Element fitsProdGrammar`_, `Element fitsTableGrammar`_, `Element freeREGrammar`_, `Element hdf5Grammar`_, `Element inputTable`_, `Element keyValueGrammar`_, `Element mixinDef`_, `Element mySQLDumpGrammar`_, `Element nullGrammar`_, `Element odbcGrammar`_, `Element outputTable`_, `Element pdsGrammar`_, `Element reGrammar`_, `Element resRec`_, `Element resource`_, `Element rowmaker`_, `Element rowsetGrammar`_, `Element service`_, `Element table`_, `Element transparentGrammar`_, `Element voTableGrammar`_, `Element xmlGrammar`_
+Available in `Element FEED`_, `Element LFEED`_, `Element LOOP`_, `Element binaryGrammar`_, `Element cdfHeaderGrammar`_, `Element columnGrammar`_, `Element contextGrammar`_, `Element csvGrammar`_, `Element customGrammar`_, `Element dictlistGrammar`_, `Element embeddedGrammar`_, `Element fitsProdGrammar`_, `Element fitsTableGrammar`_, `Element freeREGrammar`_, `Element hdf5Grammar`_, `Element inputTable`_, `Element keyValueGrammar`_, `Element mixinDef`_, `Element mySQLDumpGrammar`_, `Element nullGrammar`_, `Element odbcGrammar`_, `Element outputTable`_, `Element pdsGrammar`_, `Element reGrammar`_, `Element resRec`_, `Element resource`_, `Element rowmaker`_, `Element rowsetGrammar`_, `Element service`_, `Element table`_, `Element transparentGrammar`_, `Element unionGrammar`_, `Element voTableGrammar`_, `Element xmlGrammar`_
 
 Macro rootlessPath
 ''''''''''''''''''
@@ -6272,7 +6366,7 @@ Macro rootlessPath
 returns an expression giving the current source's path with
 the resource descriptor's root removed.
 
-Available in `Element binaryGrammar`_, `Element cdfHeaderGrammar`_, `Element columnGrammar`_, `Element contextGrammar`_, `Element csvGrammar`_, `Element customGrammar`_, `Element dictlistGrammar`_, `Element embeddedGrammar`_, `Element fitsProdGrammar`_, `Element fitsTableGrammar`_, `Element freeREGrammar`_, `Element hdf5Grammar`_, `Element keyValueGrammar`_, `Element mySQLDumpGrammar`_, `Element nullGrammar`_, `Element odbcGrammar`_, `Element pdsGrammar`_, `Element reGrammar`_, `Element rowmaker`_, `Element rowsetGrammar`_, `Element transparentGrammar`_, `Element voTableGrammar`_, `Element xmlGrammar`_
+Available in `Element binaryGrammar`_, `Element cdfHeaderGrammar`_, `Element columnGrammar`_, `Element contextGrammar`_, `Element csvGrammar`_, `Element customGrammar`_, `Element dictlistGrammar`_, `Element embeddedGrammar`_, `Element fitsProdGrammar`_, `Element fitsTableGrammar`_, `Element freeREGrammar`_, `Element hdf5Grammar`_, `Element keyValueGrammar`_, `Element mySQLDumpGrammar`_, `Element nullGrammar`_, `Element odbcGrammar`_, `Element pdsGrammar`_, `Element reGrammar`_, `Element rowmaker`_, `Element rowsetGrammar`_, `Element transparentGrammar`_, `Element unionGrammar`_, `Element voTableGrammar`_, `Element xmlGrammar`_
 
 Macro rowsMade
 ''''''''''''''
@@ -6309,7 +6403,7 @@ Macro schema
 
 the schema of the current resource descriptor.
 
-Available in `Element FEED`_, `Element LFEED`_, `Element LOOP`_, `Element binaryGrammar`_, `Element cdfHeaderGrammar`_, `Element columnGrammar`_, `Element contextGrammar`_, `Element csvGrammar`_, `Element customGrammar`_, `Element dictlistGrammar`_, `Element embeddedGrammar`_, `Element fitsProdGrammar`_, `Element fitsTableGrammar`_, `Element freeREGrammar`_, `Element hdf5Grammar`_, `Element inputTable`_, `Element keyValueGrammar`_, `Element mixinDef`_, `Element mySQLDumpGrammar`_, `Element nullGrammar`_, `Element odbcGrammar`_, `Element outputTable`_, `Element pdsGrammar`_, `Element reGrammar`_, `Element resRec`_, `Element resource`_, `Element rowmaker`_, `Element rowsetGrammar`_, `Element service`_, `Element table`_, `Element transparentGrammar`_, `Element voTableGrammar`_, `Element xmlGrammar`_
+Available in `Element FEED`_, `Element LFEED`_, `Element LOOP`_, `Element binaryGrammar`_, `Element cdfHeaderGrammar`_, `Element columnGrammar`_, `Element contextGrammar`_, `Element csvGrammar`_, `Element customGrammar`_, `Element dictlistGrammar`_, `Element embeddedGrammar`_, `Element fitsProdGrammar`_, `Element fitsTableGrammar`_, `Element freeREGrammar`_, `Element hdf5Grammar`_, `Element inputTable`_, `Element keyValueGrammar`_, `Element mixinDef`_, `Element mySQLDumpGrammar`_, `Element nullGrammar`_, `Element odbcGrammar`_, `Element outputTable`_, `Element pdsGrammar`_, `Element reGrammar`_, `Element resRec`_, `Element resource`_, `Element rowmaker`_, `Element rowsetGrammar`_, `Element service`_, `Element table`_, `Element transparentGrammar`_, `Element unionGrammar`_, `Element voTableGrammar`_, `Element xmlGrammar`_
 
 Macro sourceCDate
 '''''''''''''''''
@@ -6339,7 +6433,7 @@ This is a timestamp of the modification date; use dateTimeToJdn or
 dateTimeToMJD to turn this into JD or MJD (which is usually preferred
 in database tables).  See also the sourceCDate macro.
 
-Available in `Element binaryGrammar`_, `Element cdfHeaderGrammar`_, `Element columnGrammar`_, `Element contextGrammar`_, `Element csvGrammar`_, `Element customGrammar`_, `Element dictlistGrammar`_, `Element embeddedGrammar`_, `Element fitsProdGrammar`_, `Element fitsTableGrammar`_, `Element freeREGrammar`_, `Element hdf5Grammar`_, `Element keyValueGrammar`_, `Element mySQLDumpGrammar`_, `Element nullGrammar`_, `Element odbcGrammar`_, `Element pdsGrammar`_, `Element reGrammar`_, `Element rowmaker`_, `Element rowsetGrammar`_, `Element transparentGrammar`_, `Element voTableGrammar`_, `Element xmlGrammar`_
+Available in `Element binaryGrammar`_, `Element cdfHeaderGrammar`_, `Element columnGrammar`_, `Element contextGrammar`_, `Element csvGrammar`_, `Element customGrammar`_, `Element dictlistGrammar`_, `Element embeddedGrammar`_, `Element fitsProdGrammar`_, `Element fitsTableGrammar`_, `Element freeREGrammar`_, `Element hdf5Grammar`_, `Element keyValueGrammar`_, `Element mySQLDumpGrammar`_, `Element nullGrammar`_, `Element odbcGrammar`_, `Element pdsGrammar`_, `Element reGrammar`_, `Element rowmaker`_, `Element rowsetGrammar`_, `Element transparentGrammar`_, `Element unionGrammar`_, `Element voTableGrammar`_, `Element xmlGrammar`_
 
 Macro splitPreviewPath
 ''''''''''''''''''''''
@@ -6357,7 +6451,7 @@ the extension appropriate for the preview (like {.png} or {.jpeg}).
 
 See the introduction to custom previews for details.
 
-Available in `Element binaryGrammar`_, `Element cdfHeaderGrammar`_, `Element columnGrammar`_, `Element contextGrammar`_, `Element csvGrammar`_, `Element customGrammar`_, `Element dictlistGrammar`_, `Element embeddedGrammar`_, `Element fitsProdGrammar`_, `Element fitsTableGrammar`_, `Element freeREGrammar`_, `Element hdf5Grammar`_, `Element keyValueGrammar`_, `Element mySQLDumpGrammar`_, `Element nullGrammar`_, `Element odbcGrammar`_, `Element pdsGrammar`_, `Element reGrammar`_, `Element rowsetGrammar`_, `Element transparentGrammar`_, `Element voTableGrammar`_, `Element xmlGrammar`_
+Available in `Element binaryGrammar`_, `Element cdfHeaderGrammar`_, `Element columnGrammar`_, `Element contextGrammar`_, `Element csvGrammar`_, `Element customGrammar`_, `Element dictlistGrammar`_, `Element embeddedGrammar`_, `Element fitsProdGrammar`_, `Element fitsTableGrammar`_, `Element freeREGrammar`_, `Element hdf5Grammar`_, `Element keyValueGrammar`_, `Element mySQLDumpGrammar`_, `Element nullGrammar`_, `Element odbcGrammar`_, `Element pdsGrammar`_, `Element reGrammar`_, `Element rowsetGrammar`_, `Element transparentGrammar`_, `Element unionGrammar`_, `Element voTableGrammar`_, `Element xmlGrammar`_
 
 Macro sql_standardPubDID
 ''''''''''''''''''''''''
@@ -6374,7 +6468,7 @@ just has accrefs.  If your code actually uses the pubDID to search
 in the table (and it probably shouldn't), better use an actual column
 and index it.
 
-Available in `Element FEED`_, `Element LFEED`_, `Element LOOP`_, `Element binaryGrammar`_, `Element cdfHeaderGrammar`_, `Element columnGrammar`_, `Element contextGrammar`_, `Element csvGrammar`_, `Element customGrammar`_, `Element dictlistGrammar`_, `Element embeddedGrammar`_, `Element fitsProdGrammar`_, `Element fitsTableGrammar`_, `Element freeREGrammar`_, `Element hdf5Grammar`_, `Element inputTable`_, `Element keyValueGrammar`_, `Element mixinDef`_, `Element mySQLDumpGrammar`_, `Element nullGrammar`_, `Element odbcGrammar`_, `Element outputTable`_, `Element pdsGrammar`_, `Element reGrammar`_, `Element resRec`_, `Element resource`_, `Element rowmaker`_, `Element rowsetGrammar`_, `Element service`_, `Element table`_, `Element transparentGrammar`_, `Element voTableGrammar`_, `Element xmlGrammar`_
+Available in `Element FEED`_, `Element LFEED`_, `Element LOOP`_, `Element binaryGrammar`_, `Element cdfHeaderGrammar`_, `Element columnGrammar`_, `Element contextGrammar`_, `Element csvGrammar`_, `Element customGrammar`_, `Element dictlistGrammar`_, `Element embeddedGrammar`_, `Element fitsProdGrammar`_, `Element fitsTableGrammar`_, `Element freeREGrammar`_, `Element hdf5Grammar`_, `Element inputTable`_, `Element keyValueGrammar`_, `Element mixinDef`_, `Element mySQLDumpGrammar`_, `Element nullGrammar`_, `Element odbcGrammar`_, `Element outputTable`_, `Element pdsGrammar`_, `Element reGrammar`_, `Element resRec`_, `Element resource`_, `Element rowmaker`_, `Element rowsetGrammar`_, `Element service`_, `Element table`_, `Element transparentGrammar`_, `Element unionGrammar`_, `Element voTableGrammar`_, `Element xmlGrammar`_
 
 Macro sqlquote
 ''''''''''''''
@@ -6386,7 +6480,7 @@ Macro sqlquote
 returns the argument as a quoted string, unless it is 'NULL' or
 None, in which case just NULL is returned.
 
-Available in `Element FEED`_, `Element LFEED`_, `Element LOOP`_, `Element binaryGrammar`_, `Element cdfHeaderGrammar`_, `Element columnGrammar`_, `Element contextGrammar`_, `Element csvGrammar`_, `Element customGrammar`_, `Element dictlistGrammar`_, `Element embeddedGrammar`_, `Element fitsProdGrammar`_, `Element fitsTableGrammar`_, `Element freeREGrammar`_, `Element hdf5Grammar`_, `Element inputTable`_, `Element keyValueGrammar`_, `Element mixinDef`_, `Element mySQLDumpGrammar`_, `Element nullGrammar`_, `Element odbcGrammar`_, `Element outputTable`_, `Element pdsGrammar`_, `Element reGrammar`_, `Element resRec`_, `Element resource`_, `Element rowmaker`_, `Element rowsetGrammar`_, `Element service`_, `Element table`_, `Element transparentGrammar`_, `Element voTableGrammar`_, `Element xmlGrammar`_
+Available in `Element FEED`_, `Element LFEED`_, `Element LOOP`_, `Element binaryGrammar`_, `Element cdfHeaderGrammar`_, `Element columnGrammar`_, `Element contextGrammar`_, `Element csvGrammar`_, `Element customGrammar`_, `Element dictlistGrammar`_, `Element embeddedGrammar`_, `Element fitsProdGrammar`_, `Element fitsTableGrammar`_, `Element freeREGrammar`_, `Element hdf5Grammar`_, `Element inputTable`_, `Element keyValueGrammar`_, `Element mixinDef`_, `Element mySQLDumpGrammar`_, `Element nullGrammar`_, `Element odbcGrammar`_, `Element outputTable`_, `Element pdsGrammar`_, `Element reGrammar`_, `Element resRec`_, `Element resource`_, `Element rowmaker`_, `Element rowsetGrammar`_, `Element service`_, `Element table`_, `Element transparentGrammar`_, `Element unionGrammar`_, `Element voTableGrammar`_, `Element xmlGrammar`_
 
 Macro srcstem
 '''''''''''''
@@ -6399,7 +6493,7 @@ returns python code for the stem of the source file currently parsed in a rowmak
 
 Example: if you're currently parsing /tmp/foo.bar.gz, the stem is foo.
 
-Available in `Element binaryGrammar`_, `Element cdfHeaderGrammar`_, `Element columnGrammar`_, `Element contextGrammar`_, `Element csvGrammar`_, `Element customGrammar`_, `Element dictlistGrammar`_, `Element embeddedGrammar`_, `Element fitsProdGrammar`_, `Element fitsTableGrammar`_, `Element freeREGrammar`_, `Element hdf5Grammar`_, `Element keyValueGrammar`_, `Element mySQLDumpGrammar`_, `Element nullGrammar`_, `Element odbcGrammar`_, `Element pdsGrammar`_, `Element reGrammar`_, `Element rowmaker`_, `Element rowsetGrammar`_, `Element transparentGrammar`_, `Element voTableGrammar`_, `Element xmlGrammar`_
+Available in `Element binaryGrammar`_, `Element cdfHeaderGrammar`_, `Element columnGrammar`_, `Element contextGrammar`_, `Element csvGrammar`_, `Element customGrammar`_, `Element dictlistGrammar`_, `Element embeddedGrammar`_, `Element fitsProdGrammar`_, `Element fitsTableGrammar`_, `Element freeREGrammar`_, `Element hdf5Grammar`_, `Element keyValueGrammar`_, `Element mySQLDumpGrammar`_, `Element nullGrammar`_, `Element odbcGrammar`_, `Element pdsGrammar`_, `Element reGrammar`_, `Element rowmaker`_, `Element rowsetGrammar`_, `Element transparentGrammar`_, `Element unionGrammar`_, `Element voTableGrammar`_, `Element xmlGrammar`_
 
 Macro standardPreviewPath
 '''''''''''''''''''''''''
@@ -6423,7 +6517,7 @@ files in a single, flat directory, and that can become a chore.
 
 See the introduction to custom previews for details.
 
-Available in `Element binaryGrammar`_, `Element cdfHeaderGrammar`_, `Element columnGrammar`_, `Element contextGrammar`_, `Element csvGrammar`_, `Element customGrammar`_, `Element dictlistGrammar`_, `Element embeddedGrammar`_, `Element fitsProdGrammar`_, `Element fitsTableGrammar`_, `Element freeREGrammar`_, `Element hdf5Grammar`_, `Element keyValueGrammar`_, `Element mySQLDumpGrammar`_, `Element nullGrammar`_, `Element odbcGrammar`_, `Element pdsGrammar`_, `Element reGrammar`_, `Element rowsetGrammar`_, `Element transparentGrammar`_, `Element voTableGrammar`_, `Element xmlGrammar`_
+Available in `Element binaryGrammar`_, `Element cdfHeaderGrammar`_, `Element columnGrammar`_, `Element contextGrammar`_, `Element csvGrammar`_, `Element customGrammar`_, `Element dictlistGrammar`_, `Element embeddedGrammar`_, `Element fitsProdGrammar`_, `Element fitsTableGrammar`_, `Element freeREGrammar`_, `Element hdf5Grammar`_, `Element keyValueGrammar`_, `Element mySQLDumpGrammar`_, `Element nullGrammar`_, `Element odbcGrammar`_, `Element pdsGrammar`_, `Element reGrammar`_, `Element rowsetGrammar`_, `Element transparentGrammar`_, `Element unionGrammar`_, `Element voTableGrammar`_, `Element xmlGrammar`_
 
 Macro standardPubDID
 ''''''''''''''''''''
@@ -6482,7 +6576,7 @@ Macro test
 
 always "test macro expansion".
 
-Available in `Element FEED`_, `Element LFEED`_, `Element LOOP`_, `Element binaryGrammar`_, `Element cdfHeaderGrammar`_, `Element columnGrammar`_, `Element contextGrammar`_, `Element csvGrammar`_, `Element customGrammar`_, `Element dictlistGrammar`_, `Element embeddedGrammar`_, `Element fitsProdGrammar`_, `Element fitsTableGrammar`_, `Element freeREGrammar`_, `Element hdf5Grammar`_, `Element inputTable`_, `Element keyValueGrammar`_, `Element mixinDef`_, `Element mySQLDumpGrammar`_, `Element nullGrammar`_, `Element odbcGrammar`_, `Element outputTable`_, `Element pdsGrammar`_, `Element reGrammar`_, `Element resRec`_, `Element resource`_, `Element rowmaker`_, `Element rowsetGrammar`_, `Element service`_, `Element table`_, `Element transparentGrammar`_, `Element voTableGrammar`_, `Element xmlGrammar`_
+Available in `Element FEED`_, `Element LFEED`_, `Element LOOP`_, `Element binaryGrammar`_, `Element cdfHeaderGrammar`_, `Element columnGrammar`_, `Element contextGrammar`_, `Element csvGrammar`_, `Element customGrammar`_, `Element dictlistGrammar`_, `Element embeddedGrammar`_, `Element fitsProdGrammar`_, `Element fitsTableGrammar`_, `Element freeREGrammar`_, `Element hdf5Grammar`_, `Element inputTable`_, `Element keyValueGrammar`_, `Element mixinDef`_, `Element mySQLDumpGrammar`_, `Element nullGrammar`_, `Element odbcGrammar`_, `Element outputTable`_, `Element pdsGrammar`_, `Element reGrammar`_, `Element resRec`_, `Element resource`_, `Element rowmaker`_, `Element rowsetGrammar`_, `Element service`_, `Element table`_, `Element transparentGrammar`_, `Element unionGrammar`_, `Element voTableGrammar`_, `Element xmlGrammar`_
 
 Macro today
 '''''''''''
@@ -6493,7 +6587,7 @@ Macro today
 
 today's date in ISO representation.
 
-Available in `Element FEED`_, `Element LFEED`_, `Element LOOP`_, `Element binaryGrammar`_, `Element cdfHeaderGrammar`_, `Element columnGrammar`_, `Element contextGrammar`_, `Element csvGrammar`_, `Element customGrammar`_, `Element dictlistGrammar`_, `Element embeddedGrammar`_, `Element fitsProdGrammar`_, `Element fitsTableGrammar`_, `Element freeREGrammar`_, `Element hdf5Grammar`_, `Element inputTable`_, `Element keyValueGrammar`_, `Element mixinDef`_, `Element mySQLDumpGrammar`_, `Element nullGrammar`_, `Element odbcGrammar`_, `Element outputTable`_, `Element pdsGrammar`_, `Element reGrammar`_, `Element resRec`_, `Element resource`_, `Element rowmaker`_, `Element rowsetGrammar`_, `Element service`_, `Element table`_, `Element transparentGrammar`_, `Element voTableGrammar`_, `Element xmlGrammar`_
+Available in `Element FEED`_, `Element LFEED`_, `Element LOOP`_, `Element binaryGrammar`_, `Element cdfHeaderGrammar`_, `Element columnGrammar`_, `Element contextGrammar`_, `Element csvGrammar`_, `Element customGrammar`_, `Element dictlistGrammar`_, `Element embeddedGrammar`_, `Element fitsProdGrammar`_, `Element fitsTableGrammar`_, `Element freeREGrammar`_, `Element hdf5Grammar`_, `Element inputTable`_, `Element keyValueGrammar`_, `Element mixinDef`_, `Element mySQLDumpGrammar`_, `Element nullGrammar`_, `Element odbcGrammar`_, `Element outputTable`_, `Element pdsGrammar`_, `Element reGrammar`_, `Element resRec`_, `Element resource`_, `Element rowmaker`_, `Element rowsetGrammar`_, `Element service`_, `Element table`_, `Element transparentGrammar`_, `Element unionGrammar`_, `Element voTableGrammar`_, `Element xmlGrammar`_
 
 Macro upper
 '''''''''''
@@ -6506,7 +6600,7 @@ returns aString uppercased.
 
 There's no guarantees for characters outside ASCII.
 
-Available in `Element FEED`_, `Element LFEED`_, `Element LOOP`_, `Element binaryGrammar`_, `Element cdfHeaderGrammar`_, `Element columnGrammar`_, `Element contextGrammar`_, `Element csvGrammar`_, `Element customGrammar`_, `Element dictlistGrammar`_, `Element embeddedGrammar`_, `Element fitsProdGrammar`_, `Element fitsTableGrammar`_, `Element freeREGrammar`_, `Element hdf5Grammar`_, `Element inputTable`_, `Element keyValueGrammar`_, `Element mixinDef`_, `Element mySQLDumpGrammar`_, `Element nullGrammar`_, `Element odbcGrammar`_, `Element outputTable`_, `Element pdsGrammar`_, `Element reGrammar`_, `Element resRec`_, `Element resource`_, `Element rowmaker`_, `Element rowsetGrammar`_, `Element service`_, `Element table`_, `Element transparentGrammar`_, `Element voTableGrammar`_, `Element xmlGrammar`_
+Available in `Element FEED`_, `Element LFEED`_, `Element LOOP`_, `Element binaryGrammar`_, `Element cdfHeaderGrammar`_, `Element columnGrammar`_, `Element contextGrammar`_, `Element csvGrammar`_, `Element customGrammar`_, `Element dictlistGrammar`_, `Element embeddedGrammar`_, `Element fitsProdGrammar`_, `Element fitsTableGrammar`_, `Element freeREGrammar`_, `Element hdf5Grammar`_, `Element inputTable`_, `Element keyValueGrammar`_, `Element mixinDef`_, `Element mySQLDumpGrammar`_, `Element nullGrammar`_, `Element odbcGrammar`_, `Element outputTable`_, `Element pdsGrammar`_, `Element reGrammar`_, `Element resRec`_, `Element resource`_, `Element rowmaker`_, `Element rowsetGrammar`_, `Element service`_, `Element table`_, `Element transparentGrammar`_, `Element unionGrammar`_, `Element voTableGrammar`_, `Element xmlGrammar`_
 
 Macro urlquote
 ''''''''''''''
@@ -6517,7 +6611,7 @@ Macro urlquote
 
 wraps urllib.quote.
 
-Available in `Element FEED`_, `Element LFEED`_, `Element LOOP`_, `Element binaryGrammar`_, `Element cdfHeaderGrammar`_, `Element columnGrammar`_, `Element contextGrammar`_, `Element csvGrammar`_, `Element customGrammar`_, `Element dictlistGrammar`_, `Element embeddedGrammar`_, `Element fitsProdGrammar`_, `Element fitsTableGrammar`_, `Element freeREGrammar`_, `Element hdf5Grammar`_, `Element inputTable`_, `Element keyValueGrammar`_, `Element mixinDef`_, `Element mySQLDumpGrammar`_, `Element nullGrammar`_, `Element odbcGrammar`_, `Element outputTable`_, `Element pdsGrammar`_, `Element reGrammar`_, `Element resRec`_, `Element resource`_, `Element rowmaker`_, `Element rowsetGrammar`_, `Element service`_, `Element table`_, `Element transparentGrammar`_, `Element voTableGrammar`_, `Element xmlGrammar`_
+Available in `Element FEED`_, `Element LFEED`_, `Element LOOP`_, `Element binaryGrammar`_, `Element cdfHeaderGrammar`_, `Element columnGrammar`_, `Element contextGrammar`_, `Element csvGrammar`_, `Element customGrammar`_, `Element dictlistGrammar`_, `Element embeddedGrammar`_, `Element fitsProdGrammar`_, `Element fitsTableGrammar`_, `Element freeREGrammar`_, `Element hdf5Grammar`_, `Element inputTable`_, `Element keyValueGrammar`_, `Element mixinDef`_, `Element mySQLDumpGrammar`_, `Element nullGrammar`_, `Element odbcGrammar`_, `Element outputTable`_, `Element pdsGrammar`_, `Element reGrammar`_, `Element resRec`_, `Element resource`_, `Element rowmaker`_, `Element rowsetGrammar`_, `Element service`_, `Element table`_, `Element transparentGrammar`_, `Element unionGrammar`_, `Element voTableGrammar`_, `Element xmlGrammar`_
 
 
 Mixins
@@ -10451,75 +10545,75 @@ Section [general]
 
 Paths and other general settings.
 
-* cacheDir: path relative to rootDir;
+* cacheDir: path relative to rootDir; 
   defaults to 'cache' --
   Path to the DC's persistent scratch space
-* configDir: path relative to rootDir;
+* configDir: path relative to rootDir; 
   defaults to 'etc' --
   Path to the DC's non-ini configuration (e.g., DB profiles)
-* defaultProfileName: string;
+* defaultProfileName: string; 
   defaults to '' --
   Deprecated and ignored.
-* future: set of strings;
+* future: set of strings; 
   defaults to '' --
   A set of strings naming experimental features to enable in the server.
   You only want to touch this if you are working on proving proposed
   improvements.
-* gavoGroup: string;
+* gavoGroup: string; 
   defaults to 'gavo' --
   Name of the unix group that administers the DC
-* group: string;
+* group: string; 
   defaults to 'gavo' --
   Name of the group that may write into the log directory
-* inputsDir: path relative to rootDir;
+* inputsDir: path relative to rootDir; 
   defaults to 'inputs' --
   Path to the DC's data holdings
-* logDir: path relative to rootDir;
+* logDir: path relative to rootDir; 
   defaults to 'logs' --
   Path to the DC's logs (should be local)
-* logLevel: value from the list debug, error, info, warning;
+* logLevel: value from the list debug, error, info, warning; 
   defaults to 'info' --
   How much should be logged?
-* maintainerAddress: string;
+* maintainerAddress: string; 
   defaults to '' --
   An e-mail address to send reports and warnings to; this could be the
   same as contact.email; in practice, it is shown in more technical
   circumstances, so it's adviable to have a narrower distribution here.
-* platform: string;
+* platform: string; 
   defaults to '' --
   Platform string (can be empty if inputsDir is only accessed by
   identical machines)
-* rdblacklist: set of strings;
+* rdblacklist: set of strings; 
   defaults to '' --
   File names of blacklisted RDs.  These are matched against the ends of
   file names, so be careful you do not over-block; in general, you
   should use something like '/resname/q.rd' or so.  You can also
   blacklist RD ids (which are compared literally). Separate multiple
   entries by commas.
-* rootDir: string;
+* rootDir: string; 
   defaults to '/var/gavo' --
   Path to the root of the DC file (all other paths may be relative to
   this
-* sendmail: string;
+* sendmail: string; 
   defaults to 'sendmail -t' --
   Command that reads a mail from stdin, taking therecipient address from
   the mail header, and transfers the mail (this is for sending mails to
   the administrator). This command is processed by a shell (generally
   running as the server user), so you can do tricks if necessary.
-* stateDir: path relative to rootDir;
+* stateDir: path relative to rootDir; 
   defaults to 'state' --
   Path to the DC's state information (last imported,...)
-* tempDir: path relative to rootDir;
+* tempDir: path relative to rootDir; 
   defaults to 'tmp' --
   Path to the DC's scratch space (should be local)
-* uwsWD: path relative to rootDir;
+* uwsWD: path relative to rootDir; 
   defaults to 'state/uwsjobs' --
   Directory to keep uws jobs in.  This may need lots of space if your
   users do large queries
-* webDir: path relative to rootDir;
+* webDir: path relative to rootDir; 
   defaults to 'web' --
   Path to the DC's web related data (docs, css, js, templates...)
-* xsdclasspath: shell-type path;
+* xsdclasspath: shell-type path; 
   defaults to 'None' --
   Classpath necessary to validate XSD using an xsdval java class.  You
   want GAVO's VO schemata collection for this.  Deprecated, we're now
@@ -10530,7 +10624,7 @@ Section [adql]
 
 (ignored, only left for backward compatibility)
 
-* webDefaultLimit: integer;
+* webDefaultLimit: integer; 
   defaults to '2000' --
   (ignored, only present for backwards compatibility; use
   [async]defaultMAXREC instead.
@@ -10540,35 +10634,35 @@ Section [async]
 
 Settings concerning TAP, UWS, and friends
 
-* csvDialect: string;
+* csvDialect: string; 
   defaults to 'excel' --
   CSV dialect as defined by the python csv module used when writing CSV
   files.
-* defaultExecTime: integer;
+* defaultExecTime: integer; 
   defaults to '3600' --
   Default timeout for UWS jobs, in seconds
-* defaultExecTimeSync: integer;
+* defaultExecTimeSync: integer; 
   defaults to '60' --
   Timeout for synchronous TAP/UWS jobs, in seconds.
-* defaultLifetime: integer;
+* defaultLifetime: integer; 
   defaults to '172800' --
   Default time to destruction for UWS jobs, in seconds
-* defaultMAXREC: integer;
+* defaultMAXREC: integer; 
   defaults to '20000' --
   Default match limit for ADQL queries via the UWS/TAP
-* hardMAXREC: integer;
+* hardMAXREC: integer; 
   defaults to '20000000' --
   Hard match limit (i.e., users cannot raise MAXREC or TOP beyond that)
   for ADQL queries via the UWS/TAP
-* maxSlowPollWait: integer;
+* maxSlowPollWait: integer; 
   defaults to '300' --
   Maximal time a UWS 1.1-WAIT request will delay the response.  This
   should be smaller than what you have as timeout on outgoing
   connections.
-* maxTAPRunning: integer;
+* maxTAPRunning: integer; 
   defaults to '2' --
   Maximum number of TAP jobs running at a time
-* maxUserUWSRunningDefault: integer;
+* maxUserUWSRunningDefault: integer; 
   defaults to '2' --
   Maximum number of user UWS jobs running at a time
 
@@ -10577,37 +10671,37 @@ Section [db]
 
 Settings concerning database access.
 
-* adqlProfiles: set of strings;
+* adqlProfiles: set of strings; 
   defaults to 'untrustedquery' --
   Name(s) of profiles that get access to tables opened for ADQL
-* defaultLimit: integer;
+* defaultLimit: integer; 
   defaults to '100' --
   Default match limit for DB queries
-* dumpSystemTables: boolean;
+* dumpSystemTables: boolean; 
   defaults to 'False' --
   Dump the tables from //users and //system to stateDir/system_tables
   once a day?
-* indexWorkMem: integer;
+* indexWorkMem: integer; 
   defaults to '2000' --
   Megabytes of memory to give to postgres while making indices.  Set to
   roughly half your RAM when you have big tables.
-* interface: string;
+* interface: string; 
   defaults to 'psycopg2' --
   Don't change
-* maintainers: set of strings;
+* maintainers: set of strings; 
   defaults to 'admin' --
   Name(s) of profiles that should have full access to gavo imp-created
   tables by default
-* managedExtensions: list of strings;
+* managedExtensions: list of strings; 
   defaults to 'pg_sphere' --
   Name(s) of postgres extensions gavo upgrade -e should watch
-* msgEncoding: string;
+* msgEncoding: string; 
   defaults to 'utf-8' --
   Encoding of the messages coming from the database
-* profilePath: shell-type path;
+* profilePath: shell-type path; 
   defaults to '~/.gavo:$configDir' --
   Path for locating DB profiles
-* queryProfiles: set of strings;
+* queryProfiles: set of strings; 
   defaults to 'trustedquery' --
   Name(s) of profiles that should be able to read gavo imp-created
   tables by default
@@ -10617,39 +10711,39 @@ Section [ivoa]
 
 The interface to the Greater VO.
 
-* authority: string;
+* authority: string; 
   defaults to 'x-unregistred' --
   The authority id for this DC; this has *no* leading ivo://
-* dalDefaultLimit: integer;
+* dalDefaultLimit: integer; 
   defaults to '10000' --
   Default match limit on SCS/SSAP/SIAP queries
-* dalHardLimit: integer;
+* dalHardLimit: integer; 
   defaults to '1000000' --
   Hard match limit on SCS/SSAP/SIAP queries (be careful: due to the way
   these protocols work, the results cannot be streamed, and the results
   have to be kept in memory; 1e7 rows requiring 1k of memory each add up
   to 10 Gigs...)
-* oaipmhPageSize: integer;
+* oaipmhPageSize: integer; 
   defaults to '500' --
   Default number of records per page in the OAI-PMH interface
-* registerAlternative: boolean;
+* registerAlternative: boolean; 
   defaults to 'False' --
   Give access URLs for the alternative protocol (https when serverURL is
   http and vice versa) as a mirrorURL?  If you're listening to HTTPS,
   this is probably a good idea.
-* sdmVersion: value from the list 1, 2;
+* sdmVersion: value from the list 1, 2; 
   defaults to '1' --
   Obsolete (SDM version 2 is shelved).  Don't use.
-* validOAISets: list of strings;
+* validOAISets: list of strings; 
   defaults to 'ivo_managed, vosi, local' --
   Comma-separated list of OAI sets DaCHS should accept for publication.
   This must always include ivo_managed and vosi, and you will want local
   if you run a web interface.
-* VOSITableDetail: value from the list max, min;
+* VOSITableDetail: value from the list max, min; 
   defaults to 'max' --
   Default level of detail to return on the VOSI endpoint (change to min
   when you have more than 100 or tables).
-* votDefaultEncoding: value from the list binary, td;
+* votDefaultEncoding: value from the list binary, td; 
   defaults to 'binary' --
   Default 'encoding' for VOTables in many places (like the DAL
   responses; this can be user-overridden using the _TDENC local HTTP
@@ -10666,107 +10760,107 @@ Section [web]
 
 Settings related to serving content to the web.
 
-* adaptProtocol: boolean;
+* adaptProtocol: boolean; 
   defaults to 'True' --
   Adapt internal absolute links to http/https by request method used.
   You must switch this off if running behind a reverse proxy.
-* adminpasswd: string;
+* adminpasswd: string; 
   defaults to '' --
   Password for online administration, leave empty to disable
-* alternateHostnames: list of strings;
+* alternateHostnames: list of strings; 
   defaults to '' --
   A comma-separated list of hostnames this server is also known under.
   Only set this if you're running https. With this, you can handle a
   situation where your data center can be reached as both example.org
   and www.example.org.
-* bindAddress: string;
+* bindAddress: string; 
   defaults to '127.0.0.1' --
   Interface to bind to
-* corsOriginPat: string;
+* corsOriginPat: string; 
   defaults to '' --
   A regular expression for URLs from which to authorise cross-origin
   requests. This is matched, i.e., the RE must account for the whole URL
   including the schema. Example: https?://example\.com/apps/.*.
-* enableTests: boolean;
+* enableTests: boolean; 
   defaults to 'False' --
   Enable test pages (don't if you don't know why)
-* favicon: path relative to webDir;
+* favicon: path relative to webDir; 
   defaults to 'None' --
   Webdir-relative path to a favicon; this overrides the default of a
   scaled version of the logo.
-* graphicMimes: list of strings;
+* graphicMimes: list of strings; 
   defaults to 'image/fits,image/jpeg,application/x-votable+xml;content=datalink' --
   Media types considered as graphics (for SIAP, mostly)
-* ignore-uir-header: boolean;
+* ignore-uir-header: boolean; 
   defaults to 'False' --
   Do not honour clients' upgrade-insecure-requests headers if https is
   enabled.  Outside of development or testing environments, there is
   generally little reason to use this.
-* jsSource: boolean;
+* jsSource: boolean; 
   defaults to 'False' --
   If True, Javascript will not be minified on delivery (this is for
   debugging)
-* logFormat: value from the list combined, default;
+* logFormat: value from the list combined, default; 
   defaults to 'default' --
   Log format to use.  Default doesn't log IPs, user agents, or referrers
   and thus should be ok in terms of not processing personal data, which
   in turn means you probably don't have to declare anything in EU
   jurisdictions.
-* maxPreviewWidth: integer;
+* maxPreviewWidth: integer; 
   defaults to '300' --
   Ignored, only present for backward compatibility
-* maxSyncUploadSize: integer;
+* maxSyncUploadSize: integer; 
   defaults to '500000' --
   Maximal size of file uploads for synchronous TAP in bytes.
-* maxUploadSize: integer;
+* maxUploadSize: integer; 
   defaults to '20000000' --
   Maximal size of (mainly TAP) file uploads in async requests in bytes;
   sync requests use maxSyncUploadSize.
-* nevowRoot: path fragment;
+* nevowRoot: path fragment; 
   defaults to '/' --
   Path fragment to the server's root for operation off the server's
   root; this must end with a slash (setting this will currently break
   essentially the entire web interface. If you must use it, contact the
   authors and we will fix things.)
-* operatorCSS: string;
+* operatorCSS: string; 
   defaults to '' --
   URL of an operator-specific CSS.  This is included as the last item
   and can therefore override rules in the distributed CSS.
-* preloadPublishedRDs: boolean;
+* preloadPublishedRDs: boolean; 
   defaults to 'False' --
   Preload all RDs of services you've published.  This is mainly helpful
   when code in such RDs might, for instance, lock and such failures
   don't suddenly occur in operation.
-* preloadRDs: list of strings;
+* preloadRDs: list of strings; 
   defaults to '' --
   RD ids to preload at the server start.  Load time of RDs listed here
   goes against startup time, so only do this for RDs that have execute
   children that should run regularly.  For everything else consider
   preloadPublishedRDs.
-* previewCache: path relative to webDir;
+* previewCache: path relative to webDir; 
   defaults to 'previewcache' --
   Webdir-relative directory to store cached previews in
-* realm: string;
+* realm: string; 
   defaults to 'X-Unconfigured' --
   Authentication realm to be used (currently, only one, server-wide, is
   supported)
-* root: string;
+* root: string; 
   defaults to '__system__/services/root/fixed' --
   The path of the the root page of the data center.  The default renders
   the root.html template.  On single-service installations, you could
   direct this to that single service, or you could use the ADQL query
   form.
-* serverFDLimit: integer;
+* serverFDLimit: integer; 
   defaults to '4000' --
   A hard limit of the number of file handles DaCHS should try to set.
   This will only take effect if DaCHS is started as root.  Otherwise,
   DaCHS will just adjust its soft limit to the external limit
   irrespective of this setting.
-* serverPort: integer;
+* serverPort: integer; 
   defaults to '8080' --
   Port to bind the http port of the server to; https, if present at all,
   is always on 443.
-* serverURL: string;
+* serverURL: string; 
   defaults to 'http://localhost:8080' --
   URL fragment used to qualify relative URLs where necessary.  Note that
   this must contain the port the server is accessible under from the
@@ -10774,17 +10868,17 @@ Settings related to serving content to the web.
   https. If you offer both http and https, use your preferred protocol
   here.  If you change this on a running server, you *must* run dachs
   pub -a to update internal and external links.
-* sitename: string;
+* sitename: string; 
   defaults to 'Unnamed data center' --
   A short name for your site
-* sqlTimeout: integer;
+* sqlTimeout: integer; 
   defaults to '15' --
   Default timeout for non-TAP database queries (which can in general be
   overridden by users setting _TIMEOUT).
-* templateDir: path relative to webDir;
+* templateDir: path relative to webDir; 
   defaults to 'templates' --
   webDir-relative location of global nevow templates
-* user: string;
+* user: string; 
   defaults to 'gavo' --
   Run server as this user.
 
@@ -11319,583 +11413,583 @@ specially.  The following meta keys trigger some special behaviour:
 
 _dataUpdated
   A meta value representing a timestamp.
-
+  
   Accessing it, you will get a formatted ISO/DALI string.  You
   can construct them with both strings (that we'll try to parse and
   bomb if that's not possible) and datetime.datetime objects.
-
+  
 _example
   A MetaValue to keep VOSI examples in.
-
+  
   All of these must have a title, which is also used to generate
   references.
-
+  
   These also are in reStructuredText by default, and changing
   that probably makes no sense at all, as these will always need
   interpreted text roles for proper markup.
-
+  
   Thus, the usual pattern here is::
-
+  
     <meta name="_example" title="An example for _example">
       See docs_
-
+  
       .. _docs: http://docs.g-vo.org
     </meta>
-
+  
 _metadataUpdated
   A meta value representing a timestamp.
-
+  
   Accessing it, you will get a formatted ISO/DALI string.  You
   can construct them with both strings (that we'll try to parse and
   bomb if that's not possible) and datetime.datetime objects.
-
+  
 _news
   A meta value representing a "news" items.
-
+  
   The content is the body of the news.  In addition, they have
   date, author, and role children.  In plain text, you would write::
-
+  
     _news: Frobnicated the quux.
     _news.author: MD
     _news.date: 2009-03-06
     _news.role: updated
-
+  
   In XML, you would usually write::
-
+  
     <meta name="_news" author="MD" date="2009-03-06">
       Frobnicated the quux.
     </meta>
-
+  
   _news items become serialised into Registry records despite their
-  leading underscores.  role then becomes the date's role.
-
+  leading underscores.  role then becomes the date's role.    
+  
 _related
   A meta value containing a link and optionally a title
-
+  
   In plain text, this would look like
   this::
-
+  
     _related:http://foo.bar
     _related.title: The foo page
-
+  
   In XML, you can write::
-
+  
       <meta name="_related" title="The foo page"
         ivoId="ivo://bar.org/foo">http://foo.bar</meta>
-
+  
   or, if you prefer::
-
+  
     <meta name="_related">http://foo.bar
        <meta name="title">The foo page</meta></meta>
-
+  
   These values are used for _related (meaning "visible" links to other
   services).
-
+  
   For links within you data center, use the internallink macro, the argument
   of which the the "path" to a resource, i.e. RD path/service/renderer;
   we recommend to use the info renderer in such links as a rule.  This would
   look like this::
-
+  
     <meta name="_related" title="Aspec SSAP"
       >\internallink{aspec/q/ssa/info}</meta>
-
-
+  
+  
 cites
   A meta value containing an ivo-id and a name of a related resource.
-
+  
   The sort of relationsip is encoded in the meta name, where the terms
   are defined in the vocabuary
   http://www.g-vo.org/rdf/voresource/relationship_type (where there
   are minor lexical deviations from identifiers there to DaCHS' meta names).
-
+  
   All relationship metas should look like this (using isSupplementTo as an
   example; while an ivoId is not mandatory, it rarely makes sense to declare
   a relationship without it)::
-
+  
     isSupplementTo: GAVO TAP service
     isSupplementTo.ivoId: ivo://org.gavo.dc
-
+  
   ``isServedBy`` and ``isServiceFor`` are somewhat special cases, as
   the service attribute of data publications automatically takes care
   of them; so, you shouldn't usually need to bother with these two manually.
-
+  
 continues
   A meta value containing an ivo-id and a name of a related resource.
-
+  
   The sort of relationsip is encoded in the meta name, where the terms
   are defined in the vocabuary
   http://www.g-vo.org/rdf/voresource/relationship_type (where there
   are minor lexical deviations from identifiers there to DaCHS' meta names).
-
+  
   All relationship metas should look like this (using isSupplementTo as an
   example; while an ivoId is not mandatory, it rarely makes sense to declare
   a relationship without it)::
-
+  
     isSupplementTo: GAVO TAP service
     isSupplementTo.ivoId: ivo://org.gavo.dc
-
+  
   ``isServedBy`` and ``isServiceFor`` are somewhat special cases, as
   the service attribute of data publications automatically takes care
   of them; so, you shouldn't usually need to bother with these two manually.
-
+  
 creationDate
   A meta value representing a timestamp.
-
+  
   Accessing it, you will get a formatted ISO/DALI string.  You
   can construct them with both strings (that we'll try to parse and
   bomb if that's not possible) and datetime.datetime objects.
-
+  
 creator.logo
   A MetaValue corresponding to a small image.
-
+  
   These are rendered as little images in HTML.  In XML meta, you can
   say::
-
+  
     <meta name="_somelogo" type="logo">http://foo.bar/quux.png</meta>
-
+  
 derivedFrom
   A meta value containing an ivo-id and a name of a related resource.
-
+  
   The sort of relationsip is encoded in the meta name, where the terms
   are defined in the vocabuary
   http://www.g-vo.org/rdf/voresource/relationship_type (where there
   are minor lexical deviations from identifiers there to DaCHS' meta names).
-
+  
   All relationship metas should look like this (using isSupplementTo as an
   example; while an ivoId is not mandatory, it rarely makes sense to declare
   a relationship without it)::
-
+  
     isSupplementTo: GAVO TAP service
     isSupplementTo.ivoId: ivo://org.gavo.dc
-
+  
   ``isServedBy`` and ``isServiceFor`` are somewhat special cases, as
   the service attribute of data publications automatically takes care
   of them; so, you shouldn't usually need to bother with these two manually.
-
+  
 doi
   A MetaValue for a DOI.
-
+  
   This lets people construct DOI meta with or without a doi: prefix.
   It also creates landing page links in HTML.
-
+  
 hasPart
   A meta value containing an ivo-id and a name of a related resource.
-
+  
   The sort of relationsip is encoded in the meta name, where the terms
   are defined in the vocabuary
   http://www.g-vo.org/rdf/voresource/relationship_type (where there
   are minor lexical deviations from identifiers there to DaCHS' meta names).
-
+  
   All relationship metas should look like this (using isSupplementTo as an
   example; while an ivoId is not mandatory, it rarely makes sense to declare
   a relationship without it)::
-
+  
     isSupplementTo: GAVO TAP service
     isSupplementTo.ivoId: ivo://org.gavo.dc
-
+  
   ``isServedBy`` and ``isServiceFor`` are somewhat special cases, as
   the service attribute of data publications automatically takes care
   of them; so, you shouldn't usually need to bother with these two manually.
-
+  
 info
   A meta value for info items in VOTables.
-
+  
   In addition to the content (which should be rendered as the info element's
   text content), it contains an infoName and an infoValue.
-
+  
   They are only used internally in VOTable generation and might go away
   without notice.
-
+  
 isContinuedBy
   A meta value containing an ivo-id and a name of a related resource.
-
+  
   The sort of relationsip is encoded in the meta name, where the terms
   are defined in the vocabuary
   http://www.g-vo.org/rdf/voresource/relationship_type (where there
   are minor lexical deviations from identifiers there to DaCHS' meta names).
-
+  
   All relationship metas should look like this (using isSupplementTo as an
   example; while an ivoId is not mandatory, it rarely makes sense to declare
   a relationship without it)::
-
+  
     isSupplementTo: GAVO TAP service
     isSupplementTo.ivoId: ivo://org.gavo.dc
-
+  
   ``isServedBy`` and ``isServiceFor`` are somewhat special cases, as
   the service attribute of data publications automatically takes care
   of them; so, you shouldn't usually need to bother with these two manually.
-
+  
 isDerivedFrom
   A meta value containing an ivo-id and a name of a related resource.
-
+  
   The sort of relationsip is encoded in the meta name, where the terms
   are defined in the vocabuary
   http://www.g-vo.org/rdf/voresource/relationship_type (where there
   are minor lexical deviations from identifiers there to DaCHS' meta names).
-
+  
   All relationship metas should look like this (using isSupplementTo as an
   example; while an ivoId is not mandatory, it rarely makes sense to declare
   a relationship without it)::
-
+  
     isSupplementTo: GAVO TAP service
     isSupplementTo.ivoId: ivo://org.gavo.dc
-
+  
   ``isServedBy`` and ``isServiceFor`` are somewhat special cases, as
   the service attribute of data publications automatically takes care
   of them; so, you shouldn't usually need to bother with these two manually.
-
+  
 isIdenticalTo
   A meta value containing an ivo-id and a name of a related resource.
-
+  
   The sort of relationsip is encoded in the meta name, where the terms
   are defined in the vocabuary
   http://www.g-vo.org/rdf/voresource/relationship_type (where there
   are minor lexical deviations from identifiers there to DaCHS' meta names).
-
+  
   All relationship metas should look like this (using isSupplementTo as an
   example; while an ivoId is not mandatory, it rarely makes sense to declare
   a relationship without it)::
-
+  
     isSupplementTo: GAVO TAP service
     isSupplementTo.ivoId: ivo://org.gavo.dc
-
+  
   ``isServedBy`` and ``isServiceFor`` are somewhat special cases, as
   the service attribute of data publications automatically takes care
   of them; so, you shouldn't usually need to bother with these two manually.
-
+  
 isNewVersionOf
   A meta value containing an ivo-id and a name of a related resource.
-
+  
   The sort of relationsip is encoded in the meta name, where the terms
   are defined in the vocabuary
   http://www.g-vo.org/rdf/voresource/relationship_type (where there
   are minor lexical deviations from identifiers there to DaCHS' meta names).
-
+  
   All relationship metas should look like this (using isSupplementTo as an
   example; while an ivoId is not mandatory, it rarely makes sense to declare
   a relationship without it)::
-
+  
     isSupplementTo: GAVO TAP service
     isSupplementTo.ivoId: ivo://org.gavo.dc
-
+  
   ``isServedBy`` and ``isServiceFor`` are somewhat special cases, as
   the service attribute of data publications automatically takes care
   of them; so, you shouldn't usually need to bother with these two manually.
-
+  
 isPartOf
   A meta value containing an ivo-id and a name of a related resource.
-
+  
   The sort of relationsip is encoded in the meta name, where the terms
   are defined in the vocabuary
   http://www.g-vo.org/rdf/voresource/relationship_type (where there
   are minor lexical deviations from identifiers there to DaCHS' meta names).
-
+  
   All relationship metas should look like this (using isSupplementTo as an
   example; while an ivoId is not mandatory, it rarely makes sense to declare
   a relationship without it)::
-
+  
     isSupplementTo: GAVO TAP service
     isSupplementTo.ivoId: ivo://org.gavo.dc
-
+  
   ``isServedBy`` and ``isServiceFor`` are somewhat special cases, as
   the service attribute of data publications automatically takes care
   of them; so, you shouldn't usually need to bother with these two manually.
-
+  
 isPreviousVersionOf
   A meta value containing an ivo-id and a name of a related resource.
-
+  
   The sort of relationsip is encoded in the meta name, where the terms
   are defined in the vocabuary
   http://www.g-vo.org/rdf/voresource/relationship_type (where there
   are minor lexical deviations from identifiers there to DaCHS' meta names).
-
+  
   All relationship metas should look like this (using isSupplementTo as an
   example; while an ivoId is not mandatory, it rarely makes sense to declare
   a relationship without it)::
-
+  
     isSupplementTo: GAVO TAP service
     isSupplementTo.ivoId: ivo://org.gavo.dc
-
+  
   ``isServedBy`` and ``isServiceFor`` are somewhat special cases, as
   the service attribute of data publications automatically takes care
   of them; so, you shouldn't usually need to bother with these two manually.
-
+  
 isServedBy
   A meta value containing an ivo-id and a name of a related resource.
-
+  
   The sort of relationsip is encoded in the meta name, where the terms
   are defined in the vocabuary
   http://www.g-vo.org/rdf/voresource/relationship_type (where there
   are minor lexical deviations from identifiers there to DaCHS' meta names).
-
+  
   All relationship metas should look like this (using isSupplementTo as an
   example; while an ivoId is not mandatory, it rarely makes sense to declare
   a relationship without it)::
-
+  
     isSupplementTo: GAVO TAP service
     isSupplementTo.ivoId: ivo://org.gavo.dc
-
+  
   ``isServedBy`` and ``isServiceFor`` are somewhat special cases, as
   the service attribute of data publications automatically takes care
   of them; so, you shouldn't usually need to bother with these two manually.
-
+  
 isServiceFor
   A meta value containing an ivo-id and a name of a related resource.
-
+  
   The sort of relationsip is encoded in the meta name, where the terms
   are defined in the vocabuary
   http://www.g-vo.org/rdf/voresource/relationship_type (where there
   are minor lexical deviations from identifiers there to DaCHS' meta names).
-
+  
   All relationship metas should look like this (using isSupplementTo as an
   example; while an ivoId is not mandatory, it rarely makes sense to declare
   a relationship without it)::
-
+  
     isSupplementTo: GAVO TAP service
     isSupplementTo.ivoId: ivo://org.gavo.dc
-
+  
   ``isServedBy`` and ``isServiceFor`` are somewhat special cases, as
   the service attribute of data publications automatically takes care
   of them; so, you shouldn't usually need to bother with these two manually.
-
+  
 isSourceOf
   A meta value containing an ivo-id and a name of a related resource.
-
+  
   The sort of relationsip is encoded in the meta name, where the terms
   are defined in the vocabuary
   http://www.g-vo.org/rdf/voresource/relationship_type (where there
   are minor lexical deviations from identifiers there to DaCHS' meta names).
-
+  
   All relationship metas should look like this (using isSupplementTo as an
   example; while an ivoId is not mandatory, it rarely makes sense to declare
   a relationship without it)::
-
+  
     isSupplementTo: GAVO TAP service
     isSupplementTo.ivoId: ivo://org.gavo.dc
-
+  
   ``isServedBy`` and ``isServiceFor`` are somewhat special cases, as
   the service attribute of data publications automatically takes care
   of them; so, you shouldn't usually need to bother with these two manually.
-
+  
 isSupplementTo
   A meta value containing an ivo-id and a name of a related resource.
-
+  
   The sort of relationsip is encoded in the meta name, where the terms
   are defined in the vocabuary
   http://www.g-vo.org/rdf/voresource/relationship_type (where there
   are minor lexical deviations from identifiers there to DaCHS' meta names).
-
+  
   All relationship metas should look like this (using isSupplementTo as an
   example; while an ivoId is not mandatory, it rarely makes sense to declare
   a relationship without it)::
-
+  
     isSupplementTo: GAVO TAP service
     isSupplementTo.ivoId: ivo://org.gavo.dc
-
+  
   ``isServedBy`` and ``isServiceFor`` are somewhat special cases, as
   the service attribute of data publications automatically takes care
   of them; so, you shouldn't usually need to bother with these two manually.
-
+  
 isSupplementedBy
   A meta value containing an ivo-id and a name of a related resource.
-
+  
   The sort of relationsip is encoded in the meta name, where the terms
   are defined in the vocabuary
   http://www.g-vo.org/rdf/voresource/relationship_type (where there
   are minor lexical deviations from identifiers there to DaCHS' meta names).
-
+  
   All relationship metas should look like this (using isSupplementTo as an
   example; while an ivoId is not mandatory, it rarely makes sense to declare
   a relationship without it)::
-
+  
     isSupplementTo: GAVO TAP service
     isSupplementTo.ivoId: ivo://org.gavo.dc
-
+  
   ``isServedBy`` and ``isServiceFor`` are somewhat special cases, as
   the service attribute of data publications automatically takes care
   of them; so, you shouldn't usually need to bother with these two manually.
-
+  
 logo
   A MetaValue corresponding to a small image.
-
+  
   These are rendered as little images in HTML.  In XML meta, you can
   say::
-
+  
     <meta name="_somelogo" type="logo">http://foo.bar/quux.png</meta>
-
+  
 mirrorOf
   A meta value containing an ivo-id and a name of a related resource.
-
+  
   The sort of relationsip is encoded in the meta name, where the terms
   are defined in the vocabuary
   http://www.g-vo.org/rdf/voresource/relationship_type (where there
   are minor lexical deviations from identifiers there to DaCHS' meta names).
-
+  
   All relationship metas should look like this (using isSupplementTo as an
   example; while an ivoId is not mandatory, it rarely makes sense to declare
   a relationship without it)::
-
+  
     isSupplementTo: GAVO TAP service
     isSupplementTo.ivoId: ivo://org.gavo.dc
-
+  
   ``isServedBy`` and ``isServiceFor`` are somewhat special cases, as
   the service attribute of data publications automatically takes care
   of them; so, you shouldn't usually need to bother with these two manually.
-
+  
 note
   A meta value representing a "note" item.
-
+  
   This is like a footnote, typically on tables, and is rendered in table
   infos.
-
+  
   The content is the note body.  In addition, you want a tag child that
   gives whatever the note is references as.  We recommend numbers.
-
+  
   Contrary to other meta items, note content defaults to rstx format.
-
+  
   Typically, this works with a column's note attribute.
-
+  
   In XML, you would usually write::
-
+  
     <meta name="note" tag="1">
       Better ignore this.
     </meta>
-
+  
 referenceURL
   A meta value containing a link and optionally a title
-
+  
   In plain text, this would look like
   this::
-
+  
     _related:http://foo.bar
     _related.title: The foo page
-
+  
   In XML, you can write::
-
+  
       <meta name="_related" title="The foo page"
         ivoId="ivo://bar.org/foo">http://foo.bar</meta>
-
+  
   or, if you prefer::
-
+  
     <meta name="_related">http://foo.bar
        <meta name="title">The foo page</meta></meta>
-
+  
   These values are used for _related (meaning "visible" links to other
   services).
-
+  
   For links within you data center, use the internallink macro, the argument
   of which the the "path" to a resource, i.e. RD path/service/renderer;
   we recommend to use the info renderer in such links as a rule.  This would
   look like this::
-
+  
     <meta name="_related" title="Aspec SSAP"
       >\internallink{aspec/q/ssa/info}</meta>
-
-
+  
+  
 relatedTo
   A meta value containing an ivo-id and a name of a related resource.
-
+  
   The sort of relationsip is encoded in the meta name, where the terms
   are defined in the vocabuary
   http://www.g-vo.org/rdf/voresource/relationship_type (where there
   are minor lexical deviations from identifiers there to DaCHS' meta names).
-
+  
   All relationship metas should look like this (using isSupplementTo as an
   example; while an ivoId is not mandatory, it rarely makes sense to declare
   a relationship without it)::
-
+  
     isSupplementTo: GAVO TAP service
     isSupplementTo.ivoId: ivo://org.gavo.dc
-
+  
   ``isServedBy`` and ``isServiceFor`` are somewhat special cases, as
   the service attribute of data publications automatically takes care
   of them; so, you shouldn't usually need to bother with these two manually.
-
+  
 servedBy
   A meta value containing an ivo-id and a name of a related resource.
-
+  
   The sort of relationsip is encoded in the meta name, where the terms
   are defined in the vocabuary
   http://www.g-vo.org/rdf/voresource/relationship_type (where there
   are minor lexical deviations from identifiers there to DaCHS' meta names).
-
+  
   All relationship metas should look like this (using isSupplementTo as an
   example; while an ivoId is not mandatory, it rarely makes sense to declare
   a relationship without it)::
-
+  
     isSupplementTo: GAVO TAP service
     isSupplementTo.ivoId: ivo://org.gavo.dc
-
+  
   ``isServedBy`` and ``isServiceFor`` are somewhat special cases, as
   the service attribute of data publications automatically takes care
   of them; so, you shouldn't usually need to bother with these two manually.
-
+  
 serviceFor
   A meta value containing an ivo-id and a name of a related resource.
-
+  
   The sort of relationsip is encoded in the meta name, where the terms
   are defined in the vocabuary
   http://www.g-vo.org/rdf/voresource/relationship_type (where there
   are minor lexical deviations from identifiers there to DaCHS' meta names).
-
+  
   All relationship metas should look like this (using isSupplementTo as an
   example; while an ivoId is not mandatory, it rarely makes sense to declare
   a relationship without it)::
-
+  
     isSupplementTo: GAVO TAP service
     isSupplementTo.ivoId: ivo://org.gavo.dc
-
+  
   ``isServedBy`` and ``isServiceFor`` are somewhat special cases, as
   the service attribute of data publications automatically takes care
   of them; so, you shouldn't usually need to bother with these two manually.
-
+  
 source
   A MetaValue that may contain bibcodes, which are rendered as links
   into ADS.
-
+  
 subject
   A MetaValue translating UAT terms to their labels in HTML.
-
+  
   This follows the assumption that HTML is what humans look at, anything
   else is either computers or nerds.
-
+  
 uses
   A meta value containing an ivo-id and a name of a related resource.
-
+  
   The sort of relationsip is encoded in the meta name, where the terms
   are defined in the vocabuary
   http://www.g-vo.org/rdf/voresource/relationship_type (where there
   are minor lexical deviations from identifiers there to DaCHS' meta names).
-
+  
   All relationship metas should look like this (using isSupplementTo as an
   example; while an ivoId is not mandatory, it rarely makes sense to declare
   a relationship without it)::
-
+  
     isSupplementTo: GAVO TAP service
     isSupplementTo.ivoId: ivo://org.gavo.dc
-
+  
   ``isServedBy`` and ``isServiceFor`` are somewhat special cases, as
   the service attribute of data publications automatically takes care
   of them; so, you shouldn't usually need to bother with these two manually.
-
+  
 votlink
   A MetaValue serialized into VOTable links (or, ideally,
   analogous constructs).
-
+  
   This exposes the various attributes of VOTable LINKs as href
   linkname, contentType, and role.  You cannot set ID here; if this ever
-  needs referencing, we'll need to think about it again.
+  needs referencing, we'll need to think about it again.  
   The href attribute is simply the content of our meta (since
   there's no link without href), and there's never any content
   in VOTable LINKs).
-
+  
   You could thus say::
-
+  
     votlink: http://docs.g-vo.org/DaCHS
     votlink.role: doc
     votlink.contentType: text/html
     votlink.linkname: GAVO DaCHS documentation
-
+  
 
 Additionally, there is ``creator``, which is really special (at least
 for now).  When you set creator to a string, the string will be split at
@@ -13607,90 +13701,90 @@ Here's a list of assertion methods defined right now:
 
 *assertHTTPStatus(self, expectedStatus)*
   checks whether the request came back with expectedStatus.
-
+  
 
 *assertHasStrings(self, *strings)*
   checks that all its arguments are found within content.
-
+  
   If string arguments are passed, they are utf-8 encoded before
   comparison.  If that's not what you want, pass bytes yourself.
-
+  
 
 *assertHeader(self, key, value)*
   checks that header key has value in the response headers.
-
+  
   keys are compared case-insensitively, values are compared literally.
-
+  
 
 *assertLacksStrings(self, *strings)*
   checks that all its arguments are *not* found within content.
-
+  
 
 *assertValidatesXSD(self)*
   checks whether the returned data are XSD valid.
-
+  
   This uses DaCHS built-in XSD validator with the built-in schema
   files; it hence will in general not retrieve schema files from
   external sources.
-
+  
 
 *assertXpath(self, path, assertions)*
   checks an xpath assertion.
-
+  
   path is an xpath (as understood by lxml), with namespace
   prefixes statically mapped; there's currently v2 (VOTable
   1.2), v1 (VOTable 1.1), v (whatever VOTable version
   is the current DaCHS default), h (the namespace of the
   XHTML elements DaCHS generates), m (the provisional MIVOT namespace)
   and o (OAI-PMH 2.0).
-
+  
   If you need more prefixes, hack the source and feed back
   your changes (or just add to self.XPATH_NAMESPACE_MAP
   locally).
-
+  
   path must match exactly one element.
-
+  
   assertions is a dictionary mapping attribute names to
   their expected value.  Use the key None to check the
   element content, and match for None if you expect an
   empty element.  To match against a namespaced attribute, you
   have to give the full URI; prefixes are not applied here.
   This would look like::
-
+  
     "{http://www.w3.org/2001/XMLSchema-instance}type": "vg:OAIHTTP"
-
+  
   If you need an RE match rather than equality, there's
   EqualingRE in your code's namespace.
-
+  
 
 *getFirstVOTableRow(self)*
   interprets data as a VOTable and returns the first row as a dictionary
-
+  
   In test use, make sure the VOTable returned is sorted, or you will get
   randomly failing tests.  Ideally, you'll constrain the results to just
   one match; database-querying cores (which is where order is an
   issue) also honor _DBOPTIONS_ORDER).
-
+  
 
 *getUnique(self, seq)*
   returns seq[0], asserting at the same time that len(seq) is 1.
-
+  
   The idea is that you can say row = self.getUnique(self.getVOTableRows())
   and have a nice test on the side -- and no ugly IndexError on an
   empty respone.
-
+  
 
 *getVOTableRows(self)*
   parses the first table in a result VOTable and returns the contents
   as a sequence of dictionaries.
-
+  
 
 *getXpath(self, path, element=None)*
   returns the equivalent of tree.xpath(path) for an lxml etree
   of the current document or in element, if passed in.
-
+  
   This uses the same namespace conventions as assertXpath.
-
+  
 
 
 All of these are methods, so you would actually write
@@ -13938,7 +14032,7 @@ set.
 It also lets you associate data processing services with datasets,
 which allows on-the-fly generation of cutouts, format conversions or
 recalibrations; a particular set of parameters for working with certain
-kinds of cubes is described in a standard called [SODA]_ (Serverside
+kinds of cubes is described in a standard called [SODA]_ (Server-side
 Operations for Data Access).  Hence, we sometimes call the processing
 part of datalink SODA.
 
@@ -14204,8 +14298,6 @@ set on the descriptor (you can set that in a meta maker or the
 descriptor generator).
 
 
-
-
 Defining Processing Services
 ''''''''''''''''''''''''''''
 
@@ -14238,21 +14330,24 @@ processing will just re-use STREAMs and procDefs from the ``//soda`` RD.
 The two most common cases are cutouts over FITS cubes and over spectra.
 
 Processing services are referenced from the links table.  In DaCHS,
-the description column for the services is empty by default, which you
-may want to change.  Just set a ``dlget.description`` meta on the
-service.  In the following example, there is a normal VOResource
-description that will end up in the Registry and the DaCHS web
-interface, and a description of the processing service::
+the description column in the links table is set from the services
+description meta.  This falls back to the resource's description meta,
+which is almost never what you want.  So, make sure you include
+something reasonably concise into the service element like this::
 
-  <service id="dl" allowed="dlmeta,dlget">
-    <meta name="description">A datalink service for the COOL data
-      collection, giving provenance links, extracted sources, and
-      cutouts</meta>
-    <meta name="dlget.description">Use this interactive service
-      to do cutouts, retrieved scaled images, and choose between
-      FITS and JPEG results.</meta>
-    ...
+  <meta name="description">Slicing and dicing the images from the
+    wonderous survey</meta>
 
+Datalink services identify themselves as supporting some standard.
+Whenever DaCHS sees a dlget, it will declare the service a SODA service;
+this is harmless as long as you don't define SODA parameters that do
+something different than what SODA says they should do.  Still, if you
+have to, you can override the standardID meta to declare support of a
+different standard, of write::
+
+  <meta name="standardID"/>
+
+to entirely suppress the declaration of a standard identifier.
 
 
 FITS/SODA processing
@@ -14346,6 +14441,73 @@ SODA-like cutout.
 Finally, `//soda#sdm_format`_ pulls in a meta maker defining a FORMAT
 parameter (letting people order several formats including VOTable, FITS
 binary table, and CSV) and a formatter that interprets it.
+
+
+Multiple processing service
+...........................
+
+If you yield InputKeys from meta makers, all of them will end up in a
+single processing service, and all data functions will contribute to
+that same processing services.
+
+Sometimes, however, you want to have two processing services in a single
+datalink document.  In that case. define a *second* datalink service,
+usually with only a dlget renderer; that way, it will always be clear
+where the actual datalink information for data sets belonging to some
+collection can be obtained for.
+
+You can then yield a ProcLinkDef object (constructed with the current
+pubDID and the reference to the second datalink service) from a meta
+maker in the main datalink service.  Make sure that there is a
+description meta in the dlget-only datalink service so users have a
+chance to figure out why it is there.
+
+Since this is slightly subtle, here is a sketch of how this works::
+
+  <!-- define a common descriptor generator for all datalink services
+    working on the same data collection -->
+  <procDef type="descriptorGenerator" procDef="//datalink#fromtable" id="gen">
+    <bind key="tableName">"my.table"</bind>
+    <bind key="idColumn">"prikey"</bind>
+  </procDef>
+
+  <service id="dl" allowed="dlmeta,dlget">
+    <meta name="description">Data Collection's datalink service</meta>
+    <datalinkCore>
+      <descriptorGenerator procDef="gen"/>
+      <metaMaker>
+        <code>
+         # that's an argument for the built-in dlget service
+        yield MS(InputKey, name="arg1", type="text",
+          description="First service's argument 1")
+        </code>
+      </metaMaker>
+      <metaMaker>
+        <code>
+          # This links the second datalink service
+          yield ProcLinkDef(descriptor.pubDID, rd.getById("dl2"))
+        </code>
+      </metaMaker>
+      <!-- now give the main service its functionality -->
+      <dataFunction.../>
+    </datalinkCore>
+  </service>
+
+  <service id="dl2" allowed="dlget">
+    <meta name="description">Mogrification of the shlabudl</meta>
+    <meta name="standardID"/> <!-- stresses that this is higher magic -->
+    <datalinkCore>
+      <descriptorGenerator procDef="gen"/>
+      <metaMaker>
+        <code>
+        yield MS(InputKey, name="mogrification_level", type="real",
+          description="Second service's argument")
+        </code>
+      </metaMaker>
+    </datalinkCore>
+  </service>
+
+
 
 
 General Notes on Processing Services
@@ -16171,48 +16333,48 @@ that are immediately accessible in the namespace:
 
 *TAItoTT(tai)*
   returns TDT for a (datetime.datetime) TAI.
-
+  
 
 *TTtoTAI(tdt)*
   returns TAI for a (datetime.datetime) TDT.
-
+  
 
 *bYearToDateTime(bYear)*
   returns a datetime.datetime instance for a fractional Besselian year.
-
+  
   This uses the formula given by Lieske, J.H., A&A 73, 282 (1979).
-
+  
 
 *computeMean(val1, val2)*
   returns the mean value between two values.
-
+  
   Beware: Integer division done here for the benefit of datetime calculations.
-
+  
   >>> computeMean(1.,3)
   2.0
   >>> computeMean(datetime.datetime(2000, 10, 13),
   ...   datetime.datetime(2000, 10, 12))
   datetime.datetime(2000, 10, 12, 12, 0)
-
+  
 
 *dateTimeToJYear(dt)*
   returns a fractional (julian) year for a datetime.datetime instance.
-
+  
 
 *dateTimeToJdn(dt)*
   returns a julian day number (including fractionals) from a datetime
   instance.
-
+  
 
 *dateTimeToMJD(dt)*
   returns a modified julian date for a datetime instance.
-
+  
 
 *degToDms(deg, sepChar=' ', secondFracs=2, preserveLeading=False, truncate=False, addSign=True)*
   converts a float angle in degrees to a sexagesimal string.
-
+  
   This takes a lot of optional arguments:
-
+  
   * sepChar is the char separating the components
   * secondFracs is the number for fractional seconds to generate
   * preserveLeading can be set to True if leading zeroes should be
@@ -16221,7 +16383,7 @@ that are immediately accessible in the namespace:
     rather then rounded (as necessary for building IAU identifiers)
   * addSign, if true, makes the function return a + in front of positive
     values (the default)
-
+  
   >>> degToDms(-3.24722, "", 0, True, True)
   '-031449'
   >>> degToDms(0)
@@ -16234,18 +16396,18 @@ that are immediately accessible in the namespace:
   '-23 30 00.0000'
   >>> "%.4f"%dmsToDeg(degToDms(-25.6835, sepChar=":"), sepChar=":")
   '-25.6835'
-
+  
 
 *degToHms(deg, sepChar=' ', secondFracs=3, truncate=False)*
   converts a float angle in degrees to an time angle (hh:mm:ss.mmm).
-
+  
   This takes a lot of optional arguments:
-
+  
   * sepChar is the char separating the components
   * secondFracs is the number for fractional seconds to generate
   * truncate can be set to True if fractional seconds should be truncated
     rather then rounded (as necessary for building IAU identifiers)
-
+  
   >>> degToHms(0, sepChar=":")
   '00:00:00.000'
   >>> degToHms(122.057, secondFracs=1)
@@ -16266,12 +16428,12 @@ that are immediately accessible in the namespace:
   '23:56:53.3280'
   >>> "%.4f"%hmsToDeg(degToHms(256.25, secondFracs=9))
   '256.2500'
-
+  
 
 *dmsToDeg(dmsAngle, sepChar=None)*
   returns the degree minutes seconds-specified dmsAngle as a
   float in degrees.
-
+  
   >>> "%3.8f"%dmsToDeg("45 30.6")
   '45.51000000'
   >>> "%3.8f"%dmsToDeg("45:30.6", ":")
@@ -16281,122 +16443,122 @@ that are immediately accessible in the namespace:
   >>> dmsToDeg("junk")
   Traceback (most recent call last):
   ValueError: Invalid dms value with sepChar None: 'junk'
-
+  
 
 *getAccrefFromStandardPubDID(pubdid, authBase='ivo://org.gavo.dc/~?')*
   returns an accref from a standard DaCHS PubDID.
-
+  
   This is basically the inverse of getStandardPubDID.  It will raise
   NotFound if pubdid "looks like a URI" (implementation detail: has  a colon
   in the first 10 characters) and does not start with ivo://<authority>/~?.
   If it's not a URI, we assume it's a local accref and just return it.
-
+  
   The function does not check if the remaining characters are a valid
   accref, much less whether it can be resolved.
-
+  
   authBase's default will reflect you system's settings on your installation,
   which probably is not what's given in this documentation.
-
+  
 
 *getDatalinkMetaLink(dlSvc, accref)*
   returns a datalink URL for the product referenced through accref
   with the datalink service dlSvc.
-
+  
   This assumes that dlSvc uses the standard DaCHS pubDIDs.  dlSvc
   needs to be the service element.
-
+  
   A typical use is in a metaMaker and would look like this::
-
+  
     getDatalinkMetaLink(rd.getById("dl"), descriptor.accref)
-
+  
 
 *getFileStem(fPath)*
   returns the file stem of a file path.
-
+  
   The base name is what remains if you take the base name and split off
   extensions.  The extension here starts with the last dot in the file name,
   except up to one of some common compression extensions (.gz, .xz, .bz2,
   .Z, .z) is stripped off the end if present before determining the extension.
-
+  
   >>> getFileStem("/foo/bar/baz.x.y")
   'baz.x'
   >>> getFileStem("/foo/bar/baz.x.gz")
   'baz'
   >>> getFileStem("/foo/bar/baz")
   'baz'
-
+  
 
 *getFlatName(accref)*
   returns a unix-compatible file name for an access reference.
-
+  
   The file name will not contain terrible characters, let alone
   slashes.  This is used to, e.g., keep all previews in one directory.
-
+  
 
 *getInputsRelativePath(absPath, liberalChars=True)*
   returns absath relative to the DaCHS inputsDir.
-
+  
   If ``absPath`` is not below ``inputsDir``, a ``ValueError`` results.  On
   ``liberalChars``, we see the `function getRelativePath`_.
-
+  
   In rowmakers and rowfilters, you'll usually use the macro
   ``\inputRelativePath`` that inserts the appropriate code.
-
+  
 
 *getQueryMeta()*
   returns a query meta object from somewhere up the stack.
-
+  
   This is for row makers running within a service.  This can be used
   to, e.g., enforce match limits by writing getQueryMeta()["dbLimit"].
-
+  
 
 *getRelativePath(fullPath, rootPath, liberalChars=True)*
   returns rest if fullPath has the form rootPath/rest and raises an
   exception otherwise.
-
+  
   Pass ``liberalChars=False`` to make this raise a ValueError when
   URL-dangerous characters (blanks, amperands, pluses, non-ASCII, and
   similar) are present in the result.  This is mainly for products.
-
+  
 
 *getStandardPubDID(path)*
   returns the standard DaCHS PubDID for ``path``.
-
+  
   The publisher dataset identifier (PubDID) is important in protocols like
   SSAP and obscore.  If you use this function, the PubDID will be your
   authority, the path component ~, and the inputs-relative path of
   the input file as the parameter.
-
+  
   ``path`` can be relative, in which case it is interpreted relative to
   the DaCHS ``inputsDir.``
-
+  
   You *can* define your PubDIDs in a different way, but you'd then need
   to provide a custom descriptorGenerator to datalink services (and
   might need other tricks).  If your data comes from plain files, use
   this function.
-
+  
   In a rowmaker, you'll usually use the \standardPubDID macro.
-
+  
 
 *getWCSAxis(header, axisIndex, forceSeparable=False)*
   returns a WCSAxis instance from an axis index and a FITS header.
-
+  
   If the axis is mentioned in a transformation matrix (CD or PC),
   a ``ValueError`` is raised (use ``forceSeparable`` to override).
-
+  
   The ``axisIndex`` is 1-based; to get a transform for the axis described
   by CTYPE1, pass 1 here.
-
+  
   The object returned has methods like ``pixToPhys``, ``physToPix`` (and their
   ``pix0`` brethren), and ``getLimits``.
-
+  
   Note that at this point WCSAxis only supports linear transforms (it's
   a DaCHS-specific implementation).  We'll extend it on request.
-
+  
 
 *hmsToDeg(hms, sepChar=None)*
   returns the time angle (h m s.decimals) as a float in degrees.
-
+  
   >>> "%3.8f"%hmsToDeg("22 23 23.3")
   '335.84708333'
   >>> "%3.8f"%hmsToDeg("22:23:23.3", ":")
@@ -16406,13 +16568,13 @@ that are immediately accessible in the namespace:
   >>> hmsToDeg("junk")
   Traceback (most recent call last):
   ValueError: Invalid time with sepChar None: 'junk'
-
+  
 
 *hoursToHms(decimal_hours, sepChar=':', secondFracs=0)*
   returns a time span in hours in sexagesmal time (h:m:s).
-
+  
   The optional arguments are as for degToHms.
-
+  
   >>> hoursToHms(0)
   '00:00:00'
   >>> hoursToHms(23.5)
@@ -16425,159 +16587,159 @@ that are immediately accessible in the namespace:
   '23:33:10.80'
   >>> hoursToHms(123.553, secondFracs=2)
   '123:33:10.80'
-
+  
 
 *iterSimpleText(f)*
   iterates over ``(physLineNumber, line)`` in f with some usual
   conventions for simple data files.
-
+  
   You should use this function to read from simple configuration and/or
   table files that don't warrant a full-blown grammar/rowmaker combo.
   The intended use is somewhat like this::
-
+  
     with open(rd.getAbsPath("res/mymeta")) as f:
       for lineNumber, content in iterSimpleText(f):
         try:
           ...
         except Exception, exc:
           sys.stderr.write("Bad input line %s: %s"%(lineNumber, exc))
-
+  
   The grammar rules are, specifically:
-
+  
   * leading and trailing whitespace is stripped
   * empty lines are ignored
   * lines beginning with a hash are ignored
   * lines ending with a backslash are joined with the following line;
     to have intervening whitespace, have a blank in front of the backslash.
-
+  
 
 *jdnToDateTime(jd)*
   returns a ``datetime.datetime`` instance for a julian day number.
-
+  
 
 *killBlanks(literal)*
   returns the string literal with all blanks removed.
-
+  
   This is useful when numbers are formatted with blanks thrown in.
-
+  
   Nones are passed through.
-
+  
 
 *lastSourceElements(path, numElements)*
   returns a path made up from the last ``numElements`` items in ``path``.
-
+  
 
 *loadPythonModule(fqName, relativeTo=None)*
   imports fqName and returns the (module, spec).
-
+  
   Do not use this function to import DC-internal modules; this may
   mess up singletons since you could bypass python's mechanisms
   to prevent multiple imports of the same module.
-
+  
   fqName is a fully qualified path to the module without the .py,
   unless relativeTo is given, in which case it is interpreted as a
   relative path.  This for letting modules in resdir/res import each
   other by saying::
-
+  
     mod, _ = api.loadPythonModule("foo", relativeTo=__file__)
-
+  
   The python path is temporarily amended with the path part of the
   source module.
-
+  
   If the module is in /var/gavo/inputs/foo/bar/mod.py, Python will know
   the module as foo_bar_mod (the last two path components are always added).
   This is to keep Python from using the module when someone writes
   import mod.
-
+  
 
 *makeAbsoluteURL(path, canonical=False)*
   returns a fully qualified URL for a rooted local part.
-
+  
   This will reflect the http/https access mode unless you pass
   canonical=True, in which case [web]serverURL will be used unconditionally.
-
+  
 
 *makeIAUId(prefix, long, lat, longSec=0, latSec=0)*
   returns an (equatorial) IAU identifier for an object at long and lat.
-
+  
   The rules are given on https://cds.unistra.fr/Dic/iau-spec.html
-
+  
   The prefix, including the system identifier, you have to pass in.
   You cannot build identifiers using only minutes precision.
   If you want to include sub-arcsec precision, pass in longSec and/or
   latSec (the number of factional seconds to preserve).
-
+  
 
 *makeProductLink(key, withHost=True, useHost=None)*
   returns the URL at which a product can be retrieved.
-
+  
   key can be an accref string or an RAccref.
-
+  
   Note that this is using the preferred host as the basic URL.  If
   you are running dual-protocol http/https and you ingest results
   of this function into the database, it is advisable to cut off
   the scheme part of the URI (e.g., ``split(":", 1)[-1]``).  In
   data products served, DaCHS will then put in the scheme used
   for the query.
-
+  
   DaCHS (almost always) also allows full http URIs as accrefs.  These
   will be returned unchanged.
-
+  
 
 *makeSitePath(path)*
   returns a rooted local part for a server-internal URL.
-
+  
   uri itself needs to be server-absolute; a leading slash is recommended
   for clarity but not mandatory.
-
+  
 
 *makeTimestamp(date, time)*
   makes a datetime instance from a date and a time.
-
+  
 
 *mjdToDateTime(mjd)*
   returns a ``datetime.datetime`` instance for a modified julian day number.
-
+  
   Beware: This loses a couple of significant digits due to transformation
   to jd.
-
+  
 
 *parseAngle(literal, format, sepChar=None)*
   converts the various forms angles might be encountered to degrees.
-
+  
   format is one of hms, dms, fracHour.  For sexagesimal/time angles,
   you can pass a sepChar (default: split at blanks) that lets you
   specify what separates hours/degrees, minutes, and seconds.
-
+  
   >>> "%.8f"%(parseAngle("23 59 59.95", "hms"))
   '359.99979167'
   >>> "%10.5f"%parseAngle("-20:31:05.12", "dms", sepChar=":")
   ' -20.51809'
   >>> "%010.6f"%parseAngle("21.0209556", "fracHour")
   '315.314334'
-
+  
 
 *parseBooleanLiteral(literal)*
   returns a python boolean from some string.
-
+  
   Boolean literals are strings like True, false, on, Off, yes, No in
   some capitalization.
-
+  
 
 *parseDate(literal, format='%Y-%m-%d')*
   returns a ``datetime.date`` object of literal parsed according to the
   strptime-similar format.
-
+  
   The function understands the special ``dateFormat`` ``!!jYear``
   (stuff like 1980.89).
-
+  
 
 *parseFloat(literal)*
   returns a float from a literal, or None if literal is None or an empty
   string.
-
+  
   Temporarily, this includes a hack to work around a bug in psycopg2.
-
+  
   >>> parseFloat("   5e9 ")
   5000000000.0
   >>> parseFloat(None)
@@ -16585,19 +16747,19 @@ that are immediately accessible in the namespace:
   >>> parseFloat("wobbadobba")
   Traceback (most recent call last):
   ValueError: could not convert string to float: 'wobbadobba'
-
+  
 
 *parseISODT(literal, useTime=False)*
   returns a datetime object for a ISO time literal.
-
+  
   There's no real timezone support yet, but we accept and ignore various
   ways of specifying UTC.
-
+  
   By default, this uses plain python datetime because it usually covers a large
   date range than the time module.  The downside is that it does not know about
   leap seconds.  Pass useTime=True to go through time tuples, which know how to
   deal with them (but may not deal with dates far in the past or future).
-
+  
   >>> parseISODT("1998-12-14")
   datetime.datetime(1998, 12, 14, 0, 0)
   >>> parseISODT("1998-12-14T13:30:12")
@@ -16618,25 +16780,25 @@ that are immediately accessible in the namespace:
   >>> parseISODT("junk")
   Traceback (most recent call last):
   ValueError: Bad ISO datetime literal: junk (required format: yyyy-mm-ddThh:mm:ssZ)
-
+  
 
 *parseInt(literal)*
   returns an int from a literal, or None if literal is None or an empty
   string.
-
+  
   >>> parseInt("32")
   32
   >>> parseInt("")
   >>> parseInt(None)
-
+  
 
 *parseTime(literal, format='%H:%M:%S')*
   returns a ``datetime.timedelta`` object for literal parsed according
   to format.
-
+  
   For format, you can the magic values ``!!secondsSinceMidnight``,
   ``!!decimalHours`` or a strptime-like spec using the H, M, and S codes.
-
+  
   >>> parseTime("89930", "!!secondsSinceMidnight")
   datetime.timedelta(days=1, seconds=3530)
   >>> parseTime("23.4", "!!decimalHours")
@@ -16645,67 +16807,67 @@ that are immediately accessible in the namespace:
   datetime.timedelta(seconds=11045)
   >>> parseTime("20:04", "%H:%M")
   datetime.timedelta(seconds=72240)
-
+  
 
 *parseTimestamp(literal, format='%Y-%m-%dT%H:%M:%S')*
   returns a ``datetime.datetime`` object from a literal parsed according
   to the strptime-similar format.
-
+  
   A ``ValueError`` is raised if literal doesn't match format (actually,
   a parse with essentially DALI-standard ISO representation is always tried)
-
+  
 
 *parseWithNull(literal, baseParser, nullLiteral=<Undefined>, default=None, checker=None)*
   returns default if literal is ``nullLiteral``, else
   ``baseParser(literal)``.
-
+  
   If ``checker`` is non-None, it must be a callable returning ``True`` if its
   argument is a null value.
-
+  
   ``nullLiteral`` is compared against the unprocessed literal (usually, a
   string).  The intended use is like this (but note that often, a
   ``nullExcs`` attribute on a rowmaker ``map`` element is the more
   elegant way:
-
+  
   >>> parseWithNull("8888.0", float, "8888")
   8888.0
   >>> print(parseWithNull("8888", float, "8888"))
   None
   >>> print(parseWithNull("N/A", int, "N/A"))
   None
-
+  
 
 *quoteProductKey(key)*
   returns key as getproduct URL-part.
-
+  
   If ``key`` is a string, it is quoted as a naked accref so it's usable
   as the path part of an URL.  If it's an ``RAccref``, it is just stringified.
   The result is something that can be used after getproduct in URLs
   in any case.
-
+  
 
 *requireValue(val, fieldName)*
   returns ``val`` unless it is ``None``, in which case a ``ValidationError``
   for ``fieldName`` will be raised.
-
+  
 
 *scale(val, factor, offset=0)*
   returns val*factor+offset if val is not None, None otherwise.
-
+  
   This is when you want to manipulate a numeric value that may be NULL.
   It is a somewhat safer alternative to using nullExcs with scaled values.
-
+  
 
 *toMJD(literal)*
   returns a modified julian date made from some datetime representation.
-
+  
   Valid representations include:
-
+  
   * MJD (a float smaller than 1e6)
   * JD (a float larger than 1e6)
   * datetime.datetime instances
   * ISO time strings.
-
+  
 
 
 

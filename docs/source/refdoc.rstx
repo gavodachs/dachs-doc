@@ -2838,7 +2838,7 @@ set.
 It also lets you associate data processing services with datasets,
 which allows on-the-fly generation of cutouts, format conversions or
 recalibrations; a particular set of parameters for working with certain
-kinds of cubes is described in a standard called [SODA]_ (Serverside
+kinds of cubes is described in a standard called [SODA]_ (Server-side
 Operations for Data Access).  Hence, we sometimes call the processing
 part of datalink SODA.
 
@@ -3104,8 +3104,6 @@ set on the descriptor (you can set that in a meta maker or the
 descriptor generator).
 
 
-
-
 Defining Processing Services
 ''''''''''''''''''''''''''''
 
@@ -3138,21 +3136,24 @@ processing will just re-use STREAMs and procDefs from the ``//soda`` RD.
 The two most common cases are cutouts over FITS cubes and over spectra.
 
 Processing services are referenced from the links table.  In DaCHS,
-the description column for the services is empty by default, which you
-may want to change.  Just set a ``dlget.description`` meta on the
-service.  In the following example, there is a normal VOResource
-description that will end up in the Registry and the DaCHS web
-interface, and a description of the processing service::
+the description column in the links table is set from the services
+description meta.  This falls back to the resource's description meta,
+which is almost never what you want.  So, make sure you include
+something reasonably concise into the service element like this::
 
-  <service id="dl" allowed="dlmeta,dlget">
-    <meta name="description">A datalink service for the COOL data
-      collection, giving provenance links, extracted sources, and
-      cutouts</meta>
-    <meta name="dlget.description">Use this interactive service
-      to do cutouts, retrieved scaled images, and choose between
-      FITS and JPEG results.</meta>
-    ...
+  <meta name="description">Slicing and dicing the images from the
+    wonderous survey</meta>
 
+Datalink services identify themselves as supporting some standard.
+Whenever DaCHS sees a dlget, it will declare the service a SODA service;
+this is harmless as long as you don't define SODA parameters that do
+something different from what SODA says they should do.  Still, if you
+have to, you can override the standardID meta to declare support of a
+different standard, or write::
+
+  <meta name="standardID"/>
+
+to entirely suppress the declaration of a standard identifier.
 
 
 FITS/SODA processing
@@ -3246,6 +3247,74 @@ SODA-like cutout.
 Finally, `//soda#sdm_format`_ pulls in a meta maker defining a FORMAT
 parameter (letting people order several formats including VOTable, FITS
 binary table, and CSV) and a formatter that interprets it.
+
+
+Multiple processing services
+............................
+
+If you yield InputKeys from meta makers, all of them will end up in a
+single processing service, and all data functions will contribute to
+that same processing service.
+
+Sometimes, however, you want to have two different processing services
+in a single datalink document.  In that case. define a second *datalink*
+service in DaCHS, usually with only a dlget renderer; that way, it will
+always be clear where the actual datalink information for data sets
+belonging to some collection can be obtained from.
+
+You can then yield a ProcLinkDef object (constructed with the current
+pubDID and the second datalink service) from a meta maker in the main
+datalink service.  Make sure that there is a description meta in the
+dlget-only datalink service so users have a chance to figure out why it
+is there.
+
+Since this is slightly subtle, here is a sketch of how this works::
+
+  <!-- define a common descriptor generator for all datalink services
+    working on the same data collection -->
+  <procDef  id="gen"
+      type="descriptorGenerator" procDef="//datalink#fromtable">
+    <bind key="tableName">"my.table"</bind>
+    <bind key="idColumn">"prikey"</bind>
+  </procDef>
+
+  <service id="dl" allowed="dlmeta,dlget">
+    <meta name="description">Data Collection's datalink service</meta>
+    <datalinkCore>
+      <descriptorGenerator procDef="gen"/>
+      <metaMaker>
+        <code>
+         # that's an argument for the built-in dlget service
+        yield MS(InputKey, name="arg1", type="text",
+          description="First service's argument 1")
+        </code>
+      </metaMaker>
+      <metaMaker>
+        <code>
+          # This links the second datalink service
+          yield ProcLinkDef(descriptor.pubDID, rd.getById("dl2"))
+        </code>
+      </metaMaker>
+      <!-- now give the main service its functionality -->
+      <dataFunction .../>
+    </datalinkCore>
+  </service>
+
+  <service id="dl2" allowed="dlget">
+    <meta name="description">Mogrification of the shlabudl</meta>
+    <meta name="standardID"/> <!-- stresses that this is higher magic -->
+    <datalinkCore>
+      <descriptorGenerator procDef="gen"/>
+      <metaMaker>
+        <code>
+        yield MS(InputKey, name="mogrification_level", type="real",
+          description="Second service's argument")
+        </code>
+      </metaMaker>
+      <!-- and again the meat of the service: -->
+      <dataFunction .../>
+    </datalinkCore>
+  </service>
 
 
 General Notes on Processing Services
