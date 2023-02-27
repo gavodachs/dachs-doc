@@ -115,6 +115,13 @@ Subsubcommands
 * ``execute exec-id`` -- Execute the contents of an RD execute element. You
   must give that element an explicit id in order to make this work; then
   exec-id is rd-id#exec-id
+* ``hipsfill [-d HIPSDIR] svcId`` -- complete the properties file in
+  HIPSDIR with metadata from the service referenced by svcId (e.g.,
+  q#hips).
+* ``hipsgen dataId minOrder`` -- Write a Hipsgen parameter file for making a
+  HiPS out of the data imported by dataId (e.g., q#import) to stdout.
+  minOrder is the minimal HEALPix order Hipsgen should generate (low
+  orders are computationally expensive!)
 * ``hashPassword pw`` -- hash a password.  adduser and friends already
   hash themselves, so this is likely only useful for the
   [web]adminPasswd setting.

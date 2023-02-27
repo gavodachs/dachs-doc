@@ -983,7 +983,7 @@ renderers -- include:
 :rights:
   freetext copyright notice.  See
   :dachsdoc:`tutorial.html#Licensing` for details.
-:rightsURI:
+:rights.rightsURI:
   machine readable license URI.  There's no formal list of
   acknowledged URIs yet, but the common CC URIs are a good start.
 :source:
@@ -3270,18 +3270,14 @@ is there.
 
 Since this is slightly subtle, here is a sketch of how this works::
 
-  <!-- define a common descriptor generator for all datalink services
-    working on the same data collection -->
-  <procDef  id="gen"
-      type="descriptorGenerator" procDef="//datalink#fromtable">
-    <bind key="tableName">"my.table"</bind>
-    <bind key="idColumn">"prikey"</bind>
-  </procDef>
-
   <service id="dl" allowed="dlmeta,dlget">
     <meta name="description">Data Collection's datalink service</meta>
     <datalinkCore>
-      <descriptorGenerator procDef="gen"/>
+      <descriptorGenerator  id="gen" procDef="//datalink#fromtable">
+        <bind key="tableName">"my.table"</bind>
+        <bind key="idColumn">"prikey"</bind>
+      </descriptorGenerator>
+
       <metaMaker>
         <code>
          # that's an argument for the built-in dlget service
@@ -3304,7 +3300,8 @@ Since this is slightly subtle, here is a sketch of how this works::
     <meta name="description">Mogrification of the shlabudl</meta>
     <meta name="standardID"/> <!-- stresses that this is higher magic -->
     <datalinkCore>
-      <descriptorGenerator procDef="gen"/>
+      <descriptorGenerator original="gen"/>
+
       <metaMaker>
         <code>
         yield MS(InputKey, name="mogrification_level", type="real",

@@ -14341,9 +14341,9 @@ something reasonably concise into the service element like this::
 Datalink services identify themselves as supporting some standard.
 Whenever DaCHS sees a dlget, it will declare the service a SODA service;
 this is harmless as long as you don't define SODA parameters that do
-something different than what SODA says they should do.  Still, if you
+something different from what SODA says they should do.  Still, if you
 have to, you can override the standardID meta to declare support of a
-different standard, of write::
+different standard, or write::
 
   <meta name="standardID"/>
 
@@ -14443,30 +14443,31 @@ parameter (letting people order several formats including VOTable, FITS
 binary table, and CSV) and a formatter that interprets it.
 
 
-Multiple processing service
-...........................
+Multiple processing services
+............................
 
 If you yield InputKeys from meta makers, all of them will end up in a
 single processing service, and all data functions will contribute to
-that same processing services.
+that same processing service.
 
-Sometimes, however, you want to have two processing services in a single
-datalink document.  In that case. define a *second* datalink service,
-usually with only a dlget renderer; that way, it will always be clear
-where the actual datalink information for data sets belonging to some
-collection can be obtained for.
+Sometimes, however, you want to have two different processing services
+in a single datalink document.  In that case. define a second *datalink*
+service in DaCHS, usually with only a dlget renderer; that way, it will
+always be clear where the actual datalink information for data sets
+belonging to some collection can be obtained from.
 
 You can then yield a ProcLinkDef object (constructed with the current
-pubDID and the reference to the second datalink service) from a meta
-maker in the main datalink service.  Make sure that there is a
-description meta in the dlget-only datalink service so users have a
-chance to figure out why it is there.
+pubDID and the second datalink service) from a meta maker in the main
+datalink service.  Make sure that there is a description meta in the
+dlget-only datalink service so users have a chance to figure out why it
+is there.
 
 Since this is slightly subtle, here is a sketch of how this works::
 
   <!-- define a common descriptor generator for all datalink services
     working on the same data collection -->
-  <procDef type="descriptorGenerator" procDef="//datalink#fromtable" id="gen">
+  <procDef  id="gen"
+      type="descriptorGenerator" procDef="//datalink#fromtable">
     <bind key="tableName">"my.table"</bind>
     <bind key="idColumn">"prikey"</bind>
   </procDef>
@@ -14489,7 +14490,7 @@ Since this is slightly subtle, here is a sketch of how this works::
         </code>
       </metaMaker>
       <!-- now give the main service its functionality -->
-      <dataFunction.../>
+      <dataFunction .../>
     </datalinkCore>
   </service>
 
@@ -14504,10 +14505,10 @@ Since this is slightly subtle, here is a sketch of how this works::
           description="Second service's argument")
         </code>
       </metaMaker>
+      <!-- and again the meat of the service: -->
+      <dataFunction .../>
     </datalinkCore>
   </service>
-
-
 
 
 General Notes on Processing Services
