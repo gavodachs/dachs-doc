@@ -1572,16 +1572,14 @@ for discovery (e.g., coverage and some statistical measures for the
 columns).  As of 2021, even some DaCHS-internal hacks working around
 deficiencies in the database server's query planner in connection with
 common spherical indexing schemes rely on these statistics.
+Also, your publication will be more useful if you have endowed your
+resource with `STC coverage`_.
 
 For ``ivo_published`` services, publication means that their metadata
 will be served whenever DaCHS is harvested by VO registries using a
-protocol called `OAI-PMH`_.  DaCHS' implemenation of that protocol is done
+protocol called `OAI-PMH`_.  DaCHS' implementation of that protocol is done
 such that XSLT-aware user agents (which, at least in 2020, still means:
 all major web browsers) can be used to (somewhat clumsily) operate it.
-
-Note that your publication will be more useful if you have endowed your
-resource with `STC coverage`_ and you have run ``dachs limits`` on the
-embedding RD\ [#belim]_.
 
 In practice, you can point your browser to the ``oai.xml`` child of your
 server root – by default http://localhost:8080/oai.xml –, and you will
@@ -1590,8 +1588,12 @@ but you will also see a link to a list of links to the metadata of all
 the resources you publish.  Follow this and look around; inspecting what
 DaCHS tells the Registry sometimes lets you spot metadata errors.
 
-There are two kinds of things that may become publicly visible without a
-``dachs pub`` because their typical discovery bypasses the Registry:
+Note that for your services to show up in common VO clients, you will
+have to do a bit more (once).  See `Interacting with the VO Registry`_.
+
+By the way, once you are in the Registry, there are two kinds of things
+that may become publicly visible without a ``dachs pub`` because their
+typical discovery bypasses the Registry:
 
 (a) TAP tables.  They will be entered into TAP_SCHEMA immediately, and
 TAP clients will find it there at once.  Also, many clients still use
@@ -2430,7 +2432,7 @@ elements::
 
 ``getWCSAxis`` is a function that looks at a FITS image's WCS
 information to let you transform pixel to physical coordinates.  This
-currently uses a simplified DaCHS implemenation that only does a small
+currently uses a simplified DaCHS implementation that only does a small
 part of WCS (but we may change that, keeping the interface stable).  The
 ``var``, anyway, binds the resulting object to ``specAx``.  You can use
 that later to find out the limits of the spectrum.  The way it is written
@@ -3864,7 +3866,6 @@ capability to the existing record using::
 
 in the service element of the *other* service.  Run ``dachs pub`` after
 doing this.
-
 
 
 HTML form-based services
@@ -5382,6 +5383,20 @@ publishing registry.  They do that perhaps once a day; do not become
 nervous if nothing happens for a couple of hours.
 
 .. _Registry of Registries: http://rofr.ivoa.net/
+
+For the GAVO RegTAP registry, which is used by default in clients like
+TOPCAT and pyVO, you can speed up the process by using our `Harvest
+Trigger Service`_.  When you have just registered with the RofR, first
+paste ``ivo://ivoa.net/rofr`` into the ivoid field to make us notice
+your registry.
+
+Then (and on any later update), paste your publishing registry's id,
+which in DaCHS will always be ``ivo://<your
+authority>/__system__/services/registry``, and hit Go.  Note that right
+now this will not update anything in GloTS (which is where TOPCAT
+still reads its TAP information from).
+
+.. _Harvest Trigger Service: http://dc.g-vo.org/rr/q/harvtrig/form
 
 
 Simple OAI operation
