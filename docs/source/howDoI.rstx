@@ -736,12 +736,14 @@ they're all the same).
 
 To do that, (ab)use the dm element.  You can freely invent “data models“
 for that purpose until there are some that work for your case and
-clients actually interpret use dm annotation.  In our example, you could
+clients actually interpret use dm annotation; to prevent later clashes
+with prefixes claimed by IVOA model, use some private tag on the prefix
+(``gavo-`` in the example below).  In our example, you could
 write in the table definition, with made-up class and attribute names::
 
   <table id="spectra">
     <dm>
-      (spec:spectrum) {
+      (gavo-spec:spectrum) {
         spectralAxis: @spectral
         fluxAxis: @flux
       }
