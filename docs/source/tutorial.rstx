@@ -5160,6 +5160,20 @@ the Javascript.  Only do that when debugging or to fix a transient bug
 until a fixed package is released.
 
 
+The local namespace
+-------------------
+
+Here's a feature you should only use sparingly if at all: if you have
+code you need from multiple different RDs, you can put it into
+``/var/gavo/etc/local.py``.  Whatever is defined in there is then
+visible to DaCHS code in the ``api.local`` namespace.
+
+DaCHS will not automatically reload this module when it is updated.
+However, you can call ``api.reloadLocal()`` to force such a reload.
+Local-using server-side code might want to call that when you develop
+local.py itself.
+
+
 Interacting with the VO Registry
 ================================
 

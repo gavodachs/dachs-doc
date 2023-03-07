@@ -13385,7 +13385,7 @@ Just directly produce the rowdicts and make the output table directly
 from the rows::
 
   rows = [{"foo": 3*i, "bar": 8*i} for i in range(30)]
-  return rsc.TableForDef(self.outputTable, rows=rows)
+  return api.TableForDef(self.outputTable, rows=rows)
 
 
 Database Options
@@ -13463,7 +13463,7 @@ in the procApp's namespace::
             "im": val.imag,
             "log": cmath.log(val).real})
 
-        return rsc.TableForDef(self.outputTable, rows=rows)
+        return api.TableForDef(self.outputTable, rows=rows)
       </code>
     </coreProc>
   </pythonCore>
@@ -14605,8 +14605,7 @@ where cutouts and similar is generated from spectra.  The actual
 definition is in ``//soda#sdm_genDesc``, but the gist of it is::
 
   <procDef type="descriptorGenerator" id="sdm_genDesc">
-    <setup imports="gavo.rscdef, gavo.rsc, gavo.svcs,
-       gavo.protocols.ssap">
+    <setup imports="gavo.api,gavo.protocols.ssap">
       <par key="ssaTD" description="Full reference (like path/rdname#id)
         to the SSA table the spectrum's PubDID can be found in."/>
       <par key="descriptorClass" description="The SSA descriptor
@@ -14615,13 +14614,13 @@ definition is in ``//soda#sdm_genDesc``, but the gist of it is::
         `custom generators &lt;#custom-product-descriptor-generators&gt;`_)."
         late="True">ssap.SSADescriptor</par>
       <code>
-        ssaTD = base.resolveCrossId(ssaTD, rscdef.TableDef)
+        ssaTD = api.resolveCrossId(ssaTD, api.TableDef)
       </code>
     </setup>
 
     <code>
-      with base.getTableConn() as conn:
-        ssaTable = rsc.TableForDef(ssaTD, connection=conn)
+      with api.getTableConn() as conn:
+        ssaTable = api.TableForDef(ssaTD, connection=conn)
         matchingRows = list(ssaTable.iterQuery(ssaTable.tableDef,
           "ssa_pubdid=%(pubdid)s", {"pubdid": pubDID}))
         if not matchingRows:
@@ -17872,6 +17871,16 @@ Traceback (most recent call last):
 ValueError: Invalid dms value with sepChar None: 'junk'
 
 
+Function document
+.................
+
+Signature: ``document(origFun)``
+
+is a decorator that adds a "buildDocsForThis" attribute to its argument.
+
+This attribute is evaluated by documentation generators.
+
+
 Function formatData
 ...................
 
@@ -18812,6 +18821,18 @@ If ``key`` is a string, it is quoted as a naked accref so it's usable
 as the path part of an URL.  If it's an ``RAccref``, it is just stringified.
 The result is something that can be used after getproduct in URLs
 in any case.
+
+
+Function reloadLocal
+....................
+
+Signature: ``reloadLocal()``
+
+reloads the local namespace.
+
+This is material an operator defines in $GAVO_CONFIG/local.py.  If that
+file is missing or unreadable, api.local will be a stub that raises
+a constant error regardless of what you try to getattr from it.
 
 
 Function renderDCErrorPage
