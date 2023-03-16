@@ -166,7 +166,7 @@ column ``flux``, and you need to change its unit, you would say::
 .. replaceWithResult getMixinDocs(docStructure, [
   "//products#table",
   "//scs#q3cindex", "//scs#pgs-pos-index",
-  "//siap#pgs",
+  "//siap2#pgs",
   "//ssap#mixc", "//ssap#hcd",
   "//ssap#view", "//ssap#plainlocation", "//ssap#simpleCoverage",
   "//timeseries#phot-0",
@@ -225,9 +225,9 @@ Procedures available for rowmaker/parmaker apply
 .. replaceWithResult _makeProcsDocumenter([
     "//procs#simpleSelect", "//procs#resolveObject",
     "//procs#mapValue", "//procs#fullQuery", "//procs#dictMap",
-    "//siap#computePGS",
-    "//siap#setMeta", "//ssap#setMeta", "//ssap#setMixcMeta",
-    "//siap#getBandFromFilter",
+    "//siap2#computePGS", "//siap2#setMeta",
+    "//siap2#getBandFromFilter",
+    "//ssap#setMeta", "//ssap#setMixcMeta",
     "//ssap#fill-plainlocation", "//ssap#feedSSAToSDM",
     "//slap#fillBasic",
     "//epntap2#populate-2_0",
