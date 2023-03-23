@@ -362,7 +362,7 @@ descriptorGenerator`_, `Element iterator`_, `Element metaMaker`_,
 `Element pargetter`_, `Element phraseMaker`_,
 `Element regTest`_, `Element rowfilter`_, `Element sourceFields`_) as
 well as to other pieces of code, such as in `Element customGrammar`_,
-`Element customCore`, or `Element customRenderer`.
+`Element customCore`_, or `Custom Pages`_.
 
 More information on what names DaCHS would like you to see are available
 in `Functions Available For Row Makers`_ and `The DaCHS API`_.
@@ -4350,12 +4350,14 @@ nevow documentation applies.  Nevertheless, here are some hints on how
 to write a custom page.
 
 First, in the RD, define a service allowing a custom page.  These
-normally have no cores (the customPage renderer will ignore the core)::
+normally have a null core (the customPage renderer will ignore it either
+way)::
 
-  <service id="ui" core="null" allowed="custom"
+  <service id="ui" allowed="custom"
     customPage="res/registration.py">
     <meta name="shortName">DOI registration</meta>
     <meta name="title">VOiDOI DOI registration web service</meta>
+    <nullCore/>
   </service>
 
 The python module referred to in customPage must define a ``MainPage``

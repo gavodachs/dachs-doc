@@ -1770,10 +1770,15 @@ actually returns some data.
 Publishing Images via SIAP
 --------------------------
 
-SIAP is a proven, if just a little dated, way to make images available
-in a uniform way.  Note that there is a second major version of SIAP,
-called SIAv2 here.  Since it is much more like obscore than like
-conventional SIAP, we discuss it there.
+*SIAPv2 as described here is only available in DaCHS 2.7.3 and later.
+If you want to create new image services, please make sure you update
+to that.*
+
+In the VO, there are currently two versions of the Simple Image Access
+Protocol SIAP.  While DaCHS still supports SIAP version 1, you should
+only use it for new services if you know exactly what you are doing.
+Hence, this tutorial (and, actually, the reference documentation, too)
+only talks about SIAP2.
 
 To generate a template RD for an  image collection published through
 SIAP, run::
@@ -1807,14 +1812,14 @@ Now fetch some files to populate the data directory so you have
 something to import::
 
   cd data
-  SRCURL=http://dc.g-vo.org/emi/q/s/siap.xml
-  curl -s $SRCURL"?POS=163.3,57.8&SIZE=20,20&MAXREC=5&weighting=uniform&RESPONSEFORMAT=votabletd" \
-    | tr '<TD>' '\n' \
+  SRCURL=http://dc.g-vo.org/emi/q/s/siap2.xml
+  curl -s $SRCURL"?CIRLE=163+3,57.8+20&MAXREC=5&weighting=uniform&RESPONSEFORMAT=votabletd" \
+    | tr '<>' '\n' \
     | grep "^http://" \
-    | sed -e 's/<[^>]*>//g' \
+    | grep -v preview \
     | xargs -n1 curl -sO
 
-(no, this is not in general the way to operate SIAP services; use a
+(no, this is no way to operate SIAP services; use a
 proper client for real work, and we didn't show you this).
 
 This RD also publishes to obscore, so make sure you have the obscore table::
@@ -1849,26 +1854,27 @@ Indicentally, we made the detour through TOPCAT since there's no nice UI
 to query non-registred SIAP services in Aladin.
 
 
-
 Defining SIAP Tables
 ''''''''''''''''''''
 
-SIAP-capable tables should mix in ``//siap#pgs``.  This mixin provides
+SIAP-capable tables should mix in ``//siap2#pgs``.  This mixin provides
 all the columns necessary for valid SIAP responses, and it will prepare
 the table so that spatial queries (which are the most common) will use a
-pgSphere index.
+pg_sphere index.
 
 So, in the simplest case, a table published through a SIAP service
 would be declared like this::
 
   <table id="images" onDisk="True" mixin="//siap#pgs"/>
 
-This only has the minimal SIAP metadata.  You will usually want to add
-additional columns with extra metadata from your images.
+This only has the minimal SIAP metadata.  The net result of this is that
+your new ``images`` table will have all the mandatory columns of
+Obscore_.  You can add your own, custom columns as usual.
 
 :dachsref:`The //siap#pgs mixin` also takes care that anything added to
 the table also ends up in `the products table`_.  This means that the
 grammar filling the table needs a :dachsref:`//products#define` rowfilter.
+
 
 Filling SIAP Tables
 '''''''''''''''''''
@@ -1877,16 +1883,17 @@ When filling SIAP tables, you will almost always use:
 
 * :dachsref:`Element fitsProdGrammar` as the grammar; see also
   `fitsProdGrammars`_ further down.
-* the :dachsref:`//siap#computePGS` apply to interpret the FITS WCS to
-  fill the coverage-related columns in the table.
-* the :dachsref:`//siap#setMeta` apply to fill the non-spatial
+* the :dachsref:`//siap2#computePGS` apply to interpret the FITS WCS to
+  fill the spatial columns in the table.
+* the :dachsref:`//siap2#setMeta` apply to fill the non-spatial
   SIAP metadata.
 
-In practice, this might look like this::
+In practice, this might look like this (taken from the emi/q RD from the
+quick start)::
 
   <data id="import_main">
     <sources recurse="True">
-      <pattern>data/*.fits</pattern>
+      <pattern>*.fits</pattern>
     </sources>
     <fitsProdGrammar qnd="True">
       <maxHeaderBlocks>80</maxHeaderBlocks>
@@ -1895,41 +1902,45 @@ In practice, this might look like this::
         <map key="obsdec">OBSDEC</map>
         <map key="obsra">OBSRA</map>
       </mapKeys>
-      <rowfilter procDef="//products#define">
+      <rowfilter procDef="__system__/products#define">
         <bind key="table">"emi.main"</bind>
       </rowfilter>
     </fitsProdGrammar>
 
     <make table="main" >
-      <rowmaker id="gen_rmk" idmaps="object, obsra, obsdec">
-        <apply procDef="//siap#computePGS"/>
-        <apply procDef="//siap#setMeta">
-          <bind name="bandpassLo">0.207</bind>
-          <bind name="bandpassHi">0.228</bind>
-          <bind name="bandpassId">"1.4 GHz"</bind>
-          <bind name="bandpassRefval">0.214</bind>
-          <bind name="bandpassUnit">"m"</bind>
-          <!-- since the images have a fairly complex provenance,
-          there's no way we can have sensible dates; this one here
-          ought to be reasonably representative -->
-          <bind name="dateObs"
-            >dateTimeToMJD(datetime.datetime(2010, 7, 4))</bind>
-          <bind name="instrument">@INSTRUME</bind>
-          <bind name="title">"VLBA 1.4 GHz "+@object</bind>
-        </apply>
-
+      <rowmaker id="gen_rmk" idmaps="obsra, obsdec">
         <apply name="fixObjectName">
-          <setup>
+          <setup imports="csv">
             <code>
-              import csv
-              with open(rd.getAbsPath(
-                  "res/namemap.csv")) as f:
+              with open(rd.getAbsPath("res/namemap.csv")) as f:
                 nameMap = dict(csv.reader(f))
             </code>
           </setup>
           <code>
-            @object = nameMap[@object]
+            @target_name = nameMap[@object]
           </code>
+        </apply>
+
+        <apply procDef="//siap2#computePGS"/>
+        <apply procDef="//siap2#setMeta">
+          <bind name="em_min">0.207</bind>
+          <bind name="em_max">0.228</bind>
+          <!-- since the images are fairly complex mosaics, there's no way we
+          can have sensible dates; this one here "plays a special role
+          in the calibration" (Middelberg) -->
+          <bind name="t_min"
+            >dateTimeToMJD(datetime.datetime(2010, 7, 4))</bind>
+          <bind name="t_max"
+            >dateTimeToMJD(datetime.datetime(2010, 7, 4))</bind>
+          <bind name="obs_title">"VLBA 1.4 GHz "+@target_name</bind>
+          <bind name="calib_level">3</bind>
+          <bind name="obs_collection">"VLBA LH sources"</bind>
+          <bind name="o_ucd">"phot.flux.density;em:radio.750-1500MHz;phys.polarisation.Stokes.I"</bind>
+          <bind name="pol_states">"/I/"</bind>
+          <bind name="pol_xel">1</bind>
+          <bind name="target_name">@target_name</bind>
+          <bind name="t_resolution">5000000</bind>
+          <bind name="target_class">"agn"</bind>
         </apply>
 
         <map key="weighting">\inputRelativePath.split("_")[-1][:-5]</map>
@@ -1948,7 +1959,7 @@ This does, step by step:
 * The ``qnd`` attribute of the grammar is recommended as long as you
   get away with it.  It makes some (weak) assumptions to yield
   significant speedups, but it limits you to the primary header.  You
-  cannot use ``qnd`` with compressed FITS images.  Also note the
+  cannot use ``qnd`` with compressed FITS images.  Also, note the
   ``hdusField`` attribute when you have more complex FITSes to process.
 * The ``fitsProdGrammar`` will map keys with hyphens to names with
   underscores, which allows for smoother action with them in rowmakers.
@@ -1959,20 +1970,27 @@ This does, step by step:
 * Since we are defining a table serving data products here,
   the grammar needs the :dachsref:`//products#define` rowfilter
   discussed in `the products table`_.
-* We have mentioned the :dachsref:`//siap#computePGS` mixin above; as
-  long as astropy can deal with your WCS, it's really automatic (though
+* We have mentioned the :dachsref:`//siap2#computePGS` apply above; as
+  long as astropy can deal with your WCS, it's all automatic (though
   you may want to pass parameters when you have cubes with suboptimal
   WCS or want to keep products without WCS in your table).  And if
   you don't have proper WCS: see above on checking with dachs-supoort.
 * The second apply you want when feeding SIAP tables is
-  :dachsref:`//siap#setMeta`.  Try to give all its keys
-  somewhat sensible values, you will make your users' lives much easier.
-* The exception to the “just fill all of setMeta's parameters” is the
-  various bandpass* parameters.  If the bandpass used is known to DaCHS,
-  just set ``bandpassId`` and then use the
-  :dachsref:`//siap#getBandFromFilter` apply.  Whether a band is known
+  :dachsref:`//siap2#setMeta`.  This has a lot of parameters, because
+  depending on what you are publishing – SIAP2 explicitly was designed
+  to push out cubes, too – you may want to give metadata like the length
+  of a wavelength axis.  ``dachs start siap`` puts in default mappings
+  for most of them; feel free to delete them if they don't make sense
+  for your kind of data.
+* There are two non-obscore parameters in setMeta.  For one, instead of
+  ``em_min`` and ``em_max``, you can set bandpassId and have the
+  :dachsref:`//siap#getBandFromFilter` look them up.  Whether a band is known
   you can find out by running ``dachs admin dumpDF data/filters.txt`` –
   and we are grateful for further contributions to that file.
+* You can also set ``dateObs`` to the central time of the observation
+  and give ``t_exposure`` a sensible value in seconds.  DaCHS will then
+  compute ``t_min`` and ``t_max`` for you, assuming a single, contiguous
+  observation.
 * Typically, many values you find in the FITS headers will be messy and
   fouled up.  You'll spend some quality time fixing these values in the
   typical case.  Here, we translate somewhat broken object names using
@@ -1983,138 +2001,85 @@ This does, step by step:
   In our object name fixer, we use that to let DaCHS find the input
   file independently of where the program was started.
 
-Somewhat regrettably, //siap#setMeta cannot be used with ``idmaps="*"``;
-as settings from setMeta would be overwritten then.  This is because
-setMeta was written before the idmaps attribute existed and hence it
-wrote directly into the rowdict.  Changing setMeta now would break existing
-RDs, which we try hard to avoid.
+Somewhat regrettably, //siap2#setMeta cannot be used with ``idmaps="*"``;
+as settings from setMeta would be overwritten then.  That's a compromise
+for backwards compatibility.
 
 
 Cores
 '''''
 
-There are two cores you may want for SIAP services:
+For SIAP1, there was the :dachsref:`Element siapCutoutCore` that returned
+cutouts rather than full images.  Nothing of this sort is possible for
+SIAP2, because spatial constraints are optional for the latter. If you
+really need that functionality, you'll either have to go back to SIAP1
+or (probably preferably, although client support isn't all that great
+yet) return datalinks rather than full images (see `SIAP and
+datalink`_).
 
-* :dachsref:`Element dbCore`, to which you add the necessary
-  condDescs manually as below, for “normal” SIAP services.
-* `siapCutoutCore <ref.html#element-siapcutoutcore>`_, which speaks SIAP
-  but returns cutouts rather than full images; the size of these cutouts
-  is determined by the SIZE argument (i.e., the region of interest).
-
-To furnish these cores with the parameters required by the standard, use
-the :dachsref:`//siap#protoInput` condDesc.
-If you want to re-use the core for a
-form-based service, simply add the :dachsref:`//siap#humanInput`
-condDesc; as for
-SCS, the respective renderers will use parsers adapted to where the
-inputs come from.
-
-So, a basic core with a couple of additional fields would look like
-this::
-
-    <dbCore id="query_images" queriedTable="main">
-      <condDesc original="//siap#protoInput"/>
-      <condDesc original="//siap#humanInput"/>
-      <condDesc buildFrom="dateObs"/>
-      <condDesc buildFrom="bandpassId" />
-      <condDesc>
-        <inputKey name="object" type="text"
-            tablehead="Target Object"
-            description="Object being observed, Simbad-resolvable form"
-            ucd="meta.name" verbLevel="5" required="True">
-            <values fromdb="object FROM lensunion.main"/>
-        </inputKey>
-      </condDesc>
-    </dbCore>
-
-.. _wcstools: http://tdc-www.harvard.edu/software/wcstools/
-
+That said, the core to use for SIAP2 is the :dachsref:`Element dbCore`.
+Add the condDescs necessary for SIAP manually (and add any custom
+condDescs as you see fit).  See the next section for an example.
 
 
 Service
 '''''''
 
-If you wrote the core to work for both SIAP and form as described above,
-there's little more to say except you'll want to use the ``siap.xml``
-renderer, and you need some additional metadata for VO registration.
-The latter is described with :dachsref:`the siap.xml renderer`.
+The service uses the siap2.xml renderer, for which you need some
+additional metadata for VO registration as described in
+:dachsref:`the siap2.xml renderer`.
 
-With this, the service definition would look like this::
+With this, a service definition would look like this (again taken from
+emi/q)::
 
-  <service id="im" allowed="form,siap.xml" core="query_image">
-    <meta name="shortName">sample images</meta>
-    <meta name="title">Sample Image Archive</meta>
+  <service id="s" allowed="form,siap2.xml">
+    <meta name="shortName">VLBI-Lockman</meta>
     <meta name="sia.type">Pointed</meta>
-
-    <meta name="testQuery.pos.ra">230.444</meta>
-    <meta name="testQuery.pos.dec">52.929</meta>
+    <meta name="testQuery.pos.ra">163.3</meta>
+    <meta name="testQuery.pos.dec">57.8</meta>
     <meta name="testQuery.size.ra">0.1</meta>
     <meta name="testQuery.size.dec">0.1</meta>
 
-    <publish render="siap.xml" sets="ivo_managed"/>
-    <publish render="form" sets="local,ivo_managed"/>
+    <publish render="siap2.xml" sets="ivo_managed"/>
+
+    <dbCore queriedTable="main">
+      <FEED source="//siap2#parameters"/>
+      <condDesc buildFrom="weighting"/>
+    </dbCore>
   </service>
 
-– where again you can just write the above core inline rather than
-referencing it; that's the style we usually recommend, and what the
-``dachs start`` template has.
+You probably do not want to point real users at the from rendering of
+this service.  If you want to have image services working in the
+browser, write an extra service; the output of ``dachs start siap`` has
+a starting point for that.
 
 
 SIAP and Obscore
 ''''''''''''''''
 
-SIAP's metadata is quite a bit poorer than Obscore's (cf. `publishing
-anything through Obscore`_).  This means that you will usually have to
-fill a few extra parameters to arrive at a full Obscore record.  But
-even a simple use of :dachsref:`the //obscore#publishSIAP mixin` will
-let people find your SIAP data in the obscore table.
+The SIAP2 metadata schema is exactly the one of Obscore.  Hence, to
+publish a SIAP table to Obscore, all you need to say is::
 
-The defaults given in the reference documentation show how we are
-mapping SIAP to Obscore.  At least whatever is NULL by default you
-should critically examine and fill as appropriate.
+  <mixin>//obscore#publishObscoreLike</mixin>
 
-DaCHS' SIAP template gives the most important extra fields::
+in your table element.
 
-  <mixin
-     calibLevel="2"
-     collectionName="'%a few letters identifying this data%'"
-     targetName="%column name of an object designation%"
-     expTime="%column name of an exposure time%"
-     targetClass="'%simbad taget class%'"
-   >//obscore#publishSIAP</mixin>
-
-You can delete any parameter you cannot fill or do not want to fill,
-though you really *should* put in a useful ``collectionName``.
-
-When you have non-constant spectral coverage on larger image tables, be
-sure to have::
-
-  <index columns="bandpassHi"/>
-  <index columns="bandpassLo"/>
-
-in the definition of the SIAP table.
-
-Since time metadata in SIAP isn't great, by default it's enough to::
-
-  <index columns="dateObs"/>
-
-in the default configuration.  If you do better on t_min and t_max,
-index these expressions to ensure fast responses to obscore queries
-involving temporal constraints.
+Note that for tables of non-trivial size, you really should have a
+spatial index on s_ra and s_dec (our advice: q3c) and on s_region (that
+will have to be a pg_sphere one) and otherwise index at least
+obs_publisher_did, em_min, em_max, t_min, and t_max.
 
 
 SIAP and Datalink
 '''''''''''''''''
 
-If you have larger  images or cubes and serve them through SIAP, consider
+If you have larger images or cubes and serve them through SIAP, consider
 offering datalinks or perhaps even have `Datalinks as Products`_.
 The latter case is particularly attractive if your images are so large
 that people just clicking on some row in Aladin_ might not expect a
 download of that size (in 2020, I'd set that limit at, perhaps, 100 MB).
 In both cases, people can select and download only parts of the image or
-request scaled versions of it (a less powerful and transparent
-alternative is the siapCutoutCore discussed above; the two options don't
-mix very well).
+request scaled versions of it.
 
 Defining a datalink service for normal FITS images is not hard.  In the
 simplest case, you just give a bit of metadata, use the
@@ -2159,39 +2124,20 @@ asking for an accref not starting with that string.  The idea here is
 to avoid applying code to datasets it is not written for.
 
 When you attach the datalink functionality (rather than having datalink
-links as access URLs), the following is the recommended pattern:
+links as access URLs), declare your table as having datalink support;
+both SIAP and TAP will pick that up and add the necessary declarations
+so datalink-aware clients will know they can run datalink queries
+against your service::
 
-(1) Add a pub_did column to the SIAP table.  Make sure you're giving it a
-    UCD of ``meta.id;meta.main`` and that you have no other such column
-    in your table::
+  <meta name="_associatedDatalinkService">
+    <meta name="serviceId">dl</meta>
+    <meta name="idColumn">pub_did</meta>
+  </meta>
 
-      <table id="data" onDisk="true" mixin="//siap#pgs">
-        <index columns="pub_did"/>
-        <column name="pub_did" type="text"
-          ucd="meta.id;meta.main"
-          tablehead="P. DID"
-          description="Dataset identifier assigned by the publisher"
-          verbLevel="15"/>
+This block needs to sit in the table element.  The serviceId meta
+contains the id of the datalink service.
 
-(2) Populate the ``pub_did`` column in the row maker::
-
-      <map key="pub_did">\standardPubDID</map>
-
-(3) Declare your table as having datalink support; both SIAP and TAP
-    will pick that up and add the necessary declarations so
-    datalink-aware clients will know they can run datalink queries
-    against your service::
-
-      <meta name="_associatedDatalinkService">
-        <meta name="serviceId">dl</meta>
-        <meta name="idColumn">pub_did</meta>
-      </meta>
-
-    This block needs to sit in the table element.  The serviceId meta
-    contains the id of the datalink service.
-
-(4) If you also produce HTML forms and tables, see `datalinks in
-    columns`_.
+If you also produce HTML forms and tables, see `datalinks in columns`_.
 
 
 Publishing Spectra or Time Series via SSAP
@@ -9348,6 +9294,7 @@ that's really not our fault.
 .. _installation guide: http://docs.g-vo.org/DaCHS/install.html
 .. _manually add our repository: http://soft.g-vo.org/repo
 .. _NAVO Registry: http://vao.stsci.edu/vo-directory/publishing/
+.. _Obscore: http://ivoa.net/documents/ObsCore/
 .. _pgsphere: http://pgsphere.projects.pgfoundry.org/
 .. _RDs used in Heidelberg: http://svn.ari.uni-heidelberg.de/svn/gavo/hdinputs/
 .. _reStructuredText: http://docutils.sourceforge.net/rst.html

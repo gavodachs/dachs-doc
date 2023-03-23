@@ -7277,10 +7277,10 @@ Parameter *t_exptime*
   Total exposure time
 Parameter *t_max*
   defaults to ``t_max``;
-  Upper bound of times represented in the data set, as MJD
+  Upper bound of times represented in the data set
 Parameter *t_min*
   defaults to ``t_min``;
-  Lower bound of times represented in the data set, as MJD
+  Lower bound of times represented in the data set
 Parameter *t_resolution*
   defaults to ``t_resolution``;
   Minimal significant time interval along the time axis
@@ -7657,33 +7657,21 @@ positional index.
 This will fail without the q3c extension to postgres.
 
 
-The //siap#pgs Mixin
-''''''''''''''''''''
+The //siap2#pgs Mixin
+'''''''''''''''''''''
 
 
-A table mixin for simple support of SIAP.
+A mixin pulling in all columns necessary to support SIAP2.
 
-The columns added into the tables include
+This is pulls in all obscore columns, including any you define locally
+in %#obscore-extracolumns.  In DaCHS, we additionally have the columns
+coming from the products table.  This latter fact means that the grammar
+filling tables mixing this in will need a `//products#define`_ rowfilter.
 
-- (certain) FITS WCS headers
-- imageTitle (interpolateString should come in handy for these)
-- instId -- some id for the instrument used
-- dateObs -- MJD of the "characteristic" observation time
-- the bandpass* values.  You're on your own with them...
-- the values of the product mixin.
-- mimetype -- the mime type of the product.
-- the coverage, centerAlpha and centerDelta, nAxes,
-  pixelSize, pixelScale, wcs* fields calculated by the
-  computePGS macro.
+To feed these tables, use the `//siap2#computePGS`_ and
+the `//siap2#setMeta`_ applies in the rowmaker.
 
-(their definition is in the siap system RD)
-
-Tables mixing in pgs can be used for SIAP querying and
-automatically mix in the products table mixin.
-
-To feed these tables, use the //siap#computePGS and
-//siap#setMeta procs.  Since you are dealing with products,
-you will also need the //products#define rowgen in your grammar.
+*Added in 2.7.3.*
 
 
 The //slap#basic Mixin
@@ -9400,22 +9388,27 @@ Parameter *table*
 Late parameter *val*
    UNDOCUMENTED
 
-//siap#computePGS
-.................
+//siap2#computePGS
+..................
 
 
-Computes WCS information for SIA tables from FITS WCS keys.
+Computes the spatial coverage of an image based on WCS keys it
+looks for in the rawdict.
 
-It takes no arguments but expects WCS-like keywords in rowdict, i.e.,
-CRVAL1, CRVAL2 (interpreted as float deg), CRPIX1, CRPIX2 (pixel
-corresponding to CRVAL1, CRVAL2), CUNIT1, CUNIT2 (pixel scale unit,
-we bail out if it isn't deg and assume deg when it's not present),
-CDn_n (the transformation matrix; substitutable by CDELTn), NAXISn
-(the image size).
+The minimum is CRVAL1, CRVAL2, CRPIX1, CRPIX2, CRVAL1, CRVAL2, CUNIT1,
+CUNIT2, NAXISn, and CDi_j or CDELTn.  Interpretation of more
+WCS may or may not happen.  You can override the indexes of the
+spatial axes using naxis, which will of course change the
+parameter names, too.
 
 Records without or with insufficient wcs keys are furnished with
-all-NULL wcs info if the missingIsError setup parameter is False,
-else they bomb out with a DataError (the default).
+all-NULL spatial columns if the missingIsError setup parameter
+is False, else they bomb out with a DataError (the default).
+
+This writes directly into rowdict; do *not* use ``idmaps="*"``
+on rowmakers with computePGS.
+
+*Added in 2.7.3.*
 
 
 Setup parameters for the procedure are:
@@ -9428,8 +9421,8 @@ Parameter *naxis*
   defaults to ``"1,2"``;
   Comma-separated list of integer axis indices (1=first) to be considered for WCS
 
-//siap#getBandFromFilter
-........................
+//siap2#getBandFromFilter
+.........................
 
 
 sets the bandpassId, bandpassUnit, bandpassRefval, bandpassHi,
@@ -9449,6 +9442,8 @@ All values filled in here are in meters.
 If this is used, it must run after //siap#setMeta since
 setMeta clobbers our result fields.
 
+*Added in 2.7.3.*
+
 
 Setup parameters for the procedure are:
 
@@ -9457,59 +9452,113 @@ Parameter *sourceCol*
   defaults to ``None``;
   Name of the column containing the filter name; leave at default None to take the band from result['bandpassId'], where such information would be left by siap#setMeta.
 
-//siap#setMeta
-..............
+//siap2#setMeta
+...............
 
 
-sets siap meta *and* product table fields.
-
-These fields are common to all SIAP implementations.
+Fills non-spatial information in an obscore record for an image.
 
 If you define the bandpasses yourself, do *not* change
-bandpassUnit and give all values in Meters.  If you do change
-it, at least obscore would break, but probably more.
+bandpassUnit and give all values in metres.
+
 For optical images, we recommend to fill out bandpassId and then
-let the //siap#getBandFromFilter apply compute the actual
-limits.  If your band is not known, please supply the
-necessary information to the authors.
+let the //siap2#getBandFromFilter apply compute the actual
+limits.
 
 Do *not* use ``idmaps="*"`` when using this procDef; it writes
 directly into result, and you would be clobbering what it does.
+
+The proc parameters use the obscore names whereever possible,
+but accept most of the names of the version 1 ``//siap#setMeta``
+and the ``//obscore#publishSIAP`` mixins.
+easy migration.
+
+*Added in 2.7.3.*
 
 
 Setup parameters for the procedure are:
 
 
-Late parameter *bandpassHi*
-  defaults to ``None``;
-  lower value of wavelength or frequency (you usually want to use //siap#getBandFromFilter to fill this).
 Late parameter *bandpassId*
   defaults to ``None``;
-  a rough indicator of the bandpass, like Johnson bands
-Late parameter *bandpassLo*
+  a rough indicator of the bandpass, like Johnson bands. Only give if you want //siap2#getBandFromFilter to infer em_min and em_max
+Late parameter *calib_level*
+  defaults to ``2``;
+  Calibration level of the image described here (see obscore docs for details). Images having WCS will generally have a 2 or 3 (if heavily resampled or stacked) here.
+Late parameter *dataproduct_subtype*
   defaults to ``None``;
-  upper value of the wavelength or frequency (you usually want to use //siap#getBandFromFilter to fill this).
-Late parameter *bandpassRefval*
-  defaults to ``None``;
-  characteristic frequency or wavelength of the exposure (you usually want to use //siap#getBandFromFilter to fill this).
-Late parameter *bandpassUnit*
-  defaults to ``"m"``;
-  The unit of the bandpassRefval and friends (just don't touch this)
+  Closer specification of the sort of data this row is for. It is almost always a good idea to leave this at None
+Parameter *dataproduct_type*
+  defaults to ``"image"``;
+  Type of data in this table. Must be a constant string taken from https://www.ivoa.net/rdf/product-type/
 Late parameter *dateObs*
   defaults to ``None``;
-  the midpoint of the observation; this can either be a datetime instance, or a float>1e6 (a julian date) or something else (which is then interpreted as an MJD)
-Late parameter *instrument*
-  defaults to ``str(rd.getMeta("instrument"))``;
-  a short identifier for the instrument used
-Late parameter *pixflags*
+  The midpoint of the observation; this can either be a datetime instance, or a float>1e6 (a julian date) or something else (which is then interpreted as an MJD). This is ignored if you give t_min and t_max
+Late parameter *em_max*
   defaults to ``None``;
-  processing flags (C atlas image or cutout, F resampled, X computed without interpolation, Z pixel flux calibrated, V unspecified visualisation for presentation only)
-Late parameter *refFrame*
-  defaults to ``'ICRS'``;
-  reference frame of the coordinates (change at your peril)
-Late parameter *title*
+  Upper value of the wavelength covered, in meters (you usually want to use `//siap2#getBandFromFilter`_ to fill this from bandpassId).
+Late parameter *em_min*
   defaults to ``None``;
-  image title. This should, in as few characters as possible, convey some idea what the image will show (e.g., instrument, object, bandpass
+  Lower value of the wavelength covered, in meters (you usually want to use `//siap2#getBandFromFilter`_ to fill this from bandpassId).
+Late parameter *em_res_power*
+  defaults to ``None``;
+  Spectral resolving power λ/Δλ. Unless you have a spectral cube, leave this at None.
+Parameter *em_ucd*
+  defaults to ``None``;
+  Nature of the spectral axis in this data collection (when you have a spectral cube, probably one of em.freq, em.wl, or em.energy)
+Late parameter *em_xel*
+  defaults to ``1``;
+  Number of spectral pixels in this image.
+Late parameter *facility_name*
+  defaults to ``base.getMetaText(targetTable, "facility", default=None)``;
+  Name of the facility at which data was taken.
+Late parameter *instrument_name*
+  defaults to ``base.getMetaText(targetTable, "instrument", default=None)``;
+  Name of the instrument that produced that data.
+Parameter *o_ucd*
+  defaults to ``"phot.count"``;
+  UCD for the observable in this data collection
+Late parameter *obs_collection*
+  A shorthand for the data collection this image belongs to. Make it really terse. Freetext otherwise
+Late parameter *obs_creator_did*
+  defaults to ``None``;
+  Identifier assigned by the creator. This is rarely used.
+Late parameter *obs_id*
+  defaults to ``None``;
+  An identifier for an observation if that has yielded multiple rows. Keep this None otherwise
+Late parameter *obs_publisher_did*
+  defaults to ``\standardPubDID``;
+  Dataset identifier assigned by you. If you want to re-publish this dataset in obscore, make this non-NULL.
+Late parameter *obs_title*
+  defaults to ``None``;
+  This should, in as few characters as possible, convey some idea what the image will show (e.g., instrument, object, bandpass)
+Late parameter *pol_states*
+  defaults to ``None``;
+  Polarisation states in this image. See Obscore if you have polarimetric observations.
+Late parameter *pol_xel*
+  defaults to ``None``;
+  Number of polarisation pixels in this image.
+Late parameter *t_exptime*
+  defaults to ``None``;
+  Total time in seconds the detector was collecting photons.
+Late parameter *t_max*
+  defaults to ``None``;
+  MJD the last photons on this image were received. If you leave this as None, DaCHS will try to fill it up from dateObs and t_exptime.
+Late parameter *t_min*
+  defaults to ``None``;
+  MJD the first photons on this image were received. If you leave this as None, DaCHS will try to fill it up from dateObs and t_exptime.
+Late parameter *t_resolution*
+  defaults to ``None``;
+  Minimal significant resolution on a time axis. Unless you have a space-time cube, leave at None.
+Late parameter *t_xel*
+  defaults to ``1``;
+  Number of time pixels in this image (make this None for stacked exposures.
+Late parameter *target_class*
+  defaults to ``None``;
+  Class of the target of a targeted observation. Choose from http://www.ivoa.net/rdf/object-type (or have the vocabulary extended if your object type is missing)
+Late parameter *target_name*
+  defaults to ``None``;
+  Target of a targeted observation. Choose something Simbad can resolve if you can.
 
 //slap#fillBasic
 ................
@@ -10903,7 +10952,7 @@ descriptorGenerator`_, `Element iterator`_, `Element metaMaker`_,
 `Element pargetter`_, `Element phraseMaker`_,
 `Element regTest`_, `Element rowfilter`_, `Element sourceFields`_) as
 well as to other pieces of code, such as in `Element customGrammar`_,
-`Element customCore`, or `Element customRenderer`.
+`Element customCore`_, or `Element customRenderer`_.
 
 More information on what names DaCHS would like you to see are available
 in `Functions Available For Row Makers`_ and `The DaCHS API`_.
@@ -19624,10 +19673,10 @@ datasets within this datacenter.
   (double precision) -- Best spatial resolution within the data set
 **t_min**
   (double precision) -- Lower bound of times represented in the data
-  set, as MJD
+  set
 **t_max**
   (double precision) -- Upper bound of times represented in the data
-  set, as MJD
+  set
 **t_exptime**
   (real) -- Total exposure time
 **t_resolution**
@@ -19770,10 +19819,10 @@ internally, and sometimes for tricky queries.
   (double precision) -- Best spatial resolution within the data set
 **t_min**
   (double precision) -- Lower bound of times represented in the data
-  set, as MJD
+  set
 **t_max**
   (double precision) -- Upper bound of times represented in the data
-  set, as MJD
+  set
 **t_exptime**
   (real) -- Total exposure time
 **t_resolution**
