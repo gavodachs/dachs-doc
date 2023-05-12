@@ -10026,7 +10026,7 @@ Setup parameters for the procedure are:
 
 Parameter *fitsAxis*
   defaults to ``3``;
-  FITS axis index (1-based) of the spectral dimension
+  FITS axis index (1-based) of the spectral axis
 Parameter *wavelengthOverride*
   defaults to ``None``;
   Override for the FITS unit given for the wavelength (for when it is botched or missing; leave at None for taking it from the header); this is a python literal.
@@ -10265,10 +10265,15 @@ You can give an stcs attribute (for fits_makeWCSParams); for this
 doesn't make sense because STCS cannot express the SODA parameter
 structure.
 
-For cubes, you can give a spectralAxis attribute here containing the
+For spectral cubes, you can give a
+spectralAxis attribute here containing the
 fits axis index (1..n) of the spectral axis.  If you don't, no BAND
 cutout will be generated.  If you do, you may want to fix
 wavelengthOverride (default is to take what the FITS says).
+
+For velocity cubes, there is, analogously, velocityAxis and
+and velocityOverride.  This will generate a (non-SODA) VELOCITY
+parameter (using m/s).
 
 To work, this needs a descriptor generator; you probably want
 //soda#fits_genDesc here.
@@ -10278,6 +10283,8 @@ To work, this needs a descriptor generator; you probably want
 
 * spectralAxis: '0'
 * stcs: ''
+* velocityAxis: '0'
+* velocityOverride: 'None'
 * wavelengthOverride: 'None'
 
 //soda#fits_standardBANDCutout
@@ -10952,7 +10959,7 @@ descriptorGenerator`_, `Element iterator`_, `Element metaMaker`_,
 `Element pargetter`_, `Element phraseMaker`_,
 `Element regTest`_, `Element rowfilter`_, `Element sourceFields`_) as
 well as to other pieces of code, such as in `Element customGrammar`_,
-`Element customCore`_, or `Element customRenderer`_.
+`Element customCore`_, or `Custom Pages`_.
 
 More information on what names DaCHS would like you to see are available
 in `Functions Available For Row Makers`_ and `The DaCHS API`_.
@@ -15603,12 +15610,14 @@ nevow documentation applies.  Nevertheless, here are some hints on how
 to write a custom page.
 
 First, in the RD, define a service allowing a custom page.  These
-normally have no cores (the customPage renderer will ignore the core)::
+normally have a null core (the customPage renderer will ignore it either
+way)::
 
-  <service id="ui" core="null" allowed="custom"
+  <service id="ui" allowed="custom"
     customPage="res/registration.py">
     <meta name="shortName">DOI registration</meta>
     <meta name="title">VOiDOI DOI registration web service</meta>
+    <nullCore/>
   </service>
 
 The python module referred to in customPage must define a ``MainPage``

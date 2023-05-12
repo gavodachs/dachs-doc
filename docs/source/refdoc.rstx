@@ -1042,6 +1042,10 @@ renderers -- include:
 :moreExamples:
   A URI for an additional DALI examples document.  These get translated
   to DALI continuation-s.
+:tableset:
+  A DaCHS reference to a table to include in a registry tableset (new in
+  2.7.3).  This currently will only be interpreted in document-typed
+  resources.
 
 While you can set any of these in etc/defaultmeta.txt, the following items
 are usually set there:

@@ -186,7 +186,7 @@ user:
   of DaCHS, and there is ``nv_static``, in which you can dump
   files that then become visible at ``<serverurl>/static``.  Templates
   are in a ``templates`` child, and one template you will probably want
-  to override is `The Root Page`_ of your data center.
+  to override is `The Root Page`_ of your data centre.
 
 
 The Resource Descriptor
@@ -218,7 +218,7 @@ resulting file q.rd in a text editor.  The upstream data for this is
 available at http://dc.g-vo.org/arihip/q/cone/static.
 
 This file comes from the collection of RDs active at GAVO's Heidelberg
-Data Center (https://dc.g-vo.org) which you can inspect at
+Data Centre (https://dc.g-vo.org) which you can inspect at
 http://svn.ari.uni-heidelberg.de/svn/gavo/hdinputs – in particular,
 you're welcome to copy as much as you want.  To locate examples for
 concrete elements, meta items, and such, have a look at
@@ -396,10 +396,10 @@ if you define a service within the RD, and there is no title meta within
 the service, DaCHS will use the title meta on the RD.  The
 root of the metadata inheritance hierarchy is the file
 ``etc/defaultmeta.txt``.  If you defined a meta item ``title`` there,
-this would be the default title for everything in your data center
+this would be the default title for everything in your data centre
 (which is something you probably don't want).  This default metadata,
 however, is handy for items that plausibly are
-essentially constant across a data center, like a publisher or a
+essentially constant across a data centre, like a publisher or a
 contact.  By the inheritance rules you can still override it in
 individual RDs or services if necessary.
 
@@ -1275,12 +1275,12 @@ You can run the following under any user id, as long as
 you wisely manage the permissions (short version: ``sudo adduser `id
 -nu` gavo`` to add you to the gavo group, then log out and in again to
 make it effective).  For testing, however, we recommend
-doing it as the data center administrative account (for the Debian
+doing it as the DaCHS' administrative account (for the Debian
 package, that's ``dachsroot``; if you did the setup manually, it's
 whatever user did the ``dachs init``).  If you want to stay yourself,
 see `becoming a DaCHS operator`_.
 
-To get a quick start, just pull in the RD in use by GAVO's data center::
+To get a quick start, just pull in the RD in use by GAVO's data centre::
 
   sudo -u dachsroot bash
   cd /var/gavo/inputs
@@ -1335,7 +1335,7 @@ When your data does not fit anything offered by ``dachs start``, you
 probably want to send mail to `dachs-support`_ describing what you are
 trying to do; perhaps we want to extend ``dachs start``.  Also, have a
 look at
-the `GAVO data center's service roster`_ if there's anything similar
+the `GAVO data centre's service roster`_ if there's anything similar
 there and then see if starting from the corresponding RD in our
 `RD repository`_ looks like it will save you work.
 
@@ -1383,7 +1383,7 @@ of ``resource`` (which mostly is natural).
 If you have skimmed the `DaCHS Basics`_
 above, not much of what you'll be seeing should surprise you.  If you're
 wondering about a particular thing, you can always refer to the
-:dachsdoc:`elemref.html` to see how it's used in our data center, or go to
+:dachsdoc:`elemref.html` to see how it's used in our data centre, or go to
 the `reference documentation`_.  Also, please give us hints if you see a
 way to make the material more helpful.
 
@@ -1398,7 +1398,7 @@ far, the metadata extracted from data was sub-standard.
 Also note that the the gencol output for FITS binary tables assumes you
 use fitsTableGrammar with ``lowerKeys="True"``.
 
-.. _GAVO data center's service roster: http://dc.g-vo.org
+.. _GAVO data centre's service roster: http://dc.g-vo.org
 .. _RD repository: http://svn.ari.uni-heidelberg.de/svn/gavo/hdinputs/
 
 
@@ -1812,14 +1812,14 @@ Now fetch some files to populate the data directory so you have
 something to import::
 
   cd data
-  SRCURL=http://dc.g-vo.org/emi/q/s/siap2.xml
-  curl -s $SRCURL"?CIRLE=163+3,57.8+20&MAXREC=5&weighting=uniform&RESPONSEFORMAT=votabletd" \
-    | tr '<>' '\n' \
-    | grep "^http://" \
-    | grep -v preview \
-    | xargs -n1 curl -sO
+  curl -FLANG=ADQL -FFORMAT=votable/td \
+    -FQUERY="SELECT TOP 5 access_url FROM emi.main WHERE weighting='uniform'" \
+    http://dc.g-vo.org/tap/sync \
+  | tr '<>' '\n' \
+  | grep getproduct \
+  | xargs -n1 curl -sO
 
-(no, this is no way to operate SIAP services; use a
+(no, this is no way to operate TAP services; use a
 proper client for real work, and we didn't show you this).
 
 This RD also publishes to obscore, so make sure you have the obscore table::
@@ -3053,7 +3053,7 @@ Pure Obscore Tables
 You can also have “pure” Obscore tables which do not build on protocol
 mixins.  A live example is the ``cubes`` table in the
 :samplerd:`califa/q3` RD within
-the GAVO data center.  Here is a brief explanation of how this works.
+the GAVO data centre.  Here is a brief explanation of how this works.
 
 Somewhat like with `the SSA view`_, you define a table for
 the obscore columns varying for your particular data collection.
@@ -3269,7 +3269,7 @@ want to publish.
 After that, say ``dachs imp -m <rd-id>``.  This adds the metadata you've
 given to all kinds of administrative tables DaCHS keeps, but DaCHS will
 not touch the rows in the tables.  It will also try to fix the
-permissions of the table such that DaCHS's untrusted user can read it.
+permissions of the table such that DaCHS' untrusted user can read it.
 To let DaCHS manage the permissions, in psql say (assuming standard
 profiles)::
 
@@ -3484,7 +3484,7 @@ For more information on how to create values for these regions, see
 Service
 '''''''
 
-EPN-TAP tables are queried through the data center's TAP service.  If
+EPN-TAP tables are queried through the DaCHS' TAP service.  If
 you have registred that, there is nothing else you need to do to access
 your data.
 
@@ -4407,7 +4407,7 @@ let your services work within the wider network and then covers a few
 more advanced topics.
 
 As delivered, the web interface of DaCHS will make it seem you are
-running a copy of the GAVO data center, with some metadata defused such
+running a copy of the GAVO data centre, with some metadata defused such
 that you are not actually disturbing our operation if you accidentally
 activate your registry interface.  To change this and make the site
 “yours”, you need to:
@@ -4569,7 +4569,7 @@ The Site Name
 The machinery needs some short name for the site in so many places that
 this is in the basic configuration (rather than the basic metadata,
 where it should reasonably be).  This should be a very terse phrase
-saying who you are; for Heidelberg, that's “GAVO Data Center”.  That
+saying who you are; for Heidelberg, that's “GAVO Data Centre”.  That
 phrase goes into the ``[web]sitename`` item.
 
 
@@ -4680,7 +4680,7 @@ what DaCHS gives you after installation include:
   this string too long and your registry records will not validate.
 * ``site.description`` – A description of your site that gives humans some
   idea what they are looking at.
-  Example: ``The GAVO data center provides VO publication services to
+  Example: ``The GAVO data centre provides VO publication services to
   all interested parties on behalf of the German Astrophysical Virtual
   Observatory.`` Use backslashes an the end of the lines to break long
   lines.  This is used when registering your publishing registry, and
@@ -4864,7 +4864,7 @@ additional indirection will not buy you anything), specifically:
   authority for your institute or organisation, this obviously should
   be different.
 * referenceURL – A URL at which people can learn more about
-  your data center.
+  your data centre.
 
 As an example, the following could work::
 
@@ -4922,7 +4922,7 @@ the Web Interface`_.
 The Root Page
 '''''''''''''
 
-When people dereference your data center URI, they will see the
+When people dereference your data centre URI, they will see the
 root.html template rendered.  The default is a simple list of services
 published in the local set (see `Registering Services and Data`_),
 together with site.description from your defaultmeta.
@@ -4966,7 +4966,7 @@ However, if it is just a few links or lines of text you want in there,
 there is the ``_sidebarlocal`` meta item that the default sidebar
 templates includes near its foot.  There are the ``sidebarnote`` and
 ``sidebarmicro`` classes you can use make things fit; and, in order to
-pull raw HTML all the way through DaCHS's guts, you have to use the raw
+pull raw HTML all the way through DaCHS' guts, you have to use the raw
 metadata format.  Hence, in ``etc/defaultmeta.txt``, you would put
 something like (see :dachsref:`Stream Metadata` for details)::
 
@@ -5255,7 +5255,7 @@ the resources shall be published to.
 Unless you have specific applications, only two
 sets are relevant: ``ivo_managed`` for publishing to the VO through
 DaCHS' built-in publishing registry,
-and ``local`` for publishing to your data center's service roster
+and ``local`` for publishing to your data centre's service roster
 on its front page.  Other sets could be introduced and used for, e.g.,
 specific sub-rosters, but you'd have to tell DaCHS about them in
 ``[ivoa]validOAISets``.
@@ -5467,7 +5467,7 @@ there, too, by adding a ``managedAuthority`` meta, like this::
 
   <meta name="managedAuthority">edu.euro-vo.org</meta>
 
-When done, run ``dachs pub //services`` to update DaCHS's resource
+When done, run ``dachs pub //services`` to update DaCHS' resource
 tables.
 
 
@@ -5523,7 +5523,7 @@ Creating an Organisation Record
 
 If you want to fill out the publisherID meta item – and there's no
 strong reason to do so at this point –, you have to create a registry
-record for you, i.e., the organisation that runs the data center and
+record for you, i.e., the organisation that runs the data centre and
 hence the registry.
 
 If you still want to have a publisherId, put something like::
@@ -5532,7 +5532,7 @@ If you still want to have a publisherId, put something like::
     <meta>
       resType: organization
       creationDate: 2007-12-19T12:00:00
-      title: GAVO Heidelberg Data Center
+      title: GAVO Heidelberg Data Centre
       subject: Organization
       referenceURL: http://www.ari.uni-heidelberg.de
       identifier: ivo://org.gavo.dc/org
@@ -5541,7 +5541,7 @@ If you still want to have a publisherId, put something like::
     <meta name="description">
       Operating at the Astronomisches Rechen-Institut (ARI) (part of
       Centre for Astronomy of Heidelberg University) on behalf of
-      the German VO organisation GAVO, the GAVO Heidelberg Data Center
+      the German VO organisation GAVO, the GAVO Heidelberg Data Centre
       is a one-stop shop for astronomical data publication projects
       of (almost) any description.  We are also active within the
       IVOA in standards development and Registry operations.
@@ -5752,7 +5752,7 @@ Admin Interfaces
 Admin Web Interfaces
 ''''''''''''''''''''
 
-Some administrative operations on the data center can (or have to)
+Some administrative operations on DaCHS can (or have to)
 be done from its web interface.
 To use these features, you have to set `The Admin Password`_.
 You can then use the “Log in” link in the side bar
@@ -6197,7 +6197,7 @@ maintainer scripts already have created, as pg_upgradecluster wants
 a clean slate::
 
   pg_ctlcluster $NEWVER main stop
-  # this is a good time to see if your data center still works; if not,
+  # this is a good time to see if your installation still works; if not,
   # you stopped the currently active cluster and should *not* drop it
   pg_dropcluster $NEWVER main
 
@@ -6205,7 +6205,7 @@ If these give errors to the effect that the “specified cluster does not
 exist”, that's fine.
 
 During the database update, postgres will be down, and hence
-your data center will not work. For a large database and a complicated
+DaCHS will not work. For a large database and a complicated
 upgrade, the update can take several hours (though, really, the last
 few upgrades for us were minute jobs although we have about 5 TB of
 tables).  You should therefore let people know what is going on.
@@ -6213,7 +6213,7 @@ As long as nobody really does
 anything with VOSI availability, the next best thing is to put your
 DaCHS installation in panic mode.
 
-To do this, place a file called MAINT into DaCHS's stateDir, maybe
+To do this, place a file called MAINT into DaCHS' stateDir, maybe
 somewhat like this::
 
   cat <<EOF > `dachs config stateDir`/MAINT

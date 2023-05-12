@@ -154,7 +154,7 @@ the excepitons.
 
 When defining new exceptions, if there is structured information (e.g.,
 line numbers, keys, and the like), always keep the information separate
-and use the __str__ method of the exception to construct something
+and use the ``__str__`` method of the exception to construct something
 humans want to see.  All built-in exceptions should accept a hint
 keyword.
 
@@ -162,7 +162,7 @@ keyword.
 The events subsystem
 --------------------
 
-All proper DC code (i.e. above base) should do user interaction
+All proper DaCHS code (i.e. above base) should do user interaction
 through base.ui.notify<something>.  In base and below, you can use
 utils.sendUIEvent, but this should be reserved for weird circumstances;
 code so far down should't normally need to do user interaction or similar.
@@ -208,9 +208,9 @@ Most logging is done in user.logui; if you want logging, say::
 Catching exceptions
 -------------------
 
-In the DC software, is is frequently desirable to ignore the first rule
+In the DaCHS, is is frequently desirable to ignore the first rule
 of exception handling, viz., leave them alone as much as possible.
-Instead, we often map exceptions to DC-internal exceptions (this is very
+Instead, we often map exceptions to DaCHS-internal exceptions (this is very
 relevant for everything leading up to ValidationErrors, since they are
 used in user interaction on the web interface).  However, to make the
 original exception information available for debugging or problem
@@ -563,7 +563,7 @@ while you're testing the experimental features.
 Structures
 ==========
 
-Resource description within the DC works via instances of
+Resource description within DaCHS works via instances of
 base.Structure.  These parse themselves from XML strings, do validation,
 etc.  All compound RD elements correspond to a structure class (well,
 almost; meta is an exception).
@@ -578,10 +578,8 @@ A structure instance has the following callbacks:
 * ``onElementComplete()`` -- called after validate, i.e., elementCompleted
   can rely on seeing a "valid" structure
 
-In addition, attributes can define ``onParentCompleted`` methods.  These
-are called after onElementCompleted of the parent element is run when
-the attribute value is different from its default.  They receive the new
-attribute value as the single argument.  Maybe this is bad design.
+In addition, structures can define ``onParentCompleted`` methods.  These
+are called after they parent's onElementComplete callbacks.
 
 This processing is done automatically when parsing elements from XML.
 When building elements manually, you must call the structure's
@@ -902,9 +900,6 @@ particular, when you stringify them, they  result in string ready for
 inclusion into SQL (i.e., hopefully properly escaped).  The hash to the
 name, i.e., there are no implied quotes, and, unfortunately,
 hash(di)!=hash(str(di)).
-
-The DC software right now assumes DIs are ASCII only (what do the
-standards people say?).
 
 The one real painful thing is the representation of result rows with
 DIs -- I did not want to have lots of these ugly QuotedNames in the
