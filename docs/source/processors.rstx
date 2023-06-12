@@ -737,6 +737,7 @@ sextractor).
 To use it, inherit from ``AnetHeaderProcessor``, for instance::
 
   from gavo import api
+  from gavo.helpers import fitstricks
 
   class MyProcessor(api.AnetHeaderProcessor):
     indexPath = "/usr/share/astrometry

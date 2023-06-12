@@ -4582,6 +4582,23 @@ on to send mail (we like the nullmailer package for things like that)
 and set ``[general]maintainerAddress`` to a mail address you regularly
 read.
 
+Enabling e-mail for a server may be a challenge these day;
+theoretically, all it would take is install the nullmailer package and
+configure it with some SMTP smarthost.  In practice, this may now be a
+lot more difficult.  Ask your institution's mail people.
+
+If that does not go anywhere, you could install the exim4 package and
+configure a local address (for instance, dachsroot) as the maintainer
+address.  You would then read the mail locally on your server.
+
+If all else fails, you can configure::
+
+  sendmail: cat >> /var/gavo/logs/dead.letters
+
+and then have a look at that dead.letters file now and then.
+
+But letting your computer send mail is still the preferred thing by far.
+
 
 Path Configuration
 ''''''''''''''''''
@@ -7157,7 +7174,7 @@ still feel free to use them – we will not remove them any time soon.
 
 
 Skipping Rows
-'''''''''''''
+.............
 
 To skip individual rows of a source, raise ``IgnoreThisRow`` in a
 procedure application, like this::

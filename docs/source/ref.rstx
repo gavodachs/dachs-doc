@@ -10075,8 +10075,16 @@ the various WCS axes in physical coordinates.
 
 This uses astropy.wcs for the spatial coordinates and tries to figure out
 what these are with some heuristics.  For the remaining coordinates,
-it assumes all are basically 1D, and it sets up separate, manual
-transformations for them.
+it can set up separate, manual transformations.  However, since in general,
+they will correspond to standard SODA parameters (like BAND; there are
+other streams of that in this RD), you have to explictly request that by
+mentioning the fits axis index in axisMetaOverrides, minimally like this::
+
+  <bind key="axisMetaOverrides">{3: {}}</bind>
+
+This will generate a parameter from the FITS metadata of axis 3.
+You can override param attributes in the dictionary that is the
+value of the axis key.
 
 The metaMaker leaves an axisNames mapping in the descriptor.
 This is important for the fits_doWCSCutout, and replacement metaMakers
@@ -10086,11 +10094,6 @@ The meta maker also creates a skyWCS attribute in the descriptor
 if successful, containing the spatial transformation only.  All
 other transformations, if present, are in miscWCS, by a dict mapping
 axis labels to the fitstools.WCS1Trans instances.
-
-If individual metadata in the header are wrong or to give better
-metadata, use axisMetaOverrides.  This will not generate standard
-parameters for non-spatial axis (BAND and friends).  There are
-other //soda streams for those.
 
 
 Setup parameters for the procedure are:
@@ -10275,12 +10278,16 @@ For velocity cubes, there is, analogously, velocityAxis and
 and velocityOverride.  This will generate a (non-SODA) VELOCITY
 parameter (using m/s).
 
+For axisMetaOverrides, see `//soda#fits_makeWCSParams`_ (except it's
+an attribute here rather than a proc param).
+
 To work, this needs a descriptor generator; you probably want
 //soda#fits_genDesc here.
 
 
 *Defaults* for macros used in this stream:
 
+* axisMetaOverrides: '{}'
 * spectralAxis: '0'
 * stcs: ''
 * velocityAxis: '0'
@@ -12217,6 +12224,10 @@ renderers -- include:
 :moreExamples:
   A URI for an additional DALI examples document.  These get translated
   to DALI continuation-s.
+:tableset:
+  A DaCHS reference to a table to include in a registry tableset (new in
+  2.7.3).  This currently will only be interpreted in document-typed
+  resources.
 
 While you can set any of these in etc/defaultmeta.txt, the following items
 are usually set there:
