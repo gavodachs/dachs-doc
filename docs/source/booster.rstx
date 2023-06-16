@@ -84,6 +84,8 @@ what kind of source you're parsing from.  Values allowed here include:
 * ``hdf5vaex`` – parse from an HDF5 file in VAEX convention (i.e., the
   table comes as one dataset per column, found at
   ``/table/columns/<colname>/data``.
+* ``hdf5rootarrs`` – parse from an HDF5 file where columns come as
+  individual arrays in the root of the file.
 
 The ``mkboost`` subcommand receives a reference of to the
 ``directGrammar`` element – that is, the RD id, a hash, and the XML id
@@ -561,8 +563,8 @@ HDF5 is a fairly complex binary format that allows any number of
 different serialisations of tables.  The :dachsref:`Element hdf5Grammar`
 can parse some of these.
 
-For boosters, currently only the vaex dialect is available (ask for
-others).  To use it, select ``type="hdf5vaex"`` in the direct grammar.
+Directgrammar can generate boosters for a few HDF5 dialects.
+list above.
 
 As with FITS, there is some basic metadata in HDF5 files that
 lets DaCHS infer mappings when HDF5 and column names match or when

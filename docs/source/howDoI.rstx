@@ -660,6 +660,52 @@ redirect to the process that actually serves the data::
   </service>
 
 
+...pre-set values for buildFrom condDescs?
+------------------------------------------
+
+The normal way to build service parameters in DaCHS is to say::
+
+  <condDesc buildFrom="some_column"/>
+
+in a dbCore.  This will automatically understand VizieR-like expressions
+in web forms, DALI intervals in modern protocols, “PQL“ in SSAP, and so
+on.  This is trouble when you want to set a default for this parameter.
+For instance, to say “between 2 and 5“, the default would have to be ”2
+.. 5“ with VizieR, “2 5“ in DALI and “2/5” in PQL.  Yes, it *is* a mad
+world.
+
+DaCHS does not yet have a way to do such pre-sets in a sane way.  Where
+the ``defaultForForm`` property (see :dachsref:`Element inputKey`) is
+not enough, you will have to use code in a phrase maker and in it
+dispatch on the type DaCHS has chosen when adapting the condDesc to the
+renderer.  The following example might help you writing such a thing::
+
+  <condDesc inputOptional="True" buildFrom="some_column">
+    <phraseMaker>
+      <code>
+        if inPars[inputKeys[0].name] is None:
+          # None means: no input
+          if inputKeys[0].xtype=="interval":
+            # That's DALI (e.g., SCS): an interval is a parsed 2-list
+            inPars[inputKeys[0].name] = [2, 5]
+
+          elif inputKeys[0].xtype=="vexpr-float":
+            # That's VizieR on a float-valued column, which just hands
+            # through the input trings to getSQLForField
+            inPars[inputKeys[0].name] = "2 .. 5"
+
+        yield base.getSQLForField(inputKeys[0], inPars, outPars)
+      </code>
+    </phraseMaker>
+  </condDesc>
+
+If you find yourself resorting to horrors like that more often, let us
+know and we will think a bit harder about whether there really is not a
+better way to do that.
+
+*(starting version 2.8)*
+
+
 ...pre-set a value for a datalink parameter?
 --------------------------------------------
 
