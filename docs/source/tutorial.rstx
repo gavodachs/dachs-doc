@@ -6186,8 +6186,8 @@ numbers quite a few times, set them in variables – but be *very*
 careful, if you  get this wrong, the commands further down will nuke
 your database::
 
-  export OLDVER=11
-  export NEWVER=12
+  export OLDVER=13
+  export NEWVER=15
 
 To upgrade, first install the new engine and extensions, for instance::
 
@@ -6274,18 +6274,14 @@ wrote some, didn't you?).
 
 However, quite typically the table stats are wrong or ununderstandable
 to the new version, so for large tables you may see timeouts and the
-like.  Starting around version 10, pg_upgradecluster helpfully provides
-a script that does all that's required to update the stats and make
-things fast again.  It is kept together with the upgrade log which you
-will find by going to ``/var/log/postgresql``, saying ``ls -lr
---sort=time``.  The last directory shown ought to be your upgrade
-directory.
+like.  In pre-15 versions of pg_upgradecluster, it created a shell script
+to update the statistics.  For these versions, see the command's output
+for how to call that script (just be sure to execute it as the postgres
+user).
 
-In there, start a ``screen`` (the script can take a long while, and it's
-good if you can detach the screen with ^ADD and it keeps running
-while you are going home) and run it like this::
+In newer postgreses, simply run::
 
-  sudo -u postgres sh ./analyze_new_cluster.sh
+  sudo -u postgres /usr/lib/postgresql/15/bin/vacuumdb --all --analyze
 
 Pg_upgrade has also printed a command that will remove the old
 cluster; execute it, and finally deinstall the old postgres packages to
@@ -6652,26 +6648,41 @@ see what to do::
 New-style SIL definitions
 .........................
 
-When a proper STC data model comes around, it is quite likely that DaCHS
-will use the custom Simple Instance Language SIL to do this annotation.
+Regrettably, the Coords data model is not really usable for annotating
+database tables.  However, you can (and should) use an ad-hoc,
+DaCHS-specific DM to provide frames and such.  You can do that using a
+little language called Simple Instance Language or SIL that you can use
+in dm children of table elements.
 The reference manual has an introduction to the syntax in
 :dachsref:`Annotation Using SIL`.
 
-This doesn't help much in practice because this assumes a model, which
-we don't really have yet.  DaCHS, however, interprets SIL for time
-system annotation, which is then translated into TIMESYS in VOTables.
-In an ad-hoc way, use the following template, again as a child of table::
+Since version 2.7.3, DaCHS in interprets time and space children from
+votable:Coords instances.  They are defined in dm children in tables in
+this way::
 
   <dm id="obs_pos">
-    (stc2:Coords) {
-      time: (stc2:TimeCoordinate) {
-        frame:
-          (stc2:TimeFrame) {
+    (votable:Coords) {
+      time: (votable:TimeCoordinate) {
+        frame: (votable:TimeFrame) {
             timescale: TCB
             refPosition: BARYCENTER
             time0: 0 }
         location: @obs_time
       }
+      space:
+        (votable:SphericalCoordinate) {
+          frame: (votable:SpaceFrame) {
+            orientation: ICRS
+            refPosition: TOPOCENTER
+            epoch: "J2000.0"
+          }
+          longitude: @ra
+          latitude: @dec
+          distance: @dist
+          pm_longitude: @pmra
+          pm_latitude: @pmdec
+          rv: @rv
+        }
     }
   </dm>
 
@@ -6679,7 +6690,7 @@ To adjust this to your tables, pick a timescale from
 http://www.g-vo.org/rdf/timescale, a reference position from
 http://www.g-vo.org/rdf/refposition, and change time0 to the JD of the
 epoch of your calendar; 0 is for JD itself or 2400000.5 for MJD.  If you
-have anything else, DaCHS can help you.  For instance::
+have some other time origin else, DaCHS can help you.  For instance::
 
   >>> from gavo import api
   >>> import datetime
@@ -6689,7 +6700,12 @@ have anything else, DaCHS can help you.  For instance::
 computes the JD of the Unix epoch.
 
 Finally, to set the location, reference the column with a leading @.  If
-you use a literal here, the implicit unit is day.
+you use a literal here, the implicit unit is day.  See also
+:dachsref:`STC annotation`.
+
+At this point, DaCHS produces VOTable COOSYS and TIMESYS elements from
+this data.  We hope that if and when there is a suitable annotation
+based on an IVOA data model, we can translate this to whatever it is.
 
 
 Defining Views
@@ -9227,12 +9243,29 @@ against.  In HTML forms, they are easily displayed as human-readable
 datetimes by using an ``displayHint="type=humanDate"`` (which you can do
 for the others, too, of course).
 
-And yes, unfortunately DaCHS currently has to use the column name to
-tell MJDs from JDs.  We used to use the xtype for that (and that still
-works), but that is incompatible with the SODA/SIAv2 use of xtype.
-Eventually, some saner mechanism will be defined by the VO, but until
-then just name columns having MJDs something with ``mjd`` in it.  And
-don't have ``mjd`` in your column names unless there's MJD in there.
+And yes, historically DaCHS did use the column name to tell MJDs from
+JDs.  We used to use the xtype for that (and that still works), but that
+is incompatible with the SODA/SIAv2 use of xtype.  As of DaCHS version
+2.8, you should add a full time annotation for MJD times (cf. `New-style
+SIL definitions`_).  This could look like this::
+
+  <dm>
+    (votable:Coords) {
+      time: {
+        frame: {
+          timescale: UTC
+          refPosition: TOPOCENTER
+          time0: MJD-origin
+        }
+        location: @my_time
+      }
+  </dm>
+  <column name="my_time"
+    unit="d"
+    .../>
+
+Admittedly, that is a bit verbose, and perhaps we will experiment with
+shortcuts later.
 
 The Julian years are a good choice, too, and they are immediately
 human-readable to some extent.  They are certainly the representation of

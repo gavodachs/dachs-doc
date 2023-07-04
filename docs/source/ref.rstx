@@ -356,6 +356,9 @@ Atomic Children
   condDescs just collecting random input keys)
 * **fixedSQL** (unicode string; defaults to None) -- Always insert
   this SQL statement into the query.  Deprecated.
+* **inputOptional** (boolean; defaults to 'False') -- Call the phrase
+  maker even if no input to our input keys is there (useful to provide
+  built-in defaults).
 * **joiner** (unicode string; defaults to 'OR') -- When yielding
   multiple fragments, join them using this operator (probably the only
   thing besides OR is AND).
@@ -988,7 +991,7 @@ Properties evaluated:
   presumably right for almost everyone, having to delete stuff
   you don't want over and over is really annoying).
 * adaptToRenderer -- a true boolean literal here causes the param
-  to be adapted for the renderer (e.g., float could become vizierexpr-float).
+  to be adapted for the renderer (e.g., float could become vexpr-float).
   You'll usually not want this, because the expressions are
   generally evaluated by the database, and the condDescs do the
   adaptation themselves.  This is mainly for rare situations like
@@ -1116,7 +1119,7 @@ can use the ``execDef.spawnPython(modulePath)`` function.
 
 If you must stay within the server process, you can do something like::
 
-  mod, _ = utils.loadPythonModule(rd.getAbsPath("bin/coverageplot.py"))
+  mod, _ = utils.loadPythonModule(rd.getAbsPath("bin/coverageplot"))
   mod.makePlot()
 
 -- in that way, your code can sit safely within the resource directory
@@ -3513,10 +3516,11 @@ Atomic Children
   this is the maximum length of an input line.
 * **splitChar** (unicode string; defaults to '|') -- For split
   boosters, use this as the separator.
-* **type** (One of: bin, col, fits, hdf5vaex, split; defaults to
-  'col') -- Make code for a booster parsing by column indices (col),
-  by splitting along separators (split), by reading fixed-length
-  binary records (bin), for from FITS binary tables (fits).
+* **type** (One of: bin, col, fits, hdf5rootarrs, hdf5vaex, split;
+  defaults to 'col') -- Make code for a booster parsing by column
+  indices (col), by splitting along separators (split), by reading
+  fixed-length binary records (bin), for from FITS binary tables
+  (fits).
 
 Structure Children
 ..................
@@ -6773,7 +6777,7 @@ The common extension
   Max distance from observed area to body center
 :radial_distance_min:
   Min distance from observed area to body center
-:coverate:
+:coverage:
   (ST)MOC footprint, valid for celestial, spherical, or body-fixed
   frames + time coverage
 :solar_longitude_max:
@@ -6887,7 +6891,7 @@ The experimental spectroscopy extension
 :grain_size_min:
   Min sample particle size
 :measurement_atmosphere:
-  Describes experimental conditions. “vacuum“ for measurements under
+  Describes experimental conditions. ``vacuum'' for measurements under
   vacuum
 :pressure:
   Ambient pressure
@@ -7742,6 +7746,9 @@ Parameter *publisher*
 Parameter *reference*
   defaults to ``__NULL__``;
   URL or bibcode of a publication describing this data; ssa:Curation.Reference
+Parameter *refposition*
+  defaults to ``UNKNOWN``;
+  Reference position for times given in this table. Choose from http://www.ivoa.net/rdf/refposition, leave as UNKNOWN if in doubt.
 Parameter *spectralCalibration*
   defaults to ``__NULL__``;
   Type of wavelength Calibration (one of ABSOLUTE, RELATIVE, NORMALIZED, or UNCALIBRATED); ssa:Char.SpectralAxis.Calibration
@@ -7774,6 +7781,9 @@ Parameter *sysSpectError*
 Parameter *timeSI*
   defaults to ``__NULL__``;
   SI conversion factor for times in Osuna-Salgado convention; ssa:DataSet.TimeSI (you probably want to leave this empty)
+Parameter *timescale*
+  defaults to ``TT``;
+  Timescale for times given in this table. Choose from http://www.ivoa.net/rdf/timescale. If in doubt, leaving this at TT is probably good enough for discovery.
 
 The //ssap#mixc Mixin
 '''''''''''''''''''''
@@ -7812,6 +7822,9 @@ Parameter *fluxUCD*
   ucd of the flux column, like phot.count, phot.flux.density, etc. Default is for flux over wavelength; ssa:Char.FluxAxis.Ucd
 Parameter *fluxUnit*
   Flux unit used by the spectra and in SSA char metadata. This must be a VOUnit string (use a single blank if your spectrum is not calibrated).
+Parameter *refposition*
+  defaults to ``UNKNOWN``;
+  Reference position for times given in this table. Choose from http://www.ivoa.net/rdf/refposition, leave as UNKNOWN if in doubt.
 Parameter *spectralSI*
   defaults to ``__NULL__``;
   SI conversion factor of frequency or wavelength in the spectrum instance (not the SSA metadata, they are all in meters); ssa:Dataset.SpectralSI (you probably want to leave this empty)
@@ -7823,6 +7836,9 @@ Parameter *spectralUnit*
 Parameter *timeSI*
   defaults to ``__NULL__``;
   SI conversion factor for times in Osuna-Salgado convention; ssa:DataSet.TimeSI (you probably want to leave this empty)
+Parameter *timescale*
+  defaults to ``TT``;
+  Timescale for times given in this table. Choose from http://www.ivoa.net/rdf/timescale. If in doubt, leaving this at TT is probably good enough for discovery.
 
 The //ssap#plainlocation Mixin
 ''''''''''''''''''''''''''''''
@@ -7961,6 +7977,9 @@ Parameter *mime*
 Parameter *owner*
   defaults to ``owner``;
   Owner of the data
+Parameter *refposition*
+  defaults to ``UNKNOWN``;
+  Reference position for times given in this table. Choose from http://www.ivoa.net/rdf/refposition, leave as UNKNOWN if in doubt.
 Parameter *sourcetable*
   Reference to the table to build the view upon (i.e., the value of its id attribute). This mixin can only build onto a single table. To make an SSA table based on a join of multiple underlying table, define an intermediate table with a viewStatement of its own and use that as sourcetable.
 Parameter *ssa_aperture*
@@ -8111,6 +8130,9 @@ Parameter *ssa_timeExt*
 Parameter *ssa_timeSI*
   defaults to ``NULL``;
   It's safe to ignore this.
+Parameter *timescale*
+  defaults to ``TT``;
+  Timescale for times given in this table. Choose from http://www.ivoa.net/rdf/timescale. If in doubt, leaving this at TT is probably good enough for discovery.
 Parameter *whereclause*
   A SQL fragment that fits after the source table (typically, a WHERE clause). Use this if you only want a subset of the original table to be visible through SSAP.
 
@@ -9141,7 +9163,7 @@ Late parameter *target_name*
   Name of the target object, preferably according to the official IAU nomenclature. As appropriate, take these from the exoplanet encyclopedia http://exoplanet.eu, the meteor catalog at http://www.lpi.usra.edu/meteor/, the catalog of stardust samples at http://curator.jsc.nasa.gov/stardust/catalog/
 Late parameter *target_region*
   defaults to ``None``;
-  This is a complement to the target name to identify a substructure of the target that was being observed (e.g., Atmosphere, Surface). Take terms from them Spase dictionary at http://www.spase-group.org or the IVOA thesaurus.
+  This is a complement to the target name to identify a substructure of the target that was being observed (e.g., Atmosphere, Surface). Preferably take terms from the UAT http://www.ivoa.net/rdf/uat.
 Late parameter *time_exp_max*
   defaults to ``None``;
   Integration time of the measurement, upper limit
@@ -10771,6 +10793,9 @@ Settings concerning database access.
 * msgEncoding: string; 
   defaults to 'utf-8' --
   Encoding of the messages coming from the database
+* poolSize: integer; 
+  defaults to '2' --
+  Number of connections in DaCHS' postgres connection pools.
 * profilePath: shell-type path; 
   defaults to '~/.gavo:$configDir' --
   Path for locating DB profiles
@@ -18351,6 +18376,17 @@ The optional arguments are as for degToHms.
 '23:33:10.80'
 >>> hoursToHms(123.553, secondFracs=2)
 '123:33:10.80'
+
+
+Function isMJD
+..............
+
+Signature: ``isMJD(col)``
+
+returns True if the rscdef.Column instance col likely contains MJD values.
+
+This has a long and winding history in DaCHS, and so this is a disaster
+of heuristics.
 
 
 Function iterSimpleText
