@@ -1031,6 +1031,9 @@ renderers -- include:
   after the ``dachs pub`` on the resource, or the registries will have
   two copies of your record, one of which will not be updated any more;
   and that would suck for Registry users.
+:published_identifer:
+  Like identifier, except it will be None if the resource does not look
+  like it is (destined to be) published.
 :mirrorURL:
   add these on publication to declare mirrors for a service.
   Only do so if you actually manage the other service.  If you list
