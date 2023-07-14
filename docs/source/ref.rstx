@@ -6891,7 +6891,7 @@ The experimental spectroscopy extension
 :grain_size_min:
   Min sample particle size
 :measurement_atmosphere:
-  Describes experimental conditions. ``vacuum'' for measurements under
+  Describes experimental conditions. ``vacuum`` for measurements under
   vacuum
 :pressure:
   Ambient pressure
@@ -12238,6 +12238,9 @@ renderers -- include:
   after the ``dachs pub`` on the resource, or the registries will have
   two copies of your record, one of which will not be updated any more;
   and that would suck for Registry users.
+:published_identifer:
+  Like identifier, except it will be None if the resource does not look
+  like it is (destined to be) published.
 :mirrorURL:
   add these on publication to declare mirrors for a service.
   Only do so if you actually manage the other service.  If you list
@@ -13801,28 +13804,28 @@ failure.
 
 Here's a list of assertion methods defined right now:
 
-*assertHTTPStatus(self, expectedStatus)*
+``assertHTTPStatus(self, expectedStatus)``
   checks whether the request came back with expectedStatus.
   
 
-*assertHasStrings(self, *strings)*
+``assertHasStrings(self, *strings)``
   checks that all its arguments are found within content.
   
   If string arguments are passed, they are utf-8 encoded before
   comparison.  If that's not what you want, pass bytes yourself.
   
 
-*assertHeader(self, key, value)*
+``assertHeader(self, key, value)``
   checks that header key has value in the response headers.
   
   keys are compared case-insensitively, values are compared literally.
   
 
-*assertLacksStrings(self, *strings)*
+``assertLacksStrings(self, *strings)``
   checks that all its arguments are *not* found within content.
   
 
-*assertValidatesXSD(self)*
+``assertValidatesXSD(self)``
   checks whether the returned data are XSD valid.
   
   This uses DaCHS built-in XSD validator with the built-in schema
@@ -13830,7 +13833,7 @@ Here's a list of assertion methods defined right now:
   external sources.
   
 
-*assertXpath(self, path, assertions)*
+``assertXpath(self, path, assertions)``
   checks an xpath assertion.
   
   path is an xpath (as understood by lxml), with namespace
@@ -13859,7 +13862,7 @@ Here's a list of assertion methods defined right now:
   EqualingRE in your code's namespace.
   
 
-*getFirstVOTableRow(self)*
+``getFirstVOTableRow(self)``
   interprets data as a VOTable and returns the first row as a dictionary
   
   In test use, make sure the VOTable returned is sorted, or you will get
@@ -13868,7 +13871,7 @@ Here's a list of assertion methods defined right now:
   issue) also honor _DBOPTIONS_ORDER).
   
 
-*getUnique(self, seq)*
+``getUnique(self, seq)``
   returns seq[0], asserting at the same time that len(seq) is 1.
   
   The idea is that you can say row = self.getUnique(self.getVOTableRows())
@@ -13876,12 +13879,12 @@ Here's a list of assertion methods defined right now:
   empty respone.
   
 
-*getVOTableRows(self)*
+``getVOTableRows(self)``
   parses the first table in a result VOTable and returns the contents
   as a sequence of dictionaries.
   
 
-*getXpath(self, path, element=None)*
+``getXpath(self, path, element=None)``
   returns the equivalent of tree.xpath(path) for an lxml etree
   of the current document or in element, if passed in.
   
@@ -16432,21 +16435,21 @@ there's NaN (which simply is ``float('nan')``).
 However, much of the time you will get by using the following functions
 that are immediately accessible in the namespace:
 
-*TAItoTT(tai)*
+``TAItoTT(tai)``
   returns TDT for a (datetime.datetime) TAI.
   
 
-*TTtoTAI(tdt)*
+``TTtoTAI(tdt)``
   returns TAI for a (datetime.datetime) TDT.
   
 
-*bYearToDateTime(bYear)*
+``bYearToDateTime(bYear)``
   returns a datetime.datetime instance for a fractional Besselian year.
   
   This uses the formula given by Lieske, J.H., A&A 73, 282 (1979).
   
 
-*computeMean(val1, val2)*
+``computeMean(val1, val2)``
   returns the mean value between two values.
   
   Beware: Integer division done here for the benefit of datetime calculations.
@@ -16458,20 +16461,20 @@ that are immediately accessible in the namespace:
   datetime.datetime(2000, 10, 12, 12, 0)
   
 
-*dateTimeToJYear(dt)*
+``dateTimeToJYear(dt)``
   returns a fractional (julian) year for a datetime.datetime instance.
   
 
-*dateTimeToJdn(dt)*
+``dateTimeToJdn(dt)``
   returns a julian day number (including fractionals) from a datetime
   instance.
   
 
-*dateTimeToMJD(dt)*
+``dateTimeToMJD(dt)``
   returns a modified julian date for a datetime instance.
   
 
-*degToDms(deg, sepChar=' ', secondFracs=2, preserveLeading=False, truncate=False, addSign=True)*
+``degToDms(deg: float, sepChar: str = ' ', secondFracs: int = 2, preserveLeading: bool = False, truncate: bool = False, addSign: bool = True) -> str``
   converts a float angle in degrees to a sexagesimal string.
   
   This takes a lot of optional arguments:
@@ -16499,7 +16502,7 @@ that are immediately accessible in the namespace:
   '-25.6835'
   
 
-*degToHms(deg, sepChar=' ', secondFracs=3, truncate=False)*
+``degToHms(deg: float, sepChar: str = ' ', secondFracs: int = 3, truncate: bool = False) -> str``
   converts a float angle in degrees to an time angle (hh:mm:ss.mmm).
   
   This takes a lot of optional arguments:
@@ -16531,7 +16534,7 @@ that are immediately accessible in the namespace:
   '256.2500'
   
 
-*dmsToDeg(dmsAngle, sepChar=None)*
+``dmsToDeg(dmsAngle: str, sepChar: Optional[str] = None) -> float``
   returns the degree minutes seconds-specified dmsAngle as a
   float in degrees.
   
@@ -16546,7 +16549,7 @@ that are immediately accessible in the namespace:
   ValueError: Invalid dms value with sepChar None: 'junk'
   
 
-*getAccrefFromStandardPubDID(pubdid, authBase='ivo://org.gavo.dc/~?')*
+``getAccrefFromStandardPubDID(pubdid, authBase='ivo://org.gavo.dc/~?')``
   returns an accref from a standard DaCHS PubDID.
   
   This is basically the inverse of getStandardPubDID.  It will raise
@@ -16561,7 +16564,7 @@ that are immediately accessible in the namespace:
   which probably is not what's given in this documentation.
   
 
-*getDatalinkMetaLink(dlSvc, accref)*
+``getDatalinkMetaLink(dlSvc, accref)``
   returns a datalink URL for the product referenced through accref
   with the datalink service dlSvc.
   
@@ -16573,7 +16576,7 @@ that are immediately accessible in the namespace:
     getDatalinkMetaLink(rd.getById("dl"), descriptor.accref)
   
 
-*getFileStem(fPath)*
+``getFileStem(fPath: str)``
   returns the file stem of a file path.
   
   The base name is what remains if you take the base name and split off
@@ -16589,14 +16592,14 @@ that are immediately accessible in the namespace:
   'baz'
   
 
-*getFlatName(accref)*
+``getFlatName(accref)``
   returns a unix-compatible file name for an access reference.
   
   The file name will not contain terrible characters, let alone
   slashes.  This is used to, e.g., keep all previews in one directory.
   
 
-*getInputsRelativePath(absPath, liberalChars=True)*
+``getInputsRelativePath(absPath, liberalChars=True)``
   returns absath relative to the DaCHS inputsDir.
   
   If ``absPath`` is not below ``inputsDir``, a ``ValueError`` results.  On
@@ -16606,14 +16609,14 @@ that are immediately accessible in the namespace:
   ``\inputRelativePath`` that inserts the appropriate code.
   
 
-*getQueryMeta()*
+``getQueryMeta()``
   returns a query meta object from somewhere up the stack.
   
   This is for row makers running within a service.  This can be used
   to, e.g., enforce match limits by writing getQueryMeta()["dbLimit"].
   
 
-*getRelativePath(fullPath, rootPath, liberalChars=True)*
+``getRelativePath(fullPath: str, rootPath: str, liberalChars: bool = True) -> str``
   returns rest if fullPath has the form rootPath/rest and raises an
   exception otherwise.
   
@@ -16622,7 +16625,7 @@ that are immediately accessible in the namespace:
   similar) are present in the result.  This is mainly for products.
   
 
-*getStandardPubDID(path)*
+``getStandardPubDID(path)``
   returns the standard DaCHS PubDID for ``path``.
   
   The publisher dataset identifier (PubDID) is important in protocols like
@@ -16641,7 +16644,7 @@ that are immediately accessible in the namespace:
   In a rowmaker, you'll usually use the \standardPubDID macro.
   
 
-*getWCSAxis(header, axisIndex, forceSeparable=False)*
+``getWCSAxis(header, axisIndex, forceSeparable=False)``
   returns a WCSAxis instance from an axis index and a FITS header.
   
   If the axis is mentioned in a transformation matrix (CD or PC),
@@ -16657,7 +16660,7 @@ that are immediately accessible in the namespace:
   a DaCHS-specific implementation).  We'll extend it on request.
   
 
-*hmsToDeg(hms, sepChar=None)*
+``hmsToDeg(hms: str, sepChar: Optional[str] = None) -> float``
   returns the time angle (h m s.decimals) as a float in degrees.
   
   >>> "%3.8f"%hmsToDeg("22 23 23.3")
@@ -16671,7 +16674,7 @@ that are immediately accessible in the namespace:
   ValueError: Invalid time with sepChar None: 'junk'
   
 
-*hoursToHms(decimal_hours, sepChar=':', secondFracs=0)*
+``hoursToHms(decimal_hours: float, sepChar: str = ':', secondFracs: int = 0) -> str``
   returns a time span in hours in sexagesmal time (h:m:s).
   
   The optional arguments are as for degToHms.
@@ -16690,7 +16693,7 @@ that are immediately accessible in the namespace:
   '123:33:10.80'
   
 
-*iterSimpleText(f)*
+``iterSimpleText(f: <class 'TextIO'>) -> Generator[Tuple[int, str], NoneType, NoneType]``
   iterates over ``(physLineNumber, line)`` in f with some usual
   conventions for simple data files.
   
@@ -16714,11 +16717,11 @@ that are immediately accessible in the namespace:
     to have intervening whitespace, have a blank in front of the backslash.
   
 
-*jdnToDateTime(jd)*
+``jdnToDateTime(jd)``
   returns a ``datetime.datetime`` instance for a julian day number.
   
 
-*killBlanks(literal)*
+``killBlanks(literal)``
   returns the string literal with all blanks removed.
   
   This is useful when numbers are formatted with blanks thrown in.
@@ -16726,11 +16729,11 @@ that are immediately accessible in the namespace:
   Nones are passed through.
   
 
-*lastSourceElements(path, numElements)*
+``lastSourceElements(path, numElements)``
   returns a path made up from the last ``numElements`` items in ``path``.
   
 
-*loadPythonModule(fqName, relativeTo=None)*
+``loadPythonModule(fqName: str, relativeTo: Optional[str] = None) -> Tuple[module, Any]``
   imports fqName and returns the (module, spec).
   
   Do not use this function to import DC-internal modules; this may
@@ -16753,14 +16756,14 @@ that are immediately accessible in the namespace:
   import mod.
   
 
-*makeAbsoluteURL(path, canonical=False)*
+``makeAbsoluteURL(path, canonical=False)``
   returns a fully qualified URL for a rooted local part.
   
   This will reflect the http/https access mode unless you pass
   canonical=True, in which case [web]serverURL will be used unconditionally.
   
 
-*makeIAUId(prefix, long, lat, longSec=0, latSec=0)*
+``makeIAUId(prefix: str, long: float, lat: float, longSec: int = 0, latSec: int = 0) -> str``
   returns an (equatorial) IAU identifier for an object at long and lat.
   
   The rules are given on https://cds.unistra.fr/Dic/iau-spec.html
@@ -16771,7 +16774,7 @@ that are immediately accessible in the namespace:
   latSec (the number of factional seconds to preserve).
   
 
-*makeProductLink(key, withHost=True, useHost=None)*
+``makeProductLink(key, withHost=True, useHost=None)``
   returns the URL at which a product can be retrieved.
   
   key can be an accref string or an RAccref.
@@ -16787,25 +16790,25 @@ that are immediately accessible in the namespace:
   will be returned unchanged.
   
 
-*makeSitePath(path)*
+``makeSitePath(path)``
   returns a rooted local part for a server-internal URL.
   
   uri itself needs to be server-absolute; a leading slash is recommended
   for clarity but not mandatory.
   
 
-*makeTimestamp(date, time)*
+``makeTimestamp(date, time)``
   makes a datetime instance from a date and a time.
   
 
-*mjdToDateTime(mjd)*
+``mjdToDateTime(mjd)``
   returns a ``datetime.datetime`` instance for a modified julian day number.
   
   Beware: This loses a couple of significant digits due to transformation
   to jd.
   
 
-*parseAngle(literal, format, sepChar=None)*
+``parseAngle(literal, format, sepChar=None)``
   converts the various forms angles might be encountered to degrees.
   
   format is one of hms, dms, fracHour.  For sexagesimal/time angles,
@@ -16820,14 +16823,14 @@ that are immediately accessible in the namespace:
   '315.314334'
   
 
-*parseBooleanLiteral(literal)*
+``parseBooleanLiteral(literal)``
   returns a python boolean from some string.
   
   Boolean literals are strings like True, false, on, Off, yes, No in
   some capitalization.
   
 
-*parseDate(literal, format='%Y-%m-%d')*
+``parseDate(literal, format='%Y-%m-%d')``
   returns a ``datetime.date`` object of literal parsed according to the
   strptime-similar format.
   
@@ -16835,7 +16838,7 @@ that are immediately accessible in the namespace:
   (stuff like 1980.89).
   
 
-*parseFloat(literal)*
+``parseFloat(literal)``
   returns a float from a literal, or None if literal is None or an empty
   string.
   
@@ -16850,7 +16853,7 @@ that are immediately accessible in the namespace:
   ValueError: could not convert string to float: 'wobbadobba'
   
 
-*parseISODT(literal, useTime=False)*
+``parseISODT(literal: str, useTime: bool = False) -> datetime.datetime``
   returns a datetime object for a ISO time literal.
   
   There's no real timezone support yet, but we accept and ignore various
@@ -16883,7 +16886,7 @@ that are immediately accessible in the namespace:
   ValueError: Bad ISO datetime literal: junk (required format: yyyy-mm-ddThh:mm:ssZ)
   
 
-*parseInt(literal)*
+``parseInt(literal)``
   returns an int from a literal, or None if literal is None or an empty
   string.
   
@@ -16893,7 +16896,7 @@ that are immediately accessible in the namespace:
   >>> parseInt(None)
   
 
-*parseTime(literal, format='%H:%M:%S')*
+``parseTime(literal, format='%H:%M:%S')``
   returns a ``datetime.timedelta`` object for literal parsed according
   to format.
   
@@ -16910,7 +16913,7 @@ that are immediately accessible in the namespace:
   datetime.timedelta(seconds=72240)
   
 
-*parseTimestamp(literal, format='%Y-%m-%dT%H:%M:%S')*
+``parseTimestamp(literal, format='%Y-%m-%dT%H:%M:%S')``
   returns a ``datetime.datetime`` object from a literal parsed according
   to the strptime-similar format.
   
@@ -16918,7 +16921,7 @@ that are immediately accessible in the namespace:
   a parse with essentially DALI-standard ISO representation is always tried)
   
 
-*parseWithNull(literal, baseParser, nullLiteral=<Undefined>, default=None, checker=None)*
+``parseWithNull(literal, baseParser, nullLiteral=<Undefined>, default=None, checker=None)``
   returns default if literal is ``nullLiteral``, else
   ``baseParser(literal)``.
   
@@ -16938,7 +16941,7 @@ that are immediately accessible in the namespace:
   None
   
 
-*quoteProductKey(key)*
+``quoteProductKey(key)``
   returns key as getproduct URL-part.
   
   If ``key`` is a string, it is quoted as a naked accref so it's usable
@@ -16947,19 +16950,19 @@ that are immediately accessible in the namespace:
   in any case.
   
 
-*requireValue(val, fieldName)*
+``requireValue(val, fieldName)``
   returns ``val`` unless it is ``None``, in which case a ``ValidationError``
   for ``fieldName`` will be raised.
   
 
-*scale(val, factor, offset=0)*
+``scale(val, factor, offset=0)``
   returns val*factor+offset if val is not None, None otherwise.
   
   This is when you want to manipulate a numeric value that may be NULL.
   It is a somewhat safer alternative to using nullExcs with scaled values.
   
 
-*toMJD(literal)*
+``toMJD(literal)``
   returns a modified julian date made from some datetime representation.
   
   Valid representations include:
@@ -17157,6 +17160,10 @@ A collection of tables.
 It is what ``makeData`` returns.  In typical one-table situations,
 you just want to call the ``getPrimaryTable()`` method to obtain the
 table built.
+
+These also have an attribute contributingMetaCarriers, a list of
+base.MetaCarrier-s used by votablewrite to create Data Origin INFO-s.  By
+default, that's the first table.  You can add to that attribute
 
 
 Class DataError
@@ -17792,7 +17799,7 @@ This uses the formula given by Lieske, J.H., A&A 73, 282 (1979).
 Function bytify
 ...............
 
-Signature: ``bytify(s)``
+Signature: ``bytify(s: Union[str, bytes]) -> bytes``
 
 returns s utf-8 encoded if it is a string, unmodified otherwise.
 
@@ -17881,7 +17888,7 @@ returns a modified julian date for a datetime instance.
 Function degToDms
 .................
 
-Signature: ``degToDms(deg, sepChar=' ', secondFracs=2, preserveLeading=False, truncate=False, addSign=True)``
+Signature: ``degToDms(deg: float, sepChar: str = ' ', secondFracs: int = 2, preserveLeading: bool = False, truncate: bool = False, addSign: bool = True) -> str``
 
 converts a float angle in degrees to a sexagesimal string.
 
@@ -17913,7 +17920,7 @@ This takes a lot of optional arguments:
 Function degToHms
 .................
 
-Signature: ``degToHms(deg, sepChar=' ', secondFracs=3, truncate=False)``
+Signature: ``degToHms(deg: float, sepChar: str = ' ', secondFracs: int = 3, truncate: bool = False) -> str``
 
 converts a float angle in degrees to an time angle (hh:mm:ss.mmm).
 
@@ -17949,7 +17956,7 @@ This takes a lot of optional arguments:
 Function dmsToDeg
 .................
 
-Signature: ``dmsToDeg(dmsAngle, sepChar=None)``
+Signature: ``dmsToDeg(dmsAngle: str, sepChar: Optional[str] = None) -> float``
 
 returns the degree minutes seconds-specified dmsAngle as a
 float in degrees.
@@ -17968,7 +17975,7 @@ ValueError: Invalid dms value with sepChar None: 'junk'
 Function document
 .................
 
-Signature: ``document(origFun)``
+Signature: ``document(origFun: Any)``
 
 is a decorator that adds a "buildDocsForThis" attribute to its argument.
 
@@ -18000,7 +18007,7 @@ if another formatter that doesn't understand the argument is being used.
 Function formatISODT
 ....................
 
-Signature: ``formatISODT(dt)``
+Signature: ``formatISODT(dt: datetime.datetime) -> str``
 
 returns some ISO8601 representation of a datetime instance.
 
@@ -18104,7 +18111,7 @@ A typical use is in a metaMaker and would look like this::
 Function getFileStem
 ....................
 
-Signature: ``getFileStem(fPath)``
+Signature: ``getFileStem(fPath: str)``
 
 returns the file stem of a file path.
 
@@ -18234,7 +18241,7 @@ This supports further keyword arguments to getRD.
 Function getRelativePath
 ........................
 
-Signature: ``getRelativePath(fullPath, rootPath, liberalChars=True)``
+Signature: ``getRelativePath(fullPath: str, rootPath: str, liberalChars: bool = True) -> str``
 
 returns rest if fullPath has the form rootPath/rest and raises an
 exception otherwise.
@@ -18340,7 +18347,7 @@ object also has the following methods:
 Function hmsToDeg
 .................
 
-Signature: ``hmsToDeg(hms, sepChar=None)``
+Signature: ``hmsToDeg(hms: str, sepChar: Optional[str] = None) -> float``
 
 returns the time angle (h m s.decimals) as a float in degrees.
 
@@ -18358,7 +18365,7 @@ ValueError: Invalid time with sepChar None: 'junk'
 Function hoursToHms
 ...................
 
-Signature: ``hoursToHms(decimal_hours, sepChar=':', secondFracs=0)``
+Signature: ``hoursToHms(decimal_hours: float, sepChar: str = ':', secondFracs: int = 0) -> str``
 
 returns a time span in hours in sexagesmal time (h:m:s).
 
@@ -18392,7 +18399,7 @@ of heuristics.
 Function iterSimpleText
 .......................
 
-Signature: ``iterSimpleText(f)``
+Signature: ``iterSimpleText(f: <class 'TextIO'>) -> Generator[Tuple[int, str], NoneType, NoneType]``
 
 iterates over ``(physLineNumber, line)`` in f with some usual
 conventions for simple data files.
@@ -18458,7 +18465,7 @@ returns a path made up from the last ``numElements`` items in ``path``.
 Function loadPythonModule
 .........................
 
-Signature: ``loadPythonModule(fqName, relativeTo=None)``
+Signature: ``loadPythonModule(fqName: str, relativeTo: Optional[str] = None) -> Tuple[module, Any]``
 
 imports fqName and returns the (module, spec).
 
@@ -18554,7 +18561,7 @@ they are assumed to originate there and are ignored.
 Function makeIAUId
 ..................
 
-Signature: ``makeIAUId(prefix, long, lat, longSec=0, latSec=0)``
+Signature: ``makeIAUId(prefix: str, long: float, lat: float, longSec: int = 0, latSec: int = 0) -> str``
 
 returns an (equatorial) IAU identifier for an object at long and lat.
 
@@ -18739,6 +18746,33 @@ The function understands the special ``dateFormat`` ``!!jYear``
 (stuff like 1980.89).
 
 
+Function parseDefaultDate
+.........................
+
+Signature: ``parseDefaultDate(literal: Union[str, datetime.date, NoneType]) -> Optional[datetime.date]``
+
+parseDefaultDatetime's little sister.
+
+
+Function parseDefaultDatetime
+.............................
+
+Signature: ``parseDefaultDatetime(literal: Union[str, datetime.datetime, NoneType]) -> Optional[datetime.datetime]``
+
+returns a datetime from string or passes through datetimes and Nones.
+
+The function will try to parse a string in various ways; we will
+try not to drop formats from one minor version to the next.
+
+
+Function parseDefaultTime
+.........................
+
+Signature: ``parseDefaultTime(literal: Union[str, datetime.time, NoneType]) -> Optional[datetime.time]``
+
+parseDefaultDatetime's other little sister.
+
+
 Function parseFloat
 ...................
 
@@ -18774,7 +18808,7 @@ this::
 Function parseISODT
 ...................
 
-Signature: ``parseISODT(literal, useTime=False)``
+Signature: ``parseISODT(literal: str, useTime: bool = False) -> datetime.datetime``
 
 returns a datetime object for a ISO time literal.
 
@@ -18997,7 +19031,7 @@ restore has failed.
 Function safeReplaced
 .....................
 
-Signature: ``safeReplaced(*args, **kwds)``
+Signature: ``safeReplaced(fName, binary=True)``
 
 opens fName for "safe replacement".
 

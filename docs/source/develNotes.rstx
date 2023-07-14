@@ -398,6 +398,38 @@ Also note that flake_all hardcodes that modules from imp are not
 checked.
 
 
+Type annotation
+---------------
+
+We are slowly adding PEP 484 type annotations to DaCHS.  Our baseline
+here is python 3.7.  However, we isolate ourselves from the underlying
+typing module by only importing utils.dachstypes.  This creates some
+derived types we need in multiple modules, but in particular it will
+give fallbacks for newer typing features.  TL;DR: ``from
+gavo.utils.dachstypes import Any, Types``.
+
+The type checking is done by mypy.  While we're adding annotation, use
+the tests/typecheck.sh script, intended to be called from within the
+tests directory.  When you have added type annotations to a module,
+add its module name in that script.
+
+During annotation, it's probably smarter to directly run ``mypy
+<filename>``.
+
+Here's a scratch pad for things to think about:
+
+* sourceTokens right now can be almost anything in rsc.data (though not
+  in all grammars).  Do I want to become a bit more restrictive and
+  reflect that in type annotations?
+
+* For file names, I'm currently using strings exclusively, but perhaps
+  I should be accepting pathlib paths, too?  To make a later migration
+  simpler, use dachstypes.Filename whenever something actually is a
+  filename (even though right now it's just a str).
+
+* Let's annotate all instance variables on assignment.  Class variables
+  would probably be useful, too.
+
 Coverage
 --------
 
@@ -450,62 +482,7 @@ recommended for everyone, though)
 Testing in Chroots
 ------------------
 
-When we release to Debian, we release to unstable, and hence we need to
-test in a chroot.  Here's my current practice:
-
-(a) create a chroot environment; I've been using ``DIST=unstable
-    git-pbuilder create``
-
-(b) get yourself a shell in there and make sure the dependencies for our
-    unit tests are in (the path will probably be different for you)::
-
-      sudo chroot /home/pbuilder/unstable-i386/base.cow/ bash
-
-      apt install subversion vim
-      apt install libjs-jquery libjs-jquery-flot python3-cryptography python3-docutils  python3-lxml python3-matplotlib python3-pkg-resources python3-psycopg2 python3-pymoc python3-rjsmin python3-testresources python3-twisted python3-astropy python3-docutils python3-numpy python3-pil python3-pkg-resources python3-psycopg2 python3-pyparsing libcfitsio-dev python3-healpy
-
-(c) Make a user to run the things, and make it identical to what you're
-    using to run the unit tests outside of the chroot::
-
-      adduser msdemlei (well, your user name)
-      set uid to 135 (well, whatever you have on the host)
-      addgroup gavo
-      adduser msdemlei gavo
-
-(d) Become the user and get create the environment to run the unit
-    tests::
-
-      su - msdemlei
-      mkdir -p gavo/logs
-      svn co https://svn.ari.uni-heidelberg.de/svn/gavo/python/trunk
-
-    As root in the container::
-
-      python3 /home/msdemlei/trunk/setup.py develop
-
-    Back as msdemlei::
-
-      cd trunk/tests
-      python3 runAllTests.py
-
-    This will fail because it won't find the database (or createdb).
-    Just copy the data from your external test harness, i.e., from the
-    host system::
-
-      	cd ~/_gavo_test/etc
-	      cp *  /home/pbuilder/unstable-i386/base.cow/home/msdemlei/_gavo_test/etc)
-
-	  Back in the chroot, this should now work::
-
-      python3 runAllTests.py
-	
-    To run DaCHS interactively, an alias like the following comes handy::
-
-      alias testgavo='env GAVOSETTINGS=/home/msdemlei/trunk/tests/test_data/test-gavorc GAVOCUSTOM=/invalid gavo'
-
-    Due to the uid magic, you can edit the in-chroot files in the host
-    system; just go to the ``.../base.cow/home/msdemlei/trunk/...``.
-
+See https://svn.ari.uni-heidelberg.de/svn/integration.
 
 Configuration
 =============

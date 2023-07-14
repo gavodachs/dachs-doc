@@ -984,8 +984,8 @@ renderers -- include:
   freetext copyright notice.  See
   :dachsdoc:`tutorial.html#Licensing` for details.
 :rights.rightsURI:
-  machine readable license URI.  There's no formal list of
-  acknowledged URIs yet, but the common CC URIs are a good start.
+  machine readable license URI.  Take from https://spdx.org/licenses/ if
+  possible.
 :source:
   bibcodes will be expanded to ADS links here.
 :referenceURL:
@@ -3049,7 +3049,10 @@ common arguments:
   that the link points to an image, you would thus put ``#image`` into
   content qualifier.  Clients are intended to use this information to
   route the links to whatever SAMP clients can be expected to handle
-  them (version 2.8+).
+  them (version 2.8+).  To set the content qualifier on the #this link
+  DaCHS automatically generates (without ``suppressAutoLinks``, that
+  is), set a ``contentQualifier`` on the attribute on the descriptor;
+  DaCHS-provided descriptor fenerators have a corresponding parameter.
 
 Except for ``semantics``, all of these are optional and must be passed
 in as keyword arguments.
