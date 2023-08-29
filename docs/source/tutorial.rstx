@@ -77,14 +77,16 @@ out and learn DaCHS, get a machine running Debian stable and type::
 
   apt install gavodachs2-server
 
-At least as of Debian buster, you still have to `manually add our
-repository`_.
+This will give you the DaCHS software that was current when the Debian
+release was frozen, which ought to be just fine for “normal“ publishing
+activity.  If you need a bleeding-edge DaCHS (or run into a fixed bug),
+read up on `manually add our repository`_.
 
 DaCHS can be installed and run in many other ways, as detailed in the
 `Installation Guide`_.  But since DaCHS involves communication with a
 database server and the network, it is certainly a good idea to start
 out with a simple, one-server setup on a platform that many
-others use and that therefore has a rather low likeihood of odd
+others use and that therefore has a rather low likelihood of odd
 surprises.
 
 
@@ -6281,7 +6283,7 @@ user).
 
 In newer postgreses, simply run::
 
-  sudo -u postgres /usr/lib/postgresql/15/bin/vacuumdb --all --analyze
+  sudo -u postgres /usr/lib/postgresql/$NEWVER/bin/vacuumdb --all --analyze
 
 Pg_upgrade has also printed a command that will remove the old
 cluster; execute it, and finally deinstall the old postgres packages to

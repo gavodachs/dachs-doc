@@ -402,7 +402,8 @@ Type annotation
 ---------------
 
 We are slowly adding PEP 484 type annotations to DaCHS.  Our baseline
-here is python 3.7.  However, we isolate ourselves from the underlying
+here is python 3.9 with python3-typeshed installed and from Debian
+stable.  However, we isolate ourselves from the underlying
 typing module by only importing utils.dachstypes.  This creates some
 derived types we need in multiple modules, but in particular it will
 give fallbacks for newer typing features.  TL;DR: ``from
@@ -427,8 +428,17 @@ Here's a scratch pad for things to think about:
   simpler, use dachstypes.Filename whenever something actually is a
   filename (even though right now it's just a str).
 
-* Let's annotate all instance variables on assignment.  Class variables
-  would probably be useful, too.
+* Let's annotate all instance variables on assignment (where type
+  inference isn't enough, that is).  Class variables would probably be
+  useful, too.
+
+* It seems that in bookworm, type annotations for astropy are not yet
+  available, and hence we're type-ignoring astropy imports throughout.
+  We should revisit that with a backport of python3-typeshed, I guess.
+
+* I need to think a bit more about generics.  The StreamBuffer in
+  misctricks has a nice puzzler currently marked with a TODO.
+
 
 Coverage
 --------
@@ -479,15 +489,22 @@ recommended for everyone, though)
   the repo for the RDs is the same on development and production).
 
 
-Testing in Chroots
-------------------
+Certificate
+-----------
 
-See https://svn.ari.uni-heidelberg.de/svn/integration.
+On the test installation, you should have a snake oil certificate,
+because we're doing SSL exercising.  To generate it, go to
+``$GAVO_DIR/hazmat`` and say::
+
+  openssl genrsa -out server.key 2048
+  openssl req -new -x509 -key server.key -out server.pem -days 2000
+  cat server.key server.pem > bundle.pem
+
 
 Configuration
 =============
 
-DaCHS has far too many configuration hooks: gavo.rc, defaultmeta.txt,
+DaCHS has far too many different configuration hooks: gavo.rc, defaultmeta.txt,
 the database profiles,  vanitynames.txt, userconfig.rd, as well as
 locally-overridden system RDs and templates.    At least defaultmeta.txt
 was a mistake, as was probably vanitynames.txt.  We should be working on

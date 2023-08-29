@@ -260,10 +260,9 @@ with SVN revision 6511::
   $ cd dachs
 
 
-Run setup::
+Install editable, not touching any of the system packages::
 
-  $ python setup.py install --dry-run # (Look for problems)
-  $ sudo python setup.py install
+  $ sudo -H pip install --no-deps --break-system-packages --no-build-isolation -e .
 	
 From here follow the standard instructions to test dachs.  With this,
 you should be all set to try out stuff from :dachsdoc:`tutorial.html`.
@@ -421,14 +420,18 @@ than it's worth, which means you need to manually install Dependencies_.
 To install the software, in the ``dachs`` directory you checked out
 above, say::
 
-  sudo python setup.py develop
+  sudo -H pip install --no-deps --break-system-packages --no-build-isolation -e .
 
-(there are various options to get the stuff installed when you prefer
-not to install as root; refer to the `setuptools documentation`_ if
-necessary).  The checkout itself needs to be readable by whoever later
-runs the server in this mode.  You can also use ``install`` instead of
-``develop``; in that case, you will have to rerun setup.py everytime
-you update the source.
+(in DaCHS < 2.8.1, you should instead simply say ``sudo setup.py
+develop``).  This looks ghastly and looks dangerous but is actually what
+you need to do if you want to install a single package system-wide
+without stepping on the distribution's packages and downloading code
+from pypi.
+
+This installs in “editable mode“, that is, if you edit anything in your
+checkout, it will be reflected in what the system executes.  There is
+nothing wrong with leaving out the ``-e`` flag, except that probably
+defeats the purpose of installing from SVN in the first place.
 
 **Note**: If running from SVN, do not forget to run ``dachs upgrade``
 *after* an ``svn update``.  The on-disk structures of DaCHS sometimes
@@ -441,10 +444,6 @@ do anything, just make it a routine to run it.
 **Note**: ``python setup.py install`` and friends do not install DaCHS'
 man page.  Either do that manually (it's in docs/dachs.1) or use the
 online version at :dachsdoc:`dachs.1.html`
-
-.. _nevow: http://divmod.org/trac/wiki/DivmodNevow
-.. _setuptools documentation: http://peak.telecommunity.com/DevCenter/EasyInstall
-
 
 
 Setup
