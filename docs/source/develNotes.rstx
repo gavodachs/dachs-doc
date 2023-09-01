@@ -460,6 +460,31 @@ To exclude code from coverage computation, use::
   # pragma: no cover
 
 
+Integration Testing
+-------------------
+
+There's some podman-based containers for various package installation
+scenarios at
+http://svn.ari.uni-heidelberg.de/svn/integration/dockerbased.
+
+For running directly from what's in version control (and that should not
+be necessary a lot), there's non-package-dachstest, currently only on
+Markus' machine.
+
+
+Certificate
+-----------
+
+On the test installation, you should have a snake oil certificate,
+because we're doing SSL exercising.  To generate it, go to
+``$GAVO_DIR/hazmat`` and say::
+
+  openssl genrsa -out server.key 2048
+  openssl req -new -x509 -key server.key -out server.pem -days 2000
+  cat server.key server.pem > bundle.pem
+
+
+
 Test Plan
 ---------
 
@@ -488,17 +513,6 @@ recommended for everyone, though)
   against the production server; this does what it's supposed to da as
   the repo for the RDs is the same on development and production).
 
-
-Certificate
------------
-
-On the test installation, you should have a snake oil certificate,
-because we're doing SSL exercising.  To generate it, go to
-``$GAVO_DIR/hazmat`` and say::
-
-  openssl genrsa -out server.key 2048
-  openssl req -new -x509 -key server.key -out server.pem -days 2000
-  cat server.key server.pem > bundle.pem
 
 
 Configuration
