@@ -1,9 +1,10 @@
-name: Netlify
+name: RTD
 
 # Controls when the action will run. Triggers the workflow on push request, or repository dispatch
 on:
   push:
     branches: [latest]
+  pull_request:
     
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
