@@ -1,0 +1,33 @@
+name: RTD
+
+# Controls when the action will run. Triggers the workflow on push request, or repository dispatch
+on:
+  # Runs when pushing to 'latest'branch
+  push:
+    branches: [latest]
+    
+  # Run in every PR too
+  pull_request:
+  
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+    
+# A workflow run is made up of one or more jobs that can run sequentially or in parallel
+jobs:
+
+  # This workflow contains a single job called "build"
+  build:
+    #  The type of runner that the job will run on
+    runs-on: ubuntu-latest
+
+    # Steps represent a sequence of tasks that will be executed as part of the jobs
+    steps:
+    
+      # Trigger RTD build
+      - name: Build the docs
+        run: |
+          curl -X POST -H "Authorization: Token ${{ secrets.TOKEN_RTD }}" \
+          https://readthedocs.org/api/v3/projects/dachs-doc/versions/latest/builds/
+        # env:
+        #   TOKEN_RTD: ${{ secrets.TOKEN_RTD }}
